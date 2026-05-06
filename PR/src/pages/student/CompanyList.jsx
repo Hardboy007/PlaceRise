@@ -16,7 +16,7 @@ export default function CompanyListPage() {
   const [role, setRole] = useState("All");
 
   const allRoles = useMemo(() => {
-    return ["All", ...new Set(companies.map((c) => c.role))];
+    return ["All Role", ...new Set(companies.map((c) => c.role))];
   }, []);
 
   const roleCountMap = useMemo(() => {
@@ -57,7 +57,7 @@ export default function CompanyListPage() {
 
       {/* Navbar */}
       <div className="flex justify-between items-center px-6 py-4 bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 text-white shadow-lg">
-        <h1 className="text-2xl font-bold tracking-wide">Placerise</h1>
+        <h1 className="text-2xl font-bold tracking-wide">PlaceRise</h1>
       </div>
 
       {/* Hero Section */}
