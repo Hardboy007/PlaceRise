@@ -5,7 +5,7 @@ import StudentDashboard from '../pages/student/StudentDashboard'
 import StudentApplication from '../pages/student/StudentApplication'
 import StudentOnboardingPage from '../pages/student/StudentOnboardingPage'
 import StudentProfilePage from '../pages/student/StudentProfile'
-
+import CompanyListPage from '../pages/student/CompanyList'
 
 function AppRouter() {
   return (
@@ -17,7 +17,7 @@ function AppRouter() {
         {/* Student Routes - Layout ke andar */}
         <Route path="/student" element={<StudentLayout />}>
           <Route path="dashboard" element={<StudentDashboard />} />
-          <Route path="companies" element={<div>Company List</div>} />
+          <Route path="companies" element={<CompanyListPage />} />
           <Route path="companies/:companyId" element={<div>Company Detail</div>} />
           <Route path="applications" element={<StudentApplication />} />
           <Route path="profile" element={<StudentProfilePage />} />

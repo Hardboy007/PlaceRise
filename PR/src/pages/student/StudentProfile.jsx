@@ -150,7 +150,7 @@ export default function StudentProfilePage() {
         className="relative rounded-3xl overflow-hidden mb-6 border border-white/10"
         style={{
           background:
-            "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
+            "linear-gradient(135deg, #3B82F6 0%, #60A5FA 60%, #818CF8 100%)",
         }}
       >
         {/* Background Effects */}
@@ -167,12 +167,12 @@ export default function StudentProfilePage() {
           <div
             className="w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl font-bold flex-shrink-0"
             style={{
-              background: "linear-gradient(135deg, #3B82F6, #1E293B)",
+              background: 'linear-gradient(135deg, white, #E0E7FF)', padding: '3px',
               padding: "3px",
             }}
           >
             <div
-              className="w-full h-full rounded-full bg-[#1E2A3A] flex items-center justify-center text-2xl font-bold"
+              className="w-full h-full rounded-full bg-[#3B82F6] flex items-center justify-center text-2xl font-bold text-white"
               style={{ fontFamily: "Space Grotesk, sans-serif" }}
             >
               {student.name?.charAt(0)}
@@ -191,20 +191,20 @@ export default function StudentProfilePage() {
               {displayData?.branch} · {displayData?.year}
             </p>
             <div className="flex flex-wrap gap-2">
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30">
                 Roll: {student.rollNo}
               </span>
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-500/15 text-green-300 border border-green-500/25">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30">
                 CGPA {student.cgpa}
               </span>
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/25">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30">
                 {student.city}, {student.state}
               </span>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex flex-col gap-2 flex-shrink-0">
+          <div className="flex flex-col gap-2 shrink-0">
             {editing ? (
               <>
                 <button
@@ -223,7 +223,7 @@ export default function StudentProfilePage() {
             ) : (
               <button
                 onClick={handleEdit}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary hover:bg-blue-600 text-white text-sm font-semibold transition-colors shadow-[0_4px_12px_rgba(59,130,246,0.3)]"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-[#3B82F6] hover:bg-white/90 text-sm font-semibold transition-colors shadow-md"
               >
                 <Edit3 size={14} /> Edit Profile
               </button>

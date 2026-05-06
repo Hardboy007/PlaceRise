@@ -1,9 +1,8 @@
 import AppRouter from './routes/AppRouter'
-import CompanyList from './pages/student/CompanyList' 
 
 function App() {
 
-  return <CompanyList />
+  return <AppRouter />
 }
 
 export default App
