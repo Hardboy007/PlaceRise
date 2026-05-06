@@ -1,4 +1,14 @@
 import { useState, useRef } from "react";
+import {
+  User,
+  GraduationCap,
+  Zap,
+  FileText,
+  Edit3,
+  Check,
+  X,
+  Plus,
+} from "lucide-react";
 
 const defaultStudent = {
   name: "Harsh Rathore",
@@ -14,799 +24,81 @@ const defaultStudent = {
   cgpa: "8.4",
   rollNo: "CSE2022041",
   skills: ["React", "Node.js", "Python", "Tailwind CSS", "MongoDB"],
-  photo: null,
   resume: null,
+  erpId: "23BTCSE0096",
+  tenthMarks: "85",
+  twelfthMarks: "78",
+  backlogs: "0",
+  placementStatus: "Not Placed",
 };
-
-function loadStudent() {
-  try {
-    const saved = localStorage.getItem("studentProfile");
-    return saved ? JSON.parse(saved) : defaultStudent;
-  } catch {
-    return defaultStudent;
-  }
-}
-
-function saveStudent(data) {
-  try {
-    localStorage.setItem("studentProfile", JSON.stringify(data));
-  } catch {
-    console.error("Save failed");
-  }
-}
-
-const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  /* ── Theme Variables ── */
-  :root {
-    --color-primary:    #1E293B;
-    --color-accent:     #3B82F6;
-    --color-background: #F1F5F9;
-    --color-text-main:  #0F172A;
-    --color-text-muted: #64748B;
-    --color-success:    #22C55E;
-    --color-warning:    #F59E0B;
-    --color-danger:     #EF4444;
-  }
-
-  .sp-root {
-    min-height: 100vh;
-    background: var(--color-background);
-    font-family: 'DM Sans', sans-serif;
-    color: var(--color-text-main);
-    position: relative;
-    overflow-x: hidden;
-  }
-
-  /* subtle accent blobs — light theme ke liye softer */
-  .sp-root::before {
-    content: '';
-    position: fixed;
-    top: -30%;
-    right: -20%;
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .sp-root::after {
-    content: '';
-    position: fixed;
-    bottom: -20%;
-    left: -15%;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, rgba(34,197,94,0.06) 0%, transparent 70%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  /* ── Navbar ── */
-  .sp-nav {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: var(--color-primary);
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    padding: 0 32px;
-    height: 58px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 1px 12px rgba(15,23,42,0.15);
-  }
-
-  .sp-nav-logo {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 17px;
-    color: #fff;
-    letter-spacing: -0.5px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .sp-nav-logo-dot {
-    width: 8px; height: 8px;
-    background: var(--color-accent);
-    border-radius: 50%;
-    box-shadow: 0 0 8px rgba(59,130,246,0.8);
-    animation: pulse-dot 2s ease-in-out infinite;
-  }
-
-  @keyframes pulse-dot {
-    0%, 100% { box-shadow: 0 0 8px rgba(59,130,246,0.8); transform: scale(1); }
-    50%       { box-shadow: 0 0 16px rgba(59,130,246,1);  transform: scale(1.3); }
-  }
-
-  .sp-nav-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .sp-badge-saved {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--color-success);
-    background: rgba(34,197,94,0.12);
-    border: 1px solid rgba(34,197,94,0.3);
-    padding: 4px 12px;
-    border-radius: 999px;
-    letter-spacing: 0.03em;
-    animation: fadeIn 0.3s ease;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-4px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  .sp-nav-tag {
-    font-size: 12px;
-    color: rgba(255,255,255,0.45);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    font-weight: 500;
-  }
-
-  .sp-content {
-    max-width: 940px;
-    margin: 0 auto;
-    padding: 36px 20px 60px;
-    position: relative;
-    z-index: 1;
-  }
-
-  /* ── Hero ── */
-  .sp-hero {
-    position: relative;
-    border-radius: 24px;
-    overflow: hidden;
-    margin-bottom: 24px;
-    background: var(--color-primary);
-    border: 1px solid rgba(255,255,255,0.05);
-    box-shadow: 0 20px 50px rgba(15,23,42,0.2);
-  }
-
-  .sp-hero-bg-pattern {
-    position: absolute;
-    inset: 0;
-    opacity: 0.5;
-    background-image:
-      radial-gradient(circle at 20% 50%, rgba(59,130,246,0.25) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(34,197,94,0.15) 0%, transparent 40%);
-  }
-
-  .sp-hero-grid-lines {
-    position: absolute;
-    inset: 0;
-    opacity: 0.03;
-    background-image: linear-gradient(rgba(255,255,255,1) 1px, transparent 1px),
-                      linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px);
-    background-size: 40px 40px;
-  }
-
-  .sp-hero-inner {
-    position: relative;
-    z-index: 1;
-    padding: 36px 36px 32px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 28px;
-  }
-
-  /* ── Avatar ── */
-  .sp-avatar-wrap {
-    position: relative;
-    flex-shrink: 0;
-  }
-
-  .sp-avatar-ring {
-    width: 110px;
-    height: 110px;
-    border-radius: 50%;
-    padding: 3px;
-    background: linear-gradient(135deg, var(--color-accent), var(--color-success));
-    position: relative;
-  }
-
-  .sp-avatar-inner {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    overflow: hidden;
-    background: #1E2A3A;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Syne', sans-serif;
-    font-size: 40px;
-    font-weight: 800;
-    color: #fff;
-  }
-
-  .sp-avatar-inner img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .sp-avatar-edit-btn {
-    position: absolute;
-    bottom: 2px;
-    right: 2px;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background: var(--color-accent);
-    border: 2px solid var(--color-primary);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    transition: transform 0.2s, background 0.2s;
-    box-shadow: 0 2px 8px rgba(59,130,246,0.4);
-  }
-
-  .sp-avatar-edit-btn:hover {
-    transform: scale(1.1);
-    background: #2563EB;
-  }
-
-  /* ── Hero info ── */
-  .sp-hero-info {
-    flex: 1;
-    min-width: 200px;
-  }
-
-  .sp-hero-name {
-    font-family: 'Syne', sans-serif;
-    font-size: 32px;
-    font-weight: 800;
-    color: #fff;
-    letter-spacing: -1px;
-    line-height: 1.1;
-    margin-bottom: 8px;
-  }
-
-  .sp-hero-sub {
-    font-size: 13px;
-    color: rgba(255,255,255,0.5);
-    margin-bottom: 4px;
-    font-weight: 400;
-  }
-
-  .sp-hero-college {
-    font-size: 13px;
-    color: rgba(255,255,255,0.35);
-  }
-
-  .sp-hero-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 16px;
-  }
-
-  .sp-chip {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 4px 12px;
-    border-radius: 999px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  /* chips use accent / success / warning */
-  .sp-chip-indigo {
-    background: rgba(59,130,246,0.18);
-    color: #93C5FD;
-    border: 1px solid rgba(59,130,246,0.35);
-  }
-
-  .sp-chip-green {
-    background: rgba(34,197,94,0.14);
-    color: #86EFAC;
-    border: 1px solid rgba(34,197,94,0.3);
-  }
-
-  .sp-chip-amber {
-    background: rgba(245,158,11,0.14);
-    color: #FCD34D;
-    border: 1px solid rgba(245,158,11,0.3);
-  }
-
-  /* ── Buttons ── */
-  .sp-hero-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    flex-shrink: 0;
-  }
-
-  .sp-btn-primary {
-    background: var(--color-accent);
-    color: #fff;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 600;
-    font-size: 13px;
-    padding: 10px 22px;
-    border-radius: 10px;
-    border: none;
-    cursor: pointer;
-    transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
-    box-shadow: 0 4px 14px rgba(59,130,246,0.35);
-    letter-spacing: 0.02em;
-    white-space: nowrap;
-  }
-
-  .sp-btn-primary:hover {
-    background: #2563EB;
-    transform: translateY(-1px);
-    box-shadow: 0 8px 20px rgba(59,130,246,0.45);
-  }
-
-  .sp-btn-primary:active { transform: translateY(0); }
-
-  .sp-btn-ghost {
-    background: rgba(255,255,255,0.08);
-    color: rgba(255,255,255,0.75);
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 600;
-    font-size: 13px;
-    padding: 10px 22px;
-    border-radius: 10px;
-    border: 1px solid rgba(255,255,255,0.12);
-    cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
-    white-space: nowrap;
-  }
-
-  .sp-btn-ghost:hover {
-    background: rgba(255,255,255,0.13);
-    border-color: rgba(255,255,255,0.22);
-  }
-
-  .sp-btn-save {
-    background: var(--color-success);
-    color: #fff;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 600;
-    font-size: 13px;
-    padding: 10px 22px;
-    border-radius: 10px;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 4px 14px rgba(34,197,94,0.35);
-    transition: transform 0.15s, background 0.15s;
-    white-space: nowrap;
-  }
-
-  .sp-btn-save:hover {
-    background: #16A34A;
-    transform: translateY(-1px);
-  }
-
-  /* ── Stats Row ── */
-  .sp-stats-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-    margin-bottom: 24px;
-  }
-
-  .sp-stat-card {
-    background: #fff;
-    border: 1px solid #E2E8F0;
-    border-radius: 16px;
-    padding: 18px 20px;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 1px 4px rgba(15,23,42,0.06);
-  }
-
-  .sp-stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    border-radius: 3px 3px 0 0;
-  }
-
-  .sp-stat-card.indigo::before { background: linear-gradient(90deg, var(--color-accent), transparent); }
-  .sp-stat-card.green::before  { background: linear-gradient(90deg, var(--color-success), transparent); }
-  .sp-stat-card.amber::before  { background: linear-gradient(90deg, var(--color-warning), transparent); }
-  .sp-stat-card.rose::before   { background: linear-gradient(90deg, var(--color-danger), transparent); }
-
-  .sp-stat-card:hover {
-    border-color: #CBD5E1;
-    box-shadow: 0 4px 16px rgba(15,23,42,0.1);
-  }
-
-  .sp-stat-icon { font-size: 20px; margin-bottom: 10px; }
-
-  .sp-stat-value {
-    font-family: 'Syne', sans-serif;
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--color-text-main);
-    line-height: 1;
-    margin-bottom: 4px;
-  }
-
-  .sp-stat-label {
-    font-size: 11px;
-    color: var(--color-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    font-weight: 500;
-  }
-
-  /* ── Sections ── */
-  .sp-grid-2col {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-bottom: 20px;
-  }
-
-  .sp-section {
-    background: #fff;
-    border: 1px solid #E2E8F0;
-    border-radius: 20px;
-    padding: 26px;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    box-shadow: 0 1px 4px rgba(15,23,42,0.05);
-  }
-
-  .sp-section:hover {
-    border-color: #CBD5E1;
-    box-shadow: 0 4px 16px rgba(15,23,42,0.08);
-  }
-
-  .sp-section-full {
-    background: #fff;
-    border: 1px solid #E2E8F0;
-    border-radius: 20px;
-    padding: 26px;
-    margin-bottom: 20px;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    box-shadow: 0 1px 4px rgba(15,23,42,0.05);
-  }
-
-  .sp-section-full:hover {
-    border-color: #CBD5E1;
-    box-shadow: 0 4px 16px rgba(15,23,42,0.08);
-  }
-
-  .sp-section-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 22px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid #F1F5F9;
-  }
-
-  .sp-section-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 15px;
-    flex-shrink: 0;
-  }
-
-  .sp-section-icon.indigo { background: rgba(59,130,246,0.1);  }
-  .sp-section-icon.green  { background: rgba(34,197,94,0.1);   }
-  .sp-section-icon.amber  { background: rgba(245,158,11,0.1);  }
-  .sp-section-icon.blue   { background: rgba(59,130,246,0.1);  }
-
-  .sp-section-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--color-text-main);
-    letter-spacing: 0.01em;
-  }
-
-  /* ── Fields ── */
-  .sp-field { margin-bottom: 18px; }
-  .sp-field:last-child { margin-bottom: 0; }
-
-  .sp-field-label {
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--color-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 5px;
-  }
-
-  .sp-field-value {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--color-text-main);
-  }
-
-  .sp-field-input {
-    width: 100%;
-    background: var(--color-background);
-    border: 1.5px solid #CBD5E1;
-    color: var(--color-text-main);
-    border-radius: 10px;
-    padding: 9px 13px;
-    font-size: 13px;
-    font-family: 'DM Sans', sans-serif;
-    outline: none;
-    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
-  }
-
-  .sp-field-input:focus {
-    border-color: var(--color-accent);
-    background: #fff;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
-  }
-
-  .sp-field-input::placeholder { color: #94A3B8; }
-
-  /* ── Skills ── */
-  .sp-skills-wrap {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .sp-skill-tag {
-    font-size: 12px;
-    font-weight: 600;
-    padding: 6px 14px;
-    border-radius: 999px;
-    background: rgba(59,130,246,0.08);
-    color: var(--color-accent);
-    border: 1px solid rgba(59,130,246,0.2);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: background 0.15s, border-color 0.15s;
-    letter-spacing: 0.01em;
-  }
-
-  .sp-skill-tag:hover {
-    background: rgba(59,130,246,0.15);
-    border-color: rgba(59,130,246,0.35);
-  }
-
-  .sp-skill-remove {
-    background: none;
-    border: none;
-    color: #94A3B8;
-    cursor: pointer;
-    font-size: 16px;
-    line-height: 1;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    transition: color 0.15s;
-  }
-
-  .sp-skill-remove:hover { color: var(--color-danger); }
-
-  .sp-skill-add-row {
-    display: flex;
-    gap: 10px;
-    margin-top: 16px;
-  }
-
-  /* ── Resume ── */
-  .sp-resume-card {
-    background: var(--color-background);
-    border: 1px solid #E2E8F0;
-    border-radius: 14px;
-    padding: 16px 18px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .sp-resume-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    background: rgba(59,130,246,0.1);
-    border: 1px solid rgba(59,130,246,0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    flex-shrink: 0;
-  }
-
-  .sp-resume-info { flex: 1; min-width: 0; }
-
-  .sp-resume-name {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--color-text-main);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-bottom: 3px;
-  }
-
-  .sp-resume-meta {
-    font-size: 11px;
-    color: var(--color-text-muted);
-    letter-spacing: 0.02em;
-  }
-
-  .sp-resume-actions {
-    display: flex;
-    gap: 8px;
-    flex-shrink: 0;
-  }
-
-  .sp-btn-sm {
-    font-size: 12px;
-    font-weight: 600;
-    padding: 7px 14px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    transition: transform 0.15s, opacity 0.15s;
-  }
-
-  .sp-btn-sm:hover { opacity: 0.85; transform: translateY(-1px); }
-
-  .sp-btn-sm.indigo {
-    background: rgba(59,130,246,0.12);
-    color: var(--color-accent);
-    border: 1px solid rgba(59,130,246,0.25);
-  }
-
-  .sp-btn-sm.ghost {
-    background: #F1F5F9;
-    color: var(--color-text-muted);
-    border: 1px solid #E2E8F0;
-  }
-
-  /* ── Upload Zone ── */
-  .sp-upload-zone {
-    border: 2px dashed #CBD5E1;
-    border-radius: 14px;
-    padding: 32px 20px;
-    text-align: center;
-    cursor: default;
-    transition: all 0.2s;
-  }
-
-  .sp-upload-zone.active {
-    border-color: var(--color-accent);
-    background: rgba(59,130,246,0.04);
-    cursor: pointer;
-  }
-
-  .sp-upload-zone.active:hover {
-    border-color: #2563EB;
-    background: rgba(59,130,246,0.07);
-  }
-
-  .sp-upload-emoji { font-size: 32px; margin-bottom: 10px; }
-
-  .sp-upload-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--color-text-main);
-    margin-bottom: 4px;
-  }
-
-  .sp-upload-sub {
-    font-size: 12px;
-    color: var(--color-text-muted);
-  }
-
-  /* CGPA bar */
-  .sp-cgpa-bar-bg {
-    background: #E2E8F0;
-    border-radius: 999px;
-    height: 6px;
-    overflow: hidden;
-  }
-
-  .sp-cgpa-bar-fill {
-    height: 100%;
-    border-radius: 999px;
-    background: linear-gradient(90deg, var(--color-accent), var(--color-success));
-    transition: width 1s ease;
-  }
-
-  .sp-cgpa-bar-labels {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 5px;
-    font-size: 10px;
-    color: var(--color-text-muted);
-  }
-
-  .sp-perf-label {
-    font-size: 10px;
-    color: var(--color-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 8px;
-    font-weight: 600;
-  }
-
-  /* ── Responsive ── */
-  @media (max-width: 700px) {
-    .sp-stats-row { grid-template-columns: repeat(2, 1fr); }
-    .sp-grid-2col { grid-template-columns: 1fr; }
-    .sp-hero-name { font-size: 24px; }
-    .sp-hero-inner { padding: 24px 20px; }
-    .sp-content { padding: 20px 14px 50px; }
-  }
-
-  @media (max-width: 440px) {
-    .sp-stats-row { grid-template-columns: repeat(2, 1fr); }
-    .sp-hero-actions { flex-direction: row; }
-  }
-`;
 
 function Field({ label, name, value, editing, form, onChange, type = "text" }) {
   return (
-    <div className="sp-field">
-      <div className="sp-field-label">{label}</div>
+    <div className="flex flex-col gap-1 mb-4 last:mb-0">
+      <span className="text-xs font-semibold uppercase tracking-widest text-[#64748B]">
+        {label}
+      </span>
       {editing ? (
         <input
           type={type}
           name={name}
           value={form[name] || ""}
           onChange={onChange}
-          className="sp-field-input"
+          className="w-full px-3 py-2 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] bg-[#F8FAFC] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
         />
       ) : (
-        <div className="sp-field-value">{value || "—"}</div>
+        <span className="text-sm font-medium text-[#1E293B]">
+          {value || "—"}
+        </span>
       )}
     </div>
   );
 }
 
+function SectionCard({
+  icon: Icon,
+  title,
+  iconBg,
+  borderColor = "border-l-primary",
+  children,
+}) {
+  return (
+    <div
+      className={`bg-white rounded-2xl border border-[#E2E8F0] border-l-4 ${borderColor} p-6 shadow-sm hover:shadow-md transition-shadow`}
+    >
+      <div className="flex items-center gap-3 mb-5 pb-4 border-b border-background">
+        <div
+          className={`w-8 h-8 rounded-lg flex items-center justify-center ${iconBg}`}
+        >
+          <Icon size={16} />
+        </div>
+        <h3
+          className="text-sm font-bold text-[#1E293B]"
+          style={{ fontFamily: "Space Grotesk, sans-serif" }}
+        >
+          {title}
+        </h3>
+      </div>
+      {children}
+    </div>
+  );
+}
+
 export default function StudentProfilePage() {
-  const [student, setStudent] = useState(loadStudent);
+  const [student, setStudent] = useState(defaultStudent);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState(null);
-  const [previewPhoto, setPreviewPhoto] = useState(null);
-  const [pendingResume, setPendingResume] = useState(null);
   const [newSkill, setNewSkill] = useState("");
   const [saved, setSaved] = useState(false);
-
-  const photoInputRef = useRef(null);
   const resumeInputRef = useRef(null);
 
   const handleEdit = () => {
     setForm({ ...student });
-    setPreviewPhoto(student.photo);
-    setPendingResume(student.resume);
     setEditing(true);
   };
 
   const handleSave = () => {
-    const updated = { ...form, photo: previewPhoto, resume: pendingResume };
-    setStudent(updated);
-    saveStudent(updated);
+    setStudent({ ...form });
     setEditing(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
@@ -814,42 +106,19 @@ export default function StudentProfilePage() {
 
   const handleCancel = () => {
     setForm(null);
-    setPreviewPhoto(null);
-    setPendingResume(null);
     setEditing(false);
   };
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => setPreviewPhoto(ev.target.result);
-    reader.readAsDataURL(file);
-  };
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleResumeUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const sizeText = file.size > 1024 * 1024
-        ? (file.size / (1024 * 1024)).toFixed(1) + " MB"
-        : (file.size / 1024).toFixed(0) + " KB";
-      setPendingResume({ name: file.name, base64: ev.target.result, size: sizeText, type: file.type });
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleViewResume = (resume) => {
-    if (!resume?.base64) return;
-    const byteString = atob(resume.base64.split(",")[1]);
-    const ab = new ArrayBuffer(byteString.length);
-    const ia = new Uint8Array(ab);
-    for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
-    const blob = new Blob([ab], { type: resume.type || "application/pdf" });
-    window.open(URL.createObjectURL(blob), "_blank");
+    setForm({
+      ...form,
+      resume: { name: file.name, size: (file.size / 1024).toFixed(0) + " KB" },
+    });
   };
 
   const addSkill = () => {
@@ -863,237 +132,430 @@ export default function StudentProfilePage() {
   const removeSkill = (skill) =>
     setForm({ ...form, skills: form.skills.filter((s) => s !== skill) });
 
-  const displayPhoto  = editing ? previewPhoto  : student.photo;
-  const displayResume = editing ? pendingResume : student.resume;
-  const displayData   = editing ? form          : student;
-  const fieldProps    = { editing, form: form || student, onChange: handleChange };
-  const skills        = (editing ? form?.skills : student.skills) || [];
-  const cgpaPercent   = Math.min(parseFloat(student.cgpa) / 10 * 100, 100).toFixed(0);
+  const displayData = editing ? form : student;
+  const skills = displayData?.skills || [];
+  const cgpaPercent = Math.min(
+    (parseFloat(student.cgpa) / 10) * 100,
+    100,
+  ).toFixed(0);
+  const fieldProps = { editing, form: form || student, onChange: handleChange };
 
   return (
-    <>
-      <style>{styles}</style>
-      <div className="sp-root">
+    <div
+      className="max-w-4xl mx-auto"
+      style={{ fontFamily: "Inter, sans-serif" }}
+    >
+      {/* Hero Card */}
+      <div
+        className="relative rounded-3xl overflow-hidden mb-6 border border-white/10"
+        style={{
+          background:
+            "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
+        }}
+      >
+        {/* Background Effects */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `radial-gradient(circle at 20% 50%, rgba(59,130,246,0.2) 0%, transparent 50%),
+                         radial-gradient(circle at 80% 20%, rgba(34,197,94,0.1) 0%, transparent 40%)`,
+          }}
+        />
 
-        {/* ── Navbar ── */}
-        <nav className="sp-nav">
-          <div className="sp-nav-logo">
-            <div className="sp-nav-logo-dot" />
-            EduPortal
-          </div>
-          <div className="sp-nav-right">
-            {saved && <span className="sp-badge-saved">✓ Changes Saved</span>}
-            <span className="sp-nav-tag">My Profile</span>
-          </div>
-        </nav>
-
-        <div className="sp-content">
-
-          {/* ── Hero Card ── */}
-          <div className="sp-hero">
-            <div className="sp-hero-bg-pattern" />
-            <div className="sp-hero-grid-lines" />
-            <div className="sp-hero-inner">
-
-              {/* ✅ Avatar with photo upload */}
-              <div className="sp-avatar-wrap">
-                <div className="sp-avatar-ring">
-                  <div className="sp-avatar-inner">
-                    {displayPhoto
-                      ? <img src={displayPhoto} alt="Profile" />
-                      : student.name?.charAt(0)}
-                  </div>
-                </div>
-                {editing && (
-                  <button className="sp-avatar-edit-btn" onClick={() => photoInputRef.current.click()}>
-                    📷
-                  </button>
-                )}
-                <input type="file" accept="image/*" ref={photoInputRef} onChange={handlePhotoChange} style={{ display: "none" }} />
-              </div>
-
-              {/* Info */}
-              <div className="sp-hero-info">
-                <div className="sp-hero-name">{displayData?.name}</div>
-                <div className="sp-hero-sub">{displayData?.branch} · {displayData?.year}</div>
-                <div className="sp-hero-college">{displayData?.college}</div>
-                <div className="sp-hero-chips">
-                  <span className="sp-chip sp-chip-indigo">Roll No: {student.rollNo}</span>
-                  <span className="sp-chip sp-chip-green">CGPA {student.cgpa}</span>
-                  <span className="sp-chip sp-chip-amber">{student.city}, {student.state}</span>
-                </div>
-              </div>
-
-              {/* Buttons */}
-              <div className="sp-hero-actions">
-                {editing ? (
-                  <>
-                    <button className="sp-btn-save" onClick={handleSave}>✓ Save Changes</button>
-                    <button className="sp-btn-ghost" onClick={handleCancel}>Cancel</button>
-                  </>
-                ) : (
-                  <button className="sp-btn-primary" onClick={handleEdit}>✎ Edit Profile</button>
-                )}
-              </div>
-
+        <div className="relative z-10 p-8 flex flex-wrap items-center gap-6">
+          {/* Avatar */}
+          <div
+            className="w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl font-bold flex-shrink-0"
+            style={{
+              background: "linear-gradient(135deg, #3B82F6, #1E293B)",
+              padding: "3px",
+            }}
+          >
+            <div
+              className="w-full h-full rounded-full bg-[#1E2A3A] flex items-center justify-center text-2xl font-bold"
+              style={{ fontFamily: "Space Grotesk, sans-serif" }}
+            >
+              {student.name?.charAt(0)}
             </div>
           </div>
 
-          {/* ── Stats Row ── */}
-          <div className="sp-stats-row">
-            <div className="sp-stat-card indigo">
-              <div className="sp-stat-icon">🎯</div>
-              <div className="sp-stat-value">{student.cgpa}</div>
-              <div className="sp-stat-label">CGPA Score</div>
-            </div>
-            <div className="sp-stat-card green">
-              <div className="sp-stat-icon">⚡</div>
-              <div className="sp-stat-value">{skills.length}</div>
-              <div className="sp-stat-label">Skills Listed</div>
-            </div>
-            <div className="sp-stat-card amber">
-              <div className="sp-stat-icon">📅</div>
-              <div className="sp-stat-value">{student.year?.split(" ")[0] || "3rd"}</div>
-              <div className="sp-stat-label">Current Year</div>
-            </div>
-            <div className="sp-stat-card rose">
-              <div className="sp-stat-icon">📊</div>
-              <div className="sp-stat-value">{cgpaPercent}%</div>
-              <div className="sp-stat-label">Performance</div>
-            </div>
-          </div>
-
-          {/* ── Personal + Academic 2-col ── */}
-          <div className="sp-grid-2col">
-
-            <div className="sp-section">
-              <div className="sp-section-header">
-                <div className="sp-section-icon indigo">👤</div>
-                <div className="sp-section-title">Personal Information</div>
-              </div>
-              <Field label="Full Name"     name="name"   value={student.name}   {...fieldProps} />
-              <Field label="Email Address" name="email"  value={student.email}  {...fieldProps} />
-              <Field label="Phone Number"  name="phone"  value={student.phone}  {...fieldProps} />
-              <Field label="Date of Birth" name="dob"    value={student.dob}    type="date" {...fieldProps} />
-              <Field label="Gender"        name="gender" value={student.gender} {...fieldProps} />
-              <Field label="City"          name="city"   value={student.city}   {...fieldProps} />
-              <Field label="State"         name="state"  value={student.state}  {...fieldProps} />
-            </div>
-
-            <div className="sp-section">
-              <div className="sp-section-header">
-                <div className="sp-section-icon blue">🏫</div>
-                <div className="sp-section-title">Academic Information</div>
-              </div>
-              <Field label="College / University" name="college" value={student.college} {...fieldProps} />
-              <Field label="Branch"               name="branch"  value={student.branch}  {...fieldProps} />
-              <Field label="Current Year"         name="year"    value={student.year}    {...fieldProps} />
-              <Field label="CGPA"                 name="cgpa"    value={student.cgpa}    {...fieldProps} />
-              <Field label="Roll Number"          name="rollNo"  value={student.rollNo}  {...fieldProps} />
-
-              {!editing && (
-                <div style={{ marginTop: "18px" }}>
-                  <div className="sp-perf-label">Academic Performance</div>
-                  <div className="sp-cgpa-bar-bg">
-                    <div className="sp-cgpa-bar-fill" style={{ width: `${cgpaPercent}%` }} />
-                  </div>
-                  <div className="sp-cgpa-bar-labels">
-                    <span>0.0</span><span>5.0</span><span>10.0</span>
-                  </div>
-                </div>
-              )}
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <h1
+              className="text-2xl font-bold text-white mb-1"
+              style={{ fontFamily: "Space Grotesk, sans-serif" }}
+            >
+              {displayData?.name}
+            </h1>
+            <p className="text-sm text-white/60 mb-3">
+              {displayData?.branch} · {displayData?.year}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                Roll: {student.rollNo}
+              </span>
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-500/15 text-green-300 border border-green-500/25">
+                CGPA {student.cgpa}
+              </span>
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/25">
+                {student.city}, {student.state}
+              </span>
             </div>
           </div>
 
-          {/* ── Skills ── */}
-          <div className="sp-section-full">
-            <div className="sp-section-header">
-              <div className="sp-section-icon green">⚡</div>
-              <div className="sp-section-title">Skills & Technologies</div>
-            </div>
-            <div className="sp-skills-wrap">
-              {skills.map((skill) => (
-                <span key={skill} className="sp-skill-tag">
-                  {skill}
-                  {editing && (
-                    <button className="sp-skill-remove" onClick={() => removeSkill(skill)}>×</button>
-                  )}
-                </span>
-              ))}
-              {skills.length === 0 && (
-                <span style={{ fontSize: "13px", color: "var(--color-text-muted)", fontStyle: "italic" }}>
-                  No skills added yet
-                </span>
-              )}
-            </div>
-            {editing && (
-              <div className="sp-skill-add-row">
-                <input
-                  type="text"
-                  value={newSkill}
-                  onChange={(e) => setNewSkill(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && addSkill()}
-                  placeholder="Type a skill and press Enter…"
-                  className="sp-field-input"
-                  style={{ flex: 1 }}
-                />
-                <button className="sp-btn-primary" onClick={addSkill} style={{ padding: "9px 18px" }}>
-                  + Add
+          {/* Actions */}
+          <div className="flex flex-col gap-2 flex-shrink-0">
+            {editing ? (
+              <>
+                <button
+                  onClick={handleSave}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#22C55E] hover:bg-green-600 text-white text-sm font-semibold transition-colors"
+                >
+                  <Check size={14} /> Save Changes
                 </button>
-              </div>
-            )}
-          </div>
-
-          {/* ── Resume ── */}
-          <div className="sp-section-full">
-            <div className="sp-section-header">
-              <div className="sp-section-icon amber">📄</div>
-              <div className="sp-section-title">Resume / CV</div>
-            </div>
-            {displayResume ? (
-              <div className="sp-resume-card">
-                <div className="sp-resume-icon">📎</div>
-                <div className="sp-resume-info">
-                  <div className="sp-resume-name">{displayResume.name}</div>
-                  <div className="sp-resume-meta">Uploaded · {displayResume.size}</div>
-                </div>
-                <div className="sp-resume-actions">
-                  <button className="sp-btn-sm indigo" onClick={() => handleViewResume(displayResume)}>
-                    👁 View
-                  </button>
-                  {editing && (
-                    <button className="sp-btn-sm ghost" onClick={() => resumeInputRef.current.click()}>
-                      🔄 Replace
-                    </button>
-                  )}
-                </div>
-              </div>
+                <button
+                  onClick={handleCancel}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white/80 text-sm font-medium transition-colors border border-white/10"
+                >
+                  <X size={14} /> Cancel
+                </button>
+              </>
             ) : (
-              <div
-                className={`sp-upload-zone${editing ? " active" : ""}`}
-                onClick={() => editing && resumeInputRef.current.click()}
+              <button
+                onClick={handleEdit}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary hover:bg-blue-600 text-white text-sm font-semibold transition-colors shadow-[0_4px_12px_rgba(59,130,246,0.3)]"
               >
-                <div className="sp-upload-emoji">📂</div>
-                <div className="sp-upload-title">
-                  {editing ? "Click to Upload Your Resume" : "No Resume Uploaded Yet"}
-                </div>
-                {editing && <div className="sp-upload-sub">PDF or DOCX · Max 5MB</div>}
-                {editing && (
-                  <button
-                    className="sp-btn-primary"
-                    style={{ marginTop: "14px", fontSize: "12px", padding: "8px 20px" }}
-                    onClick={(e) => { e.stopPropagation(); resumeInputRef.current.click(); }}
-                  >
-                    📤 Upload File
-                  </button>
-                )}
-              </div>
+                <Edit3 size={14} /> Edit Profile
+              </button>
             )}
-            <input type="file" accept=".pdf,.doc,.docx" ref={resumeInputRef} onChange={handleResumeUpload} style={{ display: "none" }} />
+            {saved && (
+              <span className="text-xs font-semibold text-green-400 text-center">
+                ✓ Saved
+              </span>
+            )}
           </div>
-
         </div>
       </div>
-    </>
+
+      {/* Stats Row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {[
+          {
+            label: "CGPA Score",
+            value: student.cgpa,
+            color: "border-t-primary",
+            bg: "bg-blue-50",
+            icon: "🎯",
+          },
+          {
+            label: "Skills Listed",
+            value: skills.length,
+            color: "border-t-[#22C55E]",
+            bg: "bg-green-50",
+            icon: "⚡",
+          },
+          {
+            label: "Current Year",
+            value: student.year?.split(" ")[0],
+            color: "border-t-[#F59E0B]",
+            bg: "bg-amber-50",
+            icon: "📅",
+          },
+          {
+            label: "Performance",
+            value: cgpaPercent + "%",
+            color: "border-t-[#EF4444]",
+            bg: "bg-red-50",
+            icon: "📊",
+          },
+        ].map((stat) => (
+          <div
+            key={stat.label}
+            className={`bg-white rounded-2xl border border-[#E2E8F0] border-t-2 ${stat.color} p-4 shadow-sm hover:shadow-md transition-shadow`}
+          >
+            <div
+              className={`w-8 h-8 rounded-lg ${stat.bg} flex items-center justify-center text-base mb-3`}
+            >
+              {stat.icon}
+            </div>
+            <p
+              className="text-xl font-bold text-[#1E293B]"
+              style={{ fontFamily: "Space Grotesk, sans-serif" }}
+            >
+              {stat.value}
+            </p>
+            <p className="text-xs uppercase tracking-widest text-[#64748B] mt-1">
+              {stat.label}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Personal + Academic */}
+      <div className="grid md:grid-cols-2 gap-5 mb-5">
+        <SectionCard
+          icon={User}
+          title="Personal Information"
+          iconBg="bg-blue-50 text-primary"
+          borderColor="border-l-primary"
+        >
+          <Field
+            label="ERP ID"
+            name="erpId"
+            value={student.erpId}
+            editing={false}
+            form={student}
+            onChange={() => {}}
+          />
+          <Field
+            label="Full Name"
+            name="name"
+            value={student.name}
+            {...fieldProps}
+          />
+          <Field
+            label="Email"
+            name="email"
+            value={student.email}
+            {...fieldProps}
+          />
+          <Field
+            label="Phone"
+            name="phone"
+            value={student.phone}
+            {...fieldProps}
+          />
+          <Field
+            label="Date of Birth"
+            name="dob"
+            value={student.dob}
+            type="date"
+            {...fieldProps}
+          />
+          <Field
+            label="Gender"
+            name="gender"
+            value={student.gender}
+            {...fieldProps}
+          />
+          <Field
+            label="City"
+            name="city"
+            value={student.city}
+            {...fieldProps}
+          />
+          <Field
+            label="State"
+            name="state"
+            value={student.state}
+            {...fieldProps}
+          />
+        </SectionCard>
+
+        <SectionCard
+          icon={GraduationCap}
+          title="Academic Information"
+          iconBg="bg-blue-50 text-primary"
+          borderColor="border-l-[#22C55E]"
+        >
+          <Field
+            label="College"
+            name="college"
+            value={student.college}
+            {...fieldProps}
+          />
+          <Field
+            label="Branch"
+            name="branch"
+            value={student.branch}
+            {...fieldProps}
+          />
+          <Field
+            label="Year"
+            name="year"
+            value={student.year}
+            {...fieldProps}
+          />
+          <Field
+            label="CGPA"
+            name="cgpa"
+            value={student.cgpa}
+            {...fieldProps}
+          />
+          <Field
+            label="10th Marks (%)"
+            name="tenthMarks"
+            value={student.tenthMarks}
+            {...fieldProps}
+          />
+          <Field
+            label="12th Marks (%)"
+            name="twelfthMarks"
+            value={student.twelfthMarks}
+            {...fieldProps}
+          />
+          <Field
+            label="Active Backlogs"
+            name="backlogs"
+            value={student.backlogs}
+            {...fieldProps}
+          />
+          <Field
+            label="Roll Number"
+            name="rollNo"
+            value={student.rollNo}
+            {...fieldProps}
+          />
+
+          {!editing && (
+            <div className="mt-4">
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#64748B] mb-2">
+                Academic Performance
+              </p>
+              <div className="w-full bg-[#E2E8F0] rounded-full h-1.5 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-1000"
+                  style={{
+                    width: `${cgpaPercent}%`,
+                    background: "linear-gradient(90deg, #3B82F6, #22C55E)",
+                  }}
+                />
+              </div>
+              <div className="flex justify-between mt-1">
+                <span className="text-xs text-[#64748B]">0.0</span>
+                <span className="text-xs text-[#64748B]">10.0</span>
+              </div>
+            </div>
+          )}
+        </SectionCard>
+      </div>
+
+      {/* Skills */}
+      <SectionCard
+        icon={Zap}
+        title="Skills & Technologies"
+        iconBg="bg-green-50 text-[#22C55E]"
+        borderColor="border-l-[#22C55E]"
+      >
+        <div className="flex flex-wrap gap-2">
+          {skills.map((skill) => (
+            <span
+              key={skill}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-primary border border-blue-200"
+            >
+              {skill}
+              {editing && (
+                <button
+                  onClick={() => removeSkill(skill)}
+                  className="text-[#94A3B8] hover:text-[#EF4444] transition-colors"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </span>
+          ))}
+          {skills.length === 0 && (
+            <span className="text-sm text-[#64748B] italic">
+              No skills added yet
+            </span>
+          )}
+        </div>
+        {editing && (
+          <div className="flex gap-2 mt-4">
+            <input
+              type="text"
+              value={newSkill}
+              onChange={(e) => setNewSkill(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && addSkill()}
+              placeholder="Type a skill and press Enter"
+              className="flex-1 px-3 py-2 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+            />
+            <button
+              onClick={addSkill}
+              className="flex items-center gap-1 px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium hover:bg-blue-600 transition-colors"
+            >
+              <Plus size={14} /> Add
+            </button>
+          </div>
+        )}
+      </SectionCard>
+
+      {/* Resume */}
+      <div className="mt-5">
+        <SectionCard
+          icon={FileText}
+          title="Resume / CV"
+          iconBg="bg-amber-50 text-[#F59E0B]"
+          borderColor="border-l-[#F59E0B]"
+        >
+          {displayData?.resume ? (
+            <div className="flex items-center gap-4 p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center">
+                <FileText size={18} className="text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-[#1E293B] truncate">
+                  {displayData.resume.name}
+                </p>
+                <p className="text-xs text-[#64748B]">
+                  Uploaded · {displayData.resume.size}
+                </p>
+              </div>
+              {editing && (
+                <button
+                  onClick={() => resumeInputRef.current.click()}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-background text-[#64748B] border border-[#E2E8F0] hover:bg-[#E2E8F0] transition-colors"
+                >
+                  Replace
+                </button>
+              )}
+            </div>
+          ) : (
+            <div
+              onClick={() => editing && resumeInputRef.current.click()}
+              className={`flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed transition-all
+                ${editing ? "border-primary bg-blue-50/50 cursor-pointer hover:bg-blue-50" : "border-[#CBD5E1]"}`}
+            >
+              <FileText
+                size={28}
+                className={editing ? "text-primary" : "text-[#94A3B8]"}
+              />
+              <p className="text-sm font-medium text-[#1E293B] mt-2">
+                {editing ? "Click to upload resume" : "No resume uploaded yet"}
+              </p>
+              <p className="text-xs text-[#64748B] mt-1">PDF only · Max 5MB</p>
+            </div>
+          )}
+          <input
+            type="file"
+            accept=".pdf"
+            ref={resumeInputRef}
+            onChange={handleResumeUpload}
+            className="hidden"
+          />
+        </SectionCard>
+      </div>
+      {/* Placement Status */}
+      {!editing && (
+        <div className="mt-5 flex items-center justify-between px-5 py-3 rounded-2xl border border-[#E2E8F0] bg-white shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+              <span className="text-sm">🎯</span>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#64748B]">
+                Placement Status
+              </p>
+              <p className="text-sm font-bold text-[#1E293B]">
+                {student.placementStatus}
+              </p>
+            </div>
+          </div>
+          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-[#F59E0B] border border-amber-200">
+            Pending
+          </span>
+        </div>
+      )}
+    </div>
   );
 }

@@ -133,7 +133,7 @@ function CompanyCard({ company }) {
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
           <div style={{ backgroundColor: company.color }}
-            className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+            className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg shrink-0">
             {company.initial}
           </div>
           <div>
@@ -256,7 +256,7 @@ export default function PlacementDashboard() {
                 style={{ backgroundColor: C.white, borderColor: C.border }}
                 className="rounded-2xl px-5 py-4 shadow-sm border flex items-center gap-4">
                 <div style={{ backgroundColor: stat.bg }}
-                  className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0">
+                  className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0">
                   {stat.icon}
                 </div>
                 <div>
@@ -303,13 +303,13 @@ export default function PlacementDashboard() {
                       style={idx !== announcements.length - 1 ? { borderColor: C.border } : {}}
                       className={`flex gap-3 ${idx !== announcements.length - 1 ? "pb-5 border-b" : ""}`}>
                       <div style={{ backgroundColor: C.background }}
-                        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0">
+                        className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0">
                         {announcementIcons[idx]}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2 mb-1">
                           <p style={{ color: C.textMain }} className="font-semibold text-sm leading-tight">{a.title}</p>
-                          <span style={{ color: C.textMuted }} className="text-xs flex-shrink-0">{a.time}</span>
+                          <span style={{ color: C.textMuted }} className="text-xs shrink-0">{a.time}</span>
                         </div>
                         <p style={{ color: C.textMuted }} className="text-xs leading-relaxed">{a.desc}</p>
                       </div>

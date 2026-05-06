@@ -32,7 +32,7 @@ const statusConfig = {
     bg:     "#F0FDF4",
     border: "#BBF7D0",
     Icon: () => (
-      <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="#16A34A" strokeWidth={2} viewBox="0 0 24 24">
+      <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="#16A34A" strokeWidth={2} viewBox="0 0 24 24">
         <circle cx="12" cy="12" r="10" />
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4" />
       </svg>
@@ -43,7 +43,7 @@ const statusConfig = {
     bg:     "#FFFBEB",
     border: "#FDE68A",
     Icon: () => (
-      <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="#D97706" strokeWidth={2} viewBox="0 0 24 24">
+      <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="#D97706" strokeWidth={2} viewBox="0 0 24 24">
         <circle cx="12" cy="12" r="10" />
         <polyline strokeLinecap="round" strokeLinejoin="round" points="12 6 12 12 16 14" />
       </svg>
@@ -54,7 +54,7 @@ const statusConfig = {
     bg:     "#FFF1F2",
     border: "#FECDD3",
     Icon: () => (
-      <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="#DC2626" strokeWidth={2} viewBox="0 0 24 24">
+      <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="#DC2626" strokeWidth={2} viewBox="0 0 24 24">
         <circle cx="12" cy="12" r="10" />
         <line x1="15" y1="9" x2="9" y2="15" strokeLinecap="round" />
         <line x1="9" y1="9" x2="15" y2="15" strokeLinecap="round" />
@@ -112,7 +112,7 @@ export default function StudentApplication() {
         <div className="flex items-center gap-4">
           <div
             style={{ backgroundColor: C.textMain }}
-            className="w-[52px] h-[52px] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm"
+            className="w-13 h-13 rounded-2xl flex items-center justify-center shrink-0 shadow-sm"
           >
             <BriefcaseIcon />
           </div>
@@ -151,9 +151,9 @@ export default function StudentApplication() {
       >
         {/* Column headers */}
         <div
-          style={{ borderColor: C.border }}
           className="grid border-b px-6 py-4"
           style={{
+            borderColor: C.border,
             display: "grid",
             gridTemplateColumns: "2.2fr 2fr 1.6fr 1.2fr",
             paddingLeft: "24px",
@@ -241,7 +241,6 @@ export default function StudentApplication() {
                     backgroundColor: s.bg,
                     borderColor: s.border,
                     border: `1px solid`,
-                    borderColor: s.border,
                     display: "inline-flex",
                     alignItems: "center",
                     gap: "6px",

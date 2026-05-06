@@ -162,7 +162,7 @@ function RoleCard({
           {label}
         </h2>
         <p
-          className={`text-sm leading-relaxed ${isDark ? "text-white/70" : "text-[#64748B]"}`}
+          className={`text-sm leading-relaxed ${isDark ? "text-white/70" : "text-text-muted"}`}
         >
           {description}
         </p>
@@ -204,7 +204,7 @@ function RoleSelectionPage() {
 
   const handleLogin = () => {
     if (modalRole === "student") {
-      navigate("/student/dashboard");
+      navigate("/student/onboarding");
     } else {
       navigate("/coordinator/dashboard");
     }
