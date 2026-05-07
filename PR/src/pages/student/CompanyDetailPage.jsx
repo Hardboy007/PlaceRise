@@ -1,327 +1,506 @@
 import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  Building2,
+  MapPin,
+  Calendar,
+  Clock,
+  Briefcase,
+  TrendingUp,
+  Users,
+  CheckCircle,
+  Send,
+  Code,
+  Gift,
+  Star,
+} from "lucide-react";
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
-const skills = ["React.js", "TypeScript", "Tailwind CSS", "REST APIs", "Git", "Next.js", "Figma", "Jest"];
-const techStack = ["React", "Node.js", "PostgreSQL", "AWS", "Docker", "TypeScript"];
-
-const perks = [
-  { label: "Flexible hours", icon: "ti-clock" },
-  { label: "Work from home", icon: "ti-device-laptop" },
-  { label: "Health insurance", icon: "ti-heart-rate-monitor" },
-  { label: "Growth path", icon: "ti-chart-line" },
+const companies = [
+  {
+    id: 1,
+    company: "Google",
+    role: "Software Engineer",
+    ctc: 25,
+    lastDate: "10 May 2026",
+    branches: ["CSE", "ECE"],
+    cgpa: 7.5,
+    location: "Bangalore",
+    jobType: "Full Time",
+    workDays: "5 days/week",
+    shift: "Day Shift",
+    experience: "0-2 Years",
+    about:
+      "Google LLC is an American multinational technology company focusing on search engine technology, online advertising, cloud computing, and more.",
+    techStack: ["React", "Node.js", "Python", "GCP", "Kubernetes"],
+    skills: ["DSA", "System Design", "React", "Node.js", "SQL"],
+    perks: [
+      "Health Insurance",
+      "Work From Home",
+      "Flexible Hours",
+      "Stock Options",
+    ],
+  },
+  {
+    id: 2,
+    company: "Google",
+    role: "Backend Developer",
+    ctc: 24,
+    lastDate: "10 May 2026",
+    branches: ["CSE"],
+    cgpa: 7.5,
+    location: "Hyderabad",
+    jobType: "Full Time",
+    workDays: "5 days/week",
+    shift: "Day Shift",
+    experience: "0-3 Years",
+    about:
+      "Google LLC is an American multinational technology company focusing on search engine technology, online advertising, cloud computing, and more.",
+    techStack: ["Java", "Python", "GCP", "Kubernetes", "PostgreSQL"],
+    skills: ["DSA", "System Design", "Java", "Microservices", "SQL"],
+    perks: [
+      "Health Insurance",
+      "Work From Home",
+      "Flexible Hours",
+      "Stock Options",
+    ],
+  },
+  {
+    id: 3,
+    company: "Google",
+    role: "Frontend Developer",
+    ctc: 23,
+    lastDate: "10 May 2026",
+    branches: ["CSE"],
+    cgpa: 7.0,
+    location: "Pune",
+    jobType: "Full Time",
+    workDays: "5 days/week",
+    shift: "Day Shift",
+    experience: "0-2 Years",
+    about:
+      "Google LLC is an American multinational technology company focusing on search engine technology, online advertising, cloud computing, and more.",
+    techStack: ["React", "TypeScript", "CSS", "Webpack"],
+    skills: ["React", "TypeScript", "CSS", "Performance Optimization"],
+    perks: ["Health Insurance", "Flexible Hours", "Stock Options"],
+  },
+  {
+    id: 4,
+    company: "Amazon",
+    role: "SDE Intern",
+    ctc: 12,
+    lastDate: "15 May 2026",
+    branches: ["All"],
+    cgpa: 6.0,
+    location: "Bangalore",
+    jobType: "Internship",
+    workDays: "5 days/week",
+    shift: "Day Shift",
+    experience: "Freshers",
+    about:
+      "Amazon is an American multinational technology company focusing on e-commerce, cloud computing, digital streaming, and artificial intelligence.",
+    techStack: ["Java", "AWS", "DynamoDB", "Lambda"],
+    skills: ["DSA", "Java", "AWS Basics", "Problem Solving"],
+    perks: ["Health Insurance", "Meals", "Laptop Provided"],
+  },
+  {
+    id: 5,
+    company: "Microsoft",
+    role: "Product Engineer",
+    ctc: 22,
+    lastDate: "20 May 2026",
+    branches: ["ECE"],
+    cgpa: 8.0,
+    location: "Hyderabad",
+    jobType: "Full Time",
+    workDays: "5 days/week",
+    shift: "Day Shift",
+    experience: "0-2 Years",
+    about:
+      "Microsoft Corporation is an American multinational technology company producing computer software, consumer electronics, and personal computers.",
+    techStack: ["C#", ".NET", "Azure", "TypeScript", "React"],
+    skills: ["C#", "Azure", "System Design", "React"],
+    perks: ["Health Insurance", "Stock Options", "Flexible Hours"],
+  },
+  {
+    id: 6,
+    company: "Infosys",
+    role: "System Engineer",
+    ctc: 8,
+    lastDate: "18 May 2026",
+    branches: ["CSE"],
+    cgpa: 6.5,
+    location: "Chennai",
+    jobType: "Full Time",
+    workDays: "5 days/week",
+    shift: "Day Shift",
+    experience: "Freshers",
+    about:
+      "Infosys Limited is an Indian multinational information technology company that provides business consulting, information technology and outsourcing services.",
+    techStack: ["Java", "Spring Boot", "MySQL", "Angular"],
+    skills: ["Java", "SQL", "Problem Solving", "Communication"],
+    perks: ["Health Insurance", "Transport", "Meals"],
+  },
+  {
+    id: 7,
+    company: "TCS",
+    role: "Business Analyst",
+    ctc: 7,
+    lastDate: "22 May 2026",
+    branches: ["MBA"],
+    cgpa: 6.0,
+    location: "Mumbai",
+    jobType: "Full Time",
+    workDays: "5 days/week",
+    shift: "Day Shift",
+    experience: "Freshers",
+    about:
+      "Tata Consultancy Services is an Indian multinational information technology services and consulting company.",
+    techStack: ["Excel", "Tableau", "SQL", "PowerBI"],
+    skills: ["Analytics", "Communication", "Excel", "SQL"],
+    perks: ["Health Insurance", "Transport"],
+  },
 ];
 
-const workDetails = [
-  { label: "Working days", value: "5 days / week", icon: "ti-calendar" },
-  { label: "Job type", value: "In office", icon: "ti-building" },
-  { label: "Timing", value: "Full time", icon: "ti-clock" },
-  { label: "Shift", value: "Day shift", icon: "ti-sun" },
-];
-
-const salaryMeta = [
-  { label: "Salary type", value: "Fixed + Variable", icon: "ti-refresh" },
-  { label: "Appraisal", value: "Yearly", icon: "ti-chart-line" },
-  { label: "Probation", value: "3 months", icon: "ti-calendar" },
-  { label: "Notice period", value: "30 days", icon: "ti-clock" },
-];
-
-const aboutMeta = [
-  { label: "Founded", value: "2016", icon: "ti-calendar" },
-  { label: "HQ", value: "Coimbatore", icon: "ti-map-pin" },
-  { label: "Industry", value: "SaaS / B2B", icon: "ti-code" },
-  { label: "Team size", value: "50–200", icon: "ti-users" },
-];
-
-const similarJobs = [
-  { role: "React Developer", company: "Zoho Corp", location: "Coimbatore", color: "#1a5fc8" },
-  { role: "UI Engineer", company: "Freshworks", location: "Chennai", color: "#0d9e75" },
-  { role: "Frontend Dev", company: "Infosys", location: "Pune", color: "#6b4fc8" },
-];
-
-// ─── Google-style Company Logo ─────────────────────────────────────────────
-function CompanyLogo() {
-  return (
-    <div className="w-14 h-14 rounded-2xl border border-gray-100 bg-white flex items-center justify-center flex-shrink-0 p-1.5">
-      <div className="grid grid-cols-2 gap-[3px] w-full h-full">
-        <span className="rounded-tl-md" style={{ background: "#4285F4" }} />
-        <span className="rounded-tr-md" style={{ background: "#EA4335" }} />
-        <span className="rounded-bl-md" style={{ background: "#FBBC04" }} />
-        <span className="rounded-br-md" style={{ background: "#34A853" }} />
-      </div>
-    </div>
-  );
-}
-
-// ─── Section Label ─────────────────────────────────────────────────────────
-function SectionLabel({ icon, text }) {
-  return (
-    <div className="flex items-center gap-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-3">
-      <i className={`ti ${icon} text-[13px]`} />
-      {text}
-    </div>
-  );
-}
-
-// ─── Card with left accent bar ─────────────────────────────────────────────
-function AccentCard({ accentColor, children, className = "" }) {
-  return (
-    <div
-      className={`bg-white border border-gray-100 rounded-2xl p-4 shadow-sm relative overflow-hidden ${className}`}
-    >
-      <div
-        className="absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl"
-        style={{ background: accentColor }}
-      />
-      <div className="pl-2">{children}</div>
-    </div>
-  );
-}
-
-// ─── Meta Grid Item ────────────────────────────────────────────────────────
-function MetaItem({ label, value, icon }) {
-  return (
-    <div className="bg-gray-50 rounded-xl p-2.5 border border-gray-100">
-      <div className="text-[10px] text-gray-400 uppercase tracking-wide mb-1">{label}</div>
-      <div className="flex items-center gap-1.5 text-[13px] font-medium text-gray-800">
-        <i className={`ti ${icon} text-[14px] text-gray-400`} />
-        {value}
-      </div>
-    </div>
-  );
-}
-
-// ─── Apply Button ──────────────────────────────────────────────────────────
-function ApplyButton({ applied, onClick, label, doneLabel }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`w-full py-3 rounded-2xl text-[14px] font-semibold flex items-center justify-center gap-2 transition-all duration-300
-        ${applied
-          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-          : "bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white shadow-sm shadow-blue-200"
-        }`}
-    >
-      <i className={`ti ${applied ? "ti-circle-check" : "ti-send"}`} />
-      {applied ? doneLabel : label}
-    </button>
-  );
-}
-
-// ─── Main Page ─────────────────────────────────────────────────────────────
 export default function CompanyDetailPage() {
+  const { companyId } = useParams();
+  const navigate = useNavigate();
   const [applied, setApplied] = useState(false);
-  const handleApply = () => setApplied(true);
+
+  const company = companies.find((c) => c.id === parseInt(companyId));
+
+  if (!company) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-64 gap-4">
+        <Building2 size={48} className="text-[#CBD5E1]" />
+        <p className="text-sm text-[#64748B]">Company not found</p>
+        <button
+          onClick={() => navigate("/student/companies")}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#3B82F6] text-white text-sm font-medium"
+        >
+          <ArrowLeft size={14} /> Back to Companies
+        </button>
+      </div>
+    );
+  }
+
+  const daysLeft = () => {
+    const today = new Date();
+    const last = new Date(company.lastDate);
+    const diff = Math.ceil((last - today) / (1000 * 60 * 60 * 24));
+    return diff;
+  };
+
+  const days = daysLeft();
+  const deadlineColor =
+    days <= 3
+      ? "text-[#EF4444] bg-red-50 border-red-200"
+      : days <= 7
+        ? "text-[#F59E0B] bg-amber-50 border-amber-200"
+        : "text-[#22C55E] bg-green-50 border-green-200";
 
   return (
     <div
-      className="min-h-screen bg-slate-50"
-      style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+      className="max-w-3xl mx-auto"
+      style={{ fontFamily: "Inter, sans-serif" }}
     >
+      {/* Back Button */}
+      <button
+        onClick={() => navigate("/student/companies")}
+        className="flex items-center gap-2 text-sm text-[#64748B] hover:text-[#1E293B] transition-colors mb-5"
+      >
+        <ArrowLeft size={15} />
+        Back to Companies
+      </button>
+
       {/* Hero */}
-      <div className="bg-white border-b border-gray-100 px-4 pt-6 pb-4 rounded-b-3xl shadow-sm">
-        <div className="flex items-start gap-3 mb-4">
-          <CompanyLogo />
-          <div className="flex-1 min-w-0">
-            <h1 className="text-[18px] font-semibold text-gray-900 leading-snug">
-              TechCraft Solutions
-            </h1>
-            <p className="text-[12px] text-gray-400 mt-0.5 mb-2">
-              Building tomorrow's software, today
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200">
-                <i className="ti ti-circle-check text-[12px]" /> Actively hiring
-              </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] bg-blue-50 text-blue-700 border border-blue-200">
-                <i className="ti ti-building text-[12px]" /> IT / Software
-              </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] bg-gray-50 text-gray-600 border border-gray-200">
-                <i className="ti ti-users text-[12px]" /> 50–200 emp
-              </span>
+      <div
+        className="relative rounded-3xl overflow-hidden mb-5 border border-white/10"
+        style={{
+          background:
+            "linear-gradient(135deg, #3B82F6 0%, #60A5FA 60%, #818CF8 100%)",
+        }}
+      >
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                         radial-gradient(circle at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 40%)`,
+          }}
+        />
+        <div className="relative z-10 p-7">
+          <div className="flex items-start gap-4 mb-5">
+            <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center flex-shrink-0 shadow-md">
+              <Building2 size={24} className="text-[#3B82F6]" />
+            </div>
+            <div className="flex-1">
+              <h1
+                className="text-xl font-bold text-white mb-1"
+                style={{ fontFamily: "Space Grotesk, sans-serif" }}
+              >
+                {company.company}
+              </h1>
+              <p className="text-sm text-white/70 mb-3">{company.role}</p>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30">
+                  ₹{company.ctc} LPA
+                </span>
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30">
+                  {company.location}
+                </span>
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30">
+                  {company.jobType}
+                </span>
+              </div>
             </div>
           </div>
+
+          {/* Apply Button */}
+          <button
+            onClick={() => setApplied(true)}
+            disabled={applied}
+            className={`w-full py-3 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-all
+              ${
+                applied
+                  ? "bg-white/20 text-white border border-white/30 cursor-not-allowed"
+                  : "bg-white text-[#3B82F6] hover:bg-white/90 shadow-md"
+              }`}
+          >
+            {applied ? (
+              <>
+                <CheckCircle size={16} /> Applied Successfully
+              </>
+            ) : (
+              <>
+                <Send size={16} /> Apply Now
+              </>
+            )}
+          </button>
         </div>
-        <ApplyButton
-          applied={applied}
-          onClick={handleApply}
-          label="Apply now"
-          doneLabel="Applied successfully!"
-        />
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-2 px-3 pt-3">
+      {/* Stats Row */}
+      <div className="grid grid-cols-3 gap-4 mb-5">
         {[
-          { num: "120+", label: "Employees", accent: "border-t-blue-500" },
-          { num: "8 yrs", label: "Founded", accent: "border-t-teal-500" },
-          { num: "4.3 ★", label: "Rating", accent: "border-t-amber-400" },
-        ].map((s) => (
+          {
+            label: "Min CGPA",
+            value: `${company.cgpa}+`,
+            icon: Star,
+            color: "border-t-[#3B82F6]",
+          },
+          {
+            label: "Experience",
+            value: company.experience,
+            icon: Clock,
+            color: "border-t-[#22C55E]",
+          },
+          {
+            label: "Deadline",
+            value: `${days}d left`,
+            icon: Calendar,
+            color: deadlineColor.includes("red")
+              ? "border-t-[#EF4444]"
+              : deadlineColor.includes("amber")
+                ? "border-t-[#F59E0B]"
+                : "border-t-[#22C55E]",
+          },
+        ].map((stat) => (
           <div
-            key={s.label}
-            className={`bg-white border border-gray-100 border-t-2 ${s.accent} rounded-xl p-2.5 text-center shadow-sm`}
+            key={stat.label}
+            className={`bg-white rounded-2xl border border-[#E2E8F0] border-t-2 ${stat.color} p-4 shadow-sm`}
           >
-            <div className="text-[16px] font-semibold text-gray-900">{s.num}</div>
-            <div className="text-[10px] text-gray-400 mt-0.5 uppercase tracking-wide">{s.label}</div>
+            <stat.icon size={16} className="text-[#64748B] mb-2" />
+            <p
+              className="text-sm font-bold text-[#1E293B]"
+              style={{ fontFamily: "Space Grotesk, sans-serif" }}
+            >
+              {stat.value}
+            </p>
+            <p className="text-xs text-[#64748B] mt-0.5">{stat.label}</p>
           </div>
         ))}
       </div>
 
-      <div className="flex flex-col gap-3 px-3 pt-3">
-
-        {/* Role */}
-        <AccentCard accentColor="#1a5fc8">
-          <SectionLabel icon="ti-briefcase" text="Role" />
-          <h2 className="text-[17px] font-semibold text-gray-900 mb-1.5">Frontend Developer</h2>
-          <p className="text-[13px] text-gray-500 leading-relaxed">
-            We're looking for a skilled frontend developer to build responsive, high-performance
-            web applications used by thousands of users daily.
-          </p>
-        </AccentCard>
-
-        {/* Salary */}
-        <AccentCard accentColor="#0d9e75">
-          <SectionLabel icon="ti-cash" text="Salary" />
-          <div className="bg-blue-50 border border-blue-100 rounded-xl p-3.5 mb-3 flex items-center justify-between">
-            <div>
-              <div className="text-[22px] font-semibold text-blue-800 leading-none">₹4L – ₹9L</div>
-              <div className="text-[11px] text-blue-500 mt-1.5">Per annum · CTC</div>
+      {/* Eligibility */}
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#3B82F6] p-5 mb-4 shadow-sm">
+        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#F1F5F9]">
+          <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
+            <CheckCircle size={14} className="text-[#3B82F6]" />
+          </div>
+          <h3
+            className="text-sm font-bold text-[#1E293B]"
+            style={{ fontFamily: "Space Grotesk, sans-serif" }}
+          >
+            Eligibility Criteria
+          </h3>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { label: "Min CGPA", value: `${company.cgpa}+` },
+            {
+              label: "Eligible Branches",
+              value: company.branches.includes("All")
+                ? "All Branches"
+                : company.branches.join(", "),
+            },
+            { label: "Experience", value: company.experience },
+            { label: "Job Type", value: company.jobType },
+          ].map((item) => (
+            <div
+              key={item.label}
+              className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]"
+            >
+              <p className="text-xs text-[#64748B] uppercase tracking-widest mb-1">
+                {item.label}
+              </p>
+              <p className="text-sm font-semibold text-[#1E293B]">
+                {item.value}
+              </p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-              <i className="ti ti-wallet text-[20px] text-blue-600" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {salaryMeta.map((s) => (
-              <MetaItem key={s.label} {...s} />
-            ))}
-          </div>
-        </AccentCard>
+          ))}
+        </div>
+      </div>
 
-        {/* About */}
-        <AccentCard accentColor="#6b4fc8">
-          <SectionLabel icon="ti-building-community" text="About the company" />
-          <p className="text-[13px] text-gray-500 leading-relaxed mb-3">
-            TechCraft Solutions is a product-focused software company building B2B SaaS tools
-            for the logistics and supply chain industry. We ship fast, value clean code, and
-            care deeply about developer experience.
+      {/* About Company */}
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#818CF8] p-5 mb-4 shadow-sm">
+        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#F1F5F9]">
+          <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center">
+            <Building2 size={14} className="text-[#818CF8]" />
+          </div>
+          <h3
+            className="text-sm font-bold text-[#1E293B]"
+            style={{ fontFamily: "Space Grotesk, sans-serif" }}
+          >
+            About {company.company}
+          </h3>
+        </div>
+        <p className="text-sm text-[#64748B] leading-relaxed">
+          {company.about}
+        </p>
+        <div className="mt-4">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[#64748B] mb-2">
+            Tech Stack
           </p>
-          <div className="grid grid-cols-2 gap-2 mb-3">
-            {aboutMeta.map((a) => (
-              <MetaItem key={a.label} {...a} />
-            ))}
-          </div>
-          <div className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-2">
-            Tech stack
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {techStack.map((t) => (
+          <div className="flex flex-wrap gap-2">
+            {company.techStack.map((t) => (
               <span
                 key={t}
-                className="px-2.5 py-1 rounded-full text-[11px] bg-gray-100 text-gray-600 border border-gray-200"
+                className="px-3 py-1 rounded-full text-xs font-medium bg-[#F1F5F9] text-[#1E293B] border border-[#E2E8F0]"
               >
                 {t}
               </span>
             ))}
           </div>
-        </AccentCard>
-
-        {/* Skills */}
-        <AccentCard accentColor="#e09400">
-          <SectionLabel icon="ti-tools" text="Skills required" />
-          <div className="flex flex-wrap gap-1.5">
-            {skills.map((s) => (
-              <span
-                key={s}
-                className="px-3 py-1 rounded-full text-[12px] bg-blue-50 text-blue-700 border border-blue-100"
-              >
-                {s}
-              </span>
-            ))}
-          </div>
-        </AccentCard>
-
-        {/* Location */}
-        <AccentCard accentColor="#d85a30">
-          <SectionLabel icon="ti-map-pin" text="Job location" />
-          <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-3 border border-gray-100">
-            <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
-              <i className="ti ti-map-pin text-[18px] text-blue-600" />
-            </div>
-            <div>
-              <div className="text-[14px] font-semibold text-gray-900">Coimbatore</div>
-              <div className="text-[11px] text-gray-400 mt-0.5">Tamil Nadu, India</div>
-            </div>
-          </div>
-        </AccentCard>
-
-        {/* Experience */}
-        <AccentCard accentColor="#3b8c1c">
-          <SectionLabel icon="ti-clock" text="Experience required" />
-          <div className="bg-gray-50 rounded-xl p-4 flex items-center justify-between border border-gray-100">
-            <div>
-              <div className="text-[24px] font-semibold text-gray-900 leading-none">0 – 4 Years</div>
-              <div className="text-[12px] text-gray-400 mt-1.5">Freshers & experienced both can apply</div>
-            </div>
-            <span className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-[11px] px-3 py-1.5">
-              <i className="ti ti-circle-check text-[13px]" /> Open to all
-            </span>
-          </div>
-        </AccentCard>
-
-        {/* Work Details */}
-        <AccentCard accentColor="#1a5fc8">
-          <SectionLabel icon="ti-calendar" text="Work details" />
-          <div className="grid grid-cols-2 gap-2">
-            {workDetails.map((w) => (
-              <MetaItem key={w.label} label={w.label} value={w.value} icon={w.icon} />
-            ))}
-          </div>
-        </AccentCard>
-
-        {/* Perks */}
-        <AccentCard accentColor="#c94b7a">
-          <SectionLabel icon="ti-gift" text="Perks & benefits" />
-          <div className="grid grid-cols-2 gap-2">
-            {perks.map((p) => (
-              <div
-                key={p.label}
-                className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2.5 border border-gray-100"
-              >
-                <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                  <i className={`ti ${p.icon} text-[15px] text-blue-600`} />
-                </div>
-                <span className="text-[12px] font-medium text-gray-800">{p.label}</span>
-              </div>
-            ))}
-          </div>
-        </AccentCard>
-
-        {/* Similar Jobs */}
-        <AccentCard accentColor="#0d9e75">
-          <SectionLabel icon="ti-search" text="Similar jobs" />
-          <div className="flex gap-2.5 overflow-x-auto pb-1">
-            {similarJobs.map((j) => (
-              <div
-                key={j.role}
-                className="flex-shrink-0 w-40 bg-gray-50 border border-gray-100 rounded-xl p-3"
-                style={{ borderLeft: `3px solid ${j.color}` }}
-              >
-                <div className="text-[12px] font-semibold text-gray-800 mb-1">{j.role}</div>
-                <div className="text-[11px] text-gray-400">
-                  {j.company} · {j.location}
-                </div>
-              </div>
-            ))}
-          </div>
-        </AccentCard>
-
-        <ApplyButton
-          applied={applied}
-          onClick={handleApply}
-          label="Apply for this role"
-          doneLabel="Application submitted!"
-        />
+        </div>
       </div>
+
+      {/* Skills Required */}
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#F59E0B] p-5 mb-4 shadow-sm">
+        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#F1F5F9]">
+          <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center">
+            <Code size={14} className="text-[#F59E0B]" />
+          </div>
+          <h3
+            className="text-sm font-bold text-[#1E293B]"
+            style={{ fontFamily: "Space Grotesk, sans-serif" }}
+          >
+            Skills Required
+          </h3>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {company.skills.map((s) => (
+            <span
+              key={s}
+              className="px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-[#3B82F6] border border-blue-200"
+            >
+              {s}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Work Details */}
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#22C55E] p-5 mb-4 shadow-sm">
+        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#F1F5F9]">
+          <div className="w-7 h-7 rounded-lg bg-green-50 flex items-center justify-center">
+            <Briefcase size={14} className="text-[#22C55E]" />
+          </div>
+          <h3
+            className="text-sm font-bold text-[#1E293B]"
+            style={{ fontFamily: "Space Grotesk, sans-serif" }}
+          >
+            Work Details
+          </h3>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { label: "Working Days", value: company.workDays },
+            { label: "Job Type", value: company.jobType },
+            { label: "Shift", value: company.shift },
+            { label: "Location", value: company.location },
+          ].map((item) => (
+            <div
+              key={item.label}
+              className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]"
+            >
+              <p className="text-xs text-[#64748B] uppercase tracking-widest mb-1">
+                {item.label}
+              </p>
+              <p className="text-sm font-semibold text-[#1E293B]">
+                {item.value}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Perks */}
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#EF4444] p-5 mb-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#F1F5F9]">
+          <div className="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center">
+            <Gift size={14} className="text-[#EF4444]" />
+          </div>
+          <h3
+            className="text-sm font-bold text-[#1E293B]"
+            style={{ fontFamily: "Space Grotesk, sans-serif" }}
+          >
+            Perks & Benefits
+          </h3>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {company.perks.map((p) => (
+            <div
+              key={p}
+              className="flex items-center gap-2 bg-[#F8FAFC] rounded-xl px-3 py-2.5 border border-[#E2E8F0]"
+            >
+              <CheckCircle size={14} className="text-[#22C55E] flex-shrink-0" />
+              <span className="text-xs font-medium text-[#1E293B]">{p}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Bottom Apply Button */}
+      <button
+        onClick={() => setApplied(true)}
+        disabled={applied}
+        className={`w-full py-3.5 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-all mb-6
+          ${
+            applied
+              ? "bg-[#22C55E] text-white cursor-not-allowed"
+              : "bg-[#1E293B] hover:bg-[#3B82F6] text-white shadow-md"
+          }`}
+      >
+        {applied ? (
+          <>
+            <CheckCircle size={16} /> Application Submitted
+          </>
+        ) : (
+          <>
+            <Send size={16} /> Apply for this Role
+          </>
+        )}
+      </button>
     </div>
   );
 }
