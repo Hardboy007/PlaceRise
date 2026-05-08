@@ -109,11 +109,11 @@ export default function CompanyListPage() {
   const [role, setRole] = useState("All");
 
   const allRoles = useMemo(() => {
-    return ["All", ...new Set(companies.map((c) => c.role))];
+    return ["All", ...new Set(mockCompanies.map((c) => c.role))];
   }, []);
 
   const filteredCompanies = useMemo(() => {
-    return companies.filter((c) => {
+    return mockCompanies.filter((c) => {
       const matchesSearch =
         c.company.toLowerCase().includes(search.toLowerCase()) ||
         c.role.toLowerCase().includes(search.toLowerCase());
