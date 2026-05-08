@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import mockCompanies from '../../data/mockCompanies'
 import {
   Search,
   Building2,
@@ -9,72 +10,6 @@ import {
   Filter,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-const companies = [
-  {
-    id: 1,
-    company: "Google",
-    role: "Software Engineer",
-    ctc: 25,
-    lastDate: "10 May 2026",
-    branches: ["CSE", "ECE"],
-    cgpa: 7.5,
-  },
-  {
-    id: 2,
-    company: "Google",
-    role: "Backend Developer",
-    ctc: 24,
-    lastDate: "10 May 2026",
-    branches: ["CSE"],
-    cgpa: 7.5,
-  },
-  {
-    id: 3,
-    company: "Google",
-    role: "Frontend Developer",
-    ctc: 23,
-    lastDate: "10 May 2026",
-    branches: ["CSE"],
-    cgpa: 7.0,
-  },
-  {
-    id: 4,
-    company: "Amazon",
-    role: "SDE Intern",
-    ctc: 12,
-    lastDate: "15 May 2026",
-    branches: ["All"],
-    cgpa: 6.0,
-  },
-  {
-    id: 5,
-    company: "Microsoft",
-    role: "Product Engineer",
-    ctc: 22,
-    lastDate: "20 May 2026",
-    branches: ["ECE"],
-    cgpa: 8.0,
-  },
-  {
-    id: 6,
-    company: "Infosys",
-    role: "System Engineer",
-    ctc: 8,
-    lastDate: "18 May 2026",
-    branches: ["CSE"],
-    cgpa: 6.5,
-  },
-  {
-    id: 7,
-    company: "TCS",
-    role: "Business Analyst",
-    ctc: 7,
-    lastDate: "22 May 2026",
-    branches: ["MBA"],
-    cgpa: 6.0,
-  },
-];
 
 const BRANCHES = ["All", "CSE", "ECE", "MBA"];
 
