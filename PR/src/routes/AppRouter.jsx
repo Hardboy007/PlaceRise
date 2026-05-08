@@ -7,6 +7,8 @@ import StudentOnboardingPage from '../pages/student/StudentOnboardingPage'
 import StudentProfilePage from '../pages/student/StudentProfile'
 import CompanyListPage from '../pages/student/CompanyList'
 import CompanyDetailPage from '../pages/student/CompanyDetailPage'
+import StudentSettingsPage from '../pages/student/StudentSettings'
+
 
 function AppRouter() {
   return (
@@ -22,7 +24,7 @@ function AppRouter() {
           <Route path="companies/:companyId" element={<CompanyDetailPage />} />
           <Route path="applications" element={<StudentApplication />} />
           <Route path="profile" element={<StudentProfilePage />} />
-          <Route path="settings" element={<div>Settings</div>} />
+          <Route path="settings" element={<StudentSettingsPage />} />
         </Route>
 
         <Route path="*" element={<div>404 - Page Not Found</div>} />
