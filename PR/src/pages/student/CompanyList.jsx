@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Filter,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const companies = [
   {
@@ -167,6 +168,7 @@ function CompanyCard({ company, onViewDetails }) {
 }
 
 export default function CompanyListPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [branch, setBranch] = useState("All");
   const [role, setRole] = useState("All");
@@ -196,8 +198,7 @@ export default function CompanyListPage() {
   const uniqueCompanies = new Set(filteredCompanies.map((c) => c.company)).size;
 
   const handleViewDetails = (id) => {
-    // Baad mein navigate(`/student/companies/${id}`) hoga
-    alert(`Company ID: ${id} — Detail page coming soon`);
+    navigate(`/student/companies/${id}`);
   };
 
   return (

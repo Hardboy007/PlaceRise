@@ -1,0 +1,506 @@
+import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  Building2,
+  MapPin,
+  Calendar,
+  Clock,
+  Briefcase,
+  TrendingUp,
+  Users,
+  CheckCircle,
+  Send,
+  Code,
+  Gift,
+  Star,
+} from "lucide-react";
+
+const companies = [
+  {
+    id: 1,
+    company: "Google",
+    role: "Software Engineer",
+    ctc: 25,
+    lastDate: "10 May 2026",
+    branches: ["CSE", "ECE"],
+    cgpa: 7.5,
+    location: "Bangalore",
+    jobType: "Full Time",
+    workDays: "5 days/week",
+    shift: "Day Shift",
+    experience: "0-2 Years",
+    about:
+      "Google LLC is an American multinational technology company focusing on search engine technology, online advertising, cloud computing, and more.",
+    techStack: ["React", "Node.js", "Python", "GCP", "Kubernetes"],
+    skills: ["DSA", "System Design", "React", "Node.js", "SQL"],
+    perks: [
+      "Health Insurance",
+      "Work From Home",
+      "Flexible Hours",
+      "Stock Options",
+    ],
+  },
+  {
+    id: 2,
+    company: "Google",
+    role: "Backend Developer",
+    ctc: 24,
+    lastDate: "10 May 2026",
+    branches: ["CSE"],
+    cgpa: 7.5,
+    location: "Hyderabad",
+    jobType: "Full Time",
+    workDays: "5 days/week",
+    shift: "Day Shift",
+    experience: "0-3 Years",
+    about:
+      "Google LLC is an American multinational technology company focusing on search engine technology, online advertising, cloud computing, and more.",
+    techStack: ["Java", "Python", "GCP", "Kubernetes", "PostgreSQL"],
+    skills: ["DSA", "System Design", "Java", "Microservices", "SQL"],
+    perks: [
+      "Health Insurance",
+      "Work From Home",
+      "Flexible Hours",
+      "Stock Options",
+    ],
+  },
+  {
+    id: 3,
+    company: "Google",
+    role: "Frontend Developer",
+    ctc: 23,
+    lastDate: "10 May 2026",
+    branches: ["CSE"],
+    cgpa: 7.0,
+    location: "Pune",
+    jobType: "Full Time",
+    workDays: "5 days/week",
+    shift: "Day Shift",
+    experience: "0-2 Years",
+    about:
+      "Google LLC is an American multinational technology company focusing on search engine technology, online advertising, cloud computing, and more.",
+    techStack: ["React", "TypeScript", "CSS", "Webpack"],
+    skills: ["React", "TypeScript", "CSS", "Performance Optimization"],
+    perks: ["Health Insurance", "Flexible Hours", "Stock Options"],
+  },
+  {
+    id: 4,
+    company: "Amazon",
+    role: "SDE Intern",
+    ctc: 12,
+    lastDate: "15 May 2026",
+    branches: ["All"],
+    cgpa: 6.0,
+    location: "Bangalore",
+    jobType: "Internship",
+    workDays: "5 days/week",
+    shift: "Day Shift",
+    experience: "Freshers",
+    about:
+      "Amazon is an American multinational technology company focusing on e-commerce, cloud computing, digital streaming, and artificial intelligence.",
+    techStack: ["Java", "AWS", "DynamoDB", "Lambda"],
+    skills: ["DSA", "Java", "AWS Basics", "Problem Solving"],
+    perks: ["Health Insurance", "Meals", "Laptop Provided"],
+  },
+  {
+    id: 5,
+    company: "Microsoft",
+    role: "Product Engineer",
+    ctc: 22,
+    lastDate: "20 May 2026",
+    branches: ["ECE"],
+    cgpa: 8.0,
+    location: "Hyderabad",
+    jobType: "Full Time",
+    workDays: "5 days/week",
+    shift: "Day Shift",
+    experience: "0-2 Years",
+    about:
+      "Microsoft Corporation is an American multinational technology company producing computer software, consumer electronics, and personal computers.",
+    techStack: ["C#", ".NET", "Azure", "TypeScript", "React"],
+    skills: ["C#", "Azure", "System Design", "React"],
+    perks: ["Health Insurance", "Stock Options", "Flexible Hours"],
+  },
+  {
+    id: 6,
+    company: "Infosys",
+    role: "System Engineer",
+    ctc: 8,
+    lastDate: "18 May 2026",
+    branches: ["CSE"],
+    cgpa: 6.5,
+    location: "Chennai",
+    jobType: "Full Time",
+    workDays: "5 days/week",
+    shift: "Day Shift",
+    experience: "Freshers",
+    about:
+      "Infosys Limited is an Indian multinational information technology company that provides business consulting, information technology and outsourcing services.",
+    techStack: ["Java", "Spring Boot", "MySQL", "Angular"],
+    skills: ["Java", "SQL", "Problem Solving", "Communication"],
+    perks: ["Health Insurance", "Transport", "Meals"],
+  },
+  {
+    id: 7,
+    company: "TCS",
+    role: "Business Analyst",
+    ctc: 7,
+    lastDate: "22 May 2026",
+    branches: ["MBA"],
+    cgpa: 6.0,
+    location: "Mumbai",
+    jobType: "Full Time",
+    workDays: "5 days/week",
+    shift: "Day Shift",
+    experience: "Freshers",
+    about:
+      "Tata Consultancy Services is an Indian multinational information technology services and consulting company.",
+    techStack: ["Excel", "Tableau", "SQL", "PowerBI"],
+    skills: ["Analytics", "Communication", "Excel", "SQL"],
+    perks: ["Health Insurance", "Transport"],
+  },
+];
+
+export default function CompanyDetailPage() {
+  const { companyId } = useParams();
+  const navigate = useNavigate();
+  const [applied, setApplied] = useState(false);
+
+  const company = companies.find((c) => c.id === parseInt(companyId));
+
+  if (!company) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-64 gap-4">
+        <Building2 size={48} className="text-[#CBD5E1]" />
+        <p className="text-sm text-[#64748B]">Company not found</p>
+        <button
+          onClick={() => navigate("/student/companies")}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#3B82F6] text-white text-sm font-medium"
+        >
+          <ArrowLeft size={14} /> Back to Companies
+        </button>
+      </div>
+    );
+  }
+
+  const daysLeft = () => {
+    const today = new Date();
+    const last = new Date(company.lastDate);
+    const diff = Math.ceil((last - today) / (1000 * 60 * 60 * 24));
+    return diff;
+  };
+
+  const days = daysLeft();
+  const deadlineColor =
+    days <= 3
+      ? "text-[#EF4444] bg-red-50 border-red-200"
+      : days <= 7
+        ? "text-[#F59E0B] bg-amber-50 border-amber-200"
+        : "text-[#22C55E] bg-green-50 border-green-200";
+
+  return (
+    <div
+      className="max-w-3xl mx-auto"
+      style={{ fontFamily: "Inter, sans-serif" }}
+    >
+      {/* Back Button */}
+      <button
+        onClick={() => navigate("/student/companies")}
+        className="flex items-center gap-2 text-sm text-[#64748B] hover:text-[#1E293B] transition-colors mb-5"
+      >
+        <ArrowLeft size={15} />
+        Back to Companies
+      </button>
+
+      {/* Hero */}
+      <div
+        className="relative rounded-3xl overflow-hidden mb-5 border border-white/10"
+        style={{
+          background:
+            "linear-gradient(135deg, #3B82F6 0%, #60A5FA 60%, #818CF8 100%)",
+        }}
+      >
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                         radial-gradient(circle at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 40%)`,
+          }}
+        />
+        <div className="relative z-10 p-7">
+          <div className="flex items-start gap-4 mb-5">
+            <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center flex-shrink-0 shadow-md">
+              <Building2 size={24} className="text-[#3B82F6]" />
+            </div>
+            <div className="flex-1">
+              <h1
+                className="text-xl font-bold text-white mb-1"
+                style={{ fontFamily: "Space Grotesk, sans-serif" }}
+              >
+                {company.company}
+              </h1>
+              <p className="text-sm text-white/70 mb-3">{company.role}</p>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30">
+                  ₹{company.ctc} LPA
+                </span>
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30">
+                  {company.location}
+                </span>
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30">
+                  {company.jobType}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Apply Button */}
+          <button
+            onClick={() => setApplied(true)}
+            disabled={applied}
+            className={`w-full py-3 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-all
+              ${
+                applied
+                  ? "bg-white/20 text-white border border-white/30 cursor-not-allowed"
+                  : "bg-white text-[#3B82F6] hover:bg-white/90 shadow-md"
+              }`}
+          >
+            {applied ? (
+              <>
+                <CheckCircle size={16} /> Applied Successfully
+              </>
+            ) : (
+              <>
+                <Send size={16} /> Apply Now
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Stats Row */}
+      <div className="grid grid-cols-3 gap-4 mb-5">
+        {[
+          {
+            label: "Min CGPA",
+            value: `${company.cgpa}+`,
+            icon: Star,
+            color: "border-t-[#3B82F6]",
+          },
+          {
+            label: "Experience",
+            value: company.experience,
+            icon: Clock,
+            color: "border-t-[#22C55E]",
+          },
+          {
+            label: "Deadline",
+            value: `${days}d left`,
+            icon: Calendar,
+            color: deadlineColor.includes("red")
+              ? "border-t-[#EF4444]"
+              : deadlineColor.includes("amber")
+                ? "border-t-[#F59E0B]"
+                : "border-t-[#22C55E]",
+          },
+        ].map((stat) => (
+          <div
+            key={stat.label}
+            className={`bg-white rounded-2xl border border-[#E2E8F0] border-t-2 ${stat.color} p-4 shadow-sm`}
+          >
+            <stat.icon size={16} className="text-[#64748B] mb-2" />
+            <p
+              className="text-sm font-bold text-[#1E293B]"
+              style={{ fontFamily: "Space Grotesk, sans-serif" }}
+            >
+              {stat.value}
+            </p>
+            <p className="text-xs text-[#64748B] mt-0.5">{stat.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Eligibility */}
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#3B82F6] p-5 mb-4 shadow-sm">
+        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#F1F5F9]">
+          <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
+            <CheckCircle size={14} className="text-[#3B82F6]" />
+          </div>
+          <h3
+            className="text-sm font-bold text-[#1E293B]"
+            style={{ fontFamily: "Space Grotesk, sans-serif" }}
+          >
+            Eligibility Criteria
+          </h3>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { label: "Min CGPA", value: `${company.cgpa}+` },
+            {
+              label: "Eligible Branches",
+              value: company.branches.includes("All")
+                ? "All Branches"
+                : company.branches.join(", "),
+            },
+            { label: "Experience", value: company.experience },
+            { label: "Job Type", value: company.jobType },
+          ].map((item) => (
+            <div
+              key={item.label}
+              className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]"
+            >
+              <p className="text-xs text-[#64748B] uppercase tracking-widest mb-1">
+                {item.label}
+              </p>
+              <p className="text-sm font-semibold text-[#1E293B]">
+                {item.value}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* About Company */}
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#818CF8] p-5 mb-4 shadow-sm">
+        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#F1F5F9]">
+          <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center">
+            <Building2 size={14} className="text-[#818CF8]" />
+          </div>
+          <h3
+            className="text-sm font-bold text-[#1E293B]"
+            style={{ fontFamily: "Space Grotesk, sans-serif" }}
+          >
+            About {company.company}
+          </h3>
+        </div>
+        <p className="text-sm text-[#64748B] leading-relaxed">
+          {company.about}
+        </p>
+        <div className="mt-4">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[#64748B] mb-2">
+            Tech Stack
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {company.techStack.map((t) => (
+              <span
+                key={t}
+                className="px-3 py-1 rounded-full text-xs font-medium bg-[#F1F5F9] text-[#1E293B] border border-[#E2E8F0]"
+              >
+                {t}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Skills Required */}
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#F59E0B] p-5 mb-4 shadow-sm">
+        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#F1F5F9]">
+          <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center">
+            <Code size={14} className="text-[#F59E0B]" />
+          </div>
+          <h3
+            className="text-sm font-bold text-[#1E293B]"
+            style={{ fontFamily: "Space Grotesk, sans-serif" }}
+          >
+            Skills Required
+          </h3>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {company.skills.map((s) => (
+            <span
+              key={s}
+              className="px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-[#3B82F6] border border-blue-200"
+            >
+              {s}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Work Details */}
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#22C55E] p-5 mb-4 shadow-sm">
+        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#F1F5F9]">
+          <div className="w-7 h-7 rounded-lg bg-green-50 flex items-center justify-center">
+            <Briefcase size={14} className="text-[#22C55E]" />
+          </div>
+          <h3
+            className="text-sm font-bold text-[#1E293B]"
+            style={{ fontFamily: "Space Grotesk, sans-serif" }}
+          >
+            Work Details
+          </h3>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { label: "Working Days", value: company.workDays },
+            { label: "Job Type", value: company.jobType },
+            { label: "Shift", value: company.shift },
+            { label: "Location", value: company.location },
+          ].map((item) => (
+            <div
+              key={item.label}
+              className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]"
+            >
+              <p className="text-xs text-[#64748B] uppercase tracking-widest mb-1">
+                {item.label}
+              </p>
+              <p className="text-sm font-semibold text-[#1E293B]">
+                {item.value}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Perks */}
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#EF4444] p-5 mb-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#F1F5F9]">
+          <div className="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center">
+            <Gift size={14} className="text-[#EF4444]" />
+          </div>
+          <h3
+            className="text-sm font-bold text-[#1E293B]"
+            style={{ fontFamily: "Space Grotesk, sans-serif" }}
+          >
+            Perks & Benefits
+          </h3>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {company.perks.map((p) => (
+            <div
+              key={p}
+              className="flex items-center gap-2 bg-[#F8FAFC] rounded-xl px-3 py-2.5 border border-[#E2E8F0]"
+            >
+              <CheckCircle size={14} className="text-[#22C55E] flex-shrink-0" />
+              <span className="text-xs font-medium text-[#1E293B]">{p}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Bottom Apply Button */}
+      <button
+        onClick={() => setApplied(true)}
+        disabled={applied}
+        className={`w-full py-3.5 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-all mb-6
+          ${
+            applied
+              ? "bg-[#22C55E] text-white cursor-not-allowed"
+              : "bg-[#1E293B] hover:bg-[#3B82F6] text-white shadow-md"
+          }`}
+      >
+        {applied ? (
+          <>
+            <CheckCircle size={16} /> Application Submitted
+          </>
+        ) : (
+          <>
+            <Send size={16} /> Apply for this Role
+          </>
+        )}
+      </button>
+    </div>
+  );
+}
