@@ -167,8 +167,7 @@ export default function StudentProfilePage() {
           <div
             className="w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl font-bold flex-shrink-0"
             style={{
-              background: 'linear-gradient(135deg, white, #E0E7FF)', padding: '3px',
-              padding: "3px",
+              background: 'linear-gradient(135deg, white, #E0E7FF)', padding: '3px'
             }}
           >
             <div
