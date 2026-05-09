@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { useNavigate } from "react-router-dom";
 // ─── Design Tokens ───────────────────────────────────────────
 const C = {
   primary:    "#3B82F6",
@@ -126,6 +126,7 @@ function CalendarIcon() {
 }
 
 function CompanyCard({ company }) {
+  const navigate = useNavigate()
   return (
     <div style={{ backgroundColor: C.white, borderColor: C.border }}
       className="rounded-2xl p-5 shadow-sm border hover:shadow-md transition-shadow duration-200">
@@ -159,8 +160,8 @@ function CompanyCard({ company }) {
           <p style={{ color: C.textMuted }} className="text-xs mb-0.5">Package</p>
           <p style={{ color: C.textMain }} className="font-bold text-base">{company.package}</p>
         </div>
-        <button style={{ backgroundColor: C.primary }}
-          className="hover:opacity-90 text-white px-5 py-2.5 rounded-full text-sm font-medium flex items-center gap-1.5 transition-opacity duration-150">
+        <button onClick={() => navigate(`/student/companies/${company.id}`)} style={{ backgroundColor: C.primary }}
+          className="hover:opacity-90 text-white cursor-pointer px-5 py-2.5 rounded-full text-sm font-medium flex items-center gap-1.5 transition-opacity duration-150">
           View Details
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/>
@@ -173,6 +174,7 @@ function CompanyCard({ company }) {
 
 // ─── Main Component ───────────────────────────────────────────
 export default function PlacementDashboard() {
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState("dashboard");
 
   return (
@@ -223,14 +225,14 @@ export default function PlacementDashboard() {
                 <span className="font-semibold">12 companies</span> are open for you right now
               </p>
               <div className="flex gap-3">
-                <button style={{ backgroundColor: C.white, color: C.primary }}
-                  className="font-semibold px-6 py-2.5 rounded-full text-sm flex items-center gap-2 hover:opacity-90 transition-opacity">
+                <button onClick={() => navigate('/student/companies')} style={{ backgroundColor: C.white, color: C.primary }}
+                  className="font-semibold cursor-pointer px-6 py-2.5 rounded-full text-sm flex items-center gap-2 hover:opacity-90 transition-opacity">
                   Browse Companies
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/>
                   </svg>
                 </button>
-                <button className="bg-white/20 border border-white/40 text-white font-semibold px-6 py-2.5 rounded-full text-sm hover:bg-white/30 transition-colors">
+                <button onClick={() => navigate('/student/applications')} className="bg-white/20 cursor-pointer border border-white/40 text-white font-semibold px-6 py-2.5 rounded-full text-sm hover:bg-white/30 transition-colors">
                   My Applications
                 </button>
               </div>
