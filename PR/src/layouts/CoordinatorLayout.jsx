@@ -1,29 +1,28 @@
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
+  Users,
   Building2,
-  ClipboardList,
+  BarChart3,
+  Megaphone,
   User,
-  Settings,
-  Bell,
   LogOut,
   Sparkles,
   ChevronRight,
+  Calendar,
 } from "lucide-react";
 
 const navLinks = [
-  { to: "/student/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/student/companies", label: "Companies", icon: Building2 },
-  {
-    to: "/student/applications",
-    label: "My Applications",
-    icon: ClipboardList,
-  },
-  { to: "/student/profile", label: "Profile", icon: User },
-  { to: "/student/settings", label: "Settings", icon: Settings },
+  { to: "/coordinator/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/coordinator/students", label: "Students", icon: Users },
+  { to: "/coordinator/companies", label: "Companies", icon: Building2 },
+  { to: "/coordinator/calendar", label: "Calendar", icon: Calendar },
+  { to: "/coordinator/applications", label: "Applications", icon: BarChart3 },
+  { to: "/coordinator/announcements", label: "Announcements", icon: Megaphone },
+  { to: "/coordinator/profile", label: "Profile & Settings", icon: User },
 ];
 
-function StudentLayout() {
+function CoordinatorLayout() {
   const navigate = useNavigate();
 
   return (
@@ -49,33 +48,28 @@ function StudentLayout() {
             <span className="text-[#1E293B]">Place</span>
             <span className="text-primary">Rise</span>
           </span>
+          {/* Coordinator Badge */}
+          <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-semibold bg-[#1E293B] text-white">
+            Coordinator
+          </span>
         </div>
 
         {/* Right Side */}
         <div className="flex items-center gap-3">
-          {/* Notification Bell */}
-          <button className="relative w-9 h-9 rounded-xl bg-background hover:bg-[#E2E8F0] flex items-center justify-center transition-colors">
-            <Bell size={16} className="text-text-muted" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-danger rounded-full" />
-          </button>
-
-          {/* Divider */}
-          <div className="w-px h-6 bg-[#CBD5E1]" />
-
-          {/* Avatar + Name */}
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold">
-              JD
+              MK
             </div>
             <div className="hidden md:block">
               <p className="text-sm font-medium text-[#1E293B] leading-none">
-                John Doe
+                Mr. Mukesh Kumar
               </p>
-              <p className="text-xs text-text-muted mt-0.5">CSE · Batch 2025</p>
+              <p className="text-xs text-text-muted mt-0.5">
+                Placement Coordinator
+              </p>
             </div>
           </div>
 
-          {/* Logout */}
           <button
             onClick={() => navigate("/")}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium
@@ -90,8 +84,7 @@ function StudentLayout() {
       {/* Body */}
       <div className="flex pt-16">
         {/* Sidebar */}
-        <aside className="fixed top-16 left-0 bottom-0 w-56 bg-white border-r border-[#CBD5E1] flex flex-col p-3 gap-1 z-40">
-          {/* Nav Links */}
+        <aside className="fixed top-16 left-0 bottom-0 w-60 bg-white border-r border-[#CBD5E1] flex flex-col p-3 gap-1 z-40">
           <div className="flex-1 flex flex-col gap-1 mt-2">
             {navLinks.map(({ to, label, icon: Icon }) => (
               <NavLink
@@ -118,18 +111,18 @@ function StudentLayout() {
             ))}
           </div>
 
-          {/* Bottom - User Card */}
+          {/* Bottom Card */}
           <div className="mt-auto p-3 rounded-xl bg-background border border-[#CBD5E1]">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold shrink-0">
-                JD
+                MK
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-semibold text-[#1E293B] truncate">
-                  John Doe
+                  Mr. Mukesh Kumar
                 </p>
                 <p className="text-xs text-text-muted truncate">
-                  ERP: 2021CSE001
+                  Placement Cell · DBUU
                 </p>
               </div>
             </div>
@@ -137,7 +130,7 @@ function StudentLayout() {
         </aside>
 
         {/* Main Content */}
-        <main className="ml-56 flex-1 min-h-screen p-6">
+        <main className="ml-60 flex-1 min-h-screen p-6">
           <Outlet />
         </main>
       </div>
@@ -145,4 +138,4 @@ function StudentLayout() {
   );
 }
 
-export default StudentLayout;
+export default CoordinatorLayout;
