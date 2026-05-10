@@ -9,6 +9,7 @@ import StudentProfilePage from "../pages/student/StudentProfile";
 import CompanyListPage from "../pages/student/CompanyList";
 import CompanyDetailPage from "../pages/student/CompanyDetailPage";
 import StudentSettingsPage from "../pages/student/StudentSettings";
+import CoordinatorDashboard from "../pages/coordinator/CoordinatorDashboard";
 
 function AppRouter() {
   return (
@@ -29,7 +30,7 @@ function AppRouter() {
 
         {/* Coordinator Routes - Layout ke andar */}
         <Route path="/coordinator" element={<CoordinatorLayout />}>
-          <Route path="dashboard" element={<div>Coordinator Dashboard</div>} />
+          <Route path="dashboard" element={<CoordinatorDashboard />} />
           <Route path="students" element={<div>Student Database</div>} />
           <Route path="companies" element={<div>Company Management</div>} />
           <Route path="calendar" element={<div>Company Calendar</div>} />
