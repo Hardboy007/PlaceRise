@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { mockStudents } from "../../data/mockStudents";
+import  mockStudents  from "../../data/mockStudents";
 
 // ── Design Tokens ─────────────────────────────────────────────
 const C = {
