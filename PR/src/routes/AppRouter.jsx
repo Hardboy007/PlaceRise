@@ -12,7 +12,7 @@ import StudentSettingsPage from "../pages/student/StudentSettings";
 import CoordinatorDashboard from "../pages/coordinator/CoordinatorDashboard";
 import StudentDatabasePage from "../pages/coordinator/StudentDatabase";
 import CompanyManagementPage from "../pages/coordinator/CompanyManagement";
-
+import CoordinatorProfile from "../pages/coordinator/CoordinatorProfile";
 
 function AppRouter() {
   return (
@@ -39,7 +39,7 @@ function AppRouter() {
           <Route path="calendar" element={<div>Company Calendar</div>} />
           <Route path="applications" element={<div>Applications Management</div>} />
           <Route path="announcements" element={<div>Announcements</div>} />
-          <Route path="profile" element={<div>Coordinator Profile</div>} />
+          <Route path="profile" element={<CoordinatorProfile />} />
         </Route>
         
         <Route path="*" element={<div>404 - Page Not Found</div>} />
