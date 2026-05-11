@@ -142,7 +142,7 @@ function StatCard({ icon, label, value, bg, border }) {
       style={{ backgroundColor: C.white, borderColor: border || C.border }}
       className="rounded-2xl border p-5 flex items-center gap-4 shadow-sm"
     >
-      <div style={{ backgroundColor: bg }} className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0">
+      <div style={{ backgroundColor: bg }} className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0">
         {icon}
       </div>
       <div>
@@ -159,7 +159,7 @@ function StudentModal({ student, onClose }) {
 
   const InfoRow = ({ icon, label, value }) => (
     <div className="flex items-start gap-3">
-      <div style={{ color: C.textMuted }} className="mt-0.5 flex-shrink-0">{icon}</div>
+      <div style={{ color: C.textMuted }} className="mt-0.5 shrink-0">{icon}</div>
       <div>
         <p style={{ color: C.textMuted }} className="text-xs font-medium mb-0.5">{label}</p>
         <p style={{ color: C.textMain }} className="text-sm font-semibold">{value || "—"}</p>
@@ -193,7 +193,7 @@ function StudentModal({ student, onClose }) {
           <div className="flex items-center gap-4">
             <div
               style={{ background: `linear-gradient(135deg, ${C.primary}, ${C.accent})` }}
-              className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
+              className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-lg shrink-0"
             >
               {student.name.charAt(0)}
             </div>
@@ -483,7 +483,7 @@ export default function StudentDatabasePage() {
                 <div className="flex items-center gap-3">
                   <div
                     style={{ background: `linear-gradient(135deg, ${C.primary}, ${C.accent})` }}
-                    className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                    className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0"
                   >
                     {student.name.charAt(0)}
                   </div>
