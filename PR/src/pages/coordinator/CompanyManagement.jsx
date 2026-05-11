@@ -1,0 +1,436 @@
+import { useState } from "react";
+import mockCompanies from "../../data/mockCompanies";
+import {
+  Building2, Search, Plus, FileText, X, Check,
+  MapPin, Calendar, Briefcase, AlertCircle,
+  CheckCircle, XCircle, Eye, ExternalLink, Trash2,
+  Users, Clock
+} from "lucide-react";
+
+const sanitizeCompany = (c) => ({
+  ...c,
+  branches: Array.isArray(c.branches) ? c.branches : [],
+  techStack: Array.isArray(c.techStack) ? c.techStack : [],
+  skills: Array.isArray(c.skills) ? c.skills : [],
+  perks: Array.isArray(c.perks) ? c.perks : [],
+  selectionProcess: Array.isArray(c.selectionProcess)
+    ? c.selectionProcess.map((s) => (typeof s === "object" && s !== null ? s.title : s))
+    : [],
+  ctc: c.ctc ?? 0,
+  cgpa: c.cgpa ?? 0,
+  backlogsAllowed: c.backlogsAllowed ?? false,
+  lastDate: c.lastDate ?? "",
+  role: c.role ?? "",
+  jobType: c.jobType ?? "Full Time",
+  location: c.location ?? "",
+  about: c.about ?? "",
+  industry: c.industry ?? "",
+  website: c.website ?? "",
+});
+
+function TagInput({ tags, setTags, placeholder }) {
+  const [input, setInput] = useState("");
+  const handleKey = (e) => {
+    if ((e.key === "Enter" || e.key === ",") && input.trim()) {
+      e.preventDefault();
+      if (!tags.includes(input.trim())) setTags([...tags, input.trim()]);
+      setInput("");
+    }
+  };
+  return (
+    <div className="flex flex-wrap gap-1.5 p-2 border border-[#E2E8F0] rounded-xl bg-[#F8FAFC] min-h-[42px] focus-within:border-[#3B82F6] transition-colors">
+      {tags.map((t) => (
+        <span key={t} className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-[#3B82F6] border border-blue-200 text-xs font-medium">
+          {t}
+          <button onClick={() => setTags(tags.filter((x) => x !== t))} className="hover:text-red-500 transition-colors"><X size={10} /></button>
+        </span>
+      ))}
+      <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKey} placeholder={tags.length === 0 ? placeholder : ""} className="flex-1 min-w-[120px] bg-transparent text-xs text-[#1E293B] outline-none placeholder:text-[#94A3B8]" />
+    </div>
+  );
+}
+
+function Field({ label, required, optional, error, children }) {
+  return (
+    <div>
+      <label className="block text-xs font-semibold text-[#64748B] uppercase tracking-widest mb-1.5">
+        {label} {required && <span className="text-red-400">*</span>}
+        {optional && <span className="text-[#94A3B8] normal-case tracking-normal font-normal">(optional)</span>}
+      </label>
+      {children}
+      {error && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle size={11} />{error}</p>}
+    </div>
+  );
+}
+
+const inputCls = "w-full px-3 py-2 text-sm text-[#1E293B] border border-[#E2E8F0] rounded-xl bg-[#F8FAFC] focus:outline-none focus:border-[#3B82F6] transition-colors placeholder:text-[#94A3B8]";
+const BRANCHES = ["CSE", "IT", "ECE", "ME", "CE", "All"];
+const emptyCompany = { company: "", about: "", industry: "", location: "", website: "" };
+const emptyJD = { role: "", ctc: "", jobType: "Full Time", location: "", lastDate: "", cgpa: "", branches: [], backlogsAllowed: false, techStack: [], skills: [], perks: [], selectionProcess: [] };
+
+export default function CompanyManagementPage() {
+  const [companies, setCompanies] = useState(mockCompanies.map(sanitizeCompany));
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("All");
+
+  const [showCompanyModal, setShowCompanyModal] = useState(false);
+  const [editingCompany, setEditingCompany] = useState(null);
+  const [companyForm, setCompanyForm] = useState(emptyCompany);
+  const [companyErrors, setCompanyErrors] = useState({});
+
+  const [showJDModal, setShowJDModal] = useState(false);
+  const [jdTargetCompany, setJdTargetCompany] = useState(null);
+  const [jdForm, setJdForm] = useState(emptyJD);
+  const [jdErrors, setJdErrors] = useState({});
+
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [viewingCompany, setViewingCompany] = useState(null);
+
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletingCompany, setDeletingCompany] = useState(null);
+
+  const daysLeft = (lastDate) => {
+    if (!lastDate) return null;
+    const d = new Date(lastDate);
+    if (isNaN(d.getTime())) return null;
+    return Math.ceil((d - new Date()) / (1000 * 60 * 60 * 24));
+  };
+
+  // Stats
+  const totalCompanies = companies.length;
+  const fullTime = companies.filter((c) => c.jobType === "Full Time").length;
+  const internships = companies.filter((c) => c.jobType === "Internship").length;
+  const urgent = companies.filter((c) => { const d = daysLeft(c.lastDate); return d !== null && d <= 7 && d >= 0; }).length;
+
+  const filtered = companies.filter((c) => {
+    const matchSearch = c.company.toLowerCase().includes(search.toLowerCase());
+    const matchFilter = filter === "All" ? true : filter === "Active" ? c.jobType !== "Closed" : c.jobType === "Closed";
+    return matchSearch && matchFilter;
+  });
+
+  const openView = (c) => { setViewingCompany(c); setShowViewModal(true); };
+
+  const openAddCompany = () => { setEditingCompany(null); setCompanyForm(emptyCompany); setCompanyErrors({}); setShowCompanyModal(true); };
+  const openEditCompany = (c) => { setEditingCompany(c); setCompanyForm({ company: c.company, about: c.about || "", industry: c.industry || "", location: c.location, website: c.website || "" }); setCompanyErrors({}); setShowCompanyModal(true); };
+
+  const validateCompany = () => {
+    const errs = {};
+    if (!companyForm.company.trim()) errs.company = "Company name is required";
+    if (!companyForm.location.trim()) errs.location = "Location is required";
+    return errs;
+  };
+  const saveCompany = () => {
+    const errs = validateCompany();
+    if (Object.keys(errs).length) { setCompanyErrors(errs); return; }
+    if (editingCompany) {
+      setCompanies(companies.map((c) => c.id === editingCompany.id ? { ...c, ...companyForm } : c));
+    } else {
+      setCompanies([...companies, { ...companyForm, id: Date.now(), ctc: 0, lastDate: "", branches: [], cgpa: 0, jobType: "Full Time", techStack: [], skills: [], perks: [], selectionProcess: [], backlogsAllowed: false }]);
+    }
+    setShowCompanyModal(false);
+  };
+
+  const openJD = (c) => { setJdTargetCompany(c); setJdForm(emptyJD); setJdErrors({}); setShowJDModal(true); };
+  const openEditJD = (c) => { setJdTargetCompany(c); setJdForm({ role: c.role || "", ctc: c.ctc || "", jobType: c.jobType || "Full Time", location: c.location || "", lastDate: c.lastDate || "", cgpa: c.cgpa || "", branches: c.branches || [], backlogsAllowed: c.backlogsAllowed || false, techStack: c.techStack || [], skills: c.skills || [], perks: c.perks || [], selectionProcess: c.selectionProcess || [] }); setJdErrors({}); setShowJDModal(true); };
+
+  const validateJD = () => {
+    const errs = {};
+    if (!jdForm.role.trim()) errs.role = "Role is required";
+    if (!jdForm.ctc) errs.ctc = "CTC is required";
+    if (!jdForm.lastDate) errs.lastDate = "Last date is required";
+    if (!jdForm.branches.length) errs.branches = "Select at least one branch";
+    return errs;
+  };
+  const submitJD = () => {
+    const errs = validateJD();
+    if (Object.keys(errs).length) { setJdErrors(errs); return; }
+    setCompanies(companies.map((c) => c.id === jdTargetCompany.id ? { ...c, role: jdForm.role, ctc: parseFloat(jdForm.ctc), jobType: jdForm.jobType, location: jdForm.location || c.location, lastDate: jdForm.lastDate, cgpa: jdForm.cgpa ? parseFloat(jdForm.cgpa) : 0, branches: jdForm.branches, backlogsAllowed: jdForm.backlogsAllowed, techStack: jdForm.techStack, skills: jdForm.skills, perks: jdForm.perks, selectionProcess: jdForm.selectionProcess } : c));
+    setShowJDModal(false);
+  };
+
+  const toggleBranch = (b) => {
+    if (b === "All") { setJdForm({ ...jdForm, branches: jdForm.branches.includes("All") ? [] : ["All"] }); return; }
+    const cur = jdForm.branches.filter((x) => x !== "All");
+    setJdForm({ ...jdForm, branches: cur.includes(b) ? cur.filter((x) => x !== b) : [...cur, b] });
+  };
+
+  const openDeleteDialog = (c) => { setDeletingCompany(c); setShowDeleteDialog(true); };
+  const confirmDelete = () => {
+    setCompanies(companies.filter((c) => c.id !== deletingCompany.id));
+    setShowDeleteDialog(false);
+    setDeletingCompany(null);
+    if (viewingCompany?.id === deletingCompany.id) { setShowViewModal(false); setViewingCompany(null); }
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto px-1" style={{ fontFamily: "Inter, sans-serif" }}>
+
+      {/* ══════════════════════════════════════════
+          HERO SECTION
+      ══════════════════════════════════════════ */}
+      <div
+        className="relative rounded-2xl overflow-hidden mb-6 p-6"
+        style={{ background: "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)" }}
+      >
+        {/* Decorative blobs */}
+        <div className="absolute top-0 right-0 w-72 h-72 rounded-full pointer-events-none" style={{ background: "rgba(255,255,255,0.08)", transform: "translate(35%,-45%)" }} />
+        <div className="absolute bottom-0 left-0 w-52 h-52 rounded-full pointer-events-none" style={{ background: "rgba(255,255,255,0.06)", transform: "translate(-30%,40%)" }} />
+        <div className="absolute top-1/2 right-32 w-24 h-24 rounded-full pointer-events-none" style={{ background: "rgba(255,255,255,0.07)", transform: "translateY(-50%)" }} />
+
+        {/* Top: label + heading + button */}
+        <div className="relative flex items-start justify-between gap-4 mb-6">
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center">
+                <Building2 size={13} className="text-white" />
+              </div>
+              <span className="text-white/60 text-[10px] font-bold uppercase tracking-widest">Placement Portal</span>
+            </div>
+            <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+              Company Management
+            </h1>
+            <p className="text-white/55 text-xs mt-1">Manage recruiters, post JDs, and track placement drives</p>
+          </div>
+
+          <button
+            onClick={openAddCompany}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[#1D4ED8] text-sm font-bold hover:bg-blue-50 transition-colors shadow-lg flex-shrink-0 mt-1"
+          >
+            <Plus size={15} /> Add Company
+          </button>
+        </div>
+
+        {/* Stats */}
+        <div className="relative grid grid-cols-4 gap-3">
+          {[
+            { label: "Total Companies", value: totalCompanies, icon: Building2 },
+            { label: "Full Time", value: fullTime, icon: Briefcase },
+            { label: "Internships", value: internships, icon: Users },
+            { label: "Closing Soon", value: urgent, icon: Clock, highlight: urgent > 0 },
+          ].map(({ label, value, icon: Icon, highlight }) => (
+            <div
+              key={label}
+              className="rounded-xl px-4 py-3 border border-white/10"
+              style={{ background: highlight ? "rgba(239,68,68,0.25)" : "rgba(255,255,255,0.12)" }}
+            >
+              <div className="flex items-center gap-1.5 mb-1">
+                <Icon size={12} className="text-white/60" />
+                <span className="text-white/55 text-[10px] font-semibold uppercase tracking-wider">{label}</span>
+              </div>
+              <p className="text-white text-2xl font-bold leading-none" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Search + Filter ── */}
+      <div className="flex items-center gap-3 mb-5">
+        <div className="flex-1 relative">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search company name..." className="w-full pl-9 pr-4 py-2.5 text-sm border border-[#E2E8F0] rounded-xl bg-white focus:outline-none focus:border-[#3B82F6] transition-colors text-[#1E293B] placeholder:text-[#94A3B8]" />
+        </div>
+        <div className="flex items-center gap-2 bg-white border border-[#E2E8F0] rounded-xl p-1">
+          {["All", "Active", "Closed"].map((f) => (
+            <button key={f} onClick={() => setFilter(f)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${filter === f ? "bg-[#3B82F6] text-white" : "text-[#64748B] hover:text-[#1E293B]"}`}>{f}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Company Cards ── */}
+      {filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 gap-3">
+          <Building2 size={40} className="text-[#CBD5E1]" />
+          <p className="text-sm text-[#64748B]">No companies found</p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {filtered.map((c) => {
+            const days = c.lastDate ? daysLeft(c.lastDate) : null;
+            const isUrgent = days !== null && days <= 7;
+            return (
+              <div key={c.id} className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#3B82F6] p-5 shadow-sm hover:shadow-md transition-all">
+                <div className="flex items-start gap-4">
+                  <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+                    <Building2 size={20} className="text-[#3B82F6]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <h3 className="text-sm font-bold text-[#1E293B]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{c.company}</h3>
+                      {c.role && <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-[#3B82F6] border border-blue-200">{c.role}</span>}
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${c.jobType === "Internship" ? "bg-purple-50 text-purple-600 border border-purple-200" : "bg-green-50 text-green-600 border border-green-200"}`}>{c.jobType}</span>
+                    </div>
+                    <div className="flex items-center gap-4 flex-wrap">
+                      <span className="flex items-center gap-1 text-xs text-[#64748B]"><MapPin size={11} /> {c.location}</span>
+                      {c.ctc > 0 && <span className="flex items-center gap-1 text-xs text-[#64748B]"><Briefcase size={11} /> ₹{c.ctc} LPA</span>}
+                      {c.lastDate && (
+                        <span className={`flex items-center gap-1 text-xs font-medium ${isUrgent ? "text-red-500" : "text-[#64748B]"}`}>
+                          <Calendar size={11} />{c.lastDate}
+                          {isUrgent && <span className="ml-1 px-1.5 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-200 text-[10px] font-bold">{days}d left</span>}
+                        </span>
+                      )}
+                      {c.cgpa > 0 && <span className="text-xs text-[#64748B]">CGPA {c.cgpa}+</span>}
+                    </div>
+                    {(c.branches ?? []).length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {(c.branches ?? []).map((b) => <span key={b} className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#F1F5F9] text-[#64748B] border border-[#E2E8F0]">{b}</span>)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <button onClick={() => openView(c)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E2E8F0] text-xs font-medium text-[#64748B] hover:border-[#8B5CF6] hover:text-[#8B5CF6] transition-all"><Eye size={12} /> View</button>
+                    <button onClick={() => openJD(c)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#3B82F6] text-white text-xs font-semibold hover:bg-[#2563EB] transition-colors"><FileText size={12} /> Post JD</button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════ View Modal ══════════════════════════════════════════ */}
+      {showViewModal && viewingCompany && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => setShowViewModal(false)}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-5 border-b border-[#F1F5F9]">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center"><Eye size={15} className="text-purple-500" /></div>
+                <div><h2 className="text-sm font-bold text-[#1E293B]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Company Details</h2><p className="text-xs text-[#64748B]">{viewingCompany.company}</p></div>
+              </div>
+              <button onClick={() => setShowViewModal(false)} className="w-7 h-7 rounded-lg bg-[#F1F5F9] flex items-center justify-center hover:bg-[#E2E8F0] transition-colors"><X size={14} className="text-[#64748B]" /></button>
+            </div>
+            <div className="p-5 flex flex-col gap-5">
+              <div>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0"><Building2 size={22} className="text-[#3B82F6]" /></div>
+                  <div><h3 className="text-base font-bold text-[#1E293B]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{viewingCompany.company}</h3><p className="text-xs text-[#64748B]">{viewingCompany.industry || "—"} · {viewingCompany.location}</p></div>
+                </div>
+                {viewingCompany.about && <p className="text-xs text-[#64748B] leading-relaxed mb-2">{viewingCompany.about}</p>}
+                {viewingCompany.website && <a href={viewingCompany.website} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-[#3B82F6] hover:underline"><ExternalLink size={11} /> {viewingCompany.website}</a>}
+              </div>
+              <div className="border-t border-[#F1F5F9]" />
+              {(viewingCompany.role || viewingCompany.ctc > 0 || viewingCompany.lastDate) && (
+                <div>
+                  <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-3">Job Details</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {viewingCompany.role && <div className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]"><p className="text-[10px] text-[#94A3B8] mb-1">Role</p><p className="text-xs font-semibold text-[#1E293B]">{viewingCompany.role}</p></div>}
+                    {viewingCompany.ctc > 0 && <div className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]"><p className="text-[10px] text-[#94A3B8] mb-1">CTC</p><p className="text-xs font-semibold text-[#1E293B]">₹{viewingCompany.ctc} LPA</p></div>}
+                    <div className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]"><p className="text-[10px] text-[#94A3B8] mb-1">Job Type</p><p className="text-xs font-semibold text-[#1E293B]">{viewingCompany.jobType}</p></div>
+                    {viewingCompany.lastDate && <div className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]"><p className="text-[10px] text-[#94A3B8] mb-1">Last Date</p><p className={`text-xs font-semibold ${(daysLeft(viewingCompany.lastDate) ?? 999) <= 7 ? "text-red-500" : "text-[#1E293B]"}`}>{viewingCompany.lastDate}</p></div>}
+                    <div className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]"><p className="text-[10px] text-[#94A3B8] mb-1">Min CGPA</p><p className="text-xs font-semibold text-[#1E293B]">{viewingCompany.cgpa > 0 ? `${viewingCompany.cgpa} and above` : "No requirement"}</p></div>
+                    <div className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]"><p className="text-[10px] text-[#94A3B8] mb-1">Backlogs Allowed</p><p className="text-xs font-semibold text-[#1E293B]">{viewingCompany.backlogsAllowed ? "Yes" : "No"}</p></div>
+                  </div>
+                </div>
+              )}
+              {(viewingCompany.branches ?? []).length > 0 && (<div><p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-2">Eligible Branches</p><div className="flex flex-wrap gap-1.5">{(viewingCompany.branches ?? []).map((b) => <span key={b} className="px-3 py-1 rounded-full text-xs font-medium bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0]">{b}</span>)}</div></div>)}
+              {(viewingCompany.selectionProcess ?? []).length > 0 && (<div><p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-2">Selection Process</p><div className="flex flex-wrap gap-1.5">{(viewingCompany.selectionProcess ?? []).map((s, i) => <span key={i} className="px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-[#3B82F6] border border-blue-200">Round {i + 1}: {s}</span>)}</div></div>)}
+              {(viewingCompany.techStack ?? []).length > 0 && (<div><p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-2">Tech Stack</p><div className="flex flex-wrap gap-1.5">{(viewingCompany.techStack ?? []).map((t) => <span key={t} className="px-3 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-600 border border-purple-200">{t}</span>)}</div></div>)}
+              {(viewingCompany.skills ?? []).length > 0 && (<div><p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-2">Skills Required</p><div className="flex flex-wrap gap-1.5">{(viewingCompany.skills ?? []).map((s) => <span key={s} className="px-3 py-1 rounded-full text-xs font-medium bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0]">{s}</span>)}</div></div>)}
+              {(viewingCompany.perks ?? []).length > 0 && (<div><p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-2">Perks & Benefits</p><div className="flex flex-wrap gap-1.5">{(viewingCompany.perks ?? []).map((p) => <span key={p} className="px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-600 border border-green-200">{p}</span>)}</div></div>)}
+            </div>
+            <div className="flex items-center justify-between gap-3 p-5 border-t border-[#F1F5F9]">
+              <button onClick={() => { setShowViewModal(false); openDeleteDialog(viewingCompany); }} className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-red-200 text-xs font-medium text-red-500 hover:bg-red-50 hover:border-red-400 transition-all"><Trash2 size={13} /> Delete</button>
+              <div className="flex items-center gap-2">
+                <button onClick={() => { setShowViewModal(false); openEditCompany(viewingCompany); }} className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-medium text-[#64748B] hover:border-[#3B82F6] hover:text-[#3B82F6] transition-all"><Building2 size={13} /> Edit Company Info</button>
+                <button onClick={() => { setShowViewModal(false); openEditJD(viewingCompany); }} className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-medium text-[#64748B] hover:border-[#8B5CF6] hover:text-[#8B5CF6] transition-all"><FileText size={13} /> Edit JD Details</button>
+                <button onClick={() => setShowViewModal(false)} className="px-3 py-2 rounded-xl bg-[#F1F5F9] text-xs font-medium text-[#64748B] hover:bg-[#E2E8F0] transition-colors">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════ Add/Edit Company Modal ══════════════════════════════════════════ */}
+      {showCompanyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => setShowCompanyModal(false)}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-5 border-b border-[#F1F5F9]">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center"><Building2 size={15} className="text-[#3B82F6]" /></div>
+                <h2 className="text-sm font-bold text-[#1E293B]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{editingCompany ? "Edit Company Info" : "Add New Company"}</h2>
+              </div>
+              <button onClick={() => setShowCompanyModal(false)} className="w-7 h-7 rounded-lg bg-[#F1F5F9] flex items-center justify-center hover:bg-[#E2E8F0] transition-colors"><X size={14} className="text-[#64748B]" /></button>
+            </div>
+            <div className="p-5 flex flex-col gap-4">
+              <Field label="Company Name" required error={companyErrors.company}><input value={companyForm.company} onChange={(e) => setCompanyForm({ ...companyForm, company: e.target.value })} placeholder="e.g. Google" className={inputCls} /></Field>
+              <Field label="Industry"><input value={companyForm.industry} onChange={(e) => setCompanyForm({ ...companyForm, industry: e.target.value })} placeholder="e.g. Technology" className={inputCls} /></Field>
+              <Field label="Location" required error={companyErrors.location}><input value={companyForm.location} onChange={(e) => setCompanyForm({ ...companyForm, location: e.target.value })} placeholder="e.g. Bangalore" className={inputCls} /></Field>
+              <Field label="Website URL"><input value={companyForm.website} onChange={(e) => setCompanyForm({ ...companyForm, website: e.target.value })} placeholder="https://company.com" className={inputCls} /></Field>
+              <Field label="About Company"><textarea value={companyForm.about} onChange={(e) => setCompanyForm({ ...companyForm, about: e.target.value })} placeholder="Brief description about the company..." rows={3} className={`${inputCls} resize-none`} /></Field>
+            </div>
+            <div className="flex items-center justify-end gap-3 p-5 border-t border-[#F1F5F9]">
+              <button onClick={() => setShowCompanyModal(false)} className="px-4 py-2 rounded-xl border border-[#E2E8F0] text-sm font-medium text-[#64748B] hover:bg-[#F8FAFC] transition-colors">Cancel</button>
+              <button onClick={saveCompany} className="px-4 py-2 rounded-xl bg-[#3B82F6] text-white text-sm font-semibold hover:bg-[#2563EB] transition-colors flex items-center gap-2"><Check size={14} /> {editingCompany ? "Save Changes" : "Add Company"}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════ JD Modal ══════════════════════════════════════════ */}
+      {showJDModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => setShowJDModal(false)}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-5 border-b border-[#F1F5F9]">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center"><FileText size={15} className="text-[#3B82F6]" /></div>
+                <div><h2 className="text-sm font-bold text-[#1E293B]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>{jdForm.role ? "Edit JD Details" : "Post Job Description"}</h2><p className="text-xs text-[#64748B]">{jdTargetCompany?.company}</p></div>
+              </div>
+              <button onClick={() => setShowJDModal(false)} className="w-7 h-7 rounded-lg bg-[#F1F5F9] flex items-center justify-center hover:bg-[#E2E8F0] transition-colors"><X size={14} className="text-[#64748B]" /></button>
+            </div>
+            <div className="p-5 flex flex-col gap-4">
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Role / Position" required error={jdErrors.role}><input value={jdForm.role} onChange={(e) => setJdForm({ ...jdForm, role: e.target.value })} placeholder="e.g. Software Engineer" className={inputCls} /></Field>
+                <Field label="CTC (LPA)" required error={jdErrors.ctc}><input type="number" value={jdForm.ctc} onChange={(e) => setJdForm({ ...jdForm, ctc: e.target.value })} placeholder="e.g. 12" className={inputCls} /></Field>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Job Type"><select value={jdForm.jobType} onChange={(e) => setJdForm({ ...jdForm, jobType: e.target.value })} className={inputCls}><option>Full Time</option><option>Internship</option><option>Part Time</option></select></Field>
+                <Field label="Location"><input value={jdForm.location} onChange={(e) => setJdForm({ ...jdForm, location: e.target.value })} placeholder="e.g. Bangalore" className={inputCls} /></Field>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Last Date to Apply" required error={jdErrors.lastDate}><input type="date" value={jdForm.lastDate} onChange={(e) => setJdForm({ ...jdForm, lastDate: e.target.value })} className={inputCls} /></Field>
+                <Field label="Min CGPA" optional><input type="number" step="0.1" min="0" max="10" value={jdForm.cgpa} onChange={(e) => setJdForm({ ...jdForm, cgpa: e.target.value })} placeholder="Leave blank if no requirement" className={inputCls} /></Field>
+              </div>
+              <Field label="Eligible Branches" required error={jdErrors.branches}>
+                <div className="flex flex-wrap gap-2 mt-1">{BRANCHES.map((b) => <button key={b} type="button" onClick={() => toggleBranch(b)} className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${jdForm.branches.includes(b) ? "bg-[#3B82F6] text-white border-[#3B82F6]" : "bg-[#F8FAFC] text-[#64748B] border-[#E2E8F0] hover:border-[#3B82F6]"}`}>{b}</button>)}</div>
+              </Field>
+              <Field label="Backlogs Allowed">
+                <div className="flex items-center gap-3 mt-1">{[true, false].map((val) => <button key={String(val)} type="button" onClick={() => setJdForm({ ...jdForm, backlogsAllowed: val })} className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${jdForm.backlogsAllowed === val ? "bg-[#3B82F6] text-white border-[#3B82F6]" : "bg-[#F8FAFC] text-[#64748B] border-[#E2E8F0]"}`}>{val ? <><CheckCircle size={12} /> Yes</> : <><XCircle size={12} /> No</>}</button>)}</div>
+              </Field>
+              <Field label="Tech Stack"><TagInput tags={jdForm.techStack} setTags={(t) => setJdForm({ ...jdForm, techStack: t })} placeholder="Type and press Enter (e.g. React, Node.js)" /></Field>
+              <Field label="Skills Required"><TagInput tags={jdForm.skills} setTags={(t) => setJdForm({ ...jdForm, skills: t })} placeholder="Type and press Enter (e.g. DSA, SQL)" /></Field>
+              <Field label="Perks & Benefits"><TagInput tags={jdForm.perks} setTags={(t) => setJdForm({ ...jdForm, perks: t })} placeholder="Type and press Enter (e.g. Health Insurance)" /></Field>
+              <Field label="Selection Process">
+                <TagInput tags={jdForm.selectionProcess} setTags={(t) => setJdForm({ ...jdForm, selectionProcess: t })} placeholder="Type and press Enter (e.g. Aptitude, Technical Round, HR)" />
+                <p className="text-[10px] text-[#94A3B8] mt-1">Each entry will be shown as Round 1, Round 2... in order</p>
+              </Field>
+            </div>
+            <div className="flex items-center justify-end gap-3 p-5 border-t border-[#F1F5F9]">
+              <button onClick={() => setShowJDModal(false)} className="px-4 py-2 rounded-xl border border-[#E2E8F0] text-sm font-medium text-[#64748B] hover:bg-[#F8FAFC] transition-colors">Cancel</button>
+              <button onClick={submitJD} className="px-4 py-2 rounded-xl bg-[#3B82F6] text-white text-sm font-semibold hover:bg-[#2563EB] transition-colors flex items-center gap-2"><FileText size={14} /> {jdForm.role ? "Save JD" : "Post JD"}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════ Delete Dialog ══════════════════════════════════════════ */}
+      {showDeleteDialog && deletingCompany && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center"><Trash2 size={22} className="text-red-500" /></div>
+              <div><h3 className="text-sm font-bold text-[#1E293B]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>Delete Company?</h3><p className="text-xs text-[#64748B] mt-1">Are you sure you want to delete <span className="font-semibold text-[#1E293B]">{deletingCompany.company}</span>?</p></div>
+            </div>
+            <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3 flex gap-2.5">
+              <AlertCircle size={14} className="text-red-400 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-red-600 leading-relaxed">This will permanently remove all JD details, branches, and selection process data.</p>
+            </div>
+            <div className="flex gap-3 mt-1">
+              <button onClick={() => { setShowDeleteDialog(false); setDeletingCompany(null); }} className="flex-1 px-4 py-2.5 rounded-xl border border-[#E2E8F0] text-sm font-medium text-[#64748B] hover:bg-[#F8FAFC] transition-colors">Cancel</button>
+              <button onClick={confirmDelete} className="flex-1 px-4 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors flex items-center justify-center gap-2"><Trash2 size={14} /> Yes, Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
