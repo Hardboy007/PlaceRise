@@ -11,6 +11,8 @@ import CompanyDetailPage from "../pages/student/CompanyDetailPage";
 import StudentSettingsPage from "../pages/student/StudentSettings";
 import CoordinatorDashboard from "../pages/coordinator/CoordinatorDashboard";
 import StudentDatabasePage from "../pages/coordinator/StudentDatabase";
+import CompanyManagementPage from "../pages/coordinator/CompanyManagement";
+
 
 function AppRouter() {
   return (
@@ -33,7 +35,7 @@ function AppRouter() {
         <Route path="/coordinator" element={<CoordinatorLayout />}>
           <Route path="dashboard" element={<CoordinatorDashboard />} />
           <Route path="students" element={<StudentDatabasePage />} />
-          <Route path="companies" element={<div>Company Management</div>} />
+          <Route path="companies" element={<CompanyManagementPage />} />
           <Route path="calendar" element={<div>Company Calendar</div>} />
           <Route path="applications" element={<div>Applications Management</div>} />
           <Route path="announcements" element={<div>Announcements</div>} />
