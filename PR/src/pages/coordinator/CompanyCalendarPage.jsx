@@ -523,7 +523,7 @@ export default function CompanyCalendarPage() {
   }
 
   return (
-    <div className="flex flex-col h-full min-h-screen bg-gray-50">
+    <div className="flex flex-col h-full">
       {/* Hero */}
       <div
         className="relative overflow-hidden px-6 pt-6 pb-0 mx-4 mt-4 rounded-2xl"

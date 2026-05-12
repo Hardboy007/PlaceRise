@@ -124,7 +124,7 @@ export default function AnnouncementManagementPage() {
   const draft = announcements.filter((a) => a.status === "Draft").length;
 
   return (
-    <div className="min-h-screen bg-[#f5f6fa]" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ fontFamily: 'Inter, sans-serif' }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
 
       {/* ── Header ── */}
