@@ -51,3 +51,47 @@ PlaceRise replaces the traditional WhatsApp + Google Forms + Excel workflow with
 ---
 
 ## Project Structure
+src/
+├── pages/
+│   ├── common/         # RoleSelectionPage
+│   ├── student/        # All student pages
+│   └── coordinator/    # All coordinator pages
+├── components/
+│   ├── common/
+│   └── student/
+├── layouts/
+│   ├── StudentLayout.jsx
+│   └── CoordinatorLayout.jsx
+├── data/
+│   ├── mockCompanies.js
+│   └── mockStudents.js
+└── routes/
+└── AppRouter.jsx
+
+---
+
+## Team
+
+| Name | Role |
+|------|------|
+| Hardik | Frontend Lead, UI/UX, Backend |
+| Ayyan | Frontend, Backend |
+| Himanshu | Frontend |
+| Harsh | Frontend, Documentation |
+
+---
+
+## Current Status
+
+Frontend — Student Module ✅  
+Frontend — Coordinator Module ✅  
+Backend Integration — In Progress 🔄  
+Deployment — Pending ⏳
+
+---
+
+## College
+
+Dev Bhoomi Uttarakhand University (DBUU)  
+Training & Placement Cell  
+Placement Season 2025-26
