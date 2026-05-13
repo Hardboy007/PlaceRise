@@ -496,7 +496,7 @@ function AppliedTab() {
         </span>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-visible">
         <div
           className="border-b border-gray-100"
           style={{
