@@ -140,7 +140,7 @@ function StatusDropdown({ current, onChange }) {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-8 z-20 bg-white border border-gray-100 rounded-xl shadow-lg py-1 min-w-32.5">
+          <div className="absolute left-0 top-8 z-999 bg-white border border-gray-100 rounded-xl shadow-lg py-1 min-w-32.5">
             {STATUS_OPTIONS.map((opt) => {
               const os = STATUS_STYLE[opt];
               return (
@@ -287,7 +287,7 @@ function EligibleTab() {
         />
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-visible">
         <div
           className="border-b border-gray-100"
           style={{
