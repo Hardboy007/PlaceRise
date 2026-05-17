@@ -16,6 +16,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import mockStudents from "../../data/mockStudents";
+import mockCompanies from "../../data/mockCompanies";
 
 // ── JD Config ─────────────────────────────────────────────────
 const JD = {
@@ -118,58 +119,47 @@ function NameCell({ student }) {
 }
 
 // ── Status Dropdown ───────────────────────────────────────────
-function StatusDropdown({ current, onChange }) {
-  const [open, setOpen] = useState(false);
-  const s = STATUS_STYLE[current] || STATUS_STYLE.Applied;
+function StatusActions({ current, onChange }) {
+  const actions = [
+    {
+      label: "Shortlist",
+      value: "Shortlisted",
+      activeColor: "bg-amber-500 text-white",
+      inactiveColor: "bg-amber-50 text-amber-600 border border-amber-200",
+    },
+    {
+      label: "Select",
+      value: "Selected",
+      activeColor: "bg-green-500 text-white",
+      inactiveColor: "bg-green-50 text-green-600 border border-green-200",
+    },
+    {
+      label: "Reject",
+      value: "Rejected",
+      activeColor: "bg-red-500 text-white",
+      inactiveColor: "bg-red-50 text-red-600 border border-red-200",
+    },
+  ];
 
   return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen((p) => !p)}
-        className="inline-flex items-center gap-1.5 border text-xs font-semibold rounded-full px-2.5 py-1 hover:opacity-80 transition-opacity"
-        style={{ color: s.color, backgroundColor: s.bg, borderColor: s.border }}
-      >
-        <span
-          className="w-1.5 h-1.5 rounded-full"
-          style={{ backgroundColor: s.dot }}
-        />
-        {current}
-        <ChevronDown size={12} />
-      </button>
-
-      {open && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-8 z-999 bg-white border border-gray-100 rounded-xl shadow-lg py-1 min-w-32.5">
-            {STATUS_OPTIONS.map((opt) => {
-              const os = STATUS_STYLE[opt];
-              return (
-                <button
-                  key={opt}
-                  onClick={() => {
-                    onChange(opt);
-                    setOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 text-xs font-semibold flex items-center gap-2 hover:bg-slate-50"
-                  style={{ color: os.color }}
-                >
-                  <span
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: os.dot }}
-                  />
-                  {opt}
-                </button>
-              );
-            })}
-          </div>
-        </>
-      )}
+    <div className="flex items-center gap-1.5">
+      {actions.map((action) => (
+        <button
+          key={action.value}
+          onClick={() => onChange(action.value)}
+          className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all
+            ${current === action.value ? action.activeColor : action.inactiveColor}
+          `}
+        >
+          {action.label}
+        </button>
+      ))}
     </div>
   );
 }
 
 // ── JD Banner ─────────────────────────────────────────────────
-function JDBanner() {
+function JDBanner({ JD, selectedCompanyId, setSelectedCompanyId }) {
   return (
     <div
       className="rounded-2xl border p-4 flex items-center justify-between flex-wrap gap-3"
@@ -178,6 +168,7 @@ function JDBanner() {
         borderColor: "#BFDBFE",
       }}
     >
+      {/* Company Selector */}
       <div className="flex items-center gap-3">
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center"
@@ -186,20 +177,33 @@ function JDBanner() {
           <Briefcase size={18} color="white" />
         </div>
         <div>
-          <p className="font-bold text-sm" style={{ color: "#0F172A" }}>
-            {JD.title}
+          <p
+            className="text-[10px] font-semibold uppercase tracking-widest mb-1"
+            style={{ color: "#64748B" }}
+          >
+            Select Drive
           </p>
-          <p className="text-xs" style={{ color: "#64748B" }}>
-            {JD.company}
-          </p>
+          <select
+            value={selectedCompanyId}
+            onChange={(e) => setSelectedCompanyId(parseInt(e.target.value))}
+            className="text-sm font-bold border border-blue-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:border-blue-400"
+            style={{ color: "#0F172A" }}
+          >
+            {mockCompanies.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.company} — {c.role}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
+      {/* Eligibility Info */}
       <div className="flex items-center gap-3 flex-wrap">
         {[
           {
             label: "Min CGPA",
-            value: JD.minCgpa,
+            value: JD.minCgpa || "No requirement",
             icon: <TrendingUp size={12} />,
           },
           {
@@ -209,7 +213,9 @@ function JDBanner() {
           },
           {
             label: "Branches",
-            value: JD.eligibleBranches.join(", "),
+            value: JD.eligibleBranches.includes("All")
+              ? "All Branches"
+              : JD.eligibleBranches.join(", ") || "—",
             icon: <GraduationCap size={12} />,
           },
         ].map(({ label, value, icon }) => (
@@ -240,7 +246,7 @@ function JDBanner() {
 }
 
 // ── Tab 1 — Eligible Students ─────────────────────────────────
-function EligibleTab() {
+function EligibleTab({ JD }) {
   const eligible = useMemo(
     () =>
       mockStudents.filter(
@@ -249,7 +255,7 @@ function EligibleTab() {
           s.cgpa >= JD.minCgpa &&
           s.backlogs <= JD.maxBacklogs,
       ),
-    [],
+    [JD.minCgpa, JD.maxBacklogs, JD.eligibleBranches],
   );
 
   const cols = "2fr 1.2fr 1fr 0.8fr 0.8fr";
@@ -380,7 +386,7 @@ function EligibleTab() {
 }
 
 // ── Tab 2 — Applied Students ──────────────────────────────────
-function AppliedTab() {
+function AppliedTab({ JD }) {
   const [applications, setApplications] = useState(INITIAL_APPLIED);
   const [filterStatus, setFilterStatus] = useState("All");
 
@@ -421,7 +427,7 @@ function AppliedTab() {
     [enriched],
   );
 
-  const cols = "2fr 1.2fr 1fr 0.8fr 1.1fr 1.4fr";
+  const cols = "2fr 1.2fr 1fr 0.8fr 1.1fr 1.8fr";
 
   return (
     <div className="space-y-4">
@@ -580,7 +586,7 @@ function AppliedTab() {
                 <CalendarDays size={13} />
                 {app.appliedDate}
               </div>
-              <StatusDropdown
+              <StatusActions
                 current={app.status}
                 onChange={(val) => updateStatus(app.studentId, val)}
               />
@@ -595,6 +601,19 @@ function AppliedTab() {
 // ── Main Page ─────────────────────────────────────────────────
 export default function ApplicationsManagementPage() {
   const [activeTab, setActiveTab] = useState("eligible");
+  const [selectedCompanyId, setSelectedCompanyId] = useState(
+    mockCompanies[0].id,
+  );
+
+  const selectedCompany = mockCompanies.find((c) => c.id === selectedCompanyId);
+
+  const JD = {
+    title: selectedCompany.role || "No JD Posted",
+    company: selectedCompany.company,
+    minCgpa: selectedCompany.cgpa || 0,
+    maxBacklogs: 0,
+    eligibleBranches: selectedCompany.branches || [],
+  };
 
   const tabs = [
     {
@@ -626,7 +645,11 @@ export default function ApplicationsManagementPage() {
         </p>
       </div>
 
-      <JDBanner />
+      <JDBanner
+        JD={JD}
+        selectedCompanyId={selectedCompanyId}
+        setSelectedCompanyId={setSelectedCompanyId}
+      />
 
       <div className="flex items-center gap-1 bg-white rounded-2xl border border-gray-100 p-1.5 shadow-sm w-fit">
         {tabs.map((tab) => {
@@ -649,7 +672,11 @@ export default function ApplicationsManagementPage() {
         })}
       </div>
 
-      {activeTab === "eligible" ? <EligibleTab /> : <AppliedTab />}
+      {activeTab === "eligible" ? (
+        <EligibleTab JD={JD} />
+      ) : (
+        <AppliedTab JD={JD} />
+      )}
     </div>
   );
 }
