@@ -19,6 +19,7 @@ const mockStudents = [
     skills: ["React", "Node.js", "Python", "MongoDB"],
     placementStatus: "Not Placed",
     appliedCompanies: [1, 4],
+    selectedCompanies: [],
   },
   {
     id: 2,
@@ -40,6 +41,7 @@ const mockStudents = [
     skills: ["Java", "Spring Boot", "SQL", "AWS"],
     placementStatus: "Placed",
     appliedCompanies: [1, 2, 5],
+    selectedCompanies: [1, 5],
   },
   {
     id: 3,
@@ -61,6 +63,7 @@ const mockStudents = [
     skills: ["Embedded C", "MATLAB", "IoT", "Python"],
     placementStatus: "Not Placed",
     appliedCompanies: [5],
+    selectedCompanies: [],
   },
   {
     id: 4,
@@ -82,6 +85,7 @@ const mockStudents = [
     skills: ["React", "Node.js", "MongoDB", "Tailwind CSS"],
     placementStatus: "Not Placed",
     appliedCompanies: [4, 6],
+    selectedCompanies: [],
   },
   {
     id: 5,
@@ -103,6 +107,7 @@ const mockStudents = [
     skills: ["C++", "DSA", "SQL"],
     placementStatus: "Not Placed",
     appliedCompanies: [4],
+    selectedCompanies: [],
   },
   {
     id: 6,
@@ -124,6 +129,7 @@ const mockStudents = [
     skills: ["AutoCAD", "SolidWorks", "MATLAB"],
     placementStatus: "Not Placed",
     appliedCompanies: [],
+    selectedCompanies: [],
   },
   {
     id: 7,
@@ -145,6 +151,7 @@ const mockStudents = [
     skills: ["Python", "Machine Learning", "TensorFlow", "SQL", "React"],
     placementStatus: "Placed",
     appliedCompanies: [1, 2, 3],
+    selectedCompanies: [1],
   },
   {
     id: 8,
@@ -166,6 +173,7 @@ const mockStudents = [
     skills: ["VLSI", "Embedded C", "Python", "IoT"],
     placementStatus: "Not Placed",
     appliedCompanies: [5],
+    selectedCompanies: [],
   },
 ]
 
