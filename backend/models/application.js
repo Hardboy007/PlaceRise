@@ -8,7 +8,7 @@ const applicationSchema = new mongoose.Schema(
       required: true,
     },
 
-    companyId: {
+    jobId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Company",
       required: true,
