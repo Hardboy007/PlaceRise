@@ -29,3 +29,5 @@ const jobPostingSchema = new mongoose.Schema({
   registrationLink: { type: String, default: '' },
   status: { type: String, default: 'Active' },
 }, { timestamps: true })
+
+module.exports = mongoose.model('JobPosting', jobPostingSchema)

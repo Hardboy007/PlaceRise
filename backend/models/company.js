@@ -28,10 +28,7 @@ const companySchema = new mongoose.Schema(
       type: Number,
     },
 
-    status: {
-      type: String,
-      default: "Upcoming",
-    },
+
   },
   {
     timestamps: true,

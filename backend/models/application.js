@@ -10,7 +10,7 @@ const applicationSchema = new mongoose.Schema(
 
     jobId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Company",
+      ref: "JobPosting",
       required: true,
     },
 
@@ -26,8 +26,8 @@ const applicationSchema = new mongoose.Schema(
     },
 
     round: {
-      type: String,
-      default: "",
+      type: Number,
+      default: 0,
     },
 
     remarks: {
