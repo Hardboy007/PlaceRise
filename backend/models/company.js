@@ -20,12 +20,8 @@ const companySchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    establishedYear: {
-      type: Number,
-    },
-    employeeCount: {
-      type: Number,
-    },
+    establishedYear: Number,
+    employeeCount: Number,
     turnover: {
       type: String,
       default: "",
@@ -48,9 +44,7 @@ const companySchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    lastDate: {
-      type: Date,
-    },
+    lastDate: Date,
     bond: {
       type: String,
       default: "",
@@ -69,21 +63,9 @@ const companySchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    eligibleBranches: [
-      {
-        type: String,
-      },
-    ],
-    eligibleCourses: [
-      {
-        type: String,
-      },
-    ],
-    eligibleSchools: [
-      {
-        type: String,
-      },
-    ],
+    eligibleBranches: [String],
+    eligibleCourses: [String],
+    eligibleSchools: [String],
     backlogsAllowed: {
       type: Number,
       default: 0,
@@ -93,79 +75,10 @@ const companySchema = new mongoose.Schema(
       default: "",
     },
 
-    // Coordinator Details
-    campusDriveDate: {
-      type: Date,
-    },
+    // Status
     status: {
       type: String,
       default: "Upcoming",
-    },
-    domain: {
-      type: String,
-      default: "",
-    },
-    spoc: {
-      type: String,
-      default: "",
-    },
-    modeOfDrive: {
-      type: String,
-      default: "",
-    },
-    hrName: {
-      type: String,
-      default: "",
-    },
-    hrEmail: {
-      type: String,
-      default: "",
-    },
-
-    transportExpense: {
-      type: Number,
-      default: 0,
-    },
-    hotelExpense: {
-      type: Number,
-      default: 0,
-    },
-
-    dbuuRegistered: {
-      type: Number,
-      default: 0,
-    },
-    dbuuParticipated: {
-      type: Number,
-      default: 0,
-    },
-    dbuuShortlisted: {
-      type: Number,
-      default: 0,
-    },
-    dbuuSelected: {
-      type: Number,
-      default: 0,
-    },
-
-    otherCollegeSelected: {
-      type: Number,
-      default: 0,
-    },
-
-    totalSelections: {
-      type: Number,
-      default: 0,
-    },
-
-    processRemarks: {
-      type: String,
-      default: "",
-    },
-
-    hrFeedback: {
-      type: String,
-      default: "",
     },
 
     // Content
