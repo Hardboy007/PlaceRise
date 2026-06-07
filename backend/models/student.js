@@ -31,7 +31,7 @@ const studentSchema = new mongoose.Schema(
     skills:            [{ type: String }],
     resume:            { type: String },
     placementStatus:   { type: String, enum: ["Not Placed", "Placed"], default: "Not Placed" },
-    selectedCompanies: [{ type: String }],
+    selectedCompanies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'JobPosting' }],
   },
   { timestamps: true }
 );
