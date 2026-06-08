@@ -38,10 +38,9 @@ const announcementSchema = new mongoose.Schema({
     ref: 'Coordinator', // kis coordinator ne banaya
     required: true
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
-});
+  
+},{
+    timestamps: true,
+  });
 
 module.exports = mongoose.model('Announcement', announcementSchema);
