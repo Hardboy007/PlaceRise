@@ -439,7 +439,7 @@ function RoleSelectionPage() {
             <div className="flex flex-col gap-4">
               <div>
                 <label className="text-sm font-medium text-[#1E293B] block mb-1">
-                  {modalRole === "student" ? "ERP ID" : "Email"}
+                  {modalRole === "student" ? "ERP ID" : "ERP ID"}
                 </label>
                 <input
                   type="text"
@@ -448,7 +448,7 @@ function RoleSelectionPage() {
                   placeholder={
                     modalRole === "student"
                       ? "Enter your ERP ID"
-                      : "Enter your email"
+                      : "Enter your ERP ID"
                   }
                   className="w-full px-4 py-3 rounded-xl border border-[#CBD5E1] text-[#1E293B] placeholder-text-muted focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
                 />
