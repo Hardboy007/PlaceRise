@@ -85,7 +85,7 @@ function StudentOnboardingPage() {
       {/* Card */}
       <div className="w-full max-w-2xl bg-white rounded-3xl shadow-[0_10px_40px_-10px_rgba(15,23,42,0.15)] border border-[#CBD5E1] overflow-hidden">
         {/* Top Color Strip */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-[#1E293B] via-primary to-accent" />
+        <div className="h-1.5 w-full bg-linear-to-r from-[#1E293B] via-primary to-accent" />
         {/* Progress Header */}
         <div className="px-8 pt-8 pb-6 border-b border-background">
           <div className="flex items-center justify-between relative">
