@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import universityStructure from "../../data/universityStructure";
 import {
   User,
   GraduationCap,
@@ -30,7 +31,9 @@ function StudentOnboardingPage() {
     city: "",
     state: "",
     // Academic
-    branch: "",
+    school: "",
+    department: "",
+    course: "",
     batch: "",
     cgpa: "",
     tenthMarks: "",
@@ -233,24 +236,91 @@ function StudentOnboardingPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
+                {/* School */}
+                <div className="col-span-2">
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
-                    Branch
+                    School
                   </label>
                   <select
-                    name="branch"
-                    value={formData.branch}
-                    onChange={handleChange}
+                    name="school"
+                    value={formData.school}
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        school: e.target.value,
+                        department: "",
+                        course: "",
+                      });
+                    }}
                     className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition bg-white"
                   >
-                    <option value="">Select Branch</option>
-                    <option value="CSE">CSE</option>
-                    <option value="IT">IT</option>
-                    <option value="ECE">ECE</option>
-                    <option value="ME">ME</option>
-                    <option value="CE">CE</option>
+                    <option value="">Select School</option>
+                    {universityStructure.map((s) => (
+                      <option key={s.school} value={s.school}>
+                        {s.school}
+                      </option>
+                    ))}
                   </select>
                 </div>
+
+                {/* Department */}
+                <div className="col-span-2">
+                  <label className="text-xs font-medium text-[#1E293B] block mb-1">
+                    Department
+                  </label>
+                  <select
+                    name="department"
+                    value={formData.department}
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        department: e.target.value,
+                        course: "",
+                      });
+                    }}
+                    disabled={!formData.school}
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition bg-white disabled:opacity-50"
+                  >
+                    <option value="">Select Department</option>
+                    {formData.school &&
+                      universityStructure
+                        .find((s) => s.school === formData.school)
+                        ?.departments.map((d) => (
+                          <option key={d.name} value={d.name}>
+                            {d.name}
+                          </option>
+                        ))}
+                  </select>
+                </div>
+
+                {/* Course */}
+                <div className="col-span-2">
+                  <label className="text-xs font-medium text-[#1E293B] block mb-1">
+                    Course
+                  </label>
+                  <select
+                    name="course"
+                    value={formData.course}
+                    onChange={handleChange}
+                    disabled={!formData.department}
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition bg-white disabled:opacity-50"
+                  >
+                    <option value="">Select Course</option>
+                    {formData.department &&
+                      universityStructure
+                        .find((s) => s.school === formData.school)
+                        ?.departments.find(
+                          (d) => d.name === formData.department,
+                        )
+                        ?.courses.map((c) => (
+                          <option key={c} value={c}>
+                            {c}
+                          </option>
+                        ))}
+                  </select>
+                </div>
+
+                {/* Batch */}
                 <div>
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
                     Batch Year
@@ -262,11 +332,15 @@ function StudentOnboardingPage() {
                     className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition bg-white"
                   >
                     <option value="">Select Batch</option>
+                    <option value="2024">2024</option>
                     <option value="2025">2025</option>
                     <option value="2026">2026</option>
                     <option value="2027">2027</option>
+                    <option value="2028">2028</option>
                   </select>
                 </div>
+
+                {/* CGPA */}
                 <div>
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
                     Current CGPA
@@ -279,6 +353,8 @@ function StudentOnboardingPage() {
                     className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
                   />
                 </div>
+
+                {/* Backlogs */}
                 <div>
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
                     Active Backlogs
@@ -291,6 +367,8 @@ function StudentOnboardingPage() {
                     className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
                   />
                 </div>
+
+                {/* 10th Marks */}
                 <div>
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
                     10th Marks (%)
@@ -303,6 +381,8 @@ function StudentOnboardingPage() {
                     className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
                   />
                 </div>
+
+                {/* 12th Marks */}
                 <div>
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
                     12th Marks (%)
