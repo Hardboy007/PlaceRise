@@ -2,6 +2,7 @@ const express = require('express')
 const dotenv = require('dotenv')
 const cors = require('cors')
 const connectDB = require('./config/db')
+const studentRoutes = require('./routes/students');
 
 dotenv.config()
 
@@ -14,6 +15,7 @@ app.use(cors())
 const authRoutes = require('./routes/auth')
 
 app.use('/api/auth', authRoutes)
+app.use('/api/students', studentRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'PlaceRise Backend Running' })
