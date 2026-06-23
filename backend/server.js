@@ -5,6 +5,7 @@ const connectDB = require("./config/db");
 const studentRoutes = require("./routes/student");
 const companyRoutes = require('./routes/company')
 const announcementRoutes = require("./routes/announcement");
+const applicationRoutes = require('./routes/application');
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/students", studentRoutes);
 app.use('/api/companies', companyRoutes)
 app.use("/api/announcements", announcementRoutes);
+app.use('/api/applications', applicationRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "PlaceRise Backend Running" });

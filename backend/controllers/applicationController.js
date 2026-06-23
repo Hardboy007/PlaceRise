@@ -1,0 +1,118 @@
+const Application = require("../models/Application");
+const Student = require("../models/Student");
+
+// Student apply kare
+const createApplication = async (req, res) => {
+  try {
+    const { jobId } = req.body;
+    const userId = req.user.id;
+
+    //Student dhundho
+    const student = await Student.findOne({ userId });
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    // Already applied check karo
+    const alreadyApplied = await Application.findOne({
+      studentId: student._id,
+      jobId,
+    });
+    if (alreadyApplied) {
+      return res.status(400).json({ message: "Already applied to this job" });
+    }
+
+    // 3 selected restriction check
+    const selectedCount = await Application.countDocuments({
+      studentId: student._id,
+      status: "Selected",
+    });
+    if (selectedCount >= 3) {
+      return res
+        .status(400)
+        .json({ message: "You have been selected in 3 companies already" });
+    }
+
+    const application = await Application.create({
+      studentId: student._id,
+      jobId,
+      status: "Applied",
+    });
+
+    res.status(201).json(application);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+// Student apni applications dekhe
+const getMyApplications = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const student = await Student.findOne({ userId });
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    const applications = await Application.find({
+      studentId: student._id,
+    }).populate("jobId");
+
+    res.json(applications);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+// Coordinator ek JD ki saari applications dekhe
+const getJobApplications = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+
+    const applications = await Application.find({ jobId }).populate(
+      "studentId",
+    );
+
+    res.json(applications);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+// Coordinator status change kare
+const updateApplicationStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const validStatuses = ["Applied", "Shortlisted", "Selected", "Rejected"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    const application = await Application.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true },
+    );
+
+    if (!application) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    res.json(application);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = {
+  createApplication,
+  getMyApplications,
+  getJobApplications,
+  updateApplicationStatus,
+};

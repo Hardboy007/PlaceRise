@@ -6,9 +6,10 @@ const {
   createAnnouncement,
   deleteAnnouncement,
 } = require("../controllers/announcementController");
+const { protect, coordinatorOnly } = require('../middleware/auth')
 
-router.get("/", getAllAnnouncements);
-router.post("/", createAnnouncement);
-router.delete("/:id", deleteAnnouncement);
+router.get('/', getAllAnnouncements) // public — students bhi dekh sakte
+router.post('/', protect, coordinatorOnly, createAnnouncement)
+router.delete('/:id', protect, coordinatorOnly, deleteAnnouncement)
 
 module.exports = router;

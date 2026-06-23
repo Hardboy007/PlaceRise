@@ -5,9 +5,10 @@ const {
   getStudentById,
   updateStudent,
 } = require("../controllers/studentController");
+const { protect, coordinatorOnly } = require('../middleware/auth')
 
-router.get("/", getAllStudents);
-router.get("/:id", getStudentById);
-router.put("/:id", updateStudent);
+router.get('/', protect, coordinatorOnly, getAllStudents)
+router.get('/:id', protect, getStudentById)
+router.put('/:id', protect, updateStudent)
 
 module.exports = router;

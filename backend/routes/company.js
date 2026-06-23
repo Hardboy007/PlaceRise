@@ -7,11 +7,10 @@ const {
 } = require("../controllers/companyController");
 
 const router = express.Router();
+const { protect, coordinatorOnly } = require('../middleware/auth')
 
-router.get("/", getAllCompanies);
-
-router.post("/", createCompany);
-
-router.get("/jobs", getAllJobs);
+router.get('/', getAllCompanies)  // public — students bhi dekhenge
+router.post('/', protect, coordinatorOnly, createCompany)
+router.get('/jobs', getAllJobs)   // public
 
 module.exports = router;
