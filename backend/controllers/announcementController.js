@@ -15,12 +15,7 @@ const getAllAnnouncements = async (req, res) => {
 // req.body se data + req.user.id se createdBy set karke save karo
 const createAnnouncement = async (req, res) => {
   try {
-    const data = {
-      ...req.body,
-      createdBy: req.user.id
-    };
-
-    const announcement = await Announcement.create(data);
+    const announcement = await Announcement.create(req.body);
     res.status(201).json(announcement);
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -36,7 +36,7 @@ const announcementSchema = new mongoose.Schema({
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Coordinator', // kis coordinator ne banaya
-    required: true
+    // required: true
   },
   
 },{

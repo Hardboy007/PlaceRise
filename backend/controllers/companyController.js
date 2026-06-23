@@ -1,5 +1,5 @@
 const Company = require("../models/company");
-const JobPosting = require("../models/Jobposting");
+const JobPosting = require("../models/JobPosting");
 
 // GET ALL COMPANIES
 const getAllCompanies = async (req, res) => {
