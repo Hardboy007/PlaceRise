@@ -16,17 +16,31 @@ import CoordinatorProfile from "../pages/coordinator/CoordinatorProfile";
 import CompanyCalendarPage from "../pages/coordinator/CompanyCalendarPage";
 import ApplicationsManagementPage from "../pages/coordinator/ApplicationManagement";
 import AnnouncementManagementPage from "../pages/coordinator/AnnouncementManagement";
-
+import ProtectedRoute from "../components/common/ProtectedRoute";
 
 function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<RoleSelectionPage />} />
-        <Route path="/student/onboarding" element={<StudentOnboardingPage />} />
+        <Route
+          path="/student/onboarding"
+          element={
+            <ProtectedRoute>
+              <StudentOnboardingPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Student Routes - Layout ke andar */}
-        <Route path="/student" element={<StudentLayout />}>
+        <Route
+          path="/student"
+          element={
+            <ProtectedRoute>
+              <StudentLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route path="dashboard" element={<StudentDashboard />} />
           <Route path="companies" element={<CompanyListPage />} />
           <Route path="companies/:companyId" element={<CompanyDetailPage />} />
@@ -36,16 +50,26 @@ function AppRouter() {
         </Route>
 
         {/* Coordinator Routes - Layout ke andar */}
-        <Route path="/coordinator" element={<CoordinatorLayout />}>
+        <Route
+          path="/coordinator"
+          element={
+            <ProtectedRoute>
+              <CoordinatorLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route path="dashboard" element={<CoordinatorDashboard />} />
           <Route path="students" element={<StudentDatabasePage />} />
           <Route path="companies" element={<CompanyManagementPage />} />
           <Route path="calendar" element={<CompanyCalendarPage />} />
           <Route path="applications" element={<ApplicationsManagementPage />} />
-          <Route path="announcements" element={<AnnouncementManagementPage />} />
+          <Route
+            path="announcements"
+            element={<AnnouncementManagementPage />}
+          />
           <Route path="profile" element={<CoordinatorProfile />} />
         </Route>
-        
+
         <Route path="*" element={<div>404 - Page Not Found</div>} />
       </Routes>
     </BrowserRouter>

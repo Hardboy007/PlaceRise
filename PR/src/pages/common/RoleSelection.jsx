@@ -202,12 +202,55 @@ function RoleSelectionPage() {
     setShowModal(true);
   };
 
-  const handleLogin = () => {
-    if (modalRole === "student") {
-      navigate("/student/onboarding");
-    } else {
-      navigate("/coordinator/dashboard");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    setError("");
+    setLoading(true);
+
+    try {
+      const endpoint =
+        modalRole === "student"
+          ? "http://localhost:5000/api/auth/student/login"
+          : "http://localhost:5000/api/auth/coordinator/login";
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          erpId,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || "Login failed");
+        setLoading(false);
+        return;
+      }
+
+      // Token save karo
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", modalRole);
+
+      if (modalRole === "student") {
+        if (data.isFirstLogin) {
+          navigate("/student/onboarding");
+        } else {
+          navigate("/student/dashboard");
+        }
+      } else {
+        localStorage.setItem("coordinator", JSON.stringify(data.coordinator));
+        navigate("/coordinator/dashboard");
+      }
+    } catch (err) {
+      setError("Unable to connect to the server");
     }
+
+    setLoading(false);
   };
 
   return (
@@ -468,12 +511,17 @@ function RoleSelectionPage() {
             </div>
 
             {/* Login Button */}
+            {error && (
+              <p className="text-xs text-danger text-center mt-4">{error}</p>
+            )}
+
             <button
               onClick={handleLogin}
-              className="w-full mt-6 py-3 rounded-xl bg-primary hover:bg-blue-600 text-white font-semibold transition-colors cursor-pointer"
+              disabled={loading}
+              className="w-full mt-4 py-3 rounded-xl bg-primary hover:bg-blue-600 text-white font-semibold transition-colors cursor-pointer disabled:opacity-50"
               style={{ fontFamily: "Space Grotesk, sans-serif" }}
             >
-              Login →
+              {loading ? "Logging in..." : "Login →"}
             </button>
 
             {modalRole === "student" && (
