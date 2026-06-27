@@ -71,7 +71,7 @@ function CoordinatorLayout() {
             </div>
             <div className="hidden md:block">
               <p className="text-sm font-medium text-[#1E293B] leading-none">
-                Mr. Mukesh Kumar
+                {coordinator.name || "Coordinator"}
               </p>
               <p className="text-xs text-text-muted mt-0.5">
                 Placement Coordinator
