@@ -210,10 +210,13 @@ function RoleSelectionPage() {
     setLoading(true);
 
     try {
+      const BASE_URL =
+        import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
       const endpoint =
         modalRole === "student"
-          ? "http://localhost:5000/api/auth/student/login"
-          : "http://localhost:5000/api/auth/coordinator/login";
+          ? `${BASE_URL}/auth/student/login`
+          : `${BASE_URL}/auth/coordinator/login`;
 
       const response = await fetch(endpoint, {
         method: "POST",
@@ -237,7 +240,7 @@ function RoleSelectionPage() {
       localStorage.setItem("role", modalRole);
 
       if (modalRole === "student") {
-        localStorage.setItem('student', JSON.stringify(data.student))
+        localStorage.setItem("student", JSON.stringify(data.student));
         localStorage.setItem("isFirstLogin", data.isFirstLogin);
         if (data.isFirstLogin) {
           navigate("/student/change-password");
