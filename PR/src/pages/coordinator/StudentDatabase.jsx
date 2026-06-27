@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
-import mockStudents from "../../data/mockStudents";
-import mockCompanies from "../../data/mockCompanies";
+import { useState, useMemo, useEffect } from "react";
+import { api } from "../../utils/api";
+
 // ── Design Tokens ─────────────────────────────────────────────
 const C = {
   primary: "#3B82F6",
@@ -543,7 +543,17 @@ export default function StudentDatabasePage() {
   const [placement, setPlacement] = useState("All");
   const [selected, setSelected] = useState(null);
   const [selectedIn, setSelectedIn] = useState("All");
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const fetchStudents = async () => {
+      const data = await api.get("/students");
+      setStudents(Array.isArray(data) ? data : []);
+      setLoading(false);
+    };
+    fetchStudents();
+  }, []);
   const cgpaOpt = useMemo(
     () => CGPA_RANGES.find((r) => r.label === cgpaRange) || CGPA_RANGES[0],
     [cgpaRange],
@@ -551,7 +561,7 @@ export default function StudentDatabasePage() {
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
-    return mockStudents.filter((s) => {
+    return students.filter((s) => {
       if (
         q &&
         !s.name.toLowerCase().includes(q) &&
@@ -575,12 +585,12 @@ export default function StudentDatabasePage() {
     });
   }, [search, branch, batch, cgpaOpt, placement, selectedIn]);
 
-  const total = mockStudents.length;
-  const placed = mockStudents.filter(
+  const total = students.length;
+  const placed = students.filter(
     (s) => s.placementStatus === "Placed",
   ).length;
   const avgCgpa = (
-    mockStudents.reduce((a, s) => a + s.cgpa, 0) / total
+    students.reduce((a, s) => a + s.cgpa, 0) / total
   ).toFixed(2);
 
   const hasFilters =

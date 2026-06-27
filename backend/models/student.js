@@ -14,13 +14,16 @@ const studentSchema = new mongoose.Schema(
     phone:  { type: String },
     dob:    { type: String },
     gender: { type: String },
+    address:{ type: String },
     city:   { type: String },
     state:  { type: String },
 
     // Academic
+    college:      { type: String },
+    rollNo:       { type: String },
     school:       { type: String },
-    course:       { type: String },
     branch:       { type: String },
+    course:       { type: String },
     batch:        { type: String },
     cgpa:         { type: Number },
     tenthMarks:   { type: Number },

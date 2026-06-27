@@ -25,6 +25,23 @@ const navLinks = [
 
 function StudentLayout() {
   const navigate = useNavigate();
+  const student = JSON.parse(localStorage.getItem("student") || "{}");
+  const initials = student.name
+    ? student.name
+        .split(" ")
+        .map((word) => word[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "ST";
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("coordinator");
+    localStorage.removeItem("student");
+    localStorage.removeItem("isFirstLogin");
+    navigate("/");
+  };
 
   return (
     <div
@@ -65,19 +82,21 @@ function StudentLayout() {
           {/* Avatar + Name */}
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold">
-              JD
+              {initials}
             </div>
             <div className="hidden md:block">
               <p className="text-sm font-medium text-[#1E293B] leading-none">
-                John Doe
+                {student.name || "Student"}
               </p>
-              <p className="text-xs text-text-muted mt-0.5">CSE · Batch 2025</p>
+              <p className="text-xs text-text-muted mt-0.5">
+                {student.branch || ""} · {student.erpId || ""}
+              </p>
             </div>
           </div>
 
           {/* Logout */}
           <button
-            onClick={() => navigate("/")}
+            onClick={handleLogout}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium
               text-text-muted hover:text-danger hover:bg-red-50 transition-colors"
           >
@@ -122,14 +141,14 @@ function StudentLayout() {
           <div className="mt-auto p-3 rounded-xl bg-background border border-[#CBD5E1]">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold shrink-0">
-                JD
+                {initials}
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-[#1E293B] truncate">
-                  John Doe
+                <p className="text-sm font-medium text-[#1E293B] leading-none">
+                  {student.name || "Student"}
                 </p>
-                <p className="text-xs text-text-muted truncate">
-                  ERP: 2021CSE001
+                <p className="text-xs text-text-muted mt-0.5">
+                  {student.branch || ""} · {student.erpId || ""}
                 </p>
               </div>
             </div>

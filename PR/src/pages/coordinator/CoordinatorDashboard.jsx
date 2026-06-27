@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import mockCompanies from "../../data/mockCompanies";
 import mockStudents from "../../data/mockStudents";
+import { useEffect } from "react";
+import { useState } from "react";
 
 // Derived Stats
 const totalStudents = mockStudents.length;
@@ -72,6 +74,16 @@ const formatDate = () => {
 
 export default function CoordinatorDashboard() {
   const navigate = useNavigate();
+
+  const [coordinator, setCoordinator] = useState({});
+
+  useEffect(() => {
+    const storedCoordinator = JSON.parse(
+      localStorage.getItem("coordinator") || "{}",
+    );
+    setCoordinator(storedCoordinator);
+  }, []);
+
   return (
     <div
       className="max-w-6xl mx-auto"
@@ -100,7 +112,7 @@ export default function CoordinatorDashboard() {
               className="text-2xl font-bold text-white mb-1"
               style={{ fontFamily: "Space Grotesk, sans-serif" }}
             >
-              Mr. Mukesh Kumar
+              {coordinator.name || "Coordinator"}
             </h1>
             <p className="text-sm text-white/60">{formatDate()}</p>
           </div>

@@ -17,11 +17,16 @@ import CompanyCalendarPage from "../pages/coordinator/CompanyCalendarPage";
 import ApplicationsManagementPage from "../pages/coordinator/ApplicationManagement";
 import AnnouncementManagementPage from "../pages/coordinator/AnnouncementManagement";
 import ProtectedRoute from "../components/common/ProtectedRoute";
+import ChangePasswordPage from "../pages/student/ChangePasswordPage";
 
 function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route
+          path="/student/change-password"
+          element={<ChangePasswordPage />}
+        />
         <Route path="/" element={<RoleSelectionPage />} />
         <Route
           path="/student/onboarding"
@@ -31,7 +36,7 @@ function AppRouter() {
             </ProtectedRoute>
           }
         />
-
+        
         {/* Student Routes - Layout ke andar */}
         <Route
           path="/student"

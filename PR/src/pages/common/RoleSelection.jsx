@@ -237,8 +237,10 @@ function RoleSelectionPage() {
       localStorage.setItem("role", modalRole);
 
       if (modalRole === "student") {
+        localStorage.setItem('student', JSON.stringify(data.student))
+        localStorage.setItem("isFirstLogin", data.isFirstLogin);
         if (data.isFirstLogin) {
-          navigate("/student/onboarding");
+          navigate("/student/change-password");
         } else {
           navigate("/student/dashboard");
         }

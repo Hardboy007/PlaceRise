@@ -1,5 +1,4 @@
-import { useState, useMemo } from "react";
-import mockCompanies from '../../data/mockCompanies'
+import { useState, useMemo, useEffect } from "react";
 import {
   Search,
   Building2,
@@ -10,6 +9,7 @@ import {
   Filter,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { api } from "../../utils/api";
 
 const BRANCHES = ["All", "CSE", "ECE", "MBA"];
 
@@ -107,13 +107,24 @@ export default function CompanyListPage() {
   const [search, setSearch] = useState("");
   const [branch, setBranch] = useState("All");
   const [role, setRole] = useState("All");
+  const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const allRoles = useMemo(() => {
-    return ["All", ...new Set(mockCompanies.map((c) => c.role))];
+  useEffect(() => {
+    const fetchJobs = async () => {
+      const data = await api.get("/companies/jobs");
+      setCompanies(Array.isArray(data) ? data : []);
+      setLoading(false);
+    };
+    fetchJobs();
   }, []);
 
+  const allRoles = useMemo(() => {
+    return ["All", ...new Set(companies?.map((c) => c.role))];
+  }, [companies]);
+
   const filteredCompanies = useMemo(() => {
-    return mockCompanies.filter((c) => {
+    return companies.filter((c) => {
       const matchesSearch =
         c.company.toLowerCase().includes(search.toLowerCase()) ||
         c.role.toLowerCase().includes(search.toLowerCase());
@@ -124,7 +135,7 @@ export default function CompanyListPage() {
         c.branches.includes(branch);
       return matchesSearch && matchesRole && matchesBranch;
     });
-  }, [search, role, branch]);
+  }, [search, role, branch, companies]);
 
   const highestCTC = filteredCompanies.length
     ? Math.max(...filteredCompanies.map((c) => c.ctc || 0))

@@ -24,6 +24,15 @@ const navLinks = [
 
 function CoordinatorLayout() {
   const navigate = useNavigate();
+  const coordinator = JSON.parse(localStorage.getItem("coordinator") || "{}");
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("coordinator");
+    localStorage.removeItem("student");
+    localStorage.removeItem("isFirstLogin");
+    navigate("/");
+  };
 
   return (
     <div
@@ -71,7 +80,7 @@ function CoordinatorLayout() {
           </div>
 
           <button
-            onClick={() => navigate("/")}
+            onClick={handleLogout}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium
               text-text-muted hover:text-danger hover:bg-red-50 transition-colors"
           >
@@ -118,8 +127,8 @@ function CoordinatorLayout() {
                 MK
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-[#1E293B] truncate">
-                  Mr. Mukesh Kumar
+                <p className="text-sm font-medium text-[#1E293B] leading-none">
+                  {coordinator.name || "Coordinator"}
                 </p>
                 <p className="text-xs text-text-muted truncate">
                   Placement Cell · DBUU

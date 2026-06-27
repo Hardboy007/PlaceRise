@@ -26,8 +26,7 @@ const createCompany = async (req, res) => {
 // GET ALL JOBS
 const getAllJobs = async (req, res) => {
   try {
-    const jobs = await JobPosting.find()
-      .populate("companyId");
+    const jobs = await JobPosting.find().populate("companyId");
 
     res.json(jobs);
   } catch (error) {
@@ -35,8 +34,15 @@ const getAllJobs = async (req, res) => {
   }
 };
 
-module.exports = {
-  getAllCompanies,
-  createCompany,
-  getAllJobs,
+//GET JOB BY ID
+const getJobById = async (req, res) => {
+  try {
+    const job = await JobPosting.findById(req.params.id).populate("companyId");
+    if (!job) return res.status(404).json({ message: "Job not found" });
+    res.json(job);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
+
+module.exports = { getAllCompanies, createCompany, getAllJobs, getJobById };

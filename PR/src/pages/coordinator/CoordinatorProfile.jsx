@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Edit3,
@@ -18,18 +18,7 @@ import {
   Calendar,
   ExternalLink,
 } from "lucide-react";
-import mockStudents from "../../data/mockStudents";
-import mockCompanies from "../../data/mockCompanies";
-
-const defaultCoordinator = {
-  name: "Mr. Mukesh Kumar",
-  email: "mukesh.kumar@dbuu.ac.in",
-  phone: "+91 99999 00001",
-  designation: "Placement Coordinator",
-  department: "Training & Placement Cell",
-  college: "Dev Bhoomi Uttarakhand University",
-  activeSince: "2014",
-};
+import { api } from "../../utils/api";
 
 const activityLog = [
   { action: "Shortlisted 3 students for Google SWE", time: "2 hours ago" },
@@ -250,21 +239,44 @@ function PasswordModal({ onClose, onSave }) {
 
 export default function CoordinatorProfile() {
   const navigate = useNavigate();
-  const placedStudents = mockStudents.filter(
-    (s) => s.placementStatus === "Placed",
-  ).length;
-  const totalDrives = mockCompanies.length;
-  const [coordinator, setCoordinator] = useState(defaultCoordinator);
+  const [coordinator, setCoordinator] = useState(null);
   const [editing, setEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(null);
   const [showPassModal, setShowPassModal] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [placedCount, setPlacedCount] = useState(0);
+  const [totalDrives, setTotalDrives] = useState(0);
+  const [totalStudents, setTotalStudents] = useState(0);
   const [toggles, setToggles] = useState({
     emailNotifications: true,
     applicationUpdates: true,
     newCompanyAlerts: false,
     weeklyReport: true,
   });
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const storedCoord = JSON.parse(
+        localStorage.getItem("coordinator") || "{}",
+      );
+      setCoordinator(storedCoord);
+
+      const students = await api.get("/students");
+      const jobs = await api.get("/companies/jobs");
+
+      setTotalStudents(Array.isArray(students) ? students.length : 0);
+      setPlacedCount(
+        Array.isArray(students)
+          ? students.filter((s) => s.placementStatus === "Placed").length
+          : 0,
+      );
+      setTotalDrives(Array.isArray(jobs) ? jobs.length : 0);
+
+      setLoading(false);
+    };
+    fetchProfile();
+  }, []);
 
   const handleEdit = () => {
     setForm({ ...coordinator });
@@ -306,7 +318,12 @@ export default function CoordinatorProfile() {
       )}
     </div>
   );
-
+  if (loading)
+    return <div className="text-center py-20 text-text-muted">Loading...</div>;
+  if (!coordinator)
+    return (
+      <div className="text-center py-20 text-text-muted">Profile not found</div>
+    );
   return (
     <div
       className="max-w-3xl mx-auto"
@@ -409,7 +426,7 @@ export default function CoordinatorProfile() {
           },
           {
             label: "Students Placed",
-            value: placedStudents,
+            value: placedCount,
             icon: TrendingUp,
             color: "border-t-success",
             bg: "bg-green-50",
@@ -417,7 +434,7 @@ export default function CoordinatorProfile() {
           },
           {
             label: "Total Students",
-            value: mockStudents.length,
+            value: totalStudents,
             icon: Users,
             color: "border-t-warning",
             bg: "bg-amber-50",

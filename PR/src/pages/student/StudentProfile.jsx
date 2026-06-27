@@ -1,4 +1,5 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { api } from "../../utils/api";
 import {
   User,
   GraduationCap,
@@ -9,28 +10,6 @@ import {
   X,
   Plus,
 } from "lucide-react";
-
-const defaultStudent = {
-  name: "Harsh Rathore",
-  email: "harsh.rathore@example.com",
-  phone: "+91 98765 43210",
-  dob: "2002-05-15",
-  gender: "Male",
-  city: "Dehradun",
-  state: "Uttarakhand",
-  college: "Dev Bhoomi Uttarakhand University",
-  branch: "Computer Science Engineering",
-  year: "3rd Year",
-  cgpa: "8.4",
-  rollNo: "CSE2022041",
-  skills: ["React", "Node.js", "Python", "Tailwind CSS", "MongoDB"],
-  resume: null,
-  erpId: "23BTCSE0096",
-  tenthMarks: "85",
-  twelfthMarks: "78",
-  backlogs: "0",
-  placementStatus: "Not Placed",
-};
 
 function Field({ label, name, value, editing, form, onChange, type = "text" }) {
   return (
@@ -85,20 +64,34 @@ function SectionCard({
 }
 
 export default function StudentProfilePage() {
-  const [student, setStudent] = useState(defaultStudent);
+  const [student, setStudent] = useState(null);
   const [editing, setEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(null);
   const [newSkill, setNewSkill] = useState("");
   const [saved, setSaved] = useState(false);
   const resumeInputRef = useRef(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const storedStudent = JSON.parse(localStorage.getItem("student") || "{}");
+      const data = await api.get(`/students/${storedStudent.id}`);
+      setStudent(data);
+      setLoading(false);
+    };
+    fetchProfile();
+  }, []);
 
   const handleEdit = () => {
     setForm({ ...student });
     setEditing(true);
   };
 
-  const handleSave = () => {
-    setStudent({ ...form });
+  const handleSave = async () => {
+    const storedStudent = JSON.parse(localStorage.getItem("student") || "{}");
+    const updated = await api.put(`/students/${storedStudent.id}`, form);
+    setStudent(updated);
+    setForm(null);
     setEditing(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
@@ -133,6 +126,12 @@ export default function StudentProfilePage() {
     setForm({ ...form, skills: form.skills.filter((s) => s !== skill) });
 
   const displayData = editing ? form : student;
+  if (loading)
+    return <div className="text-center py-20 text-text-muted">Loading...</div>;
+  if (!student)
+    return (
+      <div className="text-center py-20 text-text-muted">Profile not found</div>
+    );
   const skills = displayData?.skills || [];
   const cgpaPercent = Math.min(
     (parseFloat(student.cgpa) / 10) * 100,
@@ -167,7 +166,8 @@ export default function StudentProfilePage() {
           <div
             className="w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl font-bold flex-shrink-0"
             style={{
-              background: 'linear-gradient(135deg, white, #E0E7FF)', padding: '3px'
+              background: "linear-gradient(135deg, white, #E0E7FF)",
+              padding: "3px",
             }}
           >
             <div
@@ -311,6 +311,7 @@ export default function StudentProfilePage() {
             name="name"
             value={student.name}
             {...fieldProps}
+            editing={false}
           />
           <Field
             label="Email"
@@ -330,12 +331,14 @@ export default function StudentProfilePage() {
             value={student.dob}
             type="date"
             {...fieldProps}
+            editing={false}
           />
           <Field
             label="Gender"
             name="gender"
             value={student.gender}
             {...fieldProps}
+            editing={false}
           />
           <Field
             label="City"
@@ -362,12 +365,14 @@ export default function StudentProfilePage() {
             name="college"
             value={student.college}
             {...fieldProps}
+            editing={false}
           />
           <Field
             label="Branch"
             name="branch"
             value={student.branch}
             {...fieldProps}
+            editing={false}
           />
           <Field
             label="Year"
@@ -380,30 +385,35 @@ export default function StudentProfilePage() {
             name="cgpa"
             value={student.cgpa}
             {...fieldProps}
+            editing={false}
           />
           <Field
             label="10th Marks (%)"
             name="tenthMarks"
             value={student.tenthMarks}
             {...fieldProps}
+            editing={false}
           />
           <Field
             label="12th Marks (%)"
             name="twelfthMarks"
             value={student.twelfthMarks}
             {...fieldProps}
+            editing={false}
           />
           <Field
             label="Active Backlogs"
             name="backlogs"
             value={student.backlogs}
             {...fieldProps}
+            editing={false}
           />
           <Field
             label="Roll Number"
             name="rollNo"
             value={student.rollNo}
             {...fieldProps}
+            editing={false}
           />
 
           {!editing && (

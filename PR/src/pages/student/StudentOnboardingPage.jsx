@@ -10,6 +10,7 @@ import {
   Upload,
   Check,
 } from "lucide-react";
+import { api } from "../../utils/api";
 
 const steps = [
   { id: 1, label: "Personal", icon: User },
@@ -26,6 +27,7 @@ function StudentOnboardingPage() {
     // Personal
     fullName: "",
     dob: "",
+    gender: "",
     phone: "",
     address: "",
     city: "",
@@ -46,7 +48,34 @@ function StudentOnboardingPage() {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+  const isStep1Valid = () => {
+    return (
+      formData.fullName && formData.dob && formData.phone && formData.gender
+    );
+  };
 
+  const isStep2Valid = () => {
+    return (
+      formData.school &&
+      formData.department &&
+      formData.course &&
+      formData.batch &&
+      formData.cgpa &&
+      formData.tenthMarks &&
+      formData.twelfthMarks
+    );
+  };
+
+  const isStep3Valid = () => {
+    return formData.skills.trim().length > 0;
+  };
+
+  const isCurrentStepValid = () => {
+    if (currentStep === 1) return isStep1Valid();
+    if (currentStep === 2) return isStep2Valid();
+    if (currentStep === 3) return isStep3Valid();
+    return false;
+  };
   const handleNext = () => {
     if (currentStep < 3) setCurrentStep(currentStep + 1);
   };
@@ -55,7 +84,44 @@ function StudentOnboardingPage() {
     if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    const storedStudent = JSON.parse(localStorage.getItem("student") || "{}");
+    const studentId = storedStudent.id;
+
+    const payload = {
+      name: formData.fullName,
+      dob: formData.dob,
+      phone: formData.phone,
+      gender: formData.gender,
+      address: formData.address,
+      city: formData.city,
+      state: formData.state,
+      school: formData.school,
+      branch: formData.department,
+      course: formData.course,
+      batch: formData.batch,
+      cgpa: formData.cgpa,
+      tenthMarks: formData.tenthMarks,
+      twelfthMarks: formData.twelfthMarks,
+      backlogs: formData.backlogs,
+      skills: formData.skills
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    };
+    console.log("formData.department value:", formData.department);
+    console.log("Full payload:", payload);
+    const updatedStudent = await api.put(`/students/${studentId}`, payload);
+
+    // localStorage ka cached student object refresh karo naye data se
+    localStorage.setItem(
+      "student",
+      JSON.stringify({
+        ...storedStudent,
+        ...updatedStudent,
+      }),
+    );
+
     navigate("/student/dashboard");
   };
 
@@ -179,6 +245,22 @@ function StudentOnboardingPage() {
                     placeholder="10-digit number"
                     className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
                   />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-[#1E293B] block mb-1">
+                    Gender
+                  </label>
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition bg-white"
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
                 </div>
                 <div className="col-span-2">
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
@@ -524,7 +606,9 @@ function StudentOnboardingPage() {
           {currentStep < 3 ? (
             <button
               onClick={handleNext}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:bg-blue-600 text-white text-sm font-medium transition-colors shadow-[0_4px_12px_rgba(59,130,246,0.3)]"
+              disabled={!isCurrentStepValid()}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-medium transition-colors shadow-[0_4px_12px_rgba(59,130,246,0.3)]
+      ${isCurrentStepValid() ? "bg-primary hover:bg-blue-600" : "bg-[#CBD5E1] cursor-not-allowed"}`}
             >
               Next
               <ChevronRight size={16} />
@@ -532,7 +616,9 @@ function StudentOnboardingPage() {
           ) : (
             <button
               onClick={handleSubmit}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:bg-blue-600 text-white text-sm font-medium transition-colors shadow-[0_4px_12px_rgba(59,130,246,0.3)]"
+              disabled={!isCurrentStepValid()}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-medium transition-colors shadow-[0_4px_12px_rgba(59,130,246,0.3)]
+      ${isCurrentStepValid() ? "bg-primary hover:bg-blue-600" : "bg-[#CBD5E1] cursor-not-allowed"}`}
             >
               Complete Setup
               <Check size={16} />
