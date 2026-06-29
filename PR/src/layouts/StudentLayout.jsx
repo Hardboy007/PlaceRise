@@ -1,4 +1,4 @@
-import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import { Outlet, NavLink, useNavigate, Link } from "react-router-dom";
 import {
   LayoutDashboard,
   Building2,
@@ -55,7 +55,7 @@ function StudentLayout() {
         px-6 flex items-center justify-between"
       >
         {/* Logo */}
-        <div className="flex items-center gap-2.5">
+        <Link to="/" className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-[0_4px_12px_rgba(59,130,246,0.4)]">
             <Sparkles size={14} className="text-white" />
           </div>
@@ -66,7 +66,7 @@ function StudentLayout() {
             <span className="text-[#1E293B]">Place</span>
             <span className="text-primary">Rise</span>
           </span>
-        </div>
+        </Link>
 
         {/* Right Side */}
         <div className="flex items-center gap-3">
