@@ -15,7 +15,7 @@ const companyRoutes = require('./routes/company')
 const announcementRoutes = require('./routes/announcement')
 const applicationRoutes = require('./routes/application')
 const jobRoutes = require('./routes/jobs')
-const coordinatorRoutes = require('./routes/coordinators')
+const coordinatorRoutes = require('./routes/coordinator')
 
 app.use('/api/auth', authRoutes)
 app.use('/api/students', studentRoutes)
