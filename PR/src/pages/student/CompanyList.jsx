@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import universityStructure from "../../data/universityStructure";
 import {
   Search,
   Building2,
@@ -11,7 +12,12 @@ import {
 import { useNavigate } from "react-router-dom";
 import { api } from "../../utils/api";
 
-const BRANCHES = ["All", "CSE", "ECE", "MBA"];
+const BRANCHES = [
+  "All",
+  ...new Set(
+    universityStructure.flatMap((s) => s.departments.map((d) => d.name)),
+  ),
+];
 
 function CompanyCard({ company, onViewDetails }) {
   const daysLeft = () => {
