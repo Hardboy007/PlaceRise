@@ -42,7 +42,7 @@ function CompanyCard({ company, onViewDetails }) {
               className="text-sm font-bold text-[#1E293B]"
               style={{ fontFamily: "Space Grotesk, sans-serif" }}
             >
-              {company.company}
+              {company.companyId?.name || "Unknown Company"}
             </h3>
             <p className="text-xs text-[#64748B]">{company.role}</p>
           </div>
@@ -70,15 +70,15 @@ function CompanyCard({ company, onViewDetails }) {
           <Briefcase size={13} className="text-[#3B82F6] flex-shrink-0" />
           <span className="text-xs text-[#64748B]">Branches:</span>
           <span className="text-xs font-medium text-[#1E293B]">
-            {company.branches.includes("All")
+            {company.eligibleBranches?.includes("All")
               ? "All Branches"
-              : company.branches.join(", ")}
+              : company.eligibleBranches?.join(", ") || "—"}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-[#64748B]">Min CGPA:</span>
           <span className="text-xs font-medium text-[#1E293B]">
-            {company.cgpa}+
+            {company.minCgpa}+
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -92,7 +92,7 @@ function CompanyCard({ company, onViewDetails }) {
 
       {/* Button */}
       <button
-        onClick={() => onViewDetails(company.id)}
+        onClick={() => onViewDetails(company._id)}
         className="mt-4 w-full py-2.5 rounded-xl text-sm font-semibold text-white bg-[#1E293B] hover:bg-[#3B82F6] transition-colors flex items-center justify-center gap-2 group-hover:bg-[#3B82F6]"
       >
         View Details
@@ -125,14 +125,15 @@ export default function CompanyListPage() {
 
   const filteredCompanies = useMemo(() => {
     return companies.filter((c) => {
+      const companyName = c.companyId?.name || "";
       const matchesSearch =
-        c.company.toLowerCase().includes(search.toLowerCase()) ||
-        c.role.toLowerCase().includes(search.toLowerCase());
+        companyName.toLowerCase().includes(search.toLowerCase()) ||
+        (c.role || "").toLowerCase().includes(search.toLowerCase());
       const matchesRole = role === "All" || c.role === role;
       const matchesBranch =
         branch === "All" ||
-        c.branches.includes("All") ||
-        c.branches.includes(branch);
+        c.eligibleBranches?.includes("All") ||
+        c.eligibleBranches?.includes(branch);
       return matchesSearch && matchesRole && matchesBranch;
     });
   }, [search, role, branch, companies]);
@@ -141,7 +142,9 @@ export default function CompanyListPage() {
     ? Math.max(...filteredCompanies.map((c) => c.ctc || 0))
     : 0;
 
-  const uniqueCompanies = new Set(filteredCompanies.map((c) => c.company)).size;
+  const uniqueCompanies = new Set(
+    filteredCompanies.map((c) => c.companyId?.name),
+  ).size;
 
   const handleViewDetails = (id) => {
     navigate(`/student/companies/${id}`);
@@ -285,7 +288,7 @@ export default function CompanyListPage() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredCompanies.map((company) => (
             <CompanyCard
-              key={company.id}
+              key={company._id}
               company={company}
               onViewDetails={handleViewDetails}
             />
