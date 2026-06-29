@@ -75,19 +75,6 @@ const statusConfig = {
   },
 };
 
-// ── Summary pills ─────────────────────────────────────────────
-const summaryPills = [
-  { label: "Total 7", color: C.textMain, bg: C.white, border: C.border },
-  { label: "Applied 3", color: "#B45309", bg: "#FFFBEB", border: "#FDE68A" },
-  {
-    label: "Shortlisted 2",
-    color: "#16A34A",
-    bg: "#F0FDF4",
-    border: "#BBF7D0",
-  },
-  { label: "Rejected 2", color: "#DC2626", bg: "#FFF1F2", border: "#FECDD3" },
-];
-
 // ── SVG Icons ─────────────────────────────────────────────────
 function BriefcaseIcon() {
   return (
@@ -155,6 +142,45 @@ export default function StudentApplication() {
     };
     fetchApplications();
   }, []);
+
+  const totalCount = applications.length;
+  const appliedCount = applications.filter(
+    (a) => a.status === "Applied",
+  ).length;
+  const shortlistedCount = applications.filter(
+    (a) => a.status === "Shortlisted",
+  ).length;
+  const rejectedCount = applications.filter(
+    (a) => a.status === "Rejected",
+  ).length;
+
+  const summaryPills = [
+    {
+      label: `Total ${totalCount}`,
+      color: C.textMain,
+      bg: C.white,
+      border: C.border,
+    },
+    {
+      label: `Applied ${appliedCount}`,
+      color: "#B45309",
+      bg: "#FFFBEB",
+      border: "#FDE68A",
+    },
+    {
+      label: `Shortlisted ${shortlistedCount}`,
+      color: "#16A34A",
+      bg: "#F0FDF4",
+      border: "#BBF7D0",
+    },
+    {
+      label: `Rejected ${rejectedCount}`,
+      color: "#DC2626",
+      bg: "#FFF1F2",
+      border: "#FECDD3",
+    },
+  ];
+
   return (
     <div
       style={{ backgroundColor: C.background }}

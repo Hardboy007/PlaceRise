@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { api } from "../../utils/api";
+import universityStructure from "../../data/universityStructure";
 
 // ── Design Tokens ─────────────────────────────────────────────
 const C = {
@@ -16,7 +17,12 @@ const C = {
   cardBg: "#FFFFFF",
 };
 
-const BRANCHES = ["All", "CSE", "IT", "ECE", "ME", "CE"];
+const BRANCHES = [
+  "All",
+  ...new Set(
+    universityStructure.flatMap((s) => s.departments.map((d) => d.name)),
+  ),
+];
 const BATCHES = ["All", "2024", "2025", "2026"];
 const CGPA_RANGES = [
   { label: "All", min: 0, max: 10 },
@@ -422,7 +428,7 @@ function StudentModal({ student, onClose }) {
                 </svg>
               }
               label="CGPA"
-              value={student.cgpa.toFixed(1)}
+              value={(student.cgpa ?? 0).toFixed(1)}
             />
             <InfoRow
               icon={
@@ -569,7 +575,7 @@ export default function StudentDatabasePage() {
       )
         return false;
       if (branch !== "All" && s.branch !== branch) return false;
-      if (batch !== "All" && s.batch !== parseInt(batch)) return false;
+      if (batch !== "All" && String(s.batch) !== batch) return false;
       if (s.cgpa < cgpaOpt.min || s.cgpa > cgpaOpt.max) return false;
       if (placement !== "All" && s.placementStatus !== placement) return false;
 
@@ -586,12 +592,11 @@ export default function StudentDatabasePage() {
   }, [search, branch, batch, cgpaOpt, placement, selectedIn]);
 
   const total = students.length;
-  const placed = students.filter(
-    (s) => s.placementStatus === "Placed",
-  ).length;
-  const avgCgpa = (
-    students.reduce((a, s) => a + s.cgpa, 0) / total
-  ).toFixed(2);
+  const placed = students.filter((s) => s.placementStatus === "Placed").length;
+  const avgCgpa =
+    total > 0
+      ? (students.reduce((a, s) => a + (s.cgpa || 0), 0) / total).toFixed(2)
+      : "0.00";
 
   const hasFilters =
     search ||
@@ -816,7 +821,7 @@ export default function StudentDatabasePage() {
             const isLast = idx === filtered.length - 1;
             return (
               <div
-                key={student.id}
+                key={student._id}
                 onClick={() => setSelected(student)}
                 style={{
                   display: "grid",
@@ -896,7 +901,7 @@ export default function StudentDatabasePage() {
                   }}
                   className="text-sm"
                 >
-                  {student.cgpa.toFixed(1)}
+                  {(student.cgpa ?? 0).toFixed(1)}
                 </span>
 
                 {/* Backlogs */}
@@ -916,22 +921,19 @@ export default function StudentDatabasePage() {
                       —
                     </span>
                   ) : (
-                    student.selectedCompanies.map((cId) => {
-                      const company = mockCompanies.find((c) => c.id === cId);
-                      return company ? (
-                        <span
-                          key={cId}
-                          style={{
-                            color: "#15803D",
-                            backgroundColor: "#F0FDF4",
-                            borderColor: "#86EFAC",
-                          }}
-                          className="border text-xs font-semibold px-2 py-0.5 rounded-full"
-                        >
-                          {company.company}
-                        </span>
-                      ) : null;
-                    })
+                    <span
+                      style={{
+                        color: "#15803D",
+                        backgroundColor: "#F0FDF4",
+                        borderColor: "#86EFAC",
+                      }}
+                      className="border text-xs font-semibold px-2 py-0.5 rounded-full"
+                    >
+                      {student.selectedCompanies.length}{" "}
+                      {student.selectedCompanies.length === 1
+                        ? "company"
+                        : "companies"}
+                    </span>
                   )}
                 </div>
                 {/* Status */}
