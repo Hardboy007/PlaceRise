@@ -1,22 +1,35 @@
-const bcrypt = require('bcryptjs');
-const User = require('../models/User');
-const Coordinator = require('../models/Coordinator');
+const bcrypt = require("bcryptjs");
+const User = require("../models/User");
+const Coordinator = require("../models/Coordinator");
 
 // POST /api/coordinators
 // Admin nayi coordinator add kare
 const createCoordinator = async (req, res) => {
   try {
-    const { name, email, erpId, password, designation, department, college } = req.body;
+    const { name, email, erpId, password, designation, department, college } =
+      req.body;
 
     // Validation
-    if (!name || !email || !erpId || !password || !designation || !department || !college) {
-      return res.status(400).json({ message: 'All fields are required including college' });
+    if (
+      !name ||
+      !email ||
+      !erpId ||
+      !password ||
+      !designation ||
+      !department ||
+      !college
+    ) {
+      return res
+        .status(400)
+        .json({ message: "All fields are required including college" });
     }
 
     // Check duplicate
     const existingUser = await User.findOne({ $or: [{ email }, { erpId }] });
     if (existingUser) {
-      return res.status(400).json({ message: 'User with this email or erpId already exists' });
+      return res
+        .status(400)
+        .json({ message: "User with this email or erpId already exists" });
     }
 
     // Hash password
@@ -28,7 +41,7 @@ const createCoordinator = async (req, res) => {
       erpId,
       email,
       password: hashedPassword,
-      role: 'coordinator'
+      role: "coordinator",
     });
 
     // Coordinator create karo (userId linked)
@@ -38,7 +51,7 @@ const createCoordinator = async (req, res) => {
       email,
       designation,
       department,
-      college
+      college,
     });
 
     res.status(201).json(coordinator);

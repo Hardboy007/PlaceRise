@@ -1,10 +1,10 @@
-const Announcement = require('../models/Announcement');
+const Announcement = require("../models/Announcement");
 
 // GET /api/announcements
 // Students ko sirf 'Published' announcements dikhani hain
 const getAllAnnouncements = async (req, res) => {
   try {
-    const announcements = await Announcement.find({ status: 'Published' });
+    const announcements = await Announcement.find({ status: "Published" });
     res.json(announcements);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -29,14 +29,13 @@ const updateAnnouncement = async (req, res) => {
     const { id } = req.params;
     const updatedData = req.body;
 
-    const announcement = await Announcement.findByIdAndUpdate(
-      id,
-      updatedData,
-      { new: true, runValidators: true }
-    );
+    const announcement = await Announcement.findByIdAndUpdate(id, updatedData, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!announcement) {
-      return res.status(404).json({ message: 'Announcement not found' });
+      return res.status(404).json({ message: "Announcement not found" });
     }
 
     res.json(announcement);
@@ -53,10 +52,10 @@ const deleteAnnouncement = async (req, res) => {
     const announcement = await Announcement.findByIdAndDelete(id);
 
     if (!announcement) {
-      return res.status(404).json({ message: 'Announcement not found' });
+      return res.status(404).json({ message: "Announcement not found" });
     }
 
-    res.json({ message: 'Deleted successfully' });
+    res.json({ message: "Deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -66,5 +65,5 @@ module.exports = {
   getAllAnnouncements,
   createAnnouncement,
   updateAnnouncement,
-  deleteAnnouncement
+  deleteAnnouncement,
 };
