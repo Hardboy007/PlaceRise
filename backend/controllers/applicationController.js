@@ -45,7 +45,6 @@ const createApplication = async (req, res) => {
   }
 };
 
-
 // Student apni applications dekhe
 const getMyApplications = async (req, res) => {
   try {
@@ -58,14 +57,16 @@ const getMyApplications = async (req, res) => {
 
     const applications = await Application.find({
       studentId: student._id,
-    }).populate("jobId");
+    }).populate({
+      path: "jobId",
+      populate: { path: "companyId" },
+    });
 
     res.json(applications);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 // Coordinator ek JD ki saari applications dekhe
 const getJobApplications = async (req, res) => {
@@ -81,7 +82,6 @@ const getJobApplications = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 // Coordinator status change kare
 const updateApplicationStatus = async (req, res) => {

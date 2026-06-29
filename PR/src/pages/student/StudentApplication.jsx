@@ -15,7 +15,6 @@ const C = {
   border: "#E2E8F0",
 };
 
-
 // ── Status config ─────────────────────────────────────────────
 const statusConfig = {
   Shortlisted: {
@@ -239,7 +238,7 @@ export default function StudentApplication() {
 
           return (
             <div
-              key={app.id}
+              key={app._id}
               style={{
                 display: "grid",
                 gridTemplateColumns: "2.2fr 2fr 1.6fr 1.2fr",
@@ -280,13 +279,13 @@ export default function StudentApplication() {
                   style={{ color: C.textMain }}
                   className="font-bold text-[15px]"
                 >
-                  {app.company}
+                  {app.jobId?.companyId?.name || "Unknown Company"}
                 </span>
               </div>
 
               {/* Role */}
               <span style={{ color: C.textMuted }} className="text-[14px]">
-                {app.role}
+                {app.jobId?.role || "—"}
               </span>
 
               {/* Applied Date */}
@@ -295,7 +294,9 @@ export default function StudentApplication() {
                 className="text-[14px] flex items-center"
               >
                 <CalendarIcon />
-                {app.date}
+                {app.appliedDate
+                  ? new Date(app.appliedDate).toLocaleDateString()
+                  : "—"}
               </span>
 
               {/* Status badge */}
