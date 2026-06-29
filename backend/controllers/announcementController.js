@@ -22,6 +22,29 @@ const createAnnouncement = async (req, res) => {
   }
 };
 
+// PUT /api/announcements/:id
+// Existing announcement edit karna
+const updateAnnouncement = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedData = req.body;
+
+    const announcement = await Announcement.findByIdAndUpdate(
+      id,
+      updatedData,
+      { new: true, runValidators: true }
+    );
+
+    if (!announcement) {
+      return res.status(404).json({ message: 'Announcement not found' });
+    }
+
+    res.json(announcement);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // DELETE /api/announcements/:id
 const deleteAnnouncement = async (req, res) => {
   try {
@@ -42,5 +65,6 @@ const deleteAnnouncement = async (req, res) => {
 module.exports = {
   getAllAnnouncements,
   createAnnouncement,
+  updateAnnouncement,
   deleteAnnouncement
 };
