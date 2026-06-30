@@ -19,6 +19,11 @@ const companySchema = new mongoose.Schema(
       default: "",
     },
 
+    location: {
+      type: String,
+      default: "",
+    },
+
     website: {
       type: String,
       default: "",
