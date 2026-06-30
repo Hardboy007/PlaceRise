@@ -1,5 +1,6 @@
 const Company = require("../models/company");
 const JobPosting = require("../models/JobPosting");
+const Application = require("../models/Application");
 
 // GET ALL COMPANIES
 const getAllCompanies = async (req, res) => {
@@ -23,12 +24,31 @@ const createCompany = async (req, res) => {
   }
 };
 
-// DELETE COMPANY
+// DELETE COMPANY (cascade: also deletes its jobs + applications on those jobs)
 const deleteCompany = async (req, res) => {
   try {
-    const company = await Company.findByIdAndDelete(req.params.id);
+    const company = await Company.findById(req.params.id);
     if (!company) return res.status(404).json({ message: "Company not found" });
-    res.json({ message: "Company deleted successfully" });
+
+    // Find all jobs posted by this company
+    const jobs = await JobPosting.find({ companyId: company._id }).select("_id");
+    const jobIds = jobs.map((j) => j._id);
+
+    // Delete all applications tied to those jobs (if any exist)
+    if (jobIds.length > 0) {
+      await Application.deleteMany({ jobId: { $in: jobIds } });
+    }
+
+    // Delete all jobs posted by this company
+    await JobPosting.deleteMany({ companyId: company._id });
+
+    // Finally delete the company itself
+    await Company.findByIdAndDelete(company._id);
+
+    res.json({
+      message: "Company deleted successfully",
+      deletedJobs: jobIds.length,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

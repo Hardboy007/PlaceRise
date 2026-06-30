@@ -463,7 +463,13 @@ export default function CompanyCalendarPage() {
   useEffect(() => {
     const fetchJobs = async () => {
       const data = await api.get("/companies/jobs");
-      const valid = (Array.isArray(data) ? data : []).filter((j) => j.lastDate);
+      const valid = (Array.isArray(data) ? data : []).filter(
+        // Only keep jobs that have a deadline AND still have a valid,
+        // non-deleted company attached. If a company was removed from
+        // Company Management, its jobs may still exist in the DB but
+        // companyId will be null/missing after population — drop those.
+        (j) => j.lastDate && j.companyId && j.companyId._id && j.companyId.name,
+      );
       setJobs(valid);
       setLoading(false);
     };
@@ -517,6 +523,17 @@ export default function CompanyCalendarPage() {
     }
     setCurMonth(m);
     setCurYear(y);
+  }
+
+  // Returns tailwind classes for a deadline chip in the calendar grid,
+  // based on how many days remain until that job's lastDate (relative
+  // to today). >7 days => green, <=7 days (and not yet closed) => red,
+  // already past => muted gray.
+  function calendarChipClasses(jobDate) {
+    const diff = daysUntil(jobDate, todayMid);
+    if (diff < 0) return "bg-gray-50 text-gray-400 border-gray-200";
+    if (diff <= 7) return "bg-red-50 text-red-700 border-red-100";
+    return "bg-emerald-50 text-emerald-700 border-emerald-100";
   }
 
   if (loading)
@@ -635,6 +652,7 @@ export default function CompanyCalendarPage() {
                     today.getFullYear() === curYear &&
                     today.getMonth() === curMonth &&
                     today.getDate() === day;
+                  const cellDate = new Date(curYear, curMonth, day);
                   return (
                     <div
                       key={day}
@@ -653,7 +671,7 @@ export default function CompanyCalendarPage() {
                           {dayJobs.slice(0, 2).map((j, i) => (
                             <div
                               key={i}
-                              className="text-[9px] font-semibold px-1.5 py-0.75 rounded-md bg-red-50 text-red-700 border border-red-100 truncate leading-none"
+                              className={`text-[9px] font-semibold px-1.5 py-0.75 rounded-md border truncate leading-none ${calendarChipClasses(cellDate)}`}
                             >
                               {j.companyId?.name || "—"}
                             </div>
@@ -673,8 +691,12 @@ export default function CompanyCalendarPage() {
 
             <div className="flex gap-5 mt-4 pt-4 border-t border-gray-100">
               <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
+                <div className="w-2.5 h-2.5 rounded bg-emerald-50 border border-emerald-200" />{" "}
+                More than 7 days left
+              </div>
+              <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
                 <div className="w-2.5 h-2.5 rounded bg-red-50 border border-red-200" />{" "}
-                Application deadline
+                7 days or fewer left
               </div>
               <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
                 <div className="w-2.5 h-2.5 rounded-sm bg-blue-50 border border-blue-300" />{" "}
