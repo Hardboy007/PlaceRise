@@ -31,7 +31,9 @@ const deleteCompany = async (req, res) => {
     if (!company) return res.status(404).json({ message: "Company not found" });
 
     // Find all jobs posted by this company
-    const jobs = await JobPosting.find({ companyId: company._id }).select("_id");
+    const jobs = await JobPosting.find({ companyId: company._id }).select(
+      "_id",
+    );
     const jobIds = jobs.map((j) => j._id);
 
     // Delete all applications tied to those jobs (if any exist)
@@ -76,4 +78,10 @@ const getJobById = async (req, res) => {
   }
 };
 
-module.exports = { getAllCompanies, createCompany, getAllJobs, getJobById, deleteCompany };
+module.exports = {
+  getAllCompanies,
+  createCompany,
+  getAllJobs,
+  getJobById,
+  deleteCompany,
+};
