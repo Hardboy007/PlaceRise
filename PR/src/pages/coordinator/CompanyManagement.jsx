@@ -683,16 +683,29 @@ export default function CompanyManagementPage() {
     fetchData();
   }, []);
 
+  // ── FIX: jobs ko sirf un companies ke liye consider karo jo
+  // current "companies" list me actually maujood hain. Pehle
+  // stats (fullTime/internships/urgent) seedhe raw `jobs` array
+  // se nikal rahe the, jisme dusri companies/coordinators ke
+  // stale ya unrelated jobs bhi count ho rahe the.
   const merged = companies.map((c) => {
     const job = jobs.find((j) => j.companyId?._id === c._id);
     return { company: c, job: job || null };
   });
 
   const totalCompanies = companies.length;
-  const fullTime = jobs.filter((j) => j.jobType === "Full Time").length;
-  const internships = jobs.filter((j) => j.jobType === "Internship").length;
-  const urgent = jobs.filter((j) => {
-    const d = daysLeft(j.lastDate);
+
+  const fullTime = merged.filter(
+    ({ job }) => job?.jobType === "Full Time",
+  ).length;
+
+  const internships = merged.filter(
+    ({ job }) => job?.jobType === "Internship",
+  ).length;
+
+  const urgent = merged.filter(({ job }) => {
+    if (!job) return false;
+    const d = daysLeft(job.lastDate);
     return d !== null && d <= 7 && d >= 0;
   }).length;
 
