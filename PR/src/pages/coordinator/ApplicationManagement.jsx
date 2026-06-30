@@ -1,11 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Users,
   CheckCircle,
   Clock,
   XCircle,
   Filter,
-  ChevronDown,
   Briefcase,
   ClipboardList,
   BadgeCheck,
@@ -15,26 +14,7 @@ import {
   GraduationCap,
   TrendingUp,
 } from "lucide-react";
-import mockStudents from "../../data/mockStudents";
-import mockCompanies from "../../data/mockCompanies";
-
-// ── JD Config ─────────────────────────────────────────────────
-const JD = {
-  title: "Software Engineer Intern",
-  company: "Google",
-  minCgpa: 7.5,
-  maxBacklogs: 0,
-  eligibleBranches: ["CSE", "ECE", "BSc.IT"],
-};
-
-// ── Applied Data (simulate DB — studentId matches mockStudents ids) ──
-const INITIAL_APPLIED = [
-  { studentId: 2, appliedDate: "May 1, 2026", status: "Shortlisted" },
-  { studentId: 7, appliedDate: "May 1, 2026", status: "Selected" },
-  { studentId: 1, appliedDate: "May 2, 2026", status: "Applied" },
-  { studentId: 8, appliedDate: "May 3, 2026", status: "Applied" },
-  { studentId: 3, appliedDate: "May 4, 2026", status: "Rejected" },
-];
+import { api } from "../../utils/api";
 
 const STATUS_OPTIONS = ["Applied", "Shortlisted", "Selected", "Rejected"];
 
@@ -65,7 +45,6 @@ const STATUS_STYLE = {
   },
 };
 
-// ── Stat Card ─────────────────────────────────────────────────
 function StatCard({ icon, label, value, bg, borderColor }) {
   return (
     <div
@@ -93,32 +72,32 @@ function StatCard({ icon, label, value, bg, borderColor }) {
   );
 }
 
-// ── Name Cell ─────────────────────────────────────────────────
 function NameCell({ student }) {
+  if (!student)
+    return <span className="text-xs text-[#94A3B8]">Unknown student</span>;
   return (
     <div className="flex items-center gap-2.5">
       <div
         className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0"
         style={{ background: "linear-gradient(135deg,#3B82F6,#60A5FA)" }}
       >
-        {student.name.charAt(0)}
+        {student.name?.charAt(0) || "?"}
       </div>
       <div>
         <p
           className="font-semibold text-sm leading-tight"
           style={{ color: "#0F172A" }}
         >
-          {student.name}
+          {student.name || "—"}
         </p>
         <p className="text-xs" style={{ color: "#64748B" }}>
-          {student.email}
+          {student.email || "—"}
         </p>
       </div>
     </div>
   );
 }
 
-// ── Status Dropdown ───────────────────────────────────────────
 function StatusActions({ current, onChange }) {
   const actions = [
     {
@@ -140,16 +119,13 @@ function StatusActions({ current, onChange }) {
       inactiveColor: "bg-red-50 text-red-600 border border-red-200",
     },
   ];
-
   return (
     <div className="flex items-center gap-1.5">
       {actions.map((action) => (
         <button
           key={action.value}
           onClick={() => onChange(action.value)}
-          className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all
-            ${current === action.value ? action.activeColor : action.inactiveColor}
-          `}
+          className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${current === action.value ? action.activeColor : action.inactiveColor}`}
         >
           {action.label}
         </button>
@@ -158,8 +134,7 @@ function StatusActions({ current, onChange }) {
   );
 }
 
-// ── JD Banner ─────────────────────────────────────────────────
-function JDBanner({ JD, selectedCompanyId, setSelectedCompanyId }) {
+function JDBanner({ jobs, selectedJobId, setSelectedJobId, selectedJob }) {
   return (
     <div
       className="rounded-2xl border p-4 flex items-center justify-between flex-wrap gap-3"
@@ -168,7 +143,6 @@ function JDBanner({ JD, selectedCompanyId, setSelectedCompanyId }) {
         borderColor: "#BFDBFE",
       }}
     >
-      {/* Company Selector */}
       <div className="flex items-center gap-3">
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center"
@@ -183,80 +157,90 @@ function JDBanner({ JD, selectedCompanyId, setSelectedCompanyId }) {
           >
             Select Drive
           </p>
-          <select
-            value={selectedCompanyId}
-            onChange={(e) => setSelectedCompanyId(parseInt(e.target.value))}
-            className="text-sm font-bold border border-blue-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:border-blue-400"
-            style={{ color: "#0F172A" }}
-          >
-            {mockCompanies.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.company} — {c.role}
-              </option>
-            ))}
-          </select>
+          {jobs.length === 0 ? (
+            <p className="text-sm font-bold" style={{ color: "#0F172A" }}>
+              No jobs posted yet
+            </p>
+          ) : (
+            <select
+              value={selectedJobId || ""}
+              onChange={(e) => setSelectedJobId(e.target.value)}
+              className="text-sm font-bold border border-blue-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:border-blue-400"
+              style={{ color: "#0F172A" }}
+            >
+              {jobs.map((j) => (
+                <option key={j._id} value={j._id}>
+                  {j.companyId?.name || "Unknown"} — {j.role}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
       </div>
 
-      {/* Eligibility Info */}
-      <div className="flex items-center gap-3 flex-wrap">
-        {[
-          {
-            label: "Min CGPA",
-            value: JD.minCgpa || "No requirement",
-            icon: <TrendingUp size={12} />,
-          },
-          {
-            label: "Backlogs",
-            value: JD.maxBacklogs === 0 ? "None" : `≤ ${JD.maxBacklogs}`,
-            icon: <Hash size={12} />,
-          },
-          {
-            label: "Branches",
-            value: JD.eligibleBranches.includes("All")
-              ? "All Branches"
-              : JD.eligibleBranches.join(", ") || "—",
-            icon: <GraduationCap size={12} />,
-          },
-        ].map(({ label, value, icon }) => (
-          <div
-            key={label}
-            className="rounded-xl px-3 py-1.5 border flex items-start gap-1.5"
-            style={{ backgroundColor: "#fff", borderColor: "#BFDBFE" }}
-          >
-            <span className="mt-0.5" style={{ color: "#3B82F6" }}>
-              {icon}
-            </span>
-            <div>
-              <p
-                className="text-[10px] font-semibold uppercase tracking-wide"
-                style={{ color: "#64748B" }}
-              >
-                {label}
-              </p>
-              <p className="text-xs font-bold" style={{ color: "#1D4ED8" }}>
-                {value}
-              </p>
+      {selectedJob && (
+        <div className="flex items-center gap-3 flex-wrap">
+          {[
+            {
+              label: "Min CGPA",
+              value: selectedJob.minCgpa || "No requirement",
+              icon: <TrendingUp size={12} />,
+            },
+            {
+              label: "Backlogs",
+              value:
+                selectedJob.maxBacklogs === 0
+                  ? "None"
+                  : `≤ ${selectedJob.maxBacklogs}`,
+              icon: <Hash size={12} />,
+            },
+            {
+              label: "Branches",
+              value: selectedJob.eligibleBranches?.includes("All")
+                ? "All Branches"
+                : selectedJob.eligibleBranches?.join(", ") || "—",
+              icon: <GraduationCap size={12} />,
+            },
+          ].map(({ label, value, icon }) => (
+            <div
+              key={label}
+              className="rounded-xl px-3 py-1.5 border flex items-start gap-1.5"
+              style={{ backgroundColor: "#fff", borderColor: "#BFDBFE" }}
+            >
+              <span className="mt-0.5" style={{ color: "#3B82F6" }}>
+                {icon}
+              </span>
+              <div>
+                <p
+                  className="text-[10px] font-semibold uppercase tracking-wide"
+                  style={{ color: "#64748B" }}
+                >
+                  {label}
+                </p>
+                <p className="text-xs font-bold" style={{ color: "#1D4ED8" }}>
+                  {value}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-// ── Tab 1 — Eligible Students ─────────────────────────────────
-function EligibleTab({ JD }) {
-  const eligible = useMemo(
-    () =>
-      mockStudents.filter(
-        (s) =>
-          JD.eligibleBranches.includes(s.branch) &&
-          s.cgpa >= JD.minCgpa &&
-          s.backlogs <= JD.maxBacklogs,
-      ),
-    [JD.minCgpa, JD.maxBacklogs, JD.eligibleBranches],
-  );
+function EligibleTab({ selectedJob, allStudents }) {
+  const eligible = useMemo(() => {
+    if (!selectedJob) return [];
+    return allStudents.filter((s) => {
+      const branchOk =
+        selectedJob.eligibleBranches?.includes("All") ||
+        selectedJob.eligibleBranches?.includes(s.branch);
+      const cgpaOk = (s.cgpa ?? 0) >= (selectedJob.minCgpa || 0);
+      const backlogOk = (s.backlogs ?? 0) <= (selectedJob.maxBacklogs ?? 0);
+      return branchOk && cgpaOk && backlogOk;
+    });
+  }, [selectedJob, allStudents]);
 
   const cols = "2fr 1.2fr 1fr 0.8fr 0.8fr";
 
@@ -280,14 +264,14 @@ function EligibleTab({ JD }) {
         <StatCard
           icon={<Building2 size={20} color="#8B5CF6" />}
           label="Branches"
-          value={JD.eligibleBranches.length}
+          value={selectedJob?.eligibleBranches?.length || 0}
           bg="#F5F3FF"
           borderColor="#DDD6FE"
         />
         <StatCard
           icon={<TrendingUp size={20} color="#F59E0B" />}
           label="Min CGPA Required"
-          value={JD.minCgpa}
+          value={selectedJob?.minCgpa || 0}
           bg="#FFFBEB"
           borderColor="#FDE68A"
         />
@@ -324,7 +308,7 @@ function EligibleTab({ JD }) {
         ) : (
           eligible.map((student, idx) => (
             <div
-              key={student.id}
+              key={student._id}
               style={{
                 display: "grid",
                 gridTemplateColumns: cols,
@@ -332,14 +316,7 @@ function EligibleTab({ JD }) {
                 padding: "14px 20px",
                 borderBottom:
                   idx !== eligible.length - 1 ? "1px solid #F1F5F9" : "none",
-                transition: "background 0.12s",
               }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.backgroundColor = "#F8FAFC")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor = "#fff")
-              }
             >
               <NameCell student={student} />
               <span className="text-xs font-mono" style={{ color: "#64748B" }}>
@@ -359,23 +336,23 @@ function EligibleTab({ JD }) {
                 className="text-sm font-bold"
                 style={{
                   color:
-                    student.cgpa >= 8.5
+                    (student.cgpa ?? 0) >= 8.5
                       ? "#15803D"
-                      : student.cgpa >= 7.5
+                      : (student.cgpa ?? 0) >= 7.5
                         ? "#0F172A"
                         : "#EF4444",
                 }}
               >
-                {student.cgpa.toFixed(1)}
+                {(student.cgpa ?? 0).toFixed(1)}
               </span>
               <span
                 className="text-sm"
                 style={{
-                  color: student.backlogs === 0 ? "#64748B" : "#EF4444",
-                  fontWeight: student.backlogs > 0 ? 700 : 400,
+                  color: (student.backlogs ?? 0) === 0 ? "#64748B" : "#EF4444",
+                  fontWeight: (student.backlogs ?? 0) > 0 ? 700 : 400,
                 }}
               >
-                {student.backlogs === 0 ? "—" : student.backlogs}
+                {(student.backlogs ?? 0) === 0 ? "—" : student.backlogs}
               </span>
             </div>
           ))
@@ -385,49 +362,59 @@ function EligibleTab({ JD }) {
   );
 }
 
-// ── Tab 2 — Applied Students ──────────────────────────────────
-function AppliedTab({ JD }) {
-  const [applications, setApplications] = useState(INITIAL_APPLIED);
+function AppliedTab({ selectedJobId }) {
+  const [applications, setApplications] = useState([]);
   const [filterStatus, setFilterStatus] = useState("All");
+  const [loading, setLoading] = useState(true);
 
-  const enriched = useMemo(
-    () =>
-      applications
-        .map((app) => ({
-          ...app,
-          student: mockStudents.find((s) => s.id === app.studentId),
-        }))
-        .filter((a) => a.student),
-    [applications],
-  );
+  useEffect(() => {
+    if (!selectedJobId) return;
+    const fetchApps = async () => {
+      setLoading(true);
+      const data = await api.get(`/applications/job/${selectedJobId}`);
+      setApplications(Array.isArray(data) ? data : []);
+      setLoading(false);
+    };
+    fetchApps();
+  }, [selectedJobId]);
 
   const filtered = useMemo(
     () =>
       filterStatus === "All"
-        ? enriched
-        : enriched.filter((a) => a.status === filterStatus),
-    [enriched, filterStatus],
+        ? applications
+        : applications.filter((a) => a.status === filterStatus),
+    [applications, filterStatus],
   );
 
-  const updateStatus = (studentId, newStatus) =>
+  const updateStatus = async (appId, newStatus) => {
+    const updated = await api.put(`/applications/${appId}/status`, {
+      status: newStatus,
+    });
     setApplications((prev) =>
-      prev.map((a) =>
-        a.studentId === studentId ? { ...a, status: newStatus } : a,
-      ),
+      prev.map((a) => (a._id === appId ? { ...a, status: updated.status } : a)),
     );
+  };
 
   const counts = useMemo(
     () => ({
-      total: enriched.length,
-      applied: enriched.filter((a) => a.status === "Applied").length,
-      shortlisted: enriched.filter((a) => a.status === "Shortlisted").length,
-      selected: enriched.filter((a) => a.status === "Selected").length,
-      rejected: enriched.filter((a) => a.status === "Rejected").length,
+      total: applications.length,
+      applied: applications.filter((a) => a.status === "Applied").length,
+      shortlisted: applications.filter((a) => a.status === "Shortlisted")
+        .length,
+      selected: applications.filter((a) => a.status === "Selected").length,
+      rejected: applications.filter((a) => a.status === "Rejected").length,
     }),
-    [enriched],
+    [applications],
   );
 
   const cols = "2fr 1.2fr 1fr 0.8fr 1.1fr 1.8fr";
+
+  if (loading)
+    return (
+      <div className="text-center py-10 text-text-muted">
+        Loading applications...
+      </div>
+    );
 
   return (
     <div className="space-y-4">
@@ -533,87 +520,93 @@ function AppliedTab({ JD }) {
             </p>
           </div>
         ) : (
-          filtered.map((app, idx) => (
-            <div
-              key={app.studentId}
-              style={{
-                display: "grid",
-                gridTemplateColumns: cols,
-                alignItems: "center",
-                padding: "14px 20px",
-                borderBottom:
-                  idx !== filtered.length - 1 ? "1px solid #F1F5F9" : "none",
-                transition: "background 0.12s",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.backgroundColor = "#F8FAFC")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor = "#fff")
-              }
-            >
-              <NameCell student={app.student} />
-              <span className="text-xs font-mono" style={{ color: "#64748B" }}>
-                {app.student.erpId}
-              </span>
-              <span
-                className="border text-xs font-semibold px-2.5 py-0.5 rounded-full w-fit"
-                style={{
-                  color: "#3B82F6",
-                  backgroundColor: "#EFF6FF",
-                  borderColor: "#BFDBFE",
-                }}
-              >
-                {app.student.branch}
-              </span>
-              <span
-                className="text-sm font-bold"
-                style={{
-                  color:
-                    app.student.cgpa >= 8.5
-                      ? "#15803D"
-                      : app.student.cgpa >= 7.5
-                        ? "#0F172A"
-                        : "#EF4444",
-                }}
-              >
-                {app.student.cgpa.toFixed(1)}
-              </span>
+          filtered.map((app, idx) => {
+            const student = app.studentId;
+            return (
               <div
-                className="flex items-center gap-1.5 text-sm"
-                style={{ color: "#64748B" }}
+                key={app._id}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: cols,
+                  alignItems: "center",
+                  padding: "14px 20px",
+                  borderBottom:
+                    idx !== filtered.length - 1 ? "1px solid #F1F5F9" : "none",
+                }}
               >
-                <CalendarDays size={13} />
-                {app.appliedDate}
+                <NameCell student={student} />
+                <span
+                  className="text-xs font-mono"
+                  style={{ color: "#64748B" }}
+                >
+                  {student?.erpId || "—"}
+                </span>
+                <span
+                  className="border text-xs font-semibold px-2.5 py-0.5 rounded-full w-fit"
+                  style={{
+                    color: "#3B82F6",
+                    backgroundColor: "#EFF6FF",
+                    borderColor: "#BFDBFE",
+                  }}
+                >
+                  {student?.branch || "—"}
+                </span>
+                <span
+                  className="text-sm font-bold"
+                  style={{
+                    color:
+                      (student?.cgpa ?? 0) >= 8.5
+                        ? "#15803D"
+                        : (student?.cgpa ?? 0) >= 7.5
+                          ? "#0F172A"
+                          : "#EF4444",
+                  }}
+                >
+                  {(student?.cgpa ?? 0).toFixed(1)}
+                </span>
+                <div
+                  className="flex items-center gap-1.5 text-sm"
+                  style={{ color: "#64748B" }}
+                >
+                  <CalendarDays size={13} />
+                  {app.appliedDate
+                    ? new Date(app.appliedDate).toLocaleDateString()
+                    : "—"}
+                </div>
+                <StatusActions
+                  current={app.status}
+                  onChange={(val) => updateStatus(app._id, val)}
+                />
               </div>
-              <StatusActions
-                current={app.status}
-                onChange={(val) => updateStatus(app.studentId, val)}
-              />
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>
   );
 }
 
-// ── Main Page ─────────────────────────────────────────────────
 export default function ApplicationsManagementPage() {
   const [activeTab, setActiveTab] = useState("eligible");
-  const [selectedCompanyId, setSelectedCompanyId] = useState(
-    mockCompanies[0].id,
-  );
+  const [jobs, setJobs] = useState([]);
+  const [allStudents, setAllStudents] = useState([]);
+  const [selectedJobId, setSelectedJobId] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const selectedCompany = mockCompanies.find((c) => c.id === selectedCompanyId);
+  useEffect(() => {
+    const fetchData = async () => {
+      const jobsData = await api.get("/companies/jobs");
+      const studentsData = await api.get("/students");
+      const jobList = Array.isArray(jobsData) ? jobsData : [];
+      setJobs(jobList);
+      setAllStudents(Array.isArray(studentsData) ? studentsData : []);
+      if (jobList.length > 0) setSelectedJobId(jobList[0]._id);
+      setLoading(false);
+    };
+    fetchData();
+  }, []);
 
-  const JD = {
-    title: selectedCompany.role || "No JD Posted",
-    company: selectedCompany.company,
-    minCgpa: selectedCompany.cgpa || 0,
-    maxBacklogs: 0,
-    eligibleBranches: selectedCompany.branches || [],
-  };
+  const selectedJob = jobs.find((j) => j._id === selectedJobId);
 
   const tabs = [
     {
@@ -628,13 +621,13 @@ export default function ApplicationsManagementPage() {
     },
   ];
 
+  if (loading)
+    return <div className="text-center py-20 text-text-muted">Loading...</div>;
+
   return (
     <div
       className="space-y-5"
-      style={{
-        backgroundColor: "#F1F5F9",
-        fontFamily: "Inter, system-ui, sans-serif",
-      }}
+      style={{ fontFamily: "Inter, system-ui, sans-serif" }}
     >
       <div>
         <h1 className="text-2xl font-bold" style={{ color: "#0F172A" }}>
@@ -646,36 +639,43 @@ export default function ApplicationsManagementPage() {
       </div>
 
       <JDBanner
-        JD={JD}
-        selectedCompanyId={selectedCompanyId}
-        setSelectedCompanyId={setSelectedCompanyId}
+        jobs={jobs}
+        selectedJobId={selectedJobId}
+        setSelectedJobId={setSelectedJobId}
+        selectedJob={selectedJob}
       />
 
-      <div className="flex items-center gap-1 bg-white rounded-2xl border border-gray-100 p-1.5 shadow-sm w-fit">
-        {tabs.map((tab) => {
-          const active = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
-              style={{
-                backgroundColor: active ? "#3B82F6" : "transparent",
-                color: active ? "#fff" : "#64748B",
-                boxShadow: active ? "0 1px 6px rgba(59,130,246,0.3)" : "none",
-              }}
-            >
-              {tab.icon}
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
+      {jobs.length > 0 && (
+        <>
+          <div className="flex items-center gap-1 bg-white rounded-2xl border border-gray-100 p-1.5 shadow-sm w-fit">
+            {tabs.map((tab) => {
+              const active = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+                  style={{
+                    backgroundColor: active ? "#3B82F6" : "transparent",
+                    color: active ? "#fff" : "#64748B",
+                    boxShadow: active
+                      ? "0 1px 6px rgba(59,130,246,0.3)"
+                      : "none",
+                  }}
+                >
+                  {tab.icon}
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
 
-      {activeTab === "eligible" ? (
-        <EligibleTab JD={JD} />
-      ) : (
-        <AppliedTab JD={JD} />
+          {activeTab === "eligible" ? (
+            <EligibleTab selectedJob={selectedJob} allStudents={allStudents} />
+          ) : (
+            <AppliedTab selectedJobId={selectedJobId} />
+          )}
+        </>
       )}
     </div>
   );
