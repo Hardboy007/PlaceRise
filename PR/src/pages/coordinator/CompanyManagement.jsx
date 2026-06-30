@@ -75,8 +75,11 @@ const allCourses = () =>
 
 const isBTech = (c) => /^B\.Tech/i.test(c);
 const isUG = (c) =>
-  /^B\.|^BCA|^BBA|^B\.Com|^Bachelor|^LLB|^Five Year|^Pharm\.D|^Diploma/i.test(c);
-const isPG = (c) => /^M\.|^MBA|^MCA|^Masters|^Ph\.D/i.test(c) && !/^B\./.test(c);
+  /^B\.|^BCA|^BBA|^B\.Com|^Bachelor|^LLB|^Five Year|^Pharm\.D|^Diploma/i.test(
+    c,
+  );
+const isPG = (c) =>
+  /^M\.|^MBA|^MCA|^Masters|^Ph\.D/i.test(c) && !/^B\./.test(c);
 
 function BranchSelectorModal({ selected, onChange }) {
   const [open, setOpen] = useState(false);
@@ -112,7 +115,9 @@ function BranchSelectorModal({ selected, onChange }) {
   const toggleCourse = (course) => {
     setActiveQuick(null);
     setTempSel((prev) =>
-      prev.includes(course) ? prev.filter((x) => x !== course) : [...prev, course]
+      prev.includes(course)
+        ? prev.filter((x) => x !== course)
+        : [...prev, course],
     );
   };
 
@@ -120,7 +125,9 @@ function BranchSelectorModal({ selected, onChange }) {
     setActiveQuick(null);
     const allIn = courses.every((c) => tempSel.includes(c));
     setTempSel((prev) =>
-      allIn ? prev.filter((x) => !courses.includes(x)) : [...new Set([...prev, ...courses])]
+      allIn
+        ? prev.filter((x) => !courses.includes(x))
+        : [...new Set([...prev, ...courses])],
     );
   };
 
@@ -128,7 +135,9 @@ function BranchSelectorModal({ selected, onChange }) {
     setActiveQuick(null);
     const allIn = courses.every((c) => tempSel.includes(c));
     setTempSel((prev) =>
-      allIn ? prev.filter((x) => !courses.includes(x)) : [...new Set([...prev, ...courses])]
+      allIn
+        ? prev.filter((x) => !courses.includes(x))
+        : [...new Set([...prev, ...courses])],
     );
   };
 
@@ -136,7 +145,9 @@ function BranchSelectorModal({ selected, onChange }) {
     setOpenSchools((prev) => ({ ...prev, [si]: !prev[si] }));
 
   const schoolState = (si) => {
-    const courses = universityStructure[si].departments.flatMap((d) => d.courses);
+    const courses = universityStructure[si].departments.flatMap(
+      (d) => d.courses,
+    );
     const n = courses.filter((c) => tempSel.includes(c)).length;
     return n === 0 ? "none" : n === courses.length ? "all" : "partial";
   };
@@ -158,7 +169,7 @@ function BranchSelectorModal({ selected, onChange }) {
               !q ||
               c.toLowerCase().includes(q) ||
               dept.name.toLowerCase().includes(q) ||
-              school.school.toLowerCase().includes(q)
+              school.school.toLowerCase().includes(q),
           ),
         }))
         .filter((dept) => dept.courses.length > 0),
@@ -184,9 +195,15 @@ function BranchSelectorModal({ selected, onChange }) {
           <div className="flex items-center gap-2 min-w-0">
             <GraduationCap
               size={15}
-              className={selected.length > 0 ? "text-[#3B82F6] flex-shrink-0" : "text-[#94A3B8] flex-shrink-0"}
+              className={
+                selected.length > 0
+                  ? "text-[#3B82F6] flex-shrink-0"
+                  : "text-[#94A3B8] flex-shrink-0"
+              }
             />
-            <span className={`text-sm truncate ${selected.length > 0 ? "text-[#3B82F6] font-medium" : "text-[#94A3B8]"}`}>
+            <span
+              className={`text-sm truncate ${selected.length > 0 ? "text-[#3B82F6] font-medium" : "text-[#94A3B8]"}`}
+            >
               {triggerLabel}
             </span>
           </div>
@@ -199,7 +216,10 @@ function BranchSelectorModal({ selected, onChange }) {
         {selected.length > 0 && selected.length <= 4 && (
           <div className="flex flex-wrap gap-1.5 mt-2">
             {selected.map((c) => (
-              <span key={c} className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-[#3B82F6] border border-blue-200">
+              <span
+                key={c}
+                className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-[#3B82F6] border border-blue-200"
+              >
                 {c.length > 30 ? c.slice(0, 28) + "…" : c}
               </span>
             ))}
@@ -208,7 +228,10 @@ function BranchSelectorModal({ selected, onChange }) {
         {selected.length > 4 && (
           <div className="flex flex-wrap gap-1.5 mt-2">
             {selected.slice(0, 3).map((c) => (
-              <span key={c} className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-[#3B82F6] border border-blue-200">
+              <span
+                key={c}
+                className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-[#3B82F6] border border-blue-200"
+              >
                 {c.length > 30 ? c.slice(0, 28) + "…" : c}
               </span>
             ))}
@@ -236,13 +259,21 @@ function BranchSelectorModal({ selected, onChange }) {
                     <GraduationCap size={14} className="text-[#3B82F6]" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-[#1E293B]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                    <h3
+                      className="text-sm font-bold text-[#1E293B]"
+                      style={{ fontFamily: "Space Grotesk, sans-serif" }}
+                    >
                       Select Eligible Branches & Courses
                     </h3>
-                    <p className="text-[10px] text-[#94A3B8] mt-0.5">Choose which students are eligible to apply</p>
+                    <p className="text-[10px] text-[#94A3B8] mt-0.5">
+                      Choose which students are eligible to apply
+                    </p>
                   </div>
                 </div>
-                <button onClick={closeModal} className="w-7 h-7 rounded-lg bg-[#F1F5F9] flex items-center justify-center hover:bg-[#E2E8F0] transition-colors">
+                <button
+                  onClick={closeModal}
+                  className="w-7 h-7 rounded-lg bg-[#F1F5F9] flex items-center justify-center hover:bg-[#E2E8F0] transition-colors"
+                >
                   <X size={13} className="text-[#64748B]" />
                 </button>
               </div>
@@ -278,7 +309,10 @@ function BranchSelectorModal({ selected, onChange }) {
                 />
                 {search && (
                   <button onClick={() => setSearch("")}>
-                    <X size={12} className="text-[#94A3B8] hover:text-[#64748B]" />
+                    <X
+                      size={12}
+                      className="text-[#94A3B8] hover:text-[#64748B]"
+                    />
                   </button>
                 )}
               </div>
@@ -292,13 +326,20 @@ function BranchSelectorModal({ selected, onChange }) {
                 </div>
               ) : (
                 visibleStructure.map((school) => {
-                  const realSi = universityStructure.findIndex((s) => s.school === school.school);
-                  const schoolCourses = school.departments.flatMap((d) => d.courses);
+                  const realSi = universityStructure.findIndex(
+                    (s) => s.school === school.school,
+                  );
+                  const schoolCourses = school.departments.flatMap(
+                    (d) => d.courses,
+                  );
                   const sState = schoolState(realSi);
                   const isOpen = !!openSchools[realSi] || !!q;
 
                   return (
-                    <div key={school.school} className="border-b border-[#F1F5F9] last:border-b-0">
+                    <div
+                      key={school.school}
+                      className="border-b border-[#F1F5F9] last:border-b-0"
+                    >
                       <div
                         className="flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-[#F8FAFC] transition-colors"
                         onClick={() => toggleOpenSchool(realSi)}
@@ -306,16 +347,27 @@ function BranchSelectorModal({ selected, onChange }) {
                         <input
                           type="checkbox"
                           checked={sState === "all"}
-                          ref={(el) => { if (el) el.indeterminate = sState === "partial"; }}
+                          ref={(el) => {
+                            if (el) el.indeterminate = sState === "partial";
+                          }}
                           onChange={() => toggleSchool(schoolCourses)}
                           onClick={(e) => e.stopPropagation()}
                           className="w-4 h-4 accent-[#3B82F6] flex-shrink-0 cursor-pointer"
                         />
-                        <span className="flex-1 text-xs font-semibold text-[#1E293B]">{school.school}</span>
-                        <span className="text-[10px] text-[#94A3B8] mr-1">
-                          {schoolCourses.filter((c) => tempSel.includes(c)).length}/{schoolCourses.length}
+                        <span className="flex-1 text-xs font-semibold text-[#1E293B]">
+                          {school.school}
                         </span>
-                        <ChevronDown size={14} className={`text-[#94A3B8] transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                        <span className="text-[10px] text-[#94A3B8] mr-1">
+                          {
+                            schoolCourses.filter((c) => tempSel.includes(c))
+                              .length
+                          }
+                          /{schoolCourses.length}
+                        </span>
+                        <ChevronDown
+                          size={14}
+                          className={`text-[#94A3B8] transition-transform ${isOpen ? "rotate-180" : ""}`}
+                        />
                       </div>
 
                       {isOpen && (
@@ -328,23 +380,35 @@ function BranchSelectorModal({ selected, onChange }) {
                                   <input
                                     type="checkbox"
                                     checked={dState === "all"}
-                                    ref={(el) => { if (el) el.indeterminate = dState === "partial"; }}
+                                    ref={(el) => {
+                                      if (el)
+                                        el.indeterminate = dState === "partial";
+                                    }}
                                     onChange={() => toggleDept(dept.courses)}
                                     className="w-3.5 h-3.5 accent-[#3B82F6] flex-shrink-0 cursor-pointer"
                                   />
-                                  <span className="text-xs font-medium text-[#64748B]">{dept.name}</span>
-                                  <span className="text-[10px] text-[#CBD5E1] ml-auto">{dept.courses.length} courses</span>
+                                  <span className="text-xs font-medium text-[#64748B]">
+                                    {dept.name}
+                                  </span>
+                                  <span className="text-[10px] text-[#CBD5E1] ml-auto">
+                                    {dept.courses.length} courses
+                                  </span>
                                 </div>
                                 <div className="grid grid-cols-2 gap-1 pl-6">
                                   {dept.courses.map((course) => (
-                                    <label key={course} className="flex items-start gap-2 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-[#F1F5F9] transition-colors">
+                                    <label
+                                      key={course}
+                                      className="flex items-start gap-2 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-[#F1F5F9] transition-colors"
+                                    >
                                       <input
                                         type="checkbox"
                                         checked={tempSel.includes(course)}
                                         onChange={() => toggleCourse(course)}
                                         className="w-3 h-3 accent-[#3B82F6] flex-shrink-0 mt-0.5 cursor-pointer"
                                       />
-                                      <span className="text-[11px] text-[#1E293B] leading-snug">{course}</span>
+                                      <span className="text-[11px] text-[#1E293B] leading-snug">
+                                        {course}
+                                      </span>
                                     </label>
                                   ))}
                                 </div>
@@ -361,11 +425,17 @@ function BranchSelectorModal({ selected, onChange }) {
 
             <div className="flex items-center justify-between px-5 py-4 border-t border-[#F1F5F9] flex-shrink-0">
               <div className="text-xs text-[#64748B]">
-                <span className="font-bold text-[#1E293B]">{tempSel.length}</span> courses selected
+                <span className="font-bold text-[#1E293B]">
+                  {tempSel.length}
+                </span>{" "}
+                courses selected
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => { setTempSel([]); setActiveQuick(null); }}
+                  onClick={() => {
+                    setTempSel([]);
+                    setActiveQuick(null);
+                  }}
                   className="px-3 py-1.5 rounded-xl border border-[#E2E8F0] text-xs font-medium text-[#64748B] hover:bg-[#F8FAFC] transition-colors"
                 >
                   Clear All
@@ -507,10 +577,16 @@ function JDFields({ form, setForm, errors }) {
       </Field>
 
       {/* ── Eligible Branches — replaced with modal selector ── */}
-      <Field label="Eligible Branches & Courses" required error={errors.eligibleBranches}>
+      <Field
+        label="Eligible Branches & Courses"
+        required
+        error={errors.eligibleBranches}
+      >
         <BranchSelectorModal
           selected={form.eligibleBranches}
-          onChange={(eligibleBranches) => setForm({ ...form, eligibleBranches })}
+          onChange={(eligibleBranches) =>
+            setForm({ ...form, eligibleBranches })
+          }
         />
       </Field>
 
@@ -626,9 +702,11 @@ export default function CompanyManagementPage() {
       .includes(search.toLowerCase());
     const expired = job ? isExpired(job.lastDate) : false;
     const matchFilter =
-      filter === "All" ? true
-      : filter === "Active" ? !!job && !expired
-      : !job || expired;
+      filter === "All"
+        ? true
+        : filter === "Active"
+          ? !!job && !expired
+          : !job || expired;
     return matchSearch && matchFilter;
   });
 
@@ -1177,7 +1255,8 @@ export default function CompanyManagementPage() {
                       <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-2">
                         Eligible Branches & Courses
                         <span className="ml-2 normal-case font-normal text-[#CBD5E1]">
-                          ({viewingCompany.job.eligibleBranches.length} selected)
+                          ({viewingCompany.job.eligibleBranches.length}{" "}
+                          selected)
                         </span>
                       </p>
                       <div className="flex flex-wrap gap-1.5">
