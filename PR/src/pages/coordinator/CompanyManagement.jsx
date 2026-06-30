@@ -1275,7 +1275,7 @@ export default function CompanyManagementPage() {
               </button>
               <button
                 onClick={submitJD}
-                className="px-4 py-2 rounded-xl bg-[#3B82F6] text-white text-sm font-semibold hover:bg-[#2563EB] transition-colors flex items-center gap-2"
+                className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-[#2563EB] transition-colors flex items-center gap-2"
               >
                 <FileText size={14} /> {jdTargetJob ? "Save JD" : "Post JD"}
               </button>
