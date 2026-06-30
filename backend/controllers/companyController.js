@@ -23,6 +23,17 @@ const createCompany = async (req, res) => {
   }
 };
 
+// DELETE COMPANY
+const deleteCompany = async (req, res) => {
+  try {
+    const company = await Company.findByIdAndDelete(req.params.id);
+    if (!company) return res.status(404).json({ message: "Company not found" });
+    res.json({ message: "Company deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // GET ALL JOBS
 const getAllJobs = async (req, res) => {
   try {
@@ -45,4 +56,4 @@ const getJobById = async (req, res) => {
   }
 };
 
-module.exports = { getAllCompanies, createCompany, getAllJobs, getJobById };
+module.exports = { getAllCompanies, createCompany, getAllJobs, getJobById, deleteCompany };
