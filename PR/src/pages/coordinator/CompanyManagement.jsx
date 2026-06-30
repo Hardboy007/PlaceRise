@@ -22,18 +22,13 @@ import {
   ChevronRight,
   ChevronLeft,
   Pencil,
+  GraduationCap,
+  ChevronDown,
 } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────
 //  CONSTANTS
 // ─────────────────────────────────────────────────────────────
-const BRANCHES = [
-  ...new Set(
-    universityStructure.flatMap((s) => s.departments.map((d) => d.name)),
-  ),
-  "All",
-];
-
 const inputCls =
   "w-full px-3 py-2 text-sm text-[#1E293B] border border-[#E2E8F0] rounded-xl bg-[#F8FAFC] focus:outline-none focus:border-[#3B82F6] transition-colors placeholder:text-[#94A3B8]";
 
@@ -50,7 +45,6 @@ const emptyJD = {
   role: "",
   ctc: "",
   jobType: "Full Time",
-  location: "",
   lastDate: "",
   minCgpa: "",
   eligibleBranches: [],
@@ -68,22 +62,328 @@ const daysLeft = (lastDate) => {
   return Math.ceil((d - new Date()) / (1000 * 60 * 60 * 24));
 };
 
-const toggleBranch = (b, form, setForm) => {
-  if (b === "All") {
-    setForm({
-      ...form,
-      eligibleBranches: form.eligibleBranches.includes("All") ? [] : ["All"],
-    });
-    return;
-  }
-  const cur = form.eligibleBranches.filter((x) => x !== "All");
-  setForm({
-    ...form,
-    eligibleBranches: cur.includes(b)
-      ? cur.filter((x) => x !== b)
-      : [...cur, b],
-  });
+const isExpired = (lastDate) => {
+  const d = daysLeft(lastDate);
+  return d !== null && d < 0;
 };
+
+// ─────────────────────────────────────────────────────────────
+//  BRANCH SELECTOR — flat accordion with smart quick-select
+// ─────────────────────────────────────────────────────────────
+const allCourses = () =>
+  universityStructure.flatMap((s) => s.departments.flatMap((d) => d.courses));
+
+const isBTech = (c) => /^B\.Tech/i.test(c);
+const isUG = (c) =>
+  /^B\.|^BCA|^BBA|^B\.Com|^Bachelor|^LLB|^Five Year|^Pharm\.D|^Diploma/i.test(c);
+const isPG = (c) => /^M\.|^MBA|^MCA|^Masters|^Ph\.D/i.test(c) && !/^B\./.test(c);
+
+function BranchSelectorModal({ selected, onChange }) {
+  const [open, setOpen] = useState(false);
+  const [openSchools, setOpenSchools] = useState({});
+  const [search, setSearch] = useState("");
+  const [activeQuick, setActiveQuick] = useState(null);
+  const [tempSel, setTempSel] = useState([]);
+
+  const openModal = () => {
+    setTempSel([...selected]);
+    setSearch("");
+    setActiveQuick(null);
+    setOpenSchools({});
+    setOpen(true);
+  };
+
+  const closeModal = () => setOpen(false);
+
+  const confirm = () => {
+    onChange(tempSel);
+    setOpen(false);
+  };
+
+  const quickSel = (mode) => {
+    setActiveQuick(mode);
+    if (mode === "all") setTempSel([...allCourses()]);
+    else if (mode === "btech") setTempSel(allCourses().filter(isBTech));
+    else if (mode === "ug") setTempSel(allCourses().filter(isUG));
+    else if (mode === "pg") setTempSel(allCourses().filter(isPG));
+    else setTempSel([]);
+  };
+
+  const toggleCourse = (course) => {
+    setActiveQuick(null);
+    setTempSel((prev) =>
+      prev.includes(course) ? prev.filter((x) => x !== course) : [...prev, course]
+    );
+  };
+
+  const toggleDept = (courses) => {
+    setActiveQuick(null);
+    const allIn = courses.every((c) => tempSel.includes(c));
+    setTempSel((prev) =>
+      allIn ? prev.filter((x) => !courses.includes(x)) : [...new Set([...prev, ...courses])]
+    );
+  };
+
+  const toggleSchool = (courses) => {
+    setActiveQuick(null);
+    const allIn = courses.every((c) => tempSel.includes(c));
+    setTempSel((prev) =>
+      allIn ? prev.filter((x) => !courses.includes(x)) : [...new Set([...prev, ...courses])]
+    );
+  };
+
+  const toggleOpenSchool = (si) =>
+    setOpenSchools((prev) => ({ ...prev, [si]: !prev[si] }));
+
+  const schoolState = (si) => {
+    const courses = universityStructure[si].departments.flatMap((d) => d.courses);
+    const n = courses.filter((c) => tempSel.includes(c)).length;
+    return n === 0 ? "none" : n === courses.length ? "all" : "partial";
+  };
+
+  const deptState = (courses) => {
+    const n = courses.filter((c) => tempSel.includes(c)).length;
+    return n === 0 ? "none" : n === courses.length ? "all" : "partial";
+  };
+
+  const q = search.toLowerCase().trim();
+  const visibleStructure = universityStructure
+    .map((school) => ({
+      ...school,
+      departments: school.departments
+        .map((dept) => ({
+          ...dept,
+          courses: dept.courses.filter(
+            (c) =>
+              !q ||
+              c.toLowerCase().includes(q) ||
+              dept.name.toLowerCase().includes(q) ||
+              school.school.toLowerCase().includes(q)
+          ),
+        }))
+        .filter((dept) => dept.courses.length > 0),
+    }))
+    .filter((school) => school.departments.length > 0);
+
+  const triggerLabel =
+    selected.length === 0
+      ? "Click to select eligible branches & courses"
+      : `${selected.length} course${selected.length > 1 ? "s" : ""} selected`;
+
+  return (
+    <>
+      <div
+        onClick={openModal}
+        className={`cursor-pointer border rounded-xl p-3 transition-all ${
+          selected.length > 0
+            ? "border-[#3B82F6] bg-blue-50/30"
+            : "border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#3B82F6]"
+        }`}
+      >
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <GraduationCap
+              size={15}
+              className={selected.length > 0 ? "text-[#3B82F6] flex-shrink-0" : "text-[#94A3B8] flex-shrink-0"}
+            />
+            <span className={`text-sm truncate ${selected.length > 0 ? "text-[#3B82F6] font-medium" : "text-[#94A3B8]"}`}>
+              {triggerLabel}
+            </span>
+          </div>
+          <span className="flex items-center gap-1 text-xs text-[#3B82F6] flex-shrink-0 font-medium">
+            <Pencil size={11} />
+            {selected.length > 0 ? "Edit" : "Select"}
+          </span>
+        </div>
+
+        {selected.length > 0 && selected.length <= 4 && (
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {selected.map((c) => (
+              <span key={c} className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-[#3B82F6] border border-blue-200">
+                {c.length > 30 ? c.slice(0, 28) + "…" : c}
+              </span>
+            ))}
+          </div>
+        )}
+        {selected.length > 4 && (
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {selected.slice(0, 3).map((c) => (
+              <span key={c} className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-[#3B82F6] border border-blue-200">
+                {c.length > 30 ? c.slice(0, 28) + "…" : c}
+              </span>
+            ))}
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#F1F5F9] text-[#64748B] border border-[#E2E8F0]">
+              +{selected.length - 3} more
+            </span>
+          </div>
+        )}
+      </div>
+
+      {open && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 px-4"
+          onClick={closeModal}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col"
+            style={{ maxHeight: "85vh" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-5 border-b border-[#F1F5F9] flex-shrink-0">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
+                    <GraduationCap size={14} className="text-[#3B82F6]" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-[#1E293B]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                      Select Eligible Branches & Courses
+                    </h3>
+                    <p className="text-[10px] text-[#94A3B8] mt-0.5">Choose which students are eligible to apply</p>
+                  </div>
+                </div>
+                <button onClick={closeModal} className="w-7 h-7 rounded-lg bg-[#F1F5F9] flex items-center justify-center hover:bg-[#E2E8F0] transition-colors">
+                  <X size={13} className="text-[#64748B]" />
+                </button>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-3">
+                {[
+                  { key: "all", label: "All Courses" },
+                  { key: "btech", label: "B.Tech Only" },
+                  { key: "ug", label: "UG Only" },
+                  { key: "pg", label: "PG Only" },
+                ].map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => quickSel(key)}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
+                      activeQuick === key
+                        ? "bg-[#3B82F6] text-white border-[#3B82F6]"
+                        : "bg-[#F8FAFC] text-[#64748B] border-[#E2E8F0] hover:border-[#3B82F6] hover:text-[#3B82F6]"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2 border border-[#E2E8F0] rounded-xl px-3 py-2 bg-[#F8FAFC] focus-within:border-[#3B82F6] transition-colors">
+                <Search size={13} className="text-[#94A3B8] flex-shrink-0" />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search courses, departments..."
+                  className="flex-1 bg-transparent text-sm text-[#1E293B] outline-none placeholder:text-[#94A3B8]"
+                />
+                {search && (
+                  <button onClick={() => setSearch("")}>
+                    <X size={12} className="text-[#94A3B8] hover:text-[#64748B]" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto">
+              {visibleStructure.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 gap-2">
+                  <Search size={28} className="text-[#CBD5E1]" />
+                  <p className="text-sm text-[#94A3B8]">No courses found</p>
+                </div>
+              ) : (
+                visibleStructure.map((school) => {
+                  const realSi = universityStructure.findIndex((s) => s.school === school.school);
+                  const schoolCourses = school.departments.flatMap((d) => d.courses);
+                  const sState = schoolState(realSi);
+                  const isOpen = !!openSchools[realSi] || !!q;
+
+                  return (
+                    <div key={school.school} className="border-b border-[#F1F5F9] last:border-b-0">
+                      <div
+                        className="flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-[#F8FAFC] transition-colors"
+                        onClick={() => toggleOpenSchool(realSi)}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={sState === "all"}
+                          ref={(el) => { if (el) el.indeterminate = sState === "partial"; }}
+                          onChange={() => toggleSchool(schoolCourses)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-4 h-4 accent-[#3B82F6] flex-shrink-0 cursor-pointer"
+                        />
+                        <span className="flex-1 text-xs font-semibold text-[#1E293B]">{school.school}</span>
+                        <span className="text-[10px] text-[#94A3B8] mr-1">
+                          {schoolCourses.filter((c) => tempSel.includes(c)).length}/{schoolCourses.length}
+                        </span>
+                        <ChevronDown size={14} className={`text-[#94A3B8] transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                      </div>
+
+                      {isOpen && (
+                        <div className="pb-2">
+                          {school.departments.map((dept) => {
+                            const dState = deptState(dept.courses);
+                            return (
+                              <div key={dept.name} className="px-5 mb-1">
+                                <div className="flex items-center gap-2.5 py-1.5">
+                                  <input
+                                    type="checkbox"
+                                    checked={dState === "all"}
+                                    ref={(el) => { if (el) el.indeterminate = dState === "partial"; }}
+                                    onChange={() => toggleDept(dept.courses)}
+                                    className="w-3.5 h-3.5 accent-[#3B82F6] flex-shrink-0 cursor-pointer"
+                                  />
+                                  <span className="text-xs font-medium text-[#64748B]">{dept.name}</span>
+                                  <span className="text-[10px] text-[#CBD5E1] ml-auto">{dept.courses.length} courses</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-1 pl-6">
+                                  {dept.courses.map((course) => (
+                                    <label key={course} className="flex items-start gap-2 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-[#F1F5F9] transition-colors">
+                                      <input
+                                        type="checkbox"
+                                        checked={tempSel.includes(course)}
+                                        onChange={() => toggleCourse(course)}
+                                        className="w-3 h-3 accent-[#3B82F6] flex-shrink-0 mt-0.5 cursor-pointer"
+                                      />
+                                      <span className="text-[11px] text-[#1E293B] leading-snug">{course}</span>
+                                    </label>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <div className="flex items-center justify-between px-5 py-4 border-t border-[#F1F5F9] flex-shrink-0">
+              <div className="text-xs text-[#64748B]">
+                <span className="font-bold text-[#1E293B]">{tempSel.length}</span> courses selected
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => { setTempSel([]); setActiveQuick(null); }}
+                  className="px-3 py-1.5 rounded-xl border border-[#E2E8F0] text-xs font-medium text-[#64748B] hover:bg-[#F8FAFC] transition-colors"
+                >
+                  Clear All
+                </button>
+                <button
+                  onClick={confirm}
+                  className="px-4 py-1.5 rounded-xl bg-[#3B82F6] text-white text-xs font-semibold hover:bg-[#2563EB] transition-colors flex items-center gap-1.5"
+                >
+                  <Check size={13} /> Confirm Selection
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 
 // ─────────────────────────────────────────────────────────────
 //  TagInput
@@ -183,17 +483,6 @@ function JDFields({ form, setForm, errors }) {
             <option>Part Time</option>
           </select>
         </Field>
-        <Field label="Location">
-          <input
-            value={form.location}
-            onChange={(e) => setForm({ ...form, location: e.target.value })}
-            placeholder="e.g. Bangalore"
-            className={inputCls}
-          />
-        </Field>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
         <Field label="Last Date to Apply" required error={errors.lastDate}>
           <input
             type="date"
@@ -202,37 +491,27 @@ function JDFields({ form, setForm, errors }) {
             className={inputCls}
           />
         </Field>
-        <Field label="Min CGPA" optional>
-          <input
-            type="number"
-            step="0.1"
-            min="0"
-            max="10"
-            value={form.minCgpa}
-            onChange={(e) => setForm({ ...form, minCgpa: e.target.value })}
-            placeholder="Leave blank if no requirement"
-            className={inputCls}
-          />
-        </Field>
       </div>
 
-      <Field label="Eligible Branches" required error={errors.eligibleBranches}>
-        <div className="flex flex-wrap gap-2 mt-1">
-          {BRANCHES.map((b) => (
-            <button
-              key={b}
-              type="button"
-              onClick={() => toggleBranch(b, form, setForm)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
-                form.eligibleBranches.includes(b)
-                  ? "bg-primary text-white border-primary"
-                  : "bg-[#F8FAFC] text-text-muted border-[#E2E8F0] hover:border-primary"
-              }`}
-            >
-              {b}
-            </button>
-          ))}
-        </div>
+      <Field label="Min CGPA" optional>
+        <input
+          type="number"
+          step="0.1"
+          min="0"
+          max="10"
+          value={form.minCgpa}
+          onChange={(e) => setForm({ ...form, minCgpa: e.target.value })}
+          placeholder="Leave blank if no requirement"
+          className={inputCls}
+        />
+      </Field>
+
+      {/* ── Eligible Branches — replaced with modal selector ── */}
+      <Field label="Eligible Branches & Courses" required error={errors.eligibleBranches}>
+        <BranchSelectorModal
+          selected={form.eligibleBranches}
+          onChange={(eligibleBranches) => setForm({ ...form, eligibleBranches })}
+        />
       </Field>
 
       <Field label="Max Backlogs Allowed">
@@ -328,7 +607,6 @@ export default function CompanyManagementPage() {
     fetchData();
   }, []);
 
-  // Merge: har company ke saath uska job dhoondo (agar hai)
   const merged = companies.map((c) => {
     const job = jobs.find((j) => j.companyId?._id === c._id);
     return { company: c, job: job || null };
@@ -346,8 +624,11 @@ export default function CompanyManagementPage() {
     const matchSearch = company.name
       .toLowerCase()
       .includes(search.toLowerCase());
+    const expired = job ? isExpired(job.lastDate) : false;
     const matchFilter =
-      filter === "All" ? true : filter === "Active" ? !!job : !job;
+      filter === "All" ? true
+      : filter === "Active" ? !!job && !expired
+      : !job || expired;
     return matchSearch && matchFilter;
   });
 
@@ -384,7 +665,6 @@ export default function CompanyManagementPage() {
       setCompanyErrors(errs);
       return;
     }
-    // Company yahin save karo, JD baad mein link hoga
     const newCompany = await api.post("/companies", companyForm);
     setCreatedCompanyId(newCompany._id);
     setAddStep(2);
@@ -395,6 +675,7 @@ export default function CompanyManagementPage() {
     setShowCompanyModal(false);
   };
 
+  // location ab JD form mein nahi — company ka location use hoga
   const saveCompanyWithJD = async () => {
     const errs = validateJD(addJDForm);
     if (Object.keys(errs).length) {
@@ -406,7 +687,7 @@ export default function CompanyManagementPage() {
       role: addJDForm.role,
       ctc: parseFloat(addJDForm.ctc),
       jobType: addJDForm.jobType,
-      location: addJDForm.location || companyForm.location,
+      location: companyForm.location,
       lastDate: addJDForm.lastDate,
       minCgpa: addJDForm.minCgpa ? parseFloat(addJDForm.minCgpa) : 0,
       eligibleBranches: addJDForm.eligibleBranches,
@@ -435,7 +716,6 @@ export default function CompanyManagementPage() {
       role: job.role || "",
       ctc: job.ctc || "",
       jobType: job.jobType || "Full Time",
-      location: job.location || "",
       lastDate: job.lastDate ? job.lastDate.split("T")[0] : "",
       minCgpa: job.minCgpa || "",
       eligibleBranches: job.eligibleBranches || [],
@@ -461,7 +741,7 @@ export default function CompanyManagementPage() {
       role: jdForm.role,
       ctc: parseFloat(jdForm.ctc),
       jobType: jdForm.jobType,
-      location: jdForm.location || jdTargetCompany.location,
+      location: jdTargetCompany.location,
       lastDate: jdForm.lastDate,
       minCgpa: jdForm.minCgpa ? parseFloat(jdForm.minCgpa) : 0,
       eligibleBranches: jdForm.eligibleBranches,
@@ -635,7 +915,8 @@ export default function CompanyManagementPage() {
         <div className="flex flex-col gap-3">
           {filtered.map(({ company, job }) => {
             const days = job ? daysLeft(job.lastDate) : null;
-            const isUrgent = days !== null && days <= 7;
+            const expired = job ? isExpired(job.lastDate) : false;
+            const isUrgent = !expired && days !== null && days <= 7;
 
             return (
               <div
@@ -670,6 +951,11 @@ export default function CompanyManagementPage() {
                           {job.jobType}
                         </span>
                       )}
+                      {expired && (
+                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-500 border border-red-200">
+                          Closed
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-4 flex-wrap">
                       <span className="flex items-center gap-1 text-xs text-text-muted">
@@ -682,7 +968,7 @@ export default function CompanyManagementPage() {
                       )}
                       {job?.lastDate && (
                         <span
-                          className={`flex items-center gap-1 text-xs font-medium ${isUrgent ? "text-red-500" : "text-text-muted"}`}
+                          className={`flex items-center gap-1 text-xs font-medium ${expired ? "text-red-400" : isUrgent ? "text-red-500" : "text-text-muted"}`}
                         >
                           <Calendar size={11} />
                           {new Date(job.lastDate).toLocaleDateString()}
@@ -701,14 +987,19 @@ export default function CompanyManagementPage() {
                     </div>
                     {(job?.eligibleBranches ?? []).length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
-                        {job.eligibleBranches.map((b) => (
+                        {job.eligibleBranches.slice(0, 3).map((b) => (
                           <span
                             key={b}
                             className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-background text-[#64748B] border border-[#E2E8F0]"
                           >
-                            {b}
+                            {b.length > 35 ? b.slice(0, 33) + "…" : b}
                           </span>
                         ))}
+                        {job.eligibleBranches.length > 3 && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-background text-[#94A3B8] border border-[#E2E8F0]">
+                            +{job.eligibleBranches.length - 3} more
+                          </span>
+                        )}
                       </div>
                     )}
                   </div>
@@ -884,13 +1175,16 @@ export default function CompanyManagementPage() {
                   {(viewingCompany.job.eligibleBranches ?? []).length > 0 && (
                     <div>
                       <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-2">
-                        Eligible Branches
+                        Eligible Branches & Courses
+                        <span className="ml-2 normal-case font-normal text-[#CBD5E1]">
+                          ({viewingCompany.job.eligibleBranches.length} selected)
+                        </span>
                       </p>
                       <div className="flex flex-wrap gap-1.5">
                         {viewingCompany.job.eligibleBranches.map((b) => (
                           <span
                             key={b}
-                            className="px-3 py-1 rounded-full text-xs font-medium bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0]"
+                            className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-blue-50 text-[#3B82F6] border border-blue-200"
                           >
                             {b}
                           </span>
