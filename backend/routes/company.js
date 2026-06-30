@@ -5,6 +5,7 @@ const {
   createCompany,
   getAllJobs,
   getJobById,
+  deleteCompany,
 } = require("../controllers/companyController");
 
 const router = express.Router();
