@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Calendar,
   Clock,
@@ -12,7 +12,6 @@ import {
   IndianRupee,
   Briefcase,
   GraduationCap,
-  Users,
   Monitor,
   Shield,
   Coffee,
@@ -20,7 +19,7 @@ import {
   TrendingUp,
   CheckCircle2,
 } from "lucide-react";
-import mockCompanies from "../../data/mockCompanies";
+import { api } from "../../utils/api";
 
 const MONTHS = [
   "January",
@@ -61,14 +60,6 @@ const FULL_DAYS = [
   "Saturday",
 ];
 
-const AVATAR_COLORS = {
-  Google: { bg: "bg-blue-50", text: "text-blue-700" },
-  Amazon: { bg: "bg-amber-50", text: "text-amber-700" },
-  Microsoft: { bg: "bg-violet-50", text: "text-violet-700" },
-  Infosys: { bg: "bg-emerald-50", text: "text-emerald-700" },
-  TCS: { bg: "bg-rose-50", text: "text-rose-700" },
-};
-
 const PERK_ICONS = {
   "Health Insurance": Shield,
   "Work From Home": Wifi,
@@ -79,23 +70,9 @@ const PERK_ICONS = {
   Transport: Briefcase,
 };
 
-const PROCESS_COLORS = {
-  Online: { bg: "bg-blue-50", text: "text-blue-700" },
-  Technical: { bg: "bg-violet-50", text: "text-violet-700" },
-  HR: { bg: "bg-emerald-50", text: "text-emerald-700" },
-  "Case Study": { bg: "bg-amber-50", text: "text-amber-700" },
-};
-
-const getAvatarColors = (company) =>
-  AVATAR_COLORS[company] ?? { bg: "bg-gray-100", text: "text-gray-600" };
-
-const parseDate = (str) => {
-  const [d, m, y] = str.trim().split(" ");
-  return new Date(parseInt(y), SHORT.indexOf(m), parseInt(d));
-};
-
+const getAvatarColors = () => ({ bg: "bg-blue-50", text: "text-blue-700" });
 const dateKey = (d) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-const initials = (name) => name.slice(0, 2).toUpperCase();
+const initials = (name) => (name || "??").slice(0, 2).toUpperCase();
 const daysUntil = (date, ref) => Math.ceil((date - ref) / 86400000);
 
 function DaysBadge({ diff }) {
@@ -135,7 +112,7 @@ function DaysBadge({ diff }) {
 }
 
 function CompanyAvatar({ company, size = "md" }) {
-  const { bg, text } = getAvatarColors(company);
+  const { bg, text } = getAvatarColors();
   const sz =
     size === "sm"
       ? "w-7 h-7 text-[10px]"
@@ -165,9 +142,10 @@ function JobTypeBadge({ type }) {
   );
 }
 
-function CompanyDetailModal({ company, onClose }) {
+function JobDetailModal({ job, onClose }) {
   const [activeTab, setActiveTab] = useState("overview");
-  if (!company) return null;
+  if (!job) return null;
+  const companyName = job.companyId?.name || "Unknown";
 
   return (
     <div
@@ -195,21 +173,21 @@ function CompanyDetailModal({ company, onClose }) {
           </button>
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white font-semibold text-sm border border-white/30">
-              {initials(company.company)}
+              {initials(companyName)}
             </div>
             <div>
               <p className="text-white font-semibold text-base leading-tight">
-                {company.company}
+                {companyName}
               </p>
-              <p className="text-white/75 text-[12px] mt-0.5">{company.role}</p>
+              <p className="text-white/75 text-[12px] mt-0.5">{job.role}</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2 mt-4">
             {[
-              { icon: MapPin, label: company.location },
-              { icon: IndianRupee, label: `${company.ctc} LPA` },
-              { icon: GraduationCap, label: `CGPA ${company.cgpa}+` },
-              { icon: Briefcase, label: company.jobType },
+              { icon: MapPin, label: job.location },
+              { icon: IndianRupee, label: `${job.ctc} LPA` },
+              { icon: GraduationCap, label: `CGPA ${job.minCgpa || 0}+` },
+              { icon: Briefcase, label: job.jobType },
             ].map(({ icon: Icon, label }) => (
               <span
                 key={label}
@@ -240,48 +218,61 @@ function CompanyDetailModal({ company, onClose }) {
         <div className="overflow-y-auto flex-1 p-5">
           {activeTab === "overview" && (
             <div className="space-y-4">
-              <p className="text-[13px] text-gray-500 leading-relaxed">
-                {company.about}
-              </p>
+              {job.companyId?.about && (
+                <p className="text-[13px] text-gray-500 leading-relaxed">
+                  {job.companyId.about}
+                </p>
+              )}
 
               {[
                 {
                   label: "Tech Stack",
-                  items: company.techStack,
+                  items: job.techStack || [],
                   cls: "bg-blue-50 text-blue-700 border-blue-100 font-medium",
                 },
                 {
                   label: "Required Skills",
-                  items: company.skills,
+                  items: job.skills || [],
                   cls: "bg-gray-50 text-gray-600 border-gray-200",
                 },
-              ].map(({ label, items, cls }) => (
-                <div key={label}>
-                  <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-2">
-                    {label}
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {items.map((item) => (
-                      <span
-                        key={item}
-                        className={`text-[11px] px-2.5 py-1 rounded-lg border ${cls}`}
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
+              ].map(
+                ({ label, items, cls }) =>
+                  items.length > 0 && (
+                    <div key={label}>
+                      <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-2">
+                        {label}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {items.map((item) => (
+                          <span
+                            key={item}
+                            className={`text-[11px] px-2.5 py-1 rounded-lg border ${cls}`}
+                          >
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ),
+              )}
 
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { icon: Clock, label: "Work Days", val: company.workDays },
-                  { icon: Monitor, label: "Shift", val: company.shift },
-                  { icon: Users, label: "Experience", val: company.experience },
+                  { icon: Briefcase, label: "Job Type", val: job.jobType },
+                  {
+                    icon: GraduationCap,
+                    label: "Batch",
+                    val: job.batch || "—",
+                  },
                   {
                     icon: GraduationCap,
                     label: "Branches",
-                    val: company.branches.join(", "),
+                    val: (job.eligibleBranches || []).join(", ") || "All",
+                  },
+                  {
+                    icon: Clock,
+                    label: "Max Backlogs",
+                    val: job.maxBacklogs ?? 0,
                   },
                 ].map(({ icon: Icon, label, val }) => (
                   <div
@@ -308,7 +299,9 @@ function CompanyDetailModal({ company, onClose }) {
                     Application deadline
                   </p>
                   <p className="text-[12px] text-red-800 font-semibold">
-                    {company.lastDate}
+                    {job.lastDate
+                      ? new Date(job.lastDate).toLocaleDateString()
+                      : "—"}
                   </p>
                 </div>
               </div>
@@ -317,59 +310,56 @@ function CompanyDetailModal({ company, onClose }) {
 
           {activeTab === "process" && (
             <div className="space-y-3">
-              {company.selectionProcess.map((step, i) => {
-                const cfg = PROCESS_COLORS[step.type] ?? PROCESS_COLORS.Online;
-                return (
+              {(job.selectionProcess || []).length === 0 ? (
+                <p className="text-[12px] text-gray-400 text-center py-6">
+                  No selection process listed.
+                </p>
+              ) : (
+                job.selectionProcess.map((step, i) => (
                   <div key={i} className="flex gap-3">
                     <div className="flex flex-col items-center">
-                      <div
-                        className={`w-7 h-7 rounded-full ${cfg.bg} ${cfg.text} flex items-center justify-center text-[11px] font-semibold border border-current/20 shrink-0`}
-                      >
+                      <div className="w-7 h-7 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center text-[11px] font-semibold border border-blue-200 shrink-0">
                         {i + 1}
                       </div>
-                      {i < company.selectionProcess.length - 1 && (
+                      {i < job.selectionProcess.length - 1 && (
                         <div className="w-px flex-1 bg-gray-100 my-1" />
                       )}
                     </div>
                     <div className="pb-3 flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="text-[13px] font-medium text-gray-800">
-                          {step.title}
-                        </p>
-                        <span
-                          className={`text-[9px] px-2 py-0.5 rounded-full font-medium ${cfg.bg} ${cfg.text} border border-current/20`}
-                        >
-                          {step.type}
-                        </span>
-                      </div>
-                      <p className="text-[12px] text-gray-500 leading-relaxed">
-                        {step.description}
+                      <p className="text-[13px] font-medium text-gray-800">
+                        {step}
                       </p>
                     </div>
                   </div>
-                );
-              })}
+                ))
+              )}
             </div>
           )}
 
           {activeTab === "perks" && (
             <div className="grid grid-cols-2 gap-2.5">
-              {company.perks.map((perk) => {
-                const Icon = PERK_ICONS[perk] ?? CheckCircle2;
-                return (
-                  <div
-                    key={perk}
-                    className="bg-gray-50 border border-gray-100 rounded-xl p-3 flex items-center gap-2.5"
-                  >
-                    <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-gray-200 shrink-0">
-                      <Icon size={15} className="text-blue-500" />
+              {(job.perks || []).length === 0 ? (
+                <p className="text-[12px] text-gray-400 text-center py-6 col-span-2">
+                  No perks listed.
+                </p>
+              ) : (
+                job.perks.map((perk) => {
+                  const Icon = PERK_ICONS[perk] ?? CheckCircle2;
+                  return (
+                    <div
+                      key={perk}
+                      className="bg-gray-50 border border-gray-100 rounded-xl p-3 flex items-center gap-2.5"
+                    >
+                      <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-gray-200 shrink-0">
+                        <Icon size={15} className="text-blue-500" />
+                      </div>
+                      <span className="text-[12px] text-gray-700 font-medium">
+                        {perk}
+                      </span>
                     </div>
-                    <span className="text-[12px] text-gray-700 font-medium">
-                      {perk}
-                    </span>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           )}
         </div>
@@ -382,12 +372,11 @@ function DayPopupModal({
   selectedDay,
   selectedMonth,
   selectedYear,
-  companies,
+  jobs,
   onClose,
-  onSelectCompany,
+  onSelectJob,
 }) {
   if (!selectedDay) return null;
-
   return (
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-start justify-center pt-20"
@@ -403,8 +392,7 @@ function DayPopupModal({
               {selectedDay} {MONTHS[selectedMonth]} {selectedYear}
             </p>
             <p className="text-[11px] text-white/70 mt-0.5">
-              {companies.length} compan{companies.length === 1 ? "y" : "ies"}{" "}
-              with deadline
+              {jobs.length} job{jobs.length === 1 ? "" : "s"} with deadline
             </p>
           </div>
           <button
@@ -414,41 +402,35 @@ function DayPopupModal({
             <X size={14} />
           </button>
         </div>
-
         <div className="p-3 flex flex-col gap-2 max-h-100 overflow-y-auto">
-          {companies.map((c) => (
+          {jobs.map((j) => (
             <button
-              key={c.id}
+              key={j._id}
               onClick={() => {
                 onClose();
-                onSelectCompany(c);
+                onSelectJob(j);
               }}
               className="bg-gray-50 border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 rounded-xl p-3 text-left transition-all group"
             >
               <div className="flex items-center gap-2.5 mb-2.5">
-                <CompanyAvatar company={c.company} />
+                <CompanyAvatar company={j.companyId?.name} />
                 <div className="flex-1 min-w-0">
                   <p className="text-[13px] font-semibold text-gray-900">
-                    {c.company}
+                    {j.companyId?.name || "Unknown"}
                   </p>
-                  <p className="text-[11px] text-gray-500">{c.role}</p>
+                  <p className="text-[11px] text-gray-500">{j.role}</p>
                 </div>
-                <JobTypeBadge type={c.jobType} />
+                <JobTypeBadge type={j.jobType} />
               </div>
               <div className="flex flex-wrap gap-1.5">
-                {[
-                  { icon: MapPin, label: c.location },
-                  { icon: IndianRupee, label: `${c.ctc} LPA` },
-                ].map(({ icon: Icon, label }) => (
-                  <span
-                    key={label}
-                    className="text-[10px] px-2 py-0.5 rounded-md bg-white text-gray-500 border border-gray-200 flex items-center gap-1"
-                  >
-                    <Icon size={9} /> {label}
-                  </span>
-                ))}
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-white text-gray-500 border border-gray-200 flex items-center gap-1">
+                  <MapPin size={9} /> {j.location}
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-white text-gray-500 border border-gray-200 flex items-center gap-1">
+                  <IndianRupee size={9} /> {j.ctc} LPA
+                </span>
                 <span className="text-[10px] px-2 py-0.5 rounded-md bg-white text-gray-500 border border-gray-200">
-                  CGPA {c.cgpa}+
+                  CGPA {j.minCgpa || 0}+
                 </span>
               </div>
               <p className="text-[10px] text-blue-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity font-medium">
@@ -473,34 +455,49 @@ export default function CompanyCalendarPage() {
   const [curYear, setCurYear] = useState(today.getFullYear());
   const [curMonth, setCurMonth] = useState(today.getMonth());
   const [dayPopup, setDayPopup] = useState(null);
-  const [detailCompany, setDetailCompany] = useState(null);
+  const [detailJob, setDetailJob] = useState(null);
   const [filter, setFilter] = useState("upcoming");
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      const data = await api.get("/companies/jobs");
+      const valid = (Array.isArray(data) ? data : []).filter((j) => j.lastDate);
+      setJobs(valid);
+      setLoading(false);
+    };
+    fetchJobs();
+  }, []);
 
   const dateMap = useMemo(() => {
     const map = {};
-    mockCompanies.forEach((c) => {
-      const k = dateKey(parseDate(c.lastDate));
+    jobs.forEach((j) => {
+      const d = new Date(j.lastDate);
+      if (isNaN(d.getTime())) return;
+      const k = dateKey(d);
       if (!map[k]) map[k] = [];
-      map[k].push(c);
+      map[k].push(j);
     });
     return map;
-  }, []);
+  }, [jobs]);
 
-  const sortedCompanies = useMemo(
+  const sortedJobs = useMemo(
     () =>
-      [...mockCompanies]
-        .map((c) => ({ ...c, parsedDate: parseDate(c.lastDate) }))
+      [...jobs]
+        .map((j) => ({ ...j, parsedDate: new Date(j.lastDate) }))
+        .filter((j) => !isNaN(j.parsedDate.getTime()))
         .sort((a, b) => a.parsedDate - b.parsedDate),
-    [],
+    [jobs],
   );
 
-  const upcomingCount = sortedCompanies.filter(
-    (c) => c.parsedDate >= todayMid,
+  const upcomingCount = sortedJobs.filter(
+    (j) => j.parsedDate >= todayMid,
   ).length;
-  const thisMonthCount = sortedCompanies.filter(
-    (c) =>
-      c.parsedDate.getMonth() === curMonth &&
-      c.parsedDate.getFullYear() === curYear,
+  const thisMonthCount = sortedJobs.filter(
+    (j) =>
+      j.parsedDate.getMonth() === curMonth &&
+      j.parsedDate.getFullYear() === curYear,
   ).length;
 
   const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
@@ -522,9 +519,13 @@ export default function CompanyCalendarPage() {
     setCurYear(y);
   }
 
+  if (loading)
+    return (
+      <div className="text-center py-20 text-gray-400">Loading calendar...</div>
+    );
+
   return (
     <div className="flex flex-col h-full">
-      {/* Hero */}
       <div
         className="relative overflow-hidden px-6 pt-6 pb-0 mx-4 mt-4 rounded-2xl"
         style={{
@@ -566,7 +567,7 @@ export default function CompanyCalendarPage() {
 
         <div className="relative z-10 grid grid-cols-3 gap-3">
           {[
-            { icon: Building2, label: "Companies", val: mockCompanies.length },
+            { icon: Building2, label: "Active JDs", val: jobs.length },
             { icon: Bell, label: "Deadlines ahead", val: upcomingCount },
             { icon: CalendarDays, label: "This month", val: thisMonthCount },
           ].map(({ icon: Icon, label, val }) => (
@@ -588,9 +589,7 @@ export default function CompanyCalendarPage() {
         </div>
       </div>
 
-      {/* Main Layout */}
       <div className="flex flex-1 mx-4 mb-4">
-        {/* Calendar */}
         <div className="flex-1 flex flex-col overflow-auto pt-4 pr-4">
           <div className="bg-white border border-gray-200 rounded-2xl p-5 flex-1">
             <div className="flex items-center justify-between mb-5">
@@ -600,14 +599,12 @@ export default function CompanyCalendarPage() {
               <div className="flex gap-1.5">
                 <button
                   onClick={() => changeMonth(-1)}
-                  aria-label="Previous month"
                   className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-xl text-gray-400 hover:bg-gray-50 hover:text-gray-700 transition-colors"
                 >
                   <ChevronLeft size={15} />
                 </button>
                 <button
                   onClick={() => changeMonth(1)}
-                  aria-label="Next month"
                   className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-xl text-gray-400 hover:bg-gray-50 hover:text-gray-700 transition-colors"
                 >
                   <ChevronRight size={15} />
@@ -632,7 +629,7 @@ export default function CompanyCalendarPage() {
               ))}
               {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(
                 (day) => {
-                  const cos =
+                  const dayJobs =
                     dateMap[`${curYear}-${curMonth + 1}-${day}`] || [];
                   const isToday =
                     today.getFullYear() === curYear &&
@@ -642,28 +639,28 @@ export default function CompanyCalendarPage() {
                     <div
                       key={day}
                       onClick={() =>
-                        cos.length && setDayPopup({ day, companies: cos })
+                        dayJobs.length && setDayPopup({ day, jobs: dayJobs })
                       }
-                      className={`min-h-17 p-2 transition-all ${cos.length ? "cursor-pointer hover:bg-gray-50" : "cursor-default"} ${isToday ? "bg-blue-50" : ""}`}
+                      className={`min-h-17 p-2 transition-all ${dayJobs.length ? "cursor-pointer hover:bg-gray-50" : "cursor-default"} ${isToday ? "bg-blue-50" : ""}`}
                     >
                       <span
                         className={`text-[12px] block mb-1.5 leading-none font-medium ${isToday ? "text-blue-600" : "text-gray-400"}`}
                       >
                         {day}
                       </span>
-                      {cos.length > 0 && (
+                      {dayJobs.length > 0 && (
                         <div className="flex flex-col gap-0.75">
-                          {cos.slice(0, 2).map((c, i) => (
+                          {dayJobs.slice(0, 2).map((j, i) => (
                             <div
                               key={i}
                               className="text-[9px] font-semibold px-1.5 py-0.75 rounded-md bg-red-50 text-red-700 border border-red-100 truncate leading-none"
                             >
-                              {c.company}
+                              {j.companyId?.name || "—"}
                             </div>
                           ))}
-                          {cos.length > 2 && (
+                          {dayJobs.length > 2 && (
                             <span className="text-[9px] text-gray-400 px-0.5 font-medium">
-                              +{cos.length - 2} more
+                              +{dayJobs.length - 2} more
                             </span>
                           )}
                         </div>
@@ -687,7 +684,6 @@ export default function CompanyCalendarPage() {
           </div>
         </div>
 
-        {/* Sidebar */}
         <div className="w-67 border border-gray-200 bg-white rounded-2xl flex flex-col shrink-0 mt-4 overflow-hidden">
           <div className="px-4 py-3.5 border-b border-gray-100">
             <div className="flex items-center justify-between">
@@ -711,43 +707,49 @@ export default function CompanyCalendarPage() {
             </p>
           </div>
           <div className="flex-1 overflow-y-auto divide-y divide-gray-100">
-            {sortedCompanies
-              .filter((c) =>
-                filter === "all"
-                  ? true
-                  : filter === "closed"
-                    ? c.parsedDate < todayMid
-                    : c.parsedDate >= todayMid,
-              )
-              .map((c) => {
-                const diff = daysUntil(c.parsedDate, todayMid);
-                const dateStr = `${c.parsedDate.getDate()} ${SHORT[c.parsedDate.getMonth()]}`;
-                return (
-                  <div
-                    key={c.id}
-                    onClick={() => {
-                      setCurYear(c.parsedDate.getFullYear());
-                      setCurMonth(c.parsedDate.getMonth());
-                      setDetailCompany(c);
-                    }}
-                    className="px-4 py-3 flex items-start gap-3 hover:bg-gray-50 transition-colors cursor-pointer group"
-                  >
-                    <CompanyAvatar company={c.company} size="sm" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[12px] font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
-                        {c.company}
-                      </p>
-                      <p className="text-[11px] text-gray-500 truncate mt-0.5">
-                        {c.role}
-                      </p>
-                      <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
-                        <Calendar size={9} /> {dateStr} · ₹{c.ctc} LPA
-                      </p>
+            {sortedJobs.length === 0 ? (
+              <p className="text-[12px] text-gray-400 text-center py-10">
+                No active job postings yet.
+              </p>
+            ) : (
+              sortedJobs
+                .filter((j) =>
+                  filter === "all"
+                    ? true
+                    : filter === "closed"
+                      ? j.parsedDate < todayMid
+                      : j.parsedDate >= todayMid,
+                )
+                .map((j) => {
+                  const diff = daysUntil(j.parsedDate, todayMid);
+                  const dateStr = `${j.parsedDate.getDate()} ${SHORT[j.parsedDate.getMonth()]}`;
+                  return (
+                    <div
+                      key={j._id}
+                      onClick={() => {
+                        setCurYear(j.parsedDate.getFullYear());
+                        setCurMonth(j.parsedDate.getMonth());
+                        setDetailJob(j);
+                      }}
+                      className="px-4 py-3 flex items-start gap-3 hover:bg-gray-50 transition-colors cursor-pointer group"
+                    >
+                      <CompanyAvatar company={j.companyId?.name} size="sm" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[12px] font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                          {j.companyId?.name || "—"}
+                        </p>
+                        <p className="text-[11px] text-gray-500 truncate mt-0.5">
+                          {j.role}
+                        </p>
+                        <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
+                          <Calendar size={9} /> {dateStr} · ₹{j.ctc} LPA
+                        </p>
+                      </div>
+                      <DaysBadge diff={diff} />
                     </div>
-                    <DaysBadge diff={diff} />
-                  </div>
-                );
-              })}
+                  );
+                })
+            )}
           </div>
         </div>
       </div>
@@ -757,20 +759,17 @@ export default function CompanyCalendarPage() {
           selectedDay={dayPopup.day}
           selectedMonth={curMonth}
           selectedYear={curYear}
-          companies={dayPopup.companies}
+          jobs={dayPopup.jobs}
           onClose={() => setDayPopup(null)}
-          onSelectCompany={(c) => {
+          onSelectJob={(j) => {
             setDayPopup(null);
-            setDetailCompany(c);
+            setDetailJob(j);
           }}
         />
       )}
 
-      {detailCompany && (
-        <CompanyDetailModal
-          company={detailCompany}
-          onClose={() => setDetailCompany(null)}
-        />
+      {detailJob && (
+        <JobDetailModal job={detailJob} onClose={() => setDetailJob(null)} />
       )}
     </div>
   );
