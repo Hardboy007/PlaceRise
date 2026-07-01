@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { api } from "../../utils/api";
 import universityStructure from "../../data/universityStructure";
 
@@ -17,12 +17,14 @@ const C = {
   cardBg: "#FFFFFF",
 };
 
-const BRANCHES = [
-  "All",
-  ...new Set(
-    universityStructure.flatMap((s) => s.departments.map((d) => d.name)),
-  ),
-];
+// ── School / Course helpers ─────────────────────────────────
+// Flat, school-grouped course list used by the combined Course filter.
+// Each entry: { school: "School of Engineering", courses: ["B.Tech CSE", "M.Tech CSE", ...] }
+const COURSE_GROUPS = universityStructure.map((s) => ({
+  school: s.school,
+  courses: s.departments.flatMap((d) => d.courses),
+}));
+
 const BATCHES = ["All", "2024", "2025", "2026"];
 const CGPA_RANGES = [
   { label: "All", min: 0, max: 10 },
@@ -62,6 +64,28 @@ const Icon = {
       viewBox="0 0 24 24"
     >
       <path strokeLinecap="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  ),
+  chevronDown: (
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      viewBox="0 0 24 24"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+    </svg>
+  ),
+  check: (
+    <svg
+      className="w-3.5 h-3.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={3}
+      viewBox="0 0 24 24"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
     </svg>
   ),
   students: (
@@ -243,8 +267,24 @@ function StatusBadge({ status, size = "sm" }) {
   );
 }
 
-// ── Select / Filter pill ──────────────────────────────────────
-function FilterSelect({ label, value, options, onChange }) {
+// ── Course Badge (used in the table) ────────────────────────
+function CourseBadge({ course }) {
+  return (
+    <span
+      style={{
+        color: C.primary,
+        backgroundColor: "#EFF6FF",
+        borderColor: "#BFDBFE",
+      }}
+      className="border text-xs font-semibold px-2.5 py-1.5 rounded-full inline-flex items-center justify-center text-center leading-snug break-words max-w-full"
+    >
+      {course || "—"}
+    </span>
+  );
+}
+
+// ── Select / Filter pill (single-select) ────────────────────
+function FilterSelect({ label, value, options, onChange, disabled = false }) {
   return (
     <div className="flex flex-col gap-1">
       <label
@@ -256,13 +296,15 @@ function FilterSelect({ label, value, options, onChange }) {
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
         style={{
-          color: C.textMain,
-          backgroundColor: C.white,
+          color: disabled ? C.textMuted : C.textMain,
+          backgroundColor: disabled ? C.background : C.white,
           borderColor: C.border,
           outline: "none",
+          cursor: disabled ? "not-allowed" : "pointer",
         }}
-        className="border rounded-xl px-3 py-2 text-sm font-medium cursor-pointer focus:ring-2 focus:ring-blue-200 transition"
+        className="border rounded-xl px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-200 transition"
       >
         {options.map((o) => (
           <option key={o.label || o} value={o.label || o}>
@@ -270,6 +312,279 @@ function FilterSelect({ label, value, options, onChange }) {
           </option>
         ))}
       </select>
+    </div>
+  );
+}
+
+// ── Combined School+Course multi-select (accordion) ─────────
+// Single dropdown, grouped by school.
+// - Clicking a school row expands its courses; clicking another
+//   school collapses the previous one (accordion — one open at a time).
+// - Each school row has its own checkbox to select/deselect ALL of
+//   that school's courses in one click.
+// - The overall selection is still multi: courses from any number of
+//   different schools can be ticked at the same time.
+function SchoolGroupRow({ group, selected, onToggleCourse, onToggleAll, isOpen, onToggleOpen }) {
+  const checkboxRef = useRef(null);
+  const selectedCount = group.courses.filter((c) => selected.includes(c)).length;
+  const allSelected = selectedCount === group.courses.length && group.courses.length > 0;
+  const someSelected = selectedCount > 0 && !allSelected;
+
+  useEffect(() => {
+    if (checkboxRef.current) checkboxRef.current.indeterminate = someSelected;
+  }, [someSelected]);
+
+  return (
+    <div className="border-b last:border-b-0" style={{ borderColor: C.border }}>
+      {/* School header row */}
+      <div
+        role="button"
+        onClick={() => onToggleOpen(group.school)}
+        style={{ backgroundColor: isOpen ? C.background : C.white }}
+        className="flex items-center gap-2.5 px-3.5 py-2.5 cursor-pointer hover:bg-slate-50 transition select-none"
+      >
+        <input
+          ref={checkboxRef}
+          type="checkbox"
+          checked={allSelected}
+          onClick={(e) => e.stopPropagation()}
+          onChange={() => onToggleAll(group)}
+          style={{ accentColor: C.primary }}
+          className="w-4 h-4 shrink-0 rounded cursor-pointer"
+        />
+        <span
+          style={{ color: C.textMain }}
+          className="text-sm font-bold flex-1 truncate"
+        >
+          {group.school}
+        </span>
+        {selectedCount > 0 && (
+          <span
+            style={{ color: C.primary, backgroundColor: "#EFF6FF" }}
+            className="text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0"
+          >
+            {selectedCount}
+          </span>
+        )}
+        <span
+          style={{
+            color: C.textMuted,
+            transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+            transition: "transform 0.15s",
+          }}
+          className="shrink-0"
+        >
+          {Icon.chevronDown}
+        </span>
+      </div>
+
+      {/* Courses (collapsible) */}
+      {isOpen && (
+        <div className="pb-1">
+          {group.courses.map((opt) => {
+            const isChecked = selected.includes(opt);
+            return (
+              <label
+                key={`${group.school}-${opt}`}
+                className="flex items-center gap-2.5 pl-9 pr-3.5 py-2 text-sm cursor-pointer hover:bg-slate-50 transition"
+              >
+                <span
+                  style={{
+                    backgroundColor: isChecked ? C.primary : C.white,
+                    borderColor: isChecked ? C.primary : C.border,
+                    color: C.white,
+                  }}
+                  className="w-4.5 h-4.5 shrink-0 rounded-md border flex items-center justify-center"
+                >
+                  {isChecked && Icon.check}
+                </span>
+                <input
+                  type="checkbox"
+                  checked={isChecked}
+                  onChange={() => onToggleCourse(opt)}
+                  className="hidden"
+                />
+                <span style={{ color: C.textMain }} className="leading-tight">
+                  {opt}
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CourseGroupSelectFilter({
+  label = "Course",
+  groups,
+  selected,
+  onChange,
+  placeholder = "All courses",
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [openSchool, setOpenSchool] = useState(null); // accordion: one school expanded at a time
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClickOutside = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false);
+        setQuery("");
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  const toggleOption = (opt) => {
+    if (selected.includes(opt)) {
+      onChange(selected.filter((o) => o !== opt));
+    } else {
+      onChange([...selected, opt]);
+    }
+  };
+
+  // Select/deselect every course belonging to one school in one go.
+  const toggleAllInSchool = (group) => {
+    const selectedCount = group.courses.filter((c) => selected.includes(c)).length;
+    const allSelected = selectedCount === group.courses.length;
+    if (allSelected) {
+      onChange(selected.filter((c) => !group.courses.includes(c)));
+    } else {
+      const merged = new Set([...selected, ...group.courses]);
+      onChange(Array.from(merged));
+    }
+  };
+
+  const toggleOpenSchool = (school) => {
+    setOpenSchool((prev) => (prev === school ? null : school));
+  };
+
+  const summary =
+    selected.length === 0
+      ? placeholder
+      : selected.length === 1
+        ? selected[0]
+        : `${selected.length} selected`;
+
+  const filteredGroups = useMemo(() => {
+    const q = query.toLowerCase().trim();
+    if (!q) return groups;
+    return groups
+      .map((g) => ({
+        school: g.school,
+        courses: g.courses.filter(
+          (c) =>
+            c.toLowerCase().includes(q) || g.school.toLowerCase().includes(q),
+        ),
+      }))
+      .filter((g) => g.courses.length > 0);
+  }, [groups, query]);
+
+  // While searching, auto-expand every matching school so results are visible.
+  const isSearching = query.trim().length > 0;
+
+  return (
+    <div className="flex flex-col gap-1 relative" ref={ref}>
+      <label
+        style={{ color: C.textMuted }}
+        className="text-[11px] font-semibold uppercase tracking-wider pl-0.5"
+      >
+        {label}
+      </label>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        style={{
+          color: C.textMain,
+          backgroundColor: C.white,
+          borderColor: open ? C.primary : C.border,
+          outline: "none",
+          cursor: "pointer",
+        }}
+        className="border rounded-xl px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-200 transition flex items-center justify-between gap-2 min-w-[190px]"
+      >
+        <span
+          className="truncate"
+          style={{ color: selected.length > 0 ? C.primary : undefined }}
+        >
+          {summary}
+        </span>
+        <span style={{ color: C.textMuted }} className="shrink-0">
+          {Icon.chevronDown}
+        </span>
+      </button>
+
+      {open && (
+        <div
+          style={{ borderColor: C.border, backgroundColor: C.white }}
+          className="absolute top-full left-0 mt-1.5 w-80 max-h-96 overflow-y-auto border rounded-xl shadow-lg z-20"
+        >
+          {/* Search within courses/schools */}
+          <div
+            style={{ borderColor: C.border }}
+            className="px-2.5 py-2 sticky top-0 bg-white z-10 border-b"
+          >
+            <div className="relative">
+              <span
+                style={{ color: C.textMuted }}
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
+              >
+                {Icon.search}
+              </span>
+              <input
+                autoFocus
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search school or course..."
+                style={{
+                  color: C.textMain,
+                  backgroundColor: C.background,
+                  borderColor: C.border,
+                  outline: "none",
+                }}
+                className="w-full border rounded-lg pl-8 pr-3 py-1.5 text-xs focus:ring-2 focus:ring-blue-200 transition"
+              />
+            </div>
+            {selected.length > 0 && (
+              <button
+                type="button"
+                onClick={() => onChange([])}
+                style={{ color: C.danger }}
+                className="mt-1.5 text-xs font-semibold hover:underline"
+              >
+                Clear selection ({selected.length})
+              </button>
+            )}
+          </div>
+
+          {filteredGroups.length === 0 ? (
+            <p
+              style={{ color: C.textMuted }}
+              className="px-3.5 py-2.5 text-sm"
+            >
+              No matching courses
+            </p>
+          ) : (
+            filteredGroups.map((group) => (
+              <SchoolGroupRow
+                key={group.school}
+                group={group}
+                selected={selected}
+                onToggleCourse={toggleOption}
+                onToggleAll={toggleAllInSchool}
+                isOpen={isSearching ? true : openSchool === group.school}
+                onToggleOpen={toggleOpenSchool}
+              />
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -407,7 +722,7 @@ function StudentModal({ student, onClose }) {
           <Section title="Academic Details">
             <InfoRow
               icon={Icon.building}
-              label="Branch"
+              label="Course"
               value={student.branch}
             />
             <InfoRow icon={Icon.cgpa} label="Batch" value={student.batch} />
@@ -543,7 +858,9 @@ function StudentModal({ student, onClose }) {
 // ── Main Page ─────────────────────────────────────────────────
 export default function StudentDatabasePage() {
   const [search, setSearch] = useState("");
-  const [branch, setBranch] = useState("All");
+  // Combined school+course multi-select: coordinator can tick courses
+  // from any number of different schools at the same time.
+  const [selectedCourses, setSelectedCourses] = useState([]);
   const [batch, setBatch] = useState("All");
   const [cgpaRange, setCgpaRange] = useState("All");
   const [placement, setPlacement] = useState("All");
@@ -560,6 +877,7 @@ export default function StudentDatabasePage() {
     };
     fetchStudents();
   }, []);
+
   const cgpaOpt = useMemo(
     () => CGPA_RANGES.find((r) => r.label === cgpaRange) || CGPA_RANGES[0],
     [cgpaRange],
@@ -567,6 +885,7 @@ export default function StudentDatabasePage() {
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
+
     return students.filter((s) => {
       if (
         q &&
@@ -574,7 +893,12 @@ export default function StudentDatabasePage() {
         !s.erpId.toLowerCase().includes(q)
       )
         return false;
-      if (branch !== "All" && s.branch !== branch) return false;
+
+      // Course filter — matches any of the ticked courses, regardless
+      // of which school they came from.
+      if (selectedCourses.length > 0 && !selectedCourses.includes(s.branch))
+        return false;
+
       if (batch !== "All" && String(s.batch) !== batch) return false;
       if (s.cgpa < cgpaOpt.min || s.cgpa > cgpaOpt.max) return false;
       if (placement !== "All" && s.placementStatus !== placement) return false;
@@ -589,7 +913,7 @@ export default function StudentDatabasePage() {
 
       return true;
     });
-  }, [search, branch, batch, cgpaOpt, placement, selectedIn]);
+  }, [students, search, selectedCourses, batch, cgpaOpt, placement, selectedIn]);
 
   const total = students.length;
   const placed = students.filter((s) => s.placementStatus === "Placed").length;
@@ -600,7 +924,7 @@ export default function StudentDatabasePage() {
 
   const hasFilters =
     search ||
-    branch !== "All" ||
+    selectedCourses.length > 0 ||
     batch !== "All" ||
     cgpaRange !== "All" ||
     placement !== "All" ||
@@ -608,7 +932,7 @@ export default function StudentDatabasePage() {
 
   const resetFilters = () => {
     setSearch("");
-    setBranch("All");
+    setSelectedCourses([]);
     setBatch("All");
     setCgpaRange("All");
     setPlacement("All");
@@ -699,12 +1023,16 @@ export default function StudentDatabasePage() {
             >
               {Icon.filter} Filters
             </div>
-            <FilterSelect
-              label="Branch"
-              value={branch}
-              options={BRANCHES}
-              onChange={setBranch}
+
+            {/* Combined School+Course filter (multi-select, cross-school) */}
+            <CourseGroupSelectFilter
+              label="Course"
+              groups={COURSE_GROUPS}
+              selected={selectedCourses}
+              onChange={setSelectedCourses}
+              placeholder="All courses"
             />
+
             <FilterSelect
               label="Batch"
               value={batch}
@@ -751,6 +1079,35 @@ export default function StudentDatabasePage() {
               of {total} students
             </span>
           </div>
+
+          {/* Selected course chips */}
+          {selectedCourses.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {selectedCourses.map((c) => (
+                <span
+                  key={c}
+                  style={{
+                    color: C.primary,
+                    backgroundColor: "#EFF6FF",
+                    borderColor: "#BFDBFE",
+                  }}
+                  className="border text-xs font-semibold pl-3 pr-2 py-1.5 rounded-full inline-flex items-center gap-1.5"
+                >
+                  {c}
+                  <button
+                    onClick={() =>
+                      setSelectedCourses((prev) => prev.filter((x) => x !== c))
+                    }
+                    style={{ color: C.primary }}
+                    className="hover:opacity-70 transition"
+                    aria-label={`Remove ${c}`}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -763,7 +1120,7 @@ export default function StudentDatabasePage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "2fr 1fr 1fr 1fr 0.7fr 0.7fr 1.2fr 1.2fr",
+            gridTemplateColumns: "2fr 1fr 1.4fr 0.8fr 0.7fr 0.7fr 1.2fr 1.2fr",
             padding: "14px 24px",
             borderBottom: `1px solid ${C.border}`,
             backgroundColor: C.background,
@@ -772,7 +1129,7 @@ export default function StudentDatabasePage() {
           {[
             "Name",
             "ERP ID",
-            "Branch",
+            "Course",
             "Batch",
             "CGPA",
             "Backlogs",
@@ -790,7 +1147,13 @@ export default function StudentDatabasePage() {
         </div>
 
         {/* Rows */}
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <p style={{ color: C.textMuted }} className="text-sm font-medium">
+              Loading students…
+            </p>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3">
             <svg
               className="w-12 h-12"
@@ -826,7 +1189,7 @@ export default function StudentDatabasePage() {
                 style={{
                   display: "grid",
                   gridTemplateColumns:
-                    "2fr 1fr 1fr 1fr 0.7fr 0.7fr 1.2fr 1.2fr",
+                    "2fr 1fr 1.4fr 0.8fr 0.7fr 0.7fr 1.2fr 1.2fr",
                   alignItems: "center",
                   padding: "16px 24px",
                   borderBottom: isLast ? "none" : `1px solid ${C.border}`,
@@ -871,17 +1234,8 @@ export default function StudentDatabasePage() {
                   {student.erpId}
                 </span>
 
-                {/* Branch */}
-                <span
-                  style={{
-                    color: C.primary,
-                    backgroundColor: "#EFF6FF",
-                    borderColor: "#BFDBFE",
-                  }}
-                  className="border text-xs font-semibold px-2.5 py-1 rounded-full w-fit"
-                >
-                  {student.branch}
-                </span>
+                {/* Course */}
+                <CourseBadge course={student.branch} />
 
                 {/* Batch */}
                 <span style={{ color: C.textMuted }} className="text-sm">
