@@ -324,10 +324,20 @@ function FilterSelect({ label, value, options, onChange, disabled = false }) {
 //   that school's courses in one click.
 // - The overall selection is still multi: courses from any number of
 //   different schools can be ticked at the same time.
-function SchoolGroupRow({ group, selected, onToggleCourse, onToggleAll, isOpen, onToggleOpen }) {
+function SchoolGroupRow({
+  group,
+  selected,
+  onToggleCourse,
+  onToggleAll,
+  isOpen,
+  onToggleOpen,
+}) {
   const checkboxRef = useRef(null);
-  const selectedCount = group.courses.filter((c) => selected.includes(c)).length;
-  const allSelected = selectedCount === group.courses.length && group.courses.length > 0;
+  const selectedCount = group.courses.filter((c) =>
+    selected.includes(c),
+  ).length;
+  const allSelected =
+    selectedCount === group.courses.length && group.courses.length > 0;
   const someSelected = selectedCount > 0 && !allSelected;
 
   useEffect(() => {
@@ -450,7 +460,9 @@ function CourseGroupSelectFilter({
 
   // Select/deselect every course belonging to one school in one go.
   const toggleAllInSchool = (group) => {
-    const selectedCount = group.courses.filter((c) => selected.includes(c)).length;
+    const selectedCount = group.courses.filter((c) =>
+      selected.includes(c),
+    ).length;
     const allSelected = selectedCount === group.courses.length;
     if (allSelected) {
       onChange(selected.filter((c) => !group.courses.includes(c)));
@@ -564,10 +576,7 @@ function CourseGroupSelectFilter({
           </div>
 
           {filteredGroups.length === 0 ? (
-            <p
-              style={{ color: C.textMuted }}
-              className="px-3.5 py-2.5 text-sm"
-            >
+            <p style={{ color: C.textMuted }} className="px-3.5 py-2.5 text-sm">
               No matching courses
             </p>
           ) : (
@@ -913,7 +922,15 @@ export default function StudentDatabasePage() {
 
       return true;
     });
-  }, [students, search, selectedCourses, batch, cgpaOpt, placement, selectedIn]);
+  }, [
+    students,
+    search,
+    selectedCourses,
+    batch,
+    cgpaOpt,
+    placement,
+    selectedIn,
+  ]);
 
   const total = students.length;
   const placed = students.filter((s) => s.placementStatus === "Placed").length;
