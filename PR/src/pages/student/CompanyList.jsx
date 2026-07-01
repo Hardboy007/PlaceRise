@@ -20,8 +20,8 @@ const ALL_COURSES = universityStructure.flatMap((school) =>
     dept.courses.map((course) => ({
       school: school.school,
       course,
-    }))
-  )
+    })),
+  ),
 );
 
 function formatDate(dateStr) {
@@ -57,7 +57,12 @@ function BranchSearchDropdown({ value, onChange }) {
     const q = query.toLowerCase().trim();
     const result = {};
     ALL_COURSES.forEach(({ school, course }) => {
-      if (q && !course.toLowerCase().includes(q) && !school.toLowerCase().includes(q)) return;
+      if (
+        q &&
+        !course.toLowerCase().includes(q) &&
+        !school.toLowerCase().includes(q)
+      )
+        return;
       if (!result[school]) result[school] = [];
       result[school].push(course);
     });
@@ -72,16 +77,24 @@ function BranchSearchDropdown({ value, onChange }) {
       {/* Trigger */}
       <button
         type="button"
-        onClick={() => { setOpen((o) => !o); setQuery(""); }}
+        onClick={() => {
+          setOpen((o) => !o);
+          setQuery("");
+        }}
         className="w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl border border-[#CBD5E1] bg-white text-sm hover:border-[#3B82F6] transition focus:outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/20"
       >
-        <span className={`truncate max-w-[160px] ${displayLabel ? "text-[#1E293B] font-medium text-xs" : "text-[#94A3B8]"}`}>
+        <span
+          className={`truncate max-w-[160px] ${displayLabel ? "text-[#1E293B] font-medium text-xs" : "text-[#94A3B8]"}`}
+        >
           {displayLabel || "All Branches"}
         </span>
         <div className="flex items-center gap-1 shrink-0">
           {value !== "All" && (
             <span
-              onClick={(e) => { e.stopPropagation(); onChange("All"); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange("All");
+              }}
               className="text-[#94A3B8] hover:text-[#EF4444] cursor-pointer"
             >
               <X size={13} />
@@ -100,7 +113,10 @@ function BranchSearchDropdown({ value, onChange }) {
           {/* Search */}
           <div className="p-2.5 border-b border-[#F1F5F9] sticky top-0 bg-white">
             <div className="relative">
-              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+              <Search
+                size={13}
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#94A3B8]"
+              />
               <input
                 autoFocus
                 type="text"
@@ -116,16 +132,24 @@ function BranchSearchDropdown({ value, onChange }) {
             {/* All Branches option */}
             <button
               type="button"
-              onClick={() => { onChange("All"); setOpen(false); setQuery(""); }}
+              onClick={() => {
+                onChange("All");
+                setOpen(false);
+                setQuery("");
+              }}
               className={`w-full text-left px-4 py-2 text-xs font-semibold border-b border-[#F1F5F9] transition-colors ${
-                value === "All" ? "bg-blue-50 text-[#3B82F6]" : "text-[#1E293B] hover:bg-[#F8FAFC]"
+                value === "All"
+                  ? "bg-blue-50 text-[#3B82F6]"
+                  : "text-[#1E293B] hover:bg-[#F8FAFC]"
               }`}
             >
               All Branches
             </button>
 
             {totalFiltered === 0 ? (
-              <div className="text-xs text-[#94A3B8] text-center py-6">No results found</div>
+              <div className="text-xs text-[#94A3B8] text-center py-6">
+                No results found
+              </div>
             ) : (
               Object.entries(groupedFiltered).map(([school, courses]) => (
                 <div key={school}>
@@ -140,7 +164,11 @@ function BranchSearchDropdown({ value, onChange }) {
                     <button
                       key={course}
                       type="button"
-                      onClick={() => { onChange(course); setOpen(false); setQuery(""); }}
+                      onClick={() => {
+                        onChange(course);
+                        setOpen(false);
+                        setQuery("");
+                      }}
                       className={`w-full text-left px-4 py-2 text-xs transition-colors ${
                         value === course
                           ? "bg-blue-50 text-[#3B82F6] font-semibold"
@@ -219,13 +247,18 @@ function CompanyCard({ company, onViewDetails }) {
             <Building2 size={18} className="text-[#3B82F6]" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-[#1E293B]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+            <h3
+              className="text-sm font-bold text-[#1E293B]"
+              style={{ fontFamily: "Space Grotesk, sans-serif" }}
+            >
               {company.companyId?.name || "Unknown Company"}
             </h3>
             <p className="text-xs text-[#64748B]">{company.role}</p>
           </div>
         </div>
-        <span className={`text-xs font-semibold px-2 py-1 rounded-lg border shrink-0 ml-2 ${urgency}`}>
+        <span
+          className={`text-xs font-semibold px-2 py-1 rounded-lg border shrink-0 ml-2 ${urgency}`}
+        >
           {days > 0 ? `${days}d left` : "Expired"}
         </span>
       </div>
@@ -236,7 +269,9 @@ function CompanyCard({ company, onViewDetails }) {
         <div className="flex items-center gap-2">
           <TrendingUp size={13} className="text-[#22C55E] shrink-0" />
           <span className="text-xs text-[#64748B]">CTC:</span>
-          <span className="text-xs font-bold text-[#22C55E]">₹{company.ctc} LPA</span>
+          <span className="text-xs font-bold text-[#22C55E]">
+            ₹{company.ctc} LPA
+          </span>
         </div>
         <div className="flex items-start gap-2">
           <Briefcase size={13} className="text-[#3B82F6] shrink-0 mt-0.5" />
@@ -254,7 +289,9 @@ function CompanyCard({ company, onViewDetails }) {
         <div className="flex items-center gap-2">
           <Calendar size={13} className="text-[#F59E0B] shrink-0" />
           <span className="text-xs text-[#64748B]">Last Date:</span>
-          <span className="text-xs font-medium text-[#F59E0B]">{formatDate(company.lastDate)}</span>
+          <span className="text-xs font-medium text-[#F59E0B]">
+            {formatDate(company.lastDate)}
+          </span>
         </div>
       </div>
 
@@ -323,21 +360,33 @@ export default function CompanyListPage() {
     );
 
   return (
-    <div className="max-w-6xl mx-auto" style={{ fontFamily: "Inter, sans-serif" }}>
+    <div
+      className="max-w-6xl mx-auto"
+      style={{ fontFamily: "Inter, sans-serif" }}
+    >
       {/* Hero */}
       <div
         className="relative rounded-3xl overflow-hidden mb-6 border border-white/10"
-        style={{ background: "linear-gradient(135deg, #3B82F6 0%, #60A5FA 60%, #818CF8 100%)" }}
+        style={{
+          background:
+            "linear-gradient(135deg, #3B82F6 0%, #60A5FA 60%, #818CF8 100%)",
+        }}
       >
-        <div className="absolute inset-0 pointer-events-none" style={{
-          background: `radial-gradient(circle at 20% 50%, rgba(59,130,246,0.2) 0%, transparent 50%),
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `radial-gradient(circle at 20% 50%, rgba(59,130,246,0.2) 0%, transparent 50%),
                        radial-gradient(circle at 80% 20%, rgba(34,197,94,0.1) 0%, transparent 40%)`,
-        }} />
+          }}
+        />
         <div className="relative z-10 p-8">
           <p className="text-xs font-semibold uppercase tracking-widest text-white/70 mb-2">
             Placement Season 2025-26
           </p>
-          <h1 className="text-2xl font-bold text-white mb-1" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+          <h1
+            className="text-2xl font-bold text-white mb-1"
+            style={{ fontFamily: "Space Grotesk, sans-serif" }}
+          >
             Company Listings
           </h1>
           <p className="text-sm text-white/60 mb-6">
@@ -349,8 +398,14 @@ export default function CompanyListPage() {
               { label: "Open Roles", value: filteredCompanies.length },
               { label: "Highest CTC", value: `₹${highestCTC} LPA` },
             ].map((stat) => (
-              <div key={stat.label} className="bg-white/10 backdrop-blur rounded-2xl p-4 border border-white/10">
-                <p className="text-xl font-bold text-white" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+              <div
+                key={stat.label}
+                className="bg-white/10 backdrop-blur rounded-2xl p-4 border border-white/10"
+              >
+                <p
+                  className="text-xl font-bold text-white"
+                  style={{ fontFamily: "Space Grotesk, sans-serif" }}
+                >
                   {stat.value}
                 </p>
                 <p className="text-xs text-white/60 mt-1">{stat.label}</p>
@@ -364,11 +419,16 @@ export default function CompanyListPage() {
       <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 mb-6 shadow-sm">
         <div className="flex items-center gap-2 mb-3">
           <Filter size={14} className="text-[#64748B]" />
-          <span className="text-xs font-semibold uppercase tracking-widest text-[#64748B]">Filters</span>
+          <span className="text-xs font-semibold uppercase tracking-widest text-[#64748B]">
+            Filters
+          </span>
         </div>
         <div className="flex flex-col md:flex-row gap-3">
           <div className="relative flex-1">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+            <Search
+              size={15}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]"
+            />
             <input
               type="text"
               placeholder="Search company or role..."
@@ -386,7 +446,9 @@ export default function CompanyListPage() {
             className="px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] focus:outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/20 transition bg-white"
           >
             {allRoles.map((r) => (
-              <option key={r} value={r}>{r === "All" ? "All Roles" : r}</option>
+              <option key={r} value={r}>
+                {r === "All" ? "All Roles" : r}
+              </option>
             ))}
           </select>
         </div>
@@ -396,8 +458,12 @@ export default function CompanyListPage() {
       {filteredCompanies.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <Building2 size={40} className="text-[#CBD5E1] mb-4" />
-          <p className="text-sm font-medium text-[#64748B]">No companies found</p>
-          <p className="text-xs text-[#94A3B8] mt-1">Try changing your filters</p>
+          <p className="text-sm font-medium text-[#64748B]">
+            No companies found
+          </p>
+          <p className="text-xs text-[#94A3B8] mt-1">
+            Try changing your filters
+          </p>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
