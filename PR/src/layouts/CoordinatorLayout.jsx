@@ -28,7 +28,12 @@ function CoordinatorLayout() {
   const coordinator = JSON.parse(localStorage.getItem("coordinator") || "{}");
 
   const initials = coordinator.name
-    ? coordinator.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+    ? coordinator.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
     : "MK";
 
   const handleLogout = () => {
@@ -41,15 +46,20 @@ function CoordinatorLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-background" style={{ fontFamily: "Inter, sans-serif" }}>
-
+    <div
+      className="min-h-screen bg-background"
+      style={{ fontFamily: "Inter, sans-serif" }}
+    >
       {/* ── Navbar ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-white/80 backdrop-blur border-b border-[#CBD5E1] px-6 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-[0_4px_12px_rgba(59,130,246,0.4)]">
             <Sparkles size={14} className="text-white" />
           </div>
-          <span className="text-lg font-bold" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+          <span
+            className="text-lg font-bold"
+            style={{ fontFamily: "Space Grotesk, sans-serif" }}
+          >
             <span className="text-[#1E293B]">Place</span>
             <span className="text-primary">Rise</span>
           </span>
@@ -67,7 +77,9 @@ function CoordinatorLayout() {
               <p className="text-sm font-medium text-[#1E293B] leading-none">
                 {coordinator.name || "Coordinator"}
               </p>
-              <p className="text-xs text-text-muted mt-0.5">Placement Coordinator</p>
+              <p className="text-xs text-text-muted mt-0.5">
+                Placement Coordinator
+              </p>
             </div>
           </div>
           <button
@@ -82,7 +94,6 @@ function CoordinatorLayout() {
 
       {/* ── Body ── */}
       <div className="flex pt-16">
-
         {/* ── Sidebar — hover to expand, pushes content ── */}
         <aside
           onMouseEnter={() => setExpanded(true)}
@@ -96,14 +107,17 @@ function CoordinatorLayout() {
                 to={to}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap
-                  ${isActive
-                    ? "bg-primary text-white shadow-[0_4px_12px_rgba(59,130,246,0.3)]"
-                    : "text-text-muted hover:bg-background hover:text-[#1E293B]"
+                  ${
+                    isActive
+                      ? "bg-primary text-white shadow-[0_4px_12px_rgba(59,130,246,0.3)]"
+                      : "text-text-muted hover:bg-background hover:text-[#1E293B]"
                   }`
                 }
               >
                 <Icon size={18} className="flex-shrink-0" />
-                <span className={`transition-all duration-200 ${expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}>
+                <span
+                  className={`transition-all duration-200 ${expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}
+                >
                   {label}
                 </span>
               </NavLink>
@@ -116,7 +130,9 @@ function CoordinatorLayout() {
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold shrink-0">
                 {initials}
               </div>
-              <div className={`min-w-0 transition-all duration-200 ${expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}>
+              <div
+                className={`min-w-0 transition-all duration-200 ${expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}
+              >
                 <p className="text-sm font-medium text-[#1E293B] leading-none truncate">
                   {coordinator.name || "Coordinator"}
                 </p>
