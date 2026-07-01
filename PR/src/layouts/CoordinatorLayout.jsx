@@ -125,15 +125,19 @@ function CoordinatorLayout() {
           </div>
 
           {/* Bottom user card */}
-          <div className="p-2 mb-2">
-            <div className="p-3 rounded-xl bg-background border border-[#CBD5E1] flex items-center gap-2.5 overflow-hidden">
+          <div className="mb-2 px-2">
+            <div
+              className={`rounded-xl bg-background border border-[#CBD5E1] flex items-center overflow-hidden transition-all duration-200 ${
+                expanded ? "gap-2.5 p-3" : "justify-center p-1.5"
+              }`}
+            >
               <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold shrink-0">
                 {initials}
               </div>
               <div
-                className={`min-w-0 transition-all duration-200 ${expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}
+                className={`min-w-0 flex-1 transition-all duration-200 ${expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}
               >
-                <p className="text-sm font-medium text-[#1E293B] leading-none truncate">
+                <p className="text-sm font-semibold text-[#1E293B] leading-tight truncate">
                   {coordinator.name || "Coordinator"}
                 </p>
                 <p className="text-xs text-text-muted truncate mt-0.5">
