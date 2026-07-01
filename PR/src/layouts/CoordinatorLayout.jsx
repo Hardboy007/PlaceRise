@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Outlet, NavLink, useNavigate, Link } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -8,7 +9,6 @@ import {
   User,
   LogOut,
   Sparkles,
-  ChevronRight,
   Calendar,
 } from "lucide-react";
 
@@ -24,7 +24,13 @@ const navLinks = [
 
 function CoordinatorLayout() {
   const navigate = useNavigate();
+  const [expanded, setExpanded] = useState(false);
   const coordinator = JSON.parse(localStorage.getItem("coordinator") || "{}");
+
+  const initials = coordinator.name
+    ? coordinator.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+    : "MK";
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
@@ -35,54 +41,38 @@ function CoordinatorLayout() {
   };
 
   return (
-    <div
-      className="min-h-screen bg-background"
-      style={{ fontFamily: "Inter, sans-serif" }}
-    >
-      {/* Navbar */}
-      <nav
-        className="fixed top-0 left-0 right-0 z-50 h-16
-        bg-white/80 backdrop-blur border-b border-[#CBD5E1]
-        px-6 flex items-center justify-between"
-      >
-        {/* Logo */}
+    <div className="min-h-screen bg-background" style={{ fontFamily: "Inter, sans-serif" }}>
+
+      {/* ── Navbar ── */}
+      <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-white/80 backdrop-blur border-b border-[#CBD5E1] px-6 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-[0_4px_12px_rgba(59,130,246,0.4)]">
             <Sparkles size={14} className="text-white" />
           </div>
-          <span
-            className="text-lg font-bold"
-            style={{ fontFamily: "Space Grotesk, sans-serif" }}
-          >
+          <span className="text-lg font-bold" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
             <span className="text-[#1E293B]">Place</span>
             <span className="text-primary">Rise</span>
           </span>
-          {/* Coordinator Badge */}
           <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-semibold bg-[#1E293B] text-white">
             Coordinator
           </span>
         </Link>
 
-        {/* Right Side */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold">
-              MK
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold">
+              {initials}
             </div>
             <div className="hidden md:block">
               <p className="text-sm font-medium text-[#1E293B] leading-none">
                 {coordinator.name || "Coordinator"}
               </p>
-              <p className="text-xs text-text-muted mt-0.5">
-                Placement Coordinator
-              </p>
+              <p className="text-xs text-text-muted mt-0.5">Placement Coordinator</p>
             </div>
           </div>
-
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium
-              text-text-muted hover:text-danger hover:bg-red-50 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-text-muted hover:text-danger hover:bg-red-50 transition-colors"
           >
             <LogOut size={14} />
             <span className="hidden md:block">Logout</span>
@@ -90,47 +80,47 @@ function CoordinatorLayout() {
         </div>
       </nav>
 
-      {/* Body */}
+      {/* ── Body ── */}
       <div className="flex pt-16">
-        {/* Sidebar */}
-        <aside className="fixed top-16 left-0 bottom-0 w-60 bg-white border-r border-[#CBD5E1] flex flex-col p-3 gap-1 z-40">
-          <div className="flex-1 flex flex-col gap-1 mt-2">
+
+        {/* ── Sidebar — hover to expand, pushes content ── */}
+        <aside
+          onMouseEnter={() => setExpanded(true)}
+          onMouseLeave={() => setExpanded(false)}
+          className={`fixed top-16 left-0 bottom-0 z-40 flex flex-col bg-white border-r border-[#CBD5E1] transition-all duration-300 ease-in-out overflow-hidden ${expanded ? "w-60" : "w-[60px]"}`}
+        >
+          <div className="flex-1 flex flex-col gap-1 p-2 mt-2 overflow-hidden">
             {navLinks.map(({ to, label, icon: Icon }) => (
               <NavLink
                 key={to}
                 to={to}
                 className={({ isActive }) =>
-                  `group flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
-                  ${
-                    isActive
-                      ? "bg-primary text-white shadow-[0_4px_12px_rgba(59,130,246,0.3)]"
-                      : "text-text-muted hover:bg-background hover:text-[#1E293B]"
+                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap
+                  ${isActive
+                    ? "bg-primary text-white shadow-[0_4px_12px_rgba(59,130,246,0.3)]"
+                    : "text-text-muted hover:bg-background hover:text-[#1E293B]"
                   }`
                 }
               >
-                <div className="flex items-center gap-3">
-                  <Icon size={16} />
-                  <span>{label}</span>
-                </div>
-                <ChevronRight
-                  size={14}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity"
-                />
+                <Icon size={18} className="flex-shrink-0" />
+                <span className={`transition-all duration-200 ${expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}>
+                  {label}
+                </span>
               </NavLink>
             ))}
           </div>
 
-          {/* Bottom Card */}
-          <div className="mt-auto p-3 rounded-xl bg-background border border-[#CBD5E1]">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold shrink-0">
-                MK
+          {/* Bottom user card */}
+          <div className="p-2 mb-2">
+            <div className="p-3 rounded-xl bg-background border border-[#CBD5E1] flex items-center gap-2.5 overflow-hidden">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold shrink-0">
+                {initials}
               </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-[#1E293B] leading-none">
+              <div className={`min-w-0 transition-all duration-200 ${expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}>
+                <p className="text-sm font-medium text-[#1E293B] leading-none truncate">
                   {coordinator.name || "Coordinator"}
                 </p>
-                <p className="text-xs text-text-muted truncate">
+                <p className="text-xs text-text-muted truncate mt-0.5">
                   Placement Cell · DBUU
                 </p>
               </div>
@@ -138,8 +128,10 @@ function CoordinatorLayout() {
           </div>
         </aside>
 
-        {/* Main Content */}
-        <main className="ml-60 flex-1 min-h-screen p-6">
+        {/* ── Main Content — shrinks/expands with sidebar ── */}
+        <main
+          className={`flex-1 min-h-screen p-6 transition-all duration-300 ease-in-out ${expanded ? "ml-60" : "ml-[60px]"}`}
+        >
           <Outlet />
         </main>
       </div>
