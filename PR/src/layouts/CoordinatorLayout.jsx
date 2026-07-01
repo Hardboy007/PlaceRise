@@ -70,7 +70,7 @@ function CoordinatorLayout() {
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold">
+            <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold">
               {initials}
             </div>
             <div className="hidden md:block">
@@ -98,7 +98,7 @@ function CoordinatorLayout() {
         <aside
           onMouseEnter={() => setExpanded(true)}
           onMouseLeave={() => setExpanded(false)}
-          className={`fixed top-16 left-0 bottom-0 z-40 flex flex-col bg-white border-r border-[#CBD5E1] transition-all duration-300 ease-in-out overflow-hidden ${expanded ? "w-60" : "w-[60px]"}`}
+          className={`fixed top-16 left-0 bottom-0 z-40 flex flex-col bg-white border-r border-[#CBD5E1] transition-all duration-300 ease-in-out overflow-hidden ${expanded ? "w-60" : "w-15"}`}
         >
           <div className="flex-1 flex flex-col gap-1 p-2 mt-2 overflow-hidden">
             {navLinks.map(({ to, label, icon: Icon }) => (
@@ -114,7 +114,7 @@ function CoordinatorLayout() {
                   }`
                 }
               >
-                <Icon size={18} className="flex-shrink-0" />
+                <Icon size={18} className="shrink-0" />
                 <span
                   className={`transition-all duration-200 ${expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}
                 >
@@ -127,7 +127,7 @@ function CoordinatorLayout() {
           {/* Bottom user card */}
           <div className="p-2 mb-2">
             <div className="p-3 rounded-xl bg-background border border-[#CBD5E1] flex items-center gap-2.5 overflow-hidden">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold shrink-0">
+              <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold shrink-0">
                 {initials}
               </div>
               <div
@@ -146,7 +146,7 @@ function CoordinatorLayout() {
 
         {/* ── Main Content — shrinks/expands with sidebar ── */}
         <main
-          className={`flex-1 min-h-screen p-6 transition-all duration-300 ease-in-out ${expanded ? "ml-60" : "ml-[60px]"}`}
+          className={`flex-1 min-h-screen p-6 transition-all duration-300 ease-in-out ${expanded ? "ml-60" : "ml-15"}`}
         >
           <Outlet />
         </main>
