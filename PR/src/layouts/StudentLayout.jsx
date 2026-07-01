@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Outlet, NavLink, useNavigate, Link } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -8,7 +9,6 @@ import {
   Bell,
   LogOut,
   Sparkles,
-  ChevronRight,
 } from "lucide-react";
 
 const navLinks = [
@@ -25,6 +25,7 @@ const navLinks = [
 
 function StudentLayout() {
   const navigate = useNavigate();
+  const [expanded, setExpanded] = useState(false);
   const student = JSON.parse(localStorage.getItem("student") || "{}");
   const initials = student.name
     ? student.name
@@ -34,6 +35,7 @@ function StudentLayout() {
         .toUpperCase()
         .slice(0, 2)
     : "ST";
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
@@ -48,7 +50,7 @@ function StudentLayout() {
       className="min-h-screen bg-background"
       style={{ fontFamily: "Inter, sans-serif" }}
     >
-      {/* Navbar */}
+      {/* ── Navbar ── */}
       <nav
         className="fixed top-0 left-0 right-0 z-50 h-16
         bg-white/80 backdrop-blur border-b border-[#CBD5E1]
@@ -81,7 +83,7 @@ function StudentLayout() {
 
           {/* Avatar + Name */}
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold">
+            <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold shrink-0">
               {initials}
             </div>
             <div className="hidden md:block">
@@ -106,18 +108,21 @@ function StudentLayout() {
         </div>
       </nav>
 
-      {/* Body */}
+      {/* ── Body ── */}
       <div className="flex pt-16">
-        {/* Sidebar */}
-        <aside className="fixed top-16 left-0 bottom-0 w-56 bg-white border-r border-[#CBD5E1] flex flex-col p-3 gap-1 z-40">
-          {/* Nav Links */}
-          <div className="flex-1 flex flex-col gap-1 mt-2">
+        {/* ── Sidebar — hover to expand, pushes content ── */}
+        <aside
+          onMouseEnter={() => setExpanded(true)}
+          onMouseLeave={() => setExpanded(false)}
+          className={`fixed top-16 left-0 bottom-0 z-40 flex flex-col bg-white border-r border-[#CBD5E1] transition-all duration-300 ease-in-out overflow-hidden ${expanded ? "w-60" : "w-15"}`}
+        >
+          <div className="flex-1 flex flex-col gap-1 p-2 mt-2 overflow-hidden">
             {navLinks.map(({ to, label, icon: Icon }) => (
               <NavLink
                 key={to}
                 to={to}
                 className={({ isActive }) =>
-                  `group flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap
                   ${
                     isActive
                       ? "bg-primary text-white shadow-[0_4px_12px_rgba(59,130,246,0.3)]"
@@ -125,29 +130,33 @@ function StudentLayout() {
                   }`
                 }
               >
-                <div className="flex items-center gap-3">
-                  <Icon size={16} />
-                  <span>{label}</span>
-                </div>
-                <ChevronRight
-                  size={14}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity"
-                />
+                <Icon size={18} className="shrink-0" />
+                <span
+                  className={`transition-all duration-200 ${expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}
+                >
+                  {label}
+                </span>
               </NavLink>
             ))}
           </div>
 
-          {/* Bottom - User Card */}
-          <div className="mt-auto p-3 rounded-xl bg-background border border-[#CBD5E1]">
-            <div className="flex items-center gap-2.5">
+          {/* Bottom user card */}
+          <div className="mb-2 px-2">
+            <div
+              className={`rounded-xl bg-background border border-[#CBD5E1] flex items-center overflow-hidden transition-all duration-200 ${
+                expanded ? "gap-2.5 p-3" : "justify-center p-1.5"
+              }`}
+            >
               <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold shrink-0">
                 {initials}
               </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-[#1E293B] leading-none">
+              <div
+                className={`min-w-0 flex-1 transition-all duration-200 ${expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}
+              >
+                <p className="text-sm font-semibold text-[#1E293B] leading-tight truncate">
                   {student.name || "Student"}
                 </p>
-                <p className="text-xs text-text-muted mt-0.5">
+                <p className="text-xs text-text-muted truncate mt-0.5">
                   {student.branch || ""} · {student.erpId || ""}
                 </p>
               </div>
@@ -155,8 +164,10 @@ function StudentLayout() {
           </div>
         </aside>
 
-        {/* Main Content */}
-        <main className="ml-56 flex-1 min-h-screen p-6">
+        {/* ── Main Content — shrinks/expands with sidebar ── */}
+        <main
+          className={`flex-1 min-h-screen p-6 transition-all duration-300 ease-in-out ${expanded ? "ml-60" : "ml-15"}`}
+        >
           <Outlet />
         </main>
       </div>
