@@ -5,57 +5,48 @@ const universityStructure = [
       {
         name: "Computer Science Engineering",
         courses: [
-          "B.Tech - Computer Science & Engineering",
-          "B.Tech - Artificial Intelligence & Machine Learning",
-          "B.Tech - Artificial Intelligence & Data Science",
-          "B.Tech - Cyber Security & Forensics",
-          "B.Tech - Data Science",
-          "M.Tech - Computer Science & Engineering",
+          "B.Tech CSE",
+          "B.Tech AIML",
+          "B.Tech AIDS",
+          "B.Tech CS",
+          "B.Tech DS",
+          "M.Tech CSE",
         ],
       },
       {
         name: "Computer Applications",
         courses: [
           "BCA",
-          "BCA - Data Science",
-          "BCA - Full Stack Development",
-          "BCA - Cyber Security",
-          "BCA - AI & Data Science",
-          "B.Sc - Information Technology",
-          "B.Sc - AI & Data Science",
+          "BCA DS",
+          "BCA Full Stack",
+          "BCA Cyber Security",
+          "BCA AIDS",
+          "B.Sc IT",
+          "B.Sc AIDS",
           "MCA",
-          "MCA - Data Science",
-          "MCA - AI & Data Science",
+          "MCA DS",
+          "MCA AIDS",
         ],
       },
       {
         name: "Civil Engineering",
-        courses: ["B.Tech - Civil Engineering", "M.Tech - Civil Engineering"],
+        courses: ["B.Tech CE", "M.Tech CE", "Diploma CE"],
       },
       {
         name: "Mechanical Engineering",
-        courses: [
-          "B.Tech - Mechanical Engineering",
-          "M.Tech - Mechanical Engineering",
-        ],
+        courses: ["B.Tech ME", "M.Tech ME", "Diploma ME"],
       },
       {
         name: "Aerospace Engineering",
-        courses: ["B.Tech - Aerospace Engineering"],
+        courses: ["B.Tech Aerospace"],
       },
       {
         name: "Electrical Engineering",
-        courses: [
-          "B.Tech - Electrical Engineering",
-          "M.Tech - Electrical Engineering",
-        ],
+        courses: ["B.Tech EEE", "M.Tech EEE", "Diploma EE"],
       },
       {
         name: "Electronics & Communication",
-        courses: [
-          "B.Tech - Electronics & Communication Engineering",
-          "M.Tech - Electronics & Communication Engineering",
-        ],
+        courses: ["B.Tech ECE", "M.Tech ECE"],
       },
     ],
   },
@@ -65,19 +56,21 @@ const universityStructure = [
       {
         name: "Management & Commerce",
         courses: [
-          "BBA - HR/Marketing/Finance/International Business",
-          "BBA - Business Analytics",
-          "BBA - Digital Marketing",
-          "BBA - AI & Data Science",
-          "BBA - Fintech and Digital Banking",
-          "BBA - Aviation and Airport Management",
-          "B.Com (Hons.) - Commerce",
+          "BBA",
+          "BBA HR/Marketing/Finance/International Business",
+          "BBA (BA)",
+          "BBA (DM)",
+          "BBA AIDS",
+          "BBA Fintech and Digital Banking",
+          "BBA Aviation",
+          "BCom",
+          "BCom H",
           "MBA",
-          "MBA - Business Analytics",
-          "MBA - Digital Marketing",
-          "MBA - Agribusiness",
-          "MBA - AI & Data Science",
-          "Ph.D - Management",
+          "MBA (BA)",
+          "MBA (DM)",
+          "MBA Agribusiness",
+          "MBA AIDS",
+          "Ph.D Management",
         ],
       },
     ],
@@ -89,12 +82,14 @@ const universityStructure = [
         name: "Pharmacy",
         courses: [
           "B.Pharm",
-          "B.Pharm - LE",
+          "B.Pharm LE",
           "Pharm.D",
-          "M.Pharm - Pharmaceutics",
-          "M.Pharm - Pharmacology",
-          "M.Sc - Pharmaceutical Chemistry",
-          "Ph.D - Pharmaceutical Sciences",
+          "D.Pharm",
+          "M.Pharm",
+          "M.Pharm Pharmaceutics",
+          "M.Pharm Pharmacology",
+          "M.Sc Pharmaceutical Chemistry",
+          "Ph.D Pharmaceutical Sciences",
         ],
       },
     ],
@@ -104,12 +99,7 @@ const universityStructure = [
     departments: [
       {
         name: "Hotel Management & Tourism",
-        courses: [
-          "Bachelor of Hotel Management",
-          "B.Sc - Hospitality & Hotel Management",
-          "BBA - Tourism and Event Management",
-          "Masters in Hotel Management",
-        ],
+        courses: ["BHM", "B.Sc Hospitality", "BBA Tourism", "MHM"],
       },
     ],
   },
@@ -119,16 +109,16 @@ const universityStructure = [
       {
         name: "Agriculture",
         courses: [
-          "B.Sc (Hons.) - Agriculture",
-          "M.Sc - Agriculture Agronomy",
-          "M.Sc - Agriculture Plant Pathology",
-          "M.Sc - Genetics & Plant Breeding",
-          "M.Sc - Horticulture",
+          "B.Sc.Hons.(Agri)",
+          "M.Sc Agri",
+          "M.Sc Agriculture Plant Pathology",
+          "M.Sc Genetics & Plant Breeding",
+          "M.Sc Horticulture",
         ],
       },
       {
         name: "Forestry",
-        courses: ["B.Sc (Hons.) - Forestry"],
+        courses: ["B.Sc (Hons.) Forestry"],
       },
     ],
   },
@@ -137,18 +127,18 @@ const universityStructure = [
     departments: [
       {
         name: "Planning",
-        courses: ["Master of Planning (M.Plan)"],
+        courses: ["M.Plan"],
       },
       {
         name: "Design",
         courses: [
-          "B.Des - Digital Product Design / UI & UX",
-          "B.Des - Interior Design",
-          "B.Des - Game Design & Animation",
-          "B.Des - Graphic Design",
-          "B.Sc - Animation, VFX & Gaming",
-          "M.Des - Digital Product Design / UI & UX",
-          "M.Des - Interior Design",
+          "B.Des UI/UX",
+          "B.Des Interior Design",
+          "B.Des Game Design & Animation",
+          "B.Des Graphic Design",
+          "B.Sc Animation, VFX & Gaming",
+          "M.Des UI/UX",
+          "M.Des Interior Design",
         ],
       },
     ],
@@ -158,7 +148,7 @@ const universityStructure = [
     departments: [
       {
         name: "Architecture",
-        courses: ["B.Arch", "Diploma in Architecture"],
+        courses: ["B.Arch", "Diploma Architecture"],
       },
     ],
   },
@@ -167,26 +157,19 @@ const universityStructure = [
     departments: [
       {
         name: "English",
-        courses: ["B.A (Hons.) - English", "M.A - English"],
+        courses: ["B.A (Hons.) English", "M.A English"],
       },
       {
         name: "Fashion Design",
-        courses: [
-          "B.Design - Fashion Design",
-          "B.Sc - Fashion Design",
-          "M.A - Fashion Design and Merchandising",
-        ],
+        courses: ["B.Sc.(Fashion)", "MA (Fashion D&M)"],
       },
       {
         name: "Fine Arts",
-        courses: ["Bachelor of Fine Arts (BFA)", "Master of Fine Arts (MFA)"],
+        courses: ["BFA", "MFA"],
       },
       {
         name: "Journalism",
-        courses: [
-          "Bachelor of Journalism and Mass Communication",
-          "Master of Art in Journalism and Mass Communication",
-        ],
+        courses: ["BJMC", "MAJMC"],
       },
     ],
   },
@@ -195,7 +178,7 @@ const universityStructure = [
     departments: [
       {
         name: "Nursing",
-        courses: ["B.Sc - Nursing"],
+        courses: ["B.Sc Nursing"],
       },
     ],
   },
@@ -204,31 +187,40 @@ const universityStructure = [
     departments: [
       {
         name: "Microbiology",
-        courses: ["B.Sc (Hons.) - Microbiology", "M.Sc - Microbiology"],
+        courses: ["B.Sc Microbiology", "M.Sc Microbiology"],
       },
       {
         name: "Biotechnology",
-        courses: [
-          "B.Sc - Biotechnology (Hons.)",
-          "B.Tech - Biotechnology",
-          "M.Sc - Biotechnology",
-        ],
+        courses: ["B.Sc Biotech", "B.Tech Biotech", "M.Sc Biotech"],
       },
       {
         name: "Chemistry",
-        courses: ["B.Sc (Hons.) - Chemistry", "M.Sc - Industrial Chemistry"],
+        courses: ["B.Sc Chemistry", "M.Sc Chemistry"],
       },
       {
         name: "Zoology",
-        courses: ["B.Sc (Hons.) - Zoology"],
+        courses: ["B.Sc Zoology"],
       },
       {
         name: "Food Technology",
-        courses: ["B.Sc (Hons.) - Food Technology", "M.Sc - Food Technology"],
+        courses: ["B.Sc Food Tech", "M.Sc Food Tech"],
       },
       {
         name: "Forensic Science",
-        courses: ["B.Sc (Hons.) - Forensic Science", "M.Sc - Forensic Science"],
+        courses: ["B.Sc Forensic", "M.Sc Forensic"],
+      },
+      {
+        name: "Mathematics",
+        courses: ["B.Sc Hons.(Maths)"],
+      },
+    ],
+  },
+  {
+    school: "Dev Bhoomi Medical College of Paramedical Sciences (DBMCPS)",
+    departments: [
+      {
+        name: "Paramedical Sciences",
+        courses: ["BHA", "Paramedical"],
       },
     ],
   },
@@ -237,12 +229,7 @@ const universityStructure = [
     departments: [
       {
         name: "Law",
-        courses: [
-          "LLB",
-          "Five Year B.A LLB (Hons.)",
-          "Five Year B.B.A LLB (Hons.)",
-          "Five Year B.Com LLB (Hons.)",
-        ],
+        courses: ["LLB", "BA LLB", "BBA LLB", "BCom LLB"],
       },
     ],
   },
