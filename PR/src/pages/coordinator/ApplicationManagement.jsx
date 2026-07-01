@@ -49,7 +49,7 @@ function StatCard({ icon, label, value, bg, borderColor }) {
   return (
     <div
       style={{ borderColor, backgroundColor: "#fff" }}
-      className="rounded-2xl border p-4 flex items-center gap-3 shadow-sm"
+      className="rounded-2xl border p-4 flex items-center gap-3 shadow-sm min-w-0"
     >
       <div
         style={{ backgroundColor: bg }}
@@ -57,12 +57,12 @@ function StatCard({ icon, label, value, bg, borderColor }) {
       >
         {icon}
       </div>
-      <div>
-        <p className="text-xs font-medium" style={{ color: "#64748B" }}>
+      <div className="min-w-0">
+        <p className="text-xs font-medium truncate" style={{ color: "#64748B" }}>
           {label}
         </p>
         <p
-          className="text-xl font-bold leading-tight"
+          className="text-xl font-bold leading-tight truncate"
           style={{ color: "#0F172A" }}
         >
           {value}
@@ -76,21 +76,21 @@ function NameCell({ student }) {
   if (!student)
     return <span className="text-xs text-[#94A3B8]">Unknown student</span>;
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex items-center gap-2.5 min-w-0">
       <div
         className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0"
         style={{ background: "linear-gradient(135deg,#3B82F6,#60A5FA)" }}
       >
         {student.name?.charAt(0) || "?"}
       </div>
-      <div>
+      <div className="min-w-0">
         <p
-          className="font-semibold text-sm leading-tight"
+          className="font-semibold text-sm leading-tight truncate"
           style={{ color: "#0F172A" }}
         >
           {student.name || "—"}
         </p>
-        <p className="text-xs" style={{ color: "#64748B" }}>
+        <p className="text-xs truncate" style={{ color: "#64748B" }}>
           {student.email || "—"}
         </p>
       </div>
@@ -120,7 +120,7 @@ function StatusActions({ current, onChange }) {
     },
   ];
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-1.5 flex-wrap">
       {actions.map((action) => (
         <button
           key={action.value}
@@ -134,10 +134,15 @@ function StatusActions({ current, onChange }) {
   );
 }
 
+// --- FIXED: Branches ab individual pills mein wrap honge, ek lambi string nahi ---
 function JDBanner({ jobs, selectedJobId, setSelectedJobId, selectedJob }) {
+  const branchList = selectedJob?.eligibleBranches?.includes("All")
+    ? ["All Branches"]
+    : selectedJob?.eligibleBranches || [];
+
   return (
     <div
-      className="rounded-2xl border p-4 flex items-center justify-between flex-wrap gap-3"
+      className="rounded-2xl border p-4 flex flex-col gap-4"
       style={{
         background: "linear-gradient(135deg,#EFF6FF,#F0F9FF)",
         borderColor: "#BFDBFE",
@@ -145,12 +150,12 @@ function JDBanner({ jobs, selectedJobId, setSelectedJobId, selectedJob }) {
     >
       <div className="flex items-center gap-3">
         <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center"
+          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
           style={{ background: "linear-gradient(135deg,#3B82F6,#60A5FA)" }}
         >
           <Briefcase size={18} color="white" />
         </div>
-        <div>
+        <div className="min-w-0">
           <p
             className="text-[10px] font-semibold uppercase tracking-widest mb-1"
             style={{ color: "#64748B" }}
@@ -165,7 +170,7 @@ function JDBanner({ jobs, selectedJobId, setSelectedJobId, selectedJob }) {
             <select
               value={selectedJobId || ""}
               onChange={(e) => setSelectedJobId(e.target.value)}
-              className="text-sm font-bold border border-blue-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:border-blue-400"
+              className="text-sm font-bold border border-blue-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:border-blue-400 max-w-full"
               style={{ color: "#0F172A" }}
             >
               {jobs.map((j) => (
@@ -179,7 +184,7 @@ function JDBanner({ jobs, selectedJobId, setSelectedJobId, selectedJob }) {
       </div>
 
       {selectedJob && (
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-start gap-3 flex-wrap">
           {[
             {
               label: "Min CGPA",
@@ -194,17 +199,10 @@ function JDBanner({ jobs, selectedJobId, setSelectedJobId, selectedJob }) {
                   : `≤ ${selectedJob.maxBacklogs}`,
               icon: <Hash size={12} />,
             },
-            {
-              label: "Branches",
-              value: selectedJob.eligibleBranches?.includes("All")
-                ? "All Branches"
-                : selectedJob.eligibleBranches?.join(", ") || "—",
-              icon: <GraduationCap size={12} />,
-            },
           ].map(({ label, value, icon }) => (
             <div
               key={label}
-              className="rounded-xl px-3 py-1.5 border flex items-start gap-1.5"
+              className="rounded-xl px-3 py-1.5 border flex items-start gap-1.5 shrink-0"
               style={{ backgroundColor: "#fff", borderColor: "#BFDBFE" }}
             >
               <span className="mt-0.5" style={{ color: "#3B82F6" }}>
@@ -223,6 +221,41 @@ function JDBanner({ jobs, selectedJobId, setSelectedJobId, selectedJob }) {
               </div>
             </div>
           ))}
+
+          {/* Branches - own row, wraps as individual pills instead of one long string */}
+          <div
+            className="rounded-xl px-3 py-1.5 border flex items-start gap-1.5 flex-1 min-w-[240px]"
+            style={{ backgroundColor: "#fff", borderColor: "#BFDBFE" }}
+          >
+            <span className="mt-0.5 shrink-0" style={{ color: "#3B82F6" }}>
+              <GraduationCap size={12} />
+            </span>
+            <div className="min-w-0">
+              <p
+                className="text-[10px] font-semibold uppercase tracking-wide mb-1"
+                style={{ color: "#64748B" }}
+              >
+                Branches
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {branchList.length === 0 ? (
+                  <span className="text-xs font-bold" style={{ color: "#1D4ED8" }}>
+                    —
+                  </span>
+                ) : (
+                  branchList.map((b) => (
+                    <span
+                      key={b}
+                      className="text-[11px] font-bold px-2 py-0.5 rounded-full"
+                      style={{ color: "#1D4ED8", backgroundColor: "#EFF6FF" }}
+                    >
+                      {b}
+                    </span>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -246,7 +279,7 @@ function EligibleTab({ selectedJob, allStudents }) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={<Users size={20} color="#3B82F6" />}
           label="Total Eligible"
@@ -277,7 +310,7 @@ function EligibleTab({ selectedJob, allStudents }) {
         />
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-visible">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
         <div
           className="border-b border-gray-100"
           style={{
@@ -285,6 +318,7 @@ function EligibleTab({ selectedJob, allStudents }) {
             gridTemplateColumns: cols,
             padding: "12px 20px",
             backgroundColor: "#F1F5F9",
+            minWidth: "600px",
           }}
         >
           {["Name", "ERP ID", "Branch", "CGPA", "Backlogs"].map((h) => (
@@ -316,6 +350,7 @@ function EligibleTab({ selectedJob, allStudents }) {
                 padding: "14px 20px",
                 borderBottom:
                   idx !== eligible.length - 1 ? "1px solid #F1F5F9" : "none",
+                minWidth: "600px",
               }}
             >
               <NameCell student={student} />
@@ -418,7 +453,7 @@ function AppliedTab({ selectedJobId }) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <StatCard
           icon={<Users size={20} color="#3B82F6" />}
           label="Total Applied"
@@ -489,7 +524,7 @@ function AppliedTab({ selectedJobId }) {
         </span>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-visible">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
         <div
           className="border-b border-gray-100"
           style={{
@@ -497,6 +532,7 @@ function AppliedTab({ selectedJobId }) {
             gridTemplateColumns: cols,
             padding: "12px 20px",
             backgroundColor: "#F1F5F9",
+            minWidth: "800px",
           }}
         >
           {["Name", "ERP ID", "Branch", "CGPA", "Applied Date", "Status"].map(
@@ -532,6 +568,7 @@ function AppliedTab({ selectedJobId }) {
                   padding: "14px 20px",
                   borderBottom:
                     idx !== filtered.length - 1 ? "1px solid #F1F5F9" : "none",
+                  minWidth: "800px",
                 }}
               >
                 <NameCell student={student} />
@@ -597,7 +634,14 @@ export default function ApplicationsManagementPage() {
     const fetchData = async () => {
       const jobsData = await api.get("/companies/jobs");
       const studentsData = await api.get("/students");
-      const jobList = Array.isArray(jobsData) ? jobsData : [];
+
+      // Filter out jobs whose company has been deleted (orphaned jobs).
+      // A deleted company leaves companyId as null/undefined on the job doc,
+      // which previously showed up as "Unknown — <role>" in the dropdown.
+      const jobList = Array.isArray(jobsData)
+        ? jobsData.filter((j) => j.companyId && j.companyId.name)
+        : [];
+
       setJobs(jobList);
       setAllStudents(Array.isArray(studentsData) ? studentsData : []);
       if (jobList.length > 0) setSelectedJobId(jobList[0]._id);
@@ -625,8 +669,9 @@ export default function ApplicationsManagementPage() {
     return <div className="text-center py-20 text-text-muted">Loading...</div>;
 
   return (
+    // FIXED: added p-6 so content doesn't touch the browser edges
     <div
-      className="space-y-5"
+      className="space-y-5 p-6"
       style={{ fontFamily: "Inter, system-ui, sans-serif" }}
     >
       <div>
