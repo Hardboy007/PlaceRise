@@ -25,7 +25,7 @@ const COURSE_GROUPS = universityStructure.map((s) => ({
   courses: s.departments.flatMap((d) => d.courses),
 }));
 
-const BATCHES = ["All", "2024", "2025", "2026"];
+const BATCHES = ["All", "2024", "2025", "2026", "2027"];
 const CGPA_RANGES = [
   { label: "All", min: 0, max: 10 },
   { label: "9+", min: 9, max: 10 },
