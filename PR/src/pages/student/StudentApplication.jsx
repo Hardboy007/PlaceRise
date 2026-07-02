@@ -225,12 +225,18 @@ export default function StudentApplication() {
   }, []);
 
   const totalCount = applications.length;
-  const appliedCount = applications.filter((a) => a.status === "Applied").length;
+  const appliedCount = applications.filter(
+    (a) => a.status === "Applied",
+  ).length;
   const shortlistedCount = applications.filter(
     (a) => a.status === "Shortlisted",
   ).length;
-  const selectedCount = applications.filter((a) => a.status === "Selected").length;
-  const rejectedCount = applications.filter((a) => a.status === "Rejected").length;
+  const selectedCount = applications.filter(
+    (a) => a.status === "Selected",
+  ).length;
+  const rejectedCount = applications.filter(
+    (a) => a.status === "Rejected",
+  ).length;
 
   // FIXED: filter tabs so a student can see just their Shortlisted / Selected /
   // Rejected / Applied companies — same pattern as coordinator's filter bar.
@@ -316,7 +322,10 @@ export default function StudentApplication() {
         >
           <span
             className="w-2 h-2 rounded-full"
-            style={{ backgroundColor: C.success, animation: "pulse 2s infinite" }}
+            style={{
+              backgroundColor: C.success,
+              animation: "pulse 2s infinite",
+            }}
           />
           <div>
             <p
@@ -325,7 +334,10 @@ export default function StudentApplication() {
             >
               Total Applied
             </p>
-            <p className="text-xl font-bold leading-tight" style={{ color: C.textMain }}>
+            <p
+              className="text-xl font-bold leading-tight"
+              style={{ color: C.textMain }}
+            >
               {totalCount}
             </p>
           </div>
@@ -347,8 +359,16 @@ export default function StudentApplication() {
               className="text-[13px] font-semibold px-4 py-1.5 rounded-xl border transition-all"
               style={{
                 color: active ? (s ? s.color : C.primary) : C.textMuted,
-                backgroundColor: active ? (s ? s.bg : "#EFF6FF") : "transparent",
-                borderColor: active ? (s ? s.border : "#BFDBFE") : "transparent",
+                backgroundColor: active
+                  ? s
+                    ? s.bg
+                    : "#EFF6FF"
+                  : "transparent",
+                borderColor: active
+                  ? s
+                    ? s.border
+                    : "#BFDBFE"
+                  : "transparent",
               }}
             >
               {tab.label} ({tab.count})
@@ -443,9 +463,7 @@ export default function StudentApplication() {
                   >
                     <BuildingIcon />
                   </div>
-                  <span
-                    className="font-bold text-[15px] text-[#0F172A] group-hover:text-[#1D4ED8] group-hover:underline transition-colors"
-                  >
+                  <span className="font-bold text-[15px] text-[#0F172A] group-hover:text-[#1D4ED8] group-hover:underline transition-colors">
                     {app.jobId.companyId.name}
                   </span>
                 </div>
