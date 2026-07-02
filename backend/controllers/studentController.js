@@ -4,6 +4,18 @@ const fs = require("fs");
 const bcrypt = require("bcryptjs");
 const ExcelJS = require("exceljs");
 const User = require("../models/User");
+const universityStructure = require("../data/universityStructure");
+
+const findSchoolAndDept = (course) => {
+  for (const s of universityStructure) {
+    for (const d of s.departments) {
+      if (d.courses.includes(course)) {
+        return { school: s.school, department: d.name };
+      }
+    }
+  }
+  return { school: "", department: "" };
+};
 
 // GET all students
 const getAllStudents = async (req, res) => {
@@ -110,12 +122,16 @@ const bulkImportStudents = async (req, res) => {
         });
 
         // Student create
+        const { school, department } = findSchoolAndDept(course);
+
         await Student.create({
           userId: newUser._id,
           name,
           email,
           course,
           dob: dobRaw,
+          school,
+          branch: department,
         });
 
         imported++;
