@@ -191,7 +191,7 @@ export default function StudentProfilePage() {
             </p>
             <div className="flex flex-wrap gap-2">
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30">
-                Roll: {student.rollNo}
+                ERP ID: {student.userId?.erpId}
               </span>
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30">
                 CGPA {student.cgpa}
@@ -365,7 +365,7 @@ export default function StudentProfilePage() {
           <Field
             label="College"
             name="college"
-            value={student.college}
+            value={student.college || "Dev Bhoomi Uttarakhand University"}
             {...fieldProps}
             editing={false}
           />
@@ -379,7 +379,11 @@ export default function StudentProfilePage() {
           <Field
             label="Year"
             name="year"
-            value={student.year}
+            value={
+              student.batch
+                ? `Year ${new Date().getFullYear() - parseInt(student.batch) + 4}`
+                : "—"
+            }
             {...fieldProps}
           />
           <Field
