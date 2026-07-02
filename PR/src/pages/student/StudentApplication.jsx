@@ -166,7 +166,7 @@ export default function StudentApplication() {
   const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filterStatus, setFilterStatus] = useState("All");
+  const [filterStatus, setFilterStatus] = useState("Applied");
   const [fetchError, setFetchError] = useState(null);
   const isFirstLoad = useRef(true);
 
@@ -225,32 +225,29 @@ export default function StudentApplication() {
   }, []);
 
   const totalCount = applications.length;
-  const appliedCount = applications.filter(
-    (a) => a.status === "Applied",
-  ).length;
   const shortlistedCount = applications.filter(
     (a) => a.status === "Shortlisted",
   ).length;
-  const selectedCount = applications.filter(
-    (a) => a.status === "Selected",
-  ).length;
-  const rejectedCount = applications.filter(
-    (a) => a.status === "Rejected",
-  ).length;
+  const selectedCount = applications.filter((a) => a.status === "Selected").length;
+  const rejectedCount = applications.filter((a) => a.status === "Rejected").length;
 
-  // FIXED: filter tabs so a student can see just their Shortlisted / Selected /
-  // Rejected / Applied companies — same pattern as coordinator's filter bar.
+  // FIXED: "Applied" tab now represents the TOTAL number of companies the
+  // student applied to (regardless of current status), since students think
+  // of "applied" as everything they've submitted — not just applications
+  // still stuck in the literal "Applied" sub-status. This also removes the
+  // confusing "0" that showed once every application moved past "Applied"
+  // into Shortlisted/Selected/Rejected. "All" tab is removed — "Applied"
+  // now serves that role.
   const filtered = useMemo(
     () =>
-      filterStatus === "All"
+      filterStatus === "Applied"
         ? applications
         : applications.filter((a) => a.status === filterStatus),
     [applications, filterStatus],
   );
 
   const filterTabs = [
-    { label: "All", value: "All", count: totalCount },
-    { label: "Applied", value: "Applied", count: appliedCount },
+    { label: "Applied", value: "Applied", count: totalCount },
     { label: "Shortlisted", value: "Shortlisted", count: shortlistedCount },
     { label: "Selected", value: "Selected", count: selectedCount },
     { label: "Rejected", value: "Rejected", count: rejectedCount },
@@ -322,10 +319,7 @@ export default function StudentApplication() {
         >
           <span
             className="w-2 h-2 rounded-full"
-            style={{
-              backgroundColor: C.success,
-              animation: "pulse 2s infinite",
-            }}
+            style={{ backgroundColor: C.success, animation: "pulse 2s infinite" }}
           />
           <div>
             <p
@@ -334,10 +328,7 @@ export default function StudentApplication() {
             >
               Total Applied
             </p>
-            <p
-              className="text-xl font-bold leading-tight"
-              style={{ color: C.textMain }}
-            >
+            <p className="text-xl font-bold leading-tight" style={{ color: C.textMain }}>
               {totalCount}
             </p>
           </div>
@@ -351,7 +342,7 @@ export default function StudentApplication() {
       >
         {filterTabs.map((tab) => {
           const active = filterStatus === tab.value;
-          const s = tab.value !== "All" ? statusConfig[tab.value] : null;
+          const s = statusConfig[tab.value];
           return (
             <button
               key={tab.value}
@@ -359,16 +350,8 @@ export default function StudentApplication() {
               className="text-[13px] font-semibold px-4 py-1.5 rounded-xl border transition-all"
               style={{
                 color: active ? (s ? s.color : C.primary) : C.textMuted,
-                backgroundColor: active
-                  ? s
-                    ? s.bg
-                    : "#EFF6FF"
-                  : "transparent",
-                borderColor: active
-                  ? s
-                    ? s.border
-                    : "#BFDBFE"
-                  : "transparent",
+                backgroundColor: active ? (s ? s.bg : "#EFF6FF") : "transparent",
+                borderColor: active ? (s ? s.border : "#BFDBFE") : "transparent",
               }}
             >
               {tab.label} ({tab.count})
@@ -409,7 +392,7 @@ export default function StudentApplication() {
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center py-16 gap-2">
             <p style={{ color: C.textMuted }} className="text-sm">
-              {filterStatus === "All"
+              {filterStatus === "Applied"
                 ? "You haven't applied to any jobs yet."
                 : `No applications with status "${filterStatus}".`}
             </p>
@@ -445,7 +428,7 @@ export default function StudentApplication() {
                 <div
                   className="flex items-center gap-3 cursor-pointer group w-fit"
                   onClick={() =>
-                    navigate(`/student/companies/${app.jobId.companyId._id}`)
+                    navigate(`/student/companies/${app.jobId._id}`)
                   }
                 >
                   <div
@@ -463,7 +446,9 @@ export default function StudentApplication() {
                   >
                     <BuildingIcon />
                   </div>
-                  <span className="font-bold text-[15px] text-[#0F172A] group-hover:text-[#1D4ED8] group-hover:underline transition-colors">
+                  <span
+                    className="font-bold text-[15px] text-[#0F172A] group-hover:text-[#1D4ED8] group-hover:underline transition-colors"
+                  >
                     {app.jobId.companyId.name}
                   </span>
                 </div>
