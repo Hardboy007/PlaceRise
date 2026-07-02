@@ -23,6 +23,7 @@ export default function CompanyDetailPage() {
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
   const [applied, setApplied] = useState(false);
+  const [existingStatus, setExistingStatus] = useState(null); // FIXED: tracks Shortlisted/Selected/Rejected too
   const [applyLoading, setApplyLoading] = useState(false);
 
   // FIXED: goes back to whichever page the student actually came from
@@ -42,6 +43,26 @@ export default function CompanyDetailPage() {
       try {
         const data = await api.get(`/companies/jobs/${companyId}`);
         setCompany(data);
+
+        // FIXED: check if the student has already applied to THIS job,
+        // instead of always assuming applied=false. Without this, a
+        // student clicking through from StudentApplication (where they
+        // are, by definition, already applied) would incorrectly see
+        // "Apply Now" again and could submit a duplicate application.
+        try {
+          const myApps = await api.get("/applications/my");
+          const existing = Array.isArray(myApps)
+            ? myApps.find((a) => a.jobId?._id === data._id)
+            : null;
+          if (existing) {
+            setApplied(true);
+            setExistingStatus(existing.status);
+          }
+        } catch (e) {
+          // non-fatal — if this check fails, worst case student sees
+          // "Apply Now" and backend should still reject a true duplicate
+          console.error("Could not verify existing application:", e);
+        }
       } catch (err) {
         console.error(err);
       }
