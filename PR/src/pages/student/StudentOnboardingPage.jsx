@@ -11,7 +11,7 @@ import {
   Check,
 } from "lucide-react";
 import { api } from "../../utils/api";
-
+import { useEffect } from "react";
 const steps = [
   { id: 1, label: "Personal", icon: User },
   { id: 2, label: "Academic", icon: GraduationCap },
@@ -44,6 +44,32 @@ function StudentOnboardingPage() {
     // Skills
     skills: "",
   });
+
+  useEffect(() => {
+    const fetchStudentData = async () => {
+      const stored = JSON.parse(localStorage.getItem("student") || "{}");
+      if (stored.id) {
+        const data = await api.get(`/students/${stored.id}`);
+        if (data) {
+          setFormData((prev) => ({
+            ...prev,
+            fullName: data.name || "",
+            dob: data.dob || "",
+            phone: data.phone || "",
+            school: data.school || "",
+            department: data.branch || "",
+            course: data.course || "",
+            batch: data.batch || "",
+            cgpa: data.cgpa || "",
+            tenthMarks: data.tenthMarks || "",
+            twelfthMarks: data.twelfthMarks || "",
+            backlogs: data.backlogs || "0",
+          }));
+        }
+      }
+    };
+    fetchStudentData();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
