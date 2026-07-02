@@ -255,7 +255,9 @@ export default function StudentProfilePage() {
           },
           {
             label: "Current Year",
-            value: student.year?.split(" ")[0],
+            value: student.batch
+              ? `Year ${new Date().getFullYear() - parseInt(student.batch) + 4}`
+              : "—",
             color: "border-t-[#F59E0B]",
             bg: "bg-amber-50",
             icon: "📅",
@@ -301,7 +303,7 @@ export default function StudentProfilePage() {
           <Field
             label="ERP ID"
             name="erpId"
-            value={student.erpId}
+            value={student.userId?.erpId || "—"}
             editing={false}
             form={student}
             onChange={() => {}}
@@ -404,14 +406,7 @@ export default function StudentProfilePage() {
           <Field
             label="Active Backlogs"
             name="backlogs"
-            value={student.backlogs}
-            {...fieldProps}
-            editing={false}
-          />
-          <Field
-            label="Roll Number"
-            name="rollNo"
-            value={student.rollNo}
+            value={student.backlogs ?? 0}
             {...fieldProps}
             editing={false}
           />
