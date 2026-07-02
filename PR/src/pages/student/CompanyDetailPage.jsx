@@ -25,6 +25,18 @@ export default function CompanyDetailPage() {
   const [applied, setApplied] = useState(false);
   const [applyLoading, setApplyLoading] = useState(false);
 
+  // FIXED: goes back to whichever page the student actually came from
+  // (StudentApplication, CompanyList, etc.) instead of always jumping to
+  // the Company List page. Falls back to Company List only if there's no
+  // history to go back to (e.g. page opened directly via URL).
+  const goBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/student/companies");
+    }
+  };
+
   useEffect(() => {
     const fetchJob = async () => {
       try {
@@ -66,10 +78,10 @@ export default function CompanyDetailPage() {
         <Building2 size={48} className="text-[#CBD5E1]" />
         <p className="text-sm text-[#64748B]">Job not found</p>
         <button
-          onClick={() => navigate("/student/companies")}
+          onClick={goBack}
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#3B82F6] text-white text-sm font-medium"
         >
-          <ArrowLeft size={14} /> Back to Companies
+          <ArrowLeft size={14} /> Back
         </button>
       </div>
     );
@@ -97,10 +109,10 @@ export default function CompanyDetailPage() {
       style={{ fontFamily: "Inter, sans-serif" }}
     >
       <button
-        onClick={() => navigate("/student/companies")}
+        onClick={goBack}
         className="flex items-center gap-2 text-sm text-[#64748B] hover:text-[#1E293B] transition-colors mb-5"
       >
-        <ArrowLeft size={15} /> Back to Companies
+        <ArrowLeft size={15} /> Back
       </button>
 
       {/* Hero */}

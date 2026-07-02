@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "../../utils/api";
 
 // ── Design Tokens ─────────────────────────────────────────────
@@ -15,34 +16,19 @@ const C = {
   border: "#E2E8F0",
 };
 
-// ── Status config ─────────────────────────────────────────────
+// ── Status config (aligned with coordinator's ApplicationsManagementPage) ──
+// FIXED: "Selected" status was missing entirely before — app.status === "Selected"
+// had no matching config and would render undefined styles.
 const statusConfig = {
-  Shortlisted: {
-    color: "#16A34A",
-    bg: "#F0FDF4",
-    border: "#BBF7D0",
-    Icon: () => (
-      <svg
-        className="w-3.5 h-3.5 shrink-0"
-        fill="none"
-        stroke="#16A34A"
-        strokeWidth={2}
-        viewBox="0 0 24 24"
-      >
-        <circle cx="12" cy="12" r="10" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4" />
-      </svg>
-    ),
-  },
   Applied: {
-    color: "#B45309",
-    bg: "#FFFBEB",
-    border: "#FDE68A",
+    color: "#1D4ED8",
+    bg: "#EFF6FF",
+    border: "#BFDBFE",
     Icon: () => (
       <svg
         className="w-3.5 h-3.5 shrink-0"
         fill="none"
-        stroke="#D97706"
+        stroke="#1D4ED8"
         strokeWidth={2}
         viewBox="0 0 24 24"
       >
@@ -55,8 +41,42 @@ const statusConfig = {
       </svg>
     ),
   },
+  Shortlisted: {
+    color: "#92400E",
+    bg: "#FFFBEB",
+    border: "#FDE68A",
+    Icon: () => (
+      <svg
+        className="w-3.5 h-3.5 shrink-0"
+        fill="none"
+        stroke="#D97706"
+        strokeWidth={2}
+        viewBox="0 0 24 24"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4" />
+      </svg>
+    ),
+  },
+  Selected: {
+    color: "#14532D",
+    bg: "#F0FDF4",
+    border: "#86EFAC",
+    Icon: () => (
+      <svg
+        className="w-3.5 h-3.5 shrink-0"
+        fill="none"
+        stroke="#16A34A"
+        strokeWidth={2}
+        viewBox="0 0 24 24"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8 12l3 3 5-6" />
+      </svg>
+    ),
+  },
   Rejected: {
-    color: "#DC2626",
+    color: "#991B1B",
     bg: "#FFF1F2",
     border: "#FECDD3",
     Icon: () => (
@@ -129,57 +149,137 @@ function CalendarIcon() {
   );
 }
 
+// FIXED: fixed DD/MM/YYYY format instead of toLocaleDateString(), which
+// changes shape depending on the browser/OS locale (some show MM/DD/YYYY).
+function formatDate(dateValue) {
+  if (!dateValue) return "—";
+  const d = new Date(dateValue);
+  if (isNaN(d.getTime())) return "—";
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
 // ── Main Component ────────────────────────────────────────────
 export default function StudentApplication() {
+  const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filterStatus, setFilterStatus] = useState("All");
+  const [fetchError, setFetchError] = useState(null);
+  const isFirstLoad = useRef(true);
+
+  // FIXED: pulled into its own function so it can be called both on mount
+  // and repeatedly via polling (for live updates from the coordinator side).
+  const fetchApplications = async () => {
+    try {
+      const data = await api.get("/applications/my");
+      const raw = Array.isArray(data) ? data : [];
+
+      // FIXED: drop applications whose job or company no longer exists
+      // (coordinator deleted the company -> jobId.companyId becomes null/undefined,
+      // which previously rendered as "Unknown Company"). We simply hide these
+      // rather than showing a broken row.
+      const valid = raw.filter(
+        (app) => app.jobId && app.jobId.companyId && app.jobId.companyId.name,
+      );
+
+      setApplications(valid);
+      setFetchError(null);
+    } catch (err) {
+      // FIXED: previously an unhandled rejection here (e.g. 401 because
+      // there's no auth token) left the page stuck on "Loading..." forever.
+      // Now we surface the actual error instead.
+      console.error("Failed to fetch applications:", err);
+      setFetchError(
+        err?.response?.status === 401 || err?.status === 401
+          ? "You're not logged in — please log in as a student to see your applications."
+          : "Couldn't load applications. Check the console/network tab for details.",
+      );
+    } finally {
+      if (isFirstLoad.current) {
+        setLoading(false);
+        isFirstLoad.current = false;
+      }
+    }
+  };
 
   useEffect(() => {
-    const fetchApplications = async () => {
-      const data = await api.get("/applications/my");
-      setApplications(Array.isArray(data) ? data : []);
-      setLoading(false);
-    };
     fetchApplications();
+
+    // FIXED: live update — poll every 6s in the background (no loading
+    // spinner on refetches) so that when a coordinator shortlists/selects/
+    // rejects from ApplicationsManagementPage, the student sees it here
+    // without needing to manually refresh.
+    const interval = setInterval(fetchApplications, 6000);
+
+    // Also refetch immediately when the student switches back to this tab.
+    const onFocus = () => fetchApplications();
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+    };
   }, []);
 
   const totalCount = applications.length;
-  const appliedCount = applications.filter(
-    (a) => a.status === "Applied",
-  ).length;
+  const appliedCount = applications.filter((a) => a.status === "Applied").length;
   const shortlistedCount = applications.filter(
     (a) => a.status === "Shortlisted",
   ).length;
-  const rejectedCount = applications.filter(
-    (a) => a.status === "Rejected",
-  ).length;
+  const selectedCount = applications.filter((a) => a.status === "Selected").length;
+  const rejectedCount = applications.filter((a) => a.status === "Rejected").length;
 
-  const summaryPills = [
-    {
-      label: `Total ${totalCount}`,
-      color: C.textMain,
-      bg: C.white,
-      border: C.border,
-    },
-    {
-      label: `Applied ${appliedCount}`,
-      color: "#B45309",
-      bg: "#FFFBEB",
-      border: "#FDE68A",
-    },
-    {
-      label: `Shortlisted ${shortlistedCount}`,
-      color: "#16A34A",
-      bg: "#F0FDF4",
-      border: "#BBF7D0",
-    },
-    {
-      label: `Rejected ${rejectedCount}`,
-      color: "#DC2626",
-      bg: "#FFF1F2",
-      border: "#FECDD3",
-    },
+  // FIXED: filter tabs so a student can see just their Shortlisted / Selected /
+  // Rejected / Applied companies — same pattern as coordinator's filter bar.
+  const filtered = useMemo(
+    () =>
+      filterStatus === "All"
+        ? applications
+        : applications.filter((a) => a.status === filterStatus),
+    [applications, filterStatus],
+  );
+
+  const filterTabs = [
+    { label: "All", value: "All", count: totalCount },
+    { label: "Applied", value: "Applied", count: appliedCount },
+    { label: "Shortlisted", value: "Shortlisted", count: shortlistedCount },
+    { label: "Selected", value: "Selected", count: selectedCount },
+    { label: "Rejected", value: "Rejected", count: rejectedCount },
   ];
+
+  if (loading)
+    return (
+      <div
+        style={{ backgroundColor: C.background }}
+        className="min-h-screen flex items-center justify-center"
+      >
+        <p style={{ color: C.textMuted }}>Loading your applications...</p>
+      </div>
+    );
+
+  // FIXED: show the real reason instead of an endless "Loading..." spinner
+  if (fetchError)
+    return (
+      <div
+        style={{ backgroundColor: C.background }}
+        className="min-h-screen flex items-center justify-center p-10"
+      >
+        <div
+          className="rounded-2xl border p-6 max-w-md text-center shadow-sm"
+          style={{ backgroundColor: C.white, borderColor: C.border }}
+        >
+          <p style={{ color: C.danger }} className="font-semibold mb-1">
+            Couldn't load applications
+          </p>
+          <p style={{ color: C.textMuted }} className="text-sm">
+            {fetchError}
+          </p>
+        </div>
+      </div>
+    );
 
   return (
     <div
@@ -187,7 +287,7 @@ export default function StudentApplication() {
       className="min-h-screen p-10 font-sans"
     >
       {/* ── Page Header ── */}
-      <div className="flex items-start justify-between mb-8">
+      <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
         {/* Left: icon + title */}
         <div className="flex items-center gap-4">
           <div
@@ -209,22 +309,52 @@ export default function StudentApplication() {
           </div>
         </div>
 
-        {/* Right: summary pills */}
-        <div className="flex items-center gap-2">
-          {summaryPills.map((pill) => (
-            <span
-              key={pill.label}
-              style={{
-                color: pill.color,
-                backgroundColor: pill.bg,
-                borderColor: pill.border,
-              }}
-              className="border text-[13px] font-semibold px-4 py-1.5 rounded-full"
+        {/* Right: live total counter */}
+        <div
+          className="flex items-center gap-2.5 rounded-2xl border px-5 py-3 shadow-sm"
+          style={{ backgroundColor: C.white, borderColor: C.border }}
+        >
+          <span
+            className="w-2 h-2 rounded-full"
+            style={{ backgroundColor: C.success, animation: "pulse 2s infinite" }}
+          />
+          <div>
+            <p
+              className="text-[10px] font-semibold uppercase tracking-widest"
+              style={{ color: C.textMuted }}
             >
-              {pill.label}
-            </span>
-          ))}
+              Total Applied
+            </p>
+            <p className="text-xl font-bold leading-tight" style={{ color: C.textMain }}>
+              {totalCount}
+            </p>
+          </div>
         </div>
+      </div>
+
+      {/* ── Filter tabs ── */}
+      <div
+        className="flex items-center gap-2 flex-wrap mb-6 rounded-2xl border p-2 shadow-sm w-fit"
+        style={{ backgroundColor: C.white, borderColor: C.border }}
+      >
+        {filterTabs.map((tab) => {
+          const active = filterStatus === tab.value;
+          const s = tab.value !== "All" ? statusConfig[tab.value] : null;
+          return (
+            <button
+              key={tab.value}
+              onClick={() => setFilterStatus(tab.value)}
+              className="text-[13px] font-semibold px-4 py-1.5 rounded-xl border transition-all"
+              style={{
+                color: active ? (s ? s.color : C.primary) : C.textMuted,
+                backgroundColor: active ? (s ? s.bg : "#EFF6FF") : "transparent",
+                borderColor: active ? (s ? s.border : "#BFDBFE") : "transparent",
+              }}
+            >
+              {tab.label} ({tab.count})
+            </button>
+          );
+        })}
       </div>
 
       {/* ── Table Card ── */}
@@ -234,9 +364,7 @@ export default function StudentApplication() {
       >
         {/* Column headers */}
         <div
-          className="grid border-b px-6 py-4"
           style={{
-            borderColor: C.border,
             display: "grid",
             gridTemplateColumns: "2.2fr 2fr 1.6fr 1.2fr",
             paddingLeft: "24px",
@@ -258,97 +386,109 @@ export default function StudentApplication() {
         </div>
 
         {/* Rows */}
-        {applications.map((app, idx) => {
-          const s = statusConfig[app.status];
-          const isLast = idx === applications.length - 1;
+        {filtered.length === 0 ? (
+          <div className="flex flex-col items-center py-16 gap-2">
+            <p style={{ color: C.textMuted }} className="text-sm">
+              {filterStatus === "All"
+                ? "You haven't applied to any jobs yet."
+                : `No applications with status "${filterStatus}".`}
+            </p>
+          </div>
+        ) : (
+          filtered.map((app, idx) => {
+            const s = statusConfig[app.status] || statusConfig.Applied;
+            const isLast = idx === filtered.length - 1;
 
-          return (
-            <div
-              key={app._id}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "2.2fr 2fr 1.6fr 1.2fr",
-                alignItems: "center",
-                paddingLeft: "24px",
-                paddingRight: "24px",
-                paddingTop: "22px",
-                paddingBottom: "22px",
-                borderBottom: isLast ? "none" : `1px solid ${C.border}`,
-                backgroundColor: C.white,
-                transition: "background 0.15s",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.backgroundColor = "#F8FAFC")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor = C.white)
-              }
-            >
-              {/* Company */}
-              <div className="flex items-center gap-3">
-                <div
-                  style={{
-                    backgroundColor: "#F1F5F9",
-                    border: `1px solid ${C.border}`,
-                    borderRadius: "12px",
-                    width: "40px",
-                    height: "40px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                  }}
-                >
-                  <BuildingIcon />
-                </div>
-                <span
-                  style={{ color: C.textMain }}
-                  className="font-bold text-[15px]"
-                >
-                  {app.jobId?.companyId?.name || "Unknown Company"}
-                </span>
-              </div>
-
-              {/* Role */}
-              <span style={{ color: C.textMuted }} className="text-[14px]">
-                {app.jobId?.role || "—"}
-              </span>
-
-              {/* Applied Date */}
-              <span
-                style={{ color: C.textMuted }}
-                className="text-[14px] flex items-center"
+            return (
+              <div
+                key={app._id}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "2.2fr 2fr 1.6fr 1.2fr",
+                  alignItems: "center",
+                  paddingLeft: "24px",
+                  paddingRight: "24px",
+                  paddingTop: "22px",
+                  paddingBottom: "22px",
+                  borderBottom: isLast ? "none" : `1px solid ${C.border}`,
+                  backgroundColor: C.white,
+                  transition: "background 0.15s",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#F8FAFC")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = C.white)
+                }
               >
-                <CalendarIcon />
-                {app.appliedDate
-                  ? new Date(app.appliedDate).toLocaleDateString()
-                  : "—"}
-              </span>
-
-              {/* Status badge */}
-              <div>
-                <span
-                  style={{
-                    color: s.color,
-                    backgroundColor: s.bg,
-                    borderColor: s.border,
-                    border: `1px solid`,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    padding: "5px 14px",
-                    borderRadius: "9999px",
-                  }}
+                {/* Company - FIXED: clickable now, navigates to CompanyDetailPage */}
+                <div
+                  className="flex items-center gap-3 cursor-pointer group w-fit"
+                  onClick={() =>
+                    navigate(`/student/companies/${app.jobId.companyId._id}`)
+                  }
                 >
-                  <s.Icon />
-                  {app.status}
+                  <div
+                    style={{
+                      backgroundColor: "#F1F5F9",
+                      border: `1px solid ${C.border}`,
+                      borderRadius: "12px",
+                      width: "40px",
+                      height: "40px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <BuildingIcon />
+                  </div>
+                  <span
+                    className="font-bold text-[15px] text-[#0F172A] group-hover:text-[#1D4ED8] group-hover:underline transition-colors"
+                  >
+                    {app.jobId.companyId.name}
+                  </span>
+                </div>
+
+                {/* Role */}
+                <span style={{ color: C.textMuted }} className="text-[14px]">
+                  {app.jobId?.role || "—"}
                 </span>
+
+                {/* Applied Date */}
+                <span
+                  style={{ color: C.textMuted }}
+                  className="text-[14px] flex items-center"
+                >
+                  <CalendarIcon />
+                  {formatDate(app.appliedDate)}
+                </span>
+
+                {/* Status badge */}
+                <div>
+                  <span
+                    style={{
+                      color: s.color,
+                      backgroundColor: s.bg,
+                      borderColor: s.border,
+                      border: `1px solid`,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      padding: "5px 14px",
+                      borderRadius: "9999px",
+                    }}
+                  >
+                    <s.Icon />
+                    {app.status}
+                  </span>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
     </div>
   );
