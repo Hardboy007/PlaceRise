@@ -17,7 +17,7 @@ const universityStructure = [
         name: "Computer Applications",
         courses: [
           "BCA",
-          "BCA DS",
+          "BCA DSs",
           "BCA Full Stack",
           "BCA Cyber Security",
           "BCA AI&DS",
@@ -66,9 +66,9 @@ const universityStructure = [
           "BCom",
           "BCom H",
           "MBA",
-          "MBA (BA)",
+          "MBA Business Analytics",
           "MBA (DM)",
-          "MBA Agribusiness",
+          "MBA - Agribusiness",
           "MBA AI&DS",
           "Ph.D Management",
         ],
@@ -178,7 +178,7 @@ const universityStructure = [
     departments: [
       {
         name: "Nursing",
-        courses: ["B.Sc Nursing"],
+        courses: ["BSc Nursing"],
       },
     ],
   },
@@ -187,15 +187,15 @@ const universityStructure = [
     departments: [
       {
         name: "Microbiology",
-        courses: ["B.Sc Microbiology", "M.Sc Microbiology"],
+        courses: ["BSc Microbiology", "MSc Microbiology"],
       },
       {
         name: "Biotechnology",
-        courses: ["B.Sc Biotech", "B.Tech Biotech", "M.Sc Biotech"],
+        courses: ["BSc Biotech", "BTech Biotech", "MSc Biotech"],
       },
       {
         name: "Chemistry",
-        courses: ["B.Sc Chemistry", "M.Sc Chemistry"],
+        courses: ["BSc Chemistry", "MSc Chemistry"],
       },
       {
         name: "Zoology",
