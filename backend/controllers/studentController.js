@@ -43,6 +43,19 @@ const getStudentById = async (req, res) => {
   }
 };
 
+// GET logged-in student's own profile
+const getMyProfile = async (req, res) => {
+  try {
+    const student = await Student.findOne({ userId: req.user.id });
+    if (!student) {
+      return res.status(404).json({ message: "Student profile not found" });
+    }
+    res.json(student);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // UPDATE student by ID
 const updateStudent = async (req, res) => {
   try {
@@ -62,6 +75,44 @@ const updateStudent = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// UPDATE logged-in student's own notification preferences
+const updateNotificationPreferences = async (req, res) => {
+  try {
+    const {
+      emailNotifications,
+      applicationUpdates,
+      jobAlerts,
+      profileViews,
+      weeklyDigest,
+      smsNotifications,
+    } = req.body;
+
+    const student = await Student.findOneAndUpdate(
+      { userId: req.user.id },
+      {
+        notificationPreferences: {
+          emailNotifications,
+          applicationUpdates,
+          jobAlerts,
+          profileViews,
+          weeklyDigest,
+          smsNotifications,
+        },
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!student) {
+      return res.status(404).json({ message: "Student profile not found" });
+    }
+
+    res.json(student.notificationPreferences);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // ================== BULK IMPORT ==================
 const bulkImportStudents = async (req, res) => {
   try {
@@ -71,7 +122,6 @@ const bulkImportStudents = async (req, res) => {
 
     const results = [];
 
-    // CSV parse karke ek array me collect karo
     await new Promise((resolve, reject) => {
       fs.createReadStream(req.file.path)
         .pipe(csv())
@@ -96,14 +146,12 @@ const bulkImportStudents = async (req, res) => {
           continue;
         }
 
-        // Already exists check
         const existingUser = await User.findOne({ erpId });
         if (existingUser) {
           skipped++;
           continue;
         }
 
-        // DOB se password banao: DDMMYYYY
         const dobParts = dobRaw.split(/[-\/]/);
         const day = dobParts[0].padStart(2, "0");
         const month = dobParts[1].padStart(2, "0");
@@ -112,7 +160,6 @@ const bulkImportStudents = async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
-        // User create
         const newUser = await User.create({
           erpId,
           email,
@@ -121,7 +168,6 @@ const bulkImportStudents = async (req, res) => {
           isFirstLogin: true,
         });
 
-        // Student create
         const { school, department } = findSchoolAndDept(course);
 
         await Student.create({
@@ -141,7 +187,6 @@ const bulkImportStudents = async (req, res) => {
       }
     }
 
-    // Uploaded temp file delete kardo
     fs.unlink(req.file.path, () => {});
 
     res.status(200).json({ imported, skipped });
@@ -201,7 +246,9 @@ const exportStudentsExcel = async (req, res) => {
 module.exports = {
   getAllStudents,
   getStudentById,
+  getMyProfile,
   updateStudent,
+  updateNotificationPreferences,
   bulkImportStudents,
   exportStudentsExcel,
 };

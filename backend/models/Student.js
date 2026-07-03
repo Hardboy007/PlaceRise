@@ -35,6 +35,16 @@ const studentSchema = new mongoose.Schema(
     resume:            { type: String },
     placementStatus:   { type: String, enum: ["Not Placed", "Placed"], default: "Not Placed" },
     selectedCompanies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'JobPosting' }],
+
+    // Notification preferences
+    notificationPreferences: {
+      emailNotifications: { type: Boolean, default: true },
+      applicationUpdates: { type: Boolean, default: true },
+      jobAlerts:          { type: Boolean, default: false },
+      profileViews:       { type: Boolean, default: true },
+      weeklyDigest:       { type: Boolean, default: false },
+      smsNotifications:   { type: Boolean, default: false },
+    },
   },
   { timestamps: true }
 );
