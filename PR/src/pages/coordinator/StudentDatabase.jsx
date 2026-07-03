@@ -1351,5 +1351,3 @@ export default function StudentDatabasePage() {
     </div>
   );
 }
-
-

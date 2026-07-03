@@ -27,9 +27,10 @@ const enrichStudentWithPlacementData = async (student) => {
 
   return {
     ...studentObject,
-    placementStatus:
-      selectedApplications.length > 0 ? "Placed" : "Not Placed",
-    selectedCompanies: selectedApplications.map((application) => application.jobId),
+    placementStatus: selectedApplications.length > 0 ? "Placed" : "Not Placed",
+    selectedCompanies: selectedApplications.map(
+      (application) => application.jobId,
+    ),
   };
 };
 
@@ -276,4 +277,3 @@ module.exports = {
   bulkImportStudents,
   exportStudentsExcel,
 };
-
