@@ -905,12 +905,10 @@ export default function StudentDatabasePage() {
     const q = search.toLowerCase().trim();
 
     return students.filter((s) => {
-      const erpSearch = (s.userId?.erpId || s.erpId || "").toString().toLowerCase();
-      if (
-        q &&
-        !s.name.toLowerCase().includes(q) &&
-        !erpSearch.includes(q)
-      )
+      const erpSearch = (s.userId?.erpId || s.erpId || "")
+        .toString()
+        .toLowerCase();
+      if (q && !s.name.toLowerCase().includes(q) && !erpSearch.includes(q))
         return false;
 
       // Course filter — matches any of the ticked courses, regardless
@@ -932,11 +930,9 @@ export default function StudentDatabasePage() {
 
       if (batch !== "All" && String(s.batch) !== batch) return false;
       const studentCgpa = typeof s.cgpa === "number" ? s.cgpa : -1;
-      if (studentCgpa < cgpaOpt.min || studentCgpa > cgpaOpt.max)
-        return false;
+      if (studentCgpa < cgpaOpt.min || studentCgpa > cgpaOpt.max) return false;
       const studentPlacement = s.placementStatus || "Not Placed";
-      if (placement !== "All" && studentPlacement !== placement)
-        return false;
+      if (placement !== "All" && studentPlacement !== placement) return false;
 
       if (selectedIn !== "All") {
         const count = Array.isArray(s.selectedCompanies)

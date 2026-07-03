@@ -77,7 +77,9 @@ export default function CoordinatorDashboard() {
       const diff = Math.ceil((last - today) / (1000 * 60 * 60 * 24));
       return { ...c, daysLeft: diff };
     })
-    .filter((c) => !Number.isNaN(c.daysLeft) && c.daysLeft >= 0 && c.daysLeft <= 7)
+    .filter(
+      (c) => !Number.isNaN(c.daysLeft) && c.daysLeft >= 0 && c.daysLeft <= 7,
+    )
     .sort((a, b) => a.daysLeft - b.daysLeft);
 
   const recentApplications = jobs
@@ -93,7 +95,9 @@ export default function CoordinatorDashboard() {
 
   if (loading) {
     return (
-      <div className="text-center py-20 text-text-muted">Loading dashboard…</div>
+      <div className="text-center py-20 text-text-muted">
+        Loading dashboard…
+      </div>
     );
   }
 
