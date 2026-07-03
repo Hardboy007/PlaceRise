@@ -4,9 +4,11 @@ const Announcement = require("../models/Announcement");
 // Students ko sirf 'Published' announcements dikhani hain
 const getAllAnnouncements = async (req, res) => {
   try {
-    const announcements = await Announcement.find({ status: "Published" }).sort({
-      createdAt: -1,
-    });
+    const announcements = await Announcement.find({ status: "Published" }).sort(
+      {
+        createdAt: -1,
+      },
+    );
     res.json(announcements);
   } catch (error) {
     res.status(500).json({ message: error.message });

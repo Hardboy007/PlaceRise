@@ -36,8 +36,12 @@ const TYPE_CONFIG = {
 };
 
 const TYPES = ["General", "Important", "Urgent"];
-const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")); // 01-12
-const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0")); // 00-59
+const HOURS = Array.from({ length: 12 }, (_, i) =>
+  String(i + 1).padStart(2, "0"),
+); // 01-12
+const MINUTES = Array.from({ length: 60 }, (_, i) =>
+  String(i).padStart(2, "0"),
+); // 00-59
 const PERIODS = ["AM", "PM"];
 
 // Short label for a school name, e.g. "School of Engineering & Computing (SoEC)" -> "SoEC"
@@ -141,7 +145,11 @@ function unwrap(res) {
   if ("data" in res && res.data && typeof res.data === "object") {
     return unwrap(res.data);
   }
-  if ("announcement" in res && res.announcement && typeof res.announcement === "object") {
+  if (
+    "announcement" in res &&
+    res.announcement &&
+    typeof res.announcement === "object"
+  ) {
     return res.announcement;
   }
   return res;
@@ -363,8 +371,12 @@ export default function AnnouncementManagementPage() {
     // real id for this card, refuse to call the delete endpoint at all
     // instead of silently deleting the wrong (or every) row.
     if (id === null || id === undefined) {
-      console.error("Refusing to delete: this announcement has no resolvable id.");
-      setError("Couldn't identify this announcement to delete it. Please refresh and try again.");
+      console.error(
+        "Refusing to delete: this announcement has no resolvable id.",
+      );
+      setError(
+        "Couldn't identify this announcement to delete it. Please refresh and try again.",
+      );
       setDeleteConfirm(null);
       return;
     }
@@ -794,7 +806,10 @@ function TargetAudience({ targetAll, targetSelections, onChange }) {
   const [expandedSchool, setExpandedSchool] = useState(null);
 
   const setAll = (checked) => {
-    onChange({ targetAll: checked, targetSelections: checked ? {} : targetSelections });
+    onChange({
+      targetAll: checked,
+      targetSelections: checked ? {} : targetSelections,
+    });
   };
 
   const isSchoolFullySelected = (schoolObj) => {
@@ -905,7 +920,8 @@ function TargetAudience({ targetAll, targetSelections, onChange }) {
                       {s.school}
                       {partial && (
                         <span className="ml-1.5 text-[10.5px] font-semibold text-indigo-500">
-                          ({selectedCourses.length}/{allCoursesOfSchool(s).length})
+                          ({selectedCourses.length}/
+                          {allCoursesOfSchool(s).length})
                         </span>
                       )}
                     </span>
