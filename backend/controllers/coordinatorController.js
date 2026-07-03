@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const Coordinator = require("../models/Coordinator");
+const Announcement = require("../models/Announcement");
 
 // POST /api/coordinators
 const createCoordinator = async (req, res) => {
@@ -116,9 +117,53 @@ const updateNotificationPreferences = async (req, res) => {
   }
 };
 
+// Helper: Date ko "2 hours ago" jaise relative string me convert karta hai
+const timeAgo = (date) => {
+  const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+  const intervals = [
+    { label: "year", secs: 31536000 },
+    { label: "month", secs: 2592000 },
+    { label: "day", secs: 86400 },
+    { label: "hour", secs: 3600 },
+    { label: "minute", secs: 60 },
+  ];
+  for (const { label, secs } of intervals) {
+    const count = Math.floor(seconds / secs);
+    if (count >= 1) return `${count} ${label}${count > 1 ? "s" : ""} ago`;
+  }
+  return "Just now";
+};
+
+// GET /api/coordinators/me/activity
+const getRecentActivity = async (req, res) => {
+  try {
+    const coordinator = await Coordinator.findOne({ userId: req.user.id });
+    if (!coordinator) {
+      return res.status(404).json({ message: "Coordinator profile not found" });
+    }
+
+    const announcements = await Announcement.find({ createdBy: coordinator._id })
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    const activity = announcements.map((a) => ({
+      action:
+        a.status === "Published"
+          ? `Posted announcement — ${a.title}`
+          : `Saved draft announcement — ${a.title}`,
+      time: timeAgo(a.createdAt),
+    }));
+
+    res.status(200).json(activity);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createCoordinator,
   getMyProfile,
   updateMyProfile,
   updateNotificationPreferences,
+  getRecentActivity,
 };
