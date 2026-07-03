@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Lock, Bell, Shield, User, Save, Key, Check } from "lucide-react";
+import { api } from "../../utils/api";
 
 const notificationOptions = [
   {
@@ -106,6 +107,7 @@ function ChangePasswordModal({ onClose, onSave }) {
     confirm: false,
   });
   const [passError, setPassError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
     setPasswords({ ...passwords, [e.target.name]: e.target.value });
@@ -131,7 +133,7 @@ function ChangePasswordModal({ onClose, onSave }) {
     "bg-[#22C55E]",
   ];
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!passwords.current) {
       setPassError("Enter your current password.");
       return;
@@ -144,7 +146,27 @@ function ChangePasswordModal({ onClose, onSave }) {
       setPassError("Passwords don't match!");
       return;
     }
-    onSave();
+
+    setSubmitting(true);
+    try {
+      const res = await api.put("/auth/change-password", {
+        currentPassword: passwords.current,
+        newPassword: passwords.newPass,
+      });
+
+      if (res.message && res.message.toLowerCase().includes("incorrect")) {
+        setPassError(res.message);
+        setSubmitting(false);
+        return;
+      }
+
+      onSave();
+    } catch (err) {
+      console.error("Failed to change password:", err);
+      setPassError("Something went wrong. Try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -272,9 +294,10 @@ function ChangePasswordModal({ onClose, onSave }) {
           </button>
           <button
             onClick={handleSubmit}
-            className="flex items-center gap-2 bg-[#1E293B] hover:bg-[#3B82F6] text-white text-sm font-semibold px-6 py-2.5 rounded-xl shadow-md transition-all"
+            disabled={submitting}
+            className="flex items-center gap-2 bg-[#1E293B] hover:bg-[#3B82F6] text-white text-sm font-semibold px-6 py-2.5 rounded-xl shadow-md transition-all disabled:opacity-60"
           >
-            <Key size={14} /> Update Password
+            <Key size={14} /> {submitting ? "Updating..." : "Update Password"}
           </button>
         </div>
       </div>
@@ -293,17 +316,53 @@ export default function StudentSettingsPage() {
     weeklyDigest: false,
     smsNotifications: false,
   });
+  const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
   const [activeTab, setActiveTab] = useState("security");
-  const profileCompletion = 70;
+  const [profileCompletion, setProfileCompletion] = useState(0);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const student = await api.get("/students/me");
+        if (student.notificationPreferences) {
+          setToggles(student.notificationPreferences);
+        }
+
+        const fields = [
+          "name", "email", "phone", "dob", "gender", "address",
+          "college", "rollNo", "school", "branch", "course",
+          "batch", "cgpa",
+        ];
+        const filled = fields.filter((f) => student[f]).length;
+        setProfileCompletion(Math.round((filled / fields.length) * 100));
+      } catch (err) {
+        console.error("Failed to load student settings:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   const handleToggle = (key) =>
     setToggles((prev) => ({ ...prev, [key]: !prev[key] }));
   const activeNotifs = Object.values(toggles).filter(Boolean).length;
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const handleSave = async () => {
+    if (activeTab === "notifications") {
+      try {
+        const updated = await api.put("/students/me/notifications", toggles);
+        setToggles(updated);
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+      } catch (err) {
+        console.error("Failed to save notification preferences:", err);
+      }
+    } else {
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    }
   };
 
   const handlePasswordSave = () => {
@@ -311,6 +370,12 @@ export default function StudentSettingsPage() {
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
+
+  if (loading) {
+    return (
+      <div className="text-center py-20 text-[#64748B]">Loading...</div>
+    );
+  }
 
   return (
     <div
