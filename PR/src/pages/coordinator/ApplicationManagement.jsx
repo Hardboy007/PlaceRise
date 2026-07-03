@@ -632,7 +632,7 @@ export default function ApplicationsManagementPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const jobsData = await api.get("/companies/jobs");
+      const jobsData = await api.get("/jobs");
       const studentsData = await api.get("/students");
 
       // Filter out jobs whose company has been deleted (orphaned jobs).
