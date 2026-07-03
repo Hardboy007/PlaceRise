@@ -94,7 +94,9 @@ const changePassword = async (req, res) => {
     const userId = req.user.id;
 
     if (!currentPassword || !newPassword) {
-      return res.status(400).json({ message: "Current and new password are required" });
+      return res
+        .status(400)
+        .json({ message: "Current and new password are required" });
     }
 
     const user = await User.findById(userId);

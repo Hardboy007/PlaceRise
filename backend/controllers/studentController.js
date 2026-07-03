@@ -31,7 +31,10 @@ const getAllStudents = async (req, res) => {
 const getStudentById = async (req, res) => {
   try {
     const { id } = req.params;
-    const student = await Student.findById(req.params.id).populate('userId', 'erpId email')
+    const student = await Student.findById(req.params.id).populate(
+      "userId",
+      "erpId email",
+    );
 
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
@@ -100,7 +103,7 @@ const updateNotificationPreferences = async (req, res) => {
           smsNotifications,
         },
       },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
     if (!student) {
