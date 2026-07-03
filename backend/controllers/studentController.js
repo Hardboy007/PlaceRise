@@ -1,4 +1,5 @@
 const Student = require("../models/Student");
+const Application = require("../models/Application");
 const csv = require("csv-parser");
 const fs = require("fs");
 const bcrypt = require("bcryptjs");
@@ -17,11 +18,29 @@ const findSchoolAndDept = (course) => {
   return { school: "", department: "" };
 };
 
+const enrichStudentWithPlacementData = async (student) => {
+  const studentObject = student.toObject ? student.toObject() : { ...student };
+  const selectedApplications = await Application.find({
+    studentId: student._id,
+    status: "Selected",
+  });
+
+  return {
+    ...studentObject,
+    placementStatus:
+      selectedApplications.length > 0 ? "Placed" : "Not Placed",
+    selectedCompanies: selectedApplications.map((application) => application.jobId),
+  };
+};
+
 // GET all students
 const getAllStudents = async (req, res) => {
   try {
     const students = await Student.find().populate("userId", "erpId email");
-    res.json(students);
+    const studentsWithPlacement = await Promise.all(
+      students.map((student) => enrichStudentWithPlacementData(student)),
+    );
+    res.json(studentsWithPlacement);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -40,7 +59,8 @@ const getStudentById = async (req, res) => {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    res.json(student);
+    const studentWithPlacement = await enrichStudentWithPlacementData(student);
+    res.json(studentWithPlacement);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -53,7 +73,8 @@ const getMyProfile = async (req, res) => {
     if (!student) {
       return res.status(404).json({ message: "Student profile not found" });
     }
-    res.json(student);
+    const studentWithPlacement = await enrichStudentWithPlacementData(student);
+    res.json(studentWithPlacement);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
