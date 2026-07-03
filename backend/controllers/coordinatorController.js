@@ -3,28 +3,20 @@ const User = require("../models/User");
 const Coordinator = require("../models/Coordinator");
 
 // POST /api/coordinators
-// Admin nayi coordinator add kare
 const createCoordinator = async (req, res) => {
   try {
     const { name, email, erpId, password, designation, department, college } =
       req.body;
 
-    // Validation
     if (
-      !name ||
-      !email ||
-      !erpId ||
-      !password ||
-      !designation ||
-      !department ||
-      !college
+      !name || !email || !erpId || !password ||
+      !designation || !department || !college
     ) {
       return res
         .status(400)
         .json({ message: "All fields are required including college" });
     }
 
-    // Check duplicate
     const existingUser = await User.findOne({ $or: [{ email }, { erpId }] });
     if (existingUser) {
       return res
@@ -32,11 +24,9 @@ const createCoordinator = async (req, res) => {
         .json({ message: "User with this email or erpId already exists" });
     }
 
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // User create karo (role: coordinator)
     const user = await User.create({
       erpId,
       email,
@@ -44,7 +34,6 @@ const createCoordinator = async (req, res) => {
       role: "coordinator",
     });
 
-    // Coordinator create karo (userId linked)
     const coordinator = await Coordinator.create({
       userId: user._id,
       name,
@@ -60,4 +49,76 @@ const createCoordinator = async (req, res) => {
   }
 };
 
-module.exports = { createCoordinator };
+// GET /api/coordinators/me
+const getMyProfile = async (req, res) => {
+  try {
+    const coordinator = await Coordinator.findOne({ userId: req.user.id });
+    if (!coordinator) {
+      return res.status(404).json({ message: "Coordinator profile not found" });
+    }
+    res.status(200).json(coordinator);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// PUT /api/coordinators/me
+const updateMyProfile = async (req, res) => {
+  try {
+    const { name, phone, designation, department, college } = req.body;
+
+    const coordinator = await Coordinator.findOneAndUpdate(
+      { userId: req.user.id },
+      { name, phone, designation, department, college },
+      { new: true, runValidators: true }
+    );
+
+    if (!coordinator) {
+      return res.status(404).json({ message: "Coordinator profile not found" });
+    }
+
+    res.status(200).json(coordinator);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// PUT /api/coordinators/me/notifications
+const updateNotificationPreferences = async (req, res) => {
+  try {
+    const {
+      emailNotifications,
+      applicationUpdates,
+      newCompanyAlerts,
+      weeklyReport,
+    } = req.body;
+
+    const coordinator = await Coordinator.findOneAndUpdate(
+      { userId: req.user.id },
+      {
+        notificationPreferences: {
+          emailNotifications,
+          applicationUpdates,
+          newCompanyAlerts,
+          weeklyReport,
+        },
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!coordinator) {
+      return res.status(404).json({ message: "Coordinator profile not found" });
+    }
+
+    res.status(200).json(coordinator.notificationPreferences);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = {
+  createCoordinator,
+  getMyProfile,
+  updateMyProfile,
+  updateNotificationPreferences,
+};

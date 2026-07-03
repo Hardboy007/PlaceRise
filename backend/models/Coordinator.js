@@ -18,26 +18,36 @@ const coordinatorSchema = new mongoose.Schema({
     lowercase: true,
     trim: true,
   },
-
+  phone: {
+    type: String,
+    default: "",
+  },
   designation: {
     type: String,
     required: true,
-    // e.g. "Training & Placement Officer", "Assistant TPO"
   },
   department: {
     type: String,
     required: true,
-    // e.g. "CSE", "ECE", "Mechanical"
   },
   college: {
     type: String,
     required: true,
-    // e.g. "ABC Engineering College"
+  },
+  activeSince: {
+    type: String,
+    default: () => new Date().getFullYear().toString(),
+  },
+  notificationPreferences: {
+    emailNotifications: { type: Boolean, default: true },
+    applicationUpdates: { type: Boolean, default: true },
+    newCompanyAlerts: { type: Boolean, default: false },
+    weeklyReport: { type: Boolean, default: true },
   },
   role: {
     type: String,
     default: "coordinator",
-    enum: ["coordinator"], // sirf yahi value allowed - kabhi change nahi hogi
+    enum: ["coordinator"],
     immutable: true,
   },
   createdAt: {
