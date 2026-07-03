@@ -41,6 +41,18 @@ const SELECTED_IN = [
   "3+ companies",
 ];
 
+const getStudentCourse = (student) => student?.course || student?.branch || "";
+const getStudentErpId = (student) => student?.userId?.erpId || student?.erpId || "";
+const getPlacementStatus = (student) =>
+  student?.placementStatus === "Placed" ||
+  (Array.isArray(student?.selectedCompanies) && student.selectedCompanies.length > 0)
+    ? "Placed"
+    : "Not Placed";
+const getSelectedCompanyCount = (student) =>
+  Array.isArray(student?.selectedCompanies)
+    ? student.selectedCompanies.length
+    : Number(student?.selectedCompanies ?? 0) || 0;
+
 // ── SVG Icons ─────────────────────────────────────────────────
 const Icon = {
   search: (
@@ -697,7 +709,7 @@ function StudentModal({ student, onClose }) {
                 {student.name}
               </h2>
               <p style={{ color: C.textMuted }} className="text-sm">
-                {student.erpId} · {student.branch} · Batch {student.batch}
+                {getStudentErpId(student)} · {getStudentCourse(student)} · Batch {student.batch}
               </p>
             </div>
           </div>
@@ -732,7 +744,7 @@ function StudentModal({ student, onClose }) {
             <InfoRow
               icon={Icon.building}
               label="Course"
-              value={student.branch}
+              value={getStudentCourse(student)}
             />
             <InfoRow icon={Icon.cgpa} label="Batch" value={student.batch} />
             <InfoRow
@@ -896,24 +908,34 @@ export default function StudentDatabasePage() {
     const q = search.toLowerCase().trim();
 
     return students.filter((s) => {
-      if (
-        q &&
-        !s.name.toLowerCase().includes(q) &&
-        !s.erpId.toLowerCase().includes(q)
-      )
-        return false;
+      const studentName = String(s.name || "").toLowerCase();
+      const studentErpId = String(getStudentErpId(s)).toLowerCase();
+      const studentCourse = String(getStudentCourse(s)).toLowerCase();
 
-      // Course filter — matches any of the ticked courses, regardless
-      // of which school they came from.
-      if (selectedCourses.length > 0 && !selectedCourses.includes(s.branch))
+      if (q && !studentName.includes(q) && !studentErpId.includes(q)) {
         return false;
+      }
+
+      if (
+        selectedCourses.length > 0 &&
+        !selectedCourses.some((option) => option.toLowerCase() === studentCourse)
+      ) {
+        return false;
+      }
 
       if (batch !== "All" && String(s.batch) !== batch) return false;
-      if (s.cgpa < cgpaOpt.min || s.cgpa > cgpaOpt.max) return false;
-      if (placement !== "All" && s.placementStatus !== placement) return false;
+
+      const numericCgpa = Number(s.cgpa);
+      if (cgpaRange !== "All") {
+        if (!Number.isFinite(numericCgpa) || numericCgpa <= 0) return false;
+        if (numericCgpa < cgpaOpt.min || numericCgpa > cgpaOpt.max) return false;
+      }
+
+      const normalizedPlacement = getPlacementStatus(s);
+      if (placement !== "All" && normalizedPlacement !== placement) return false;
 
       if (selectedIn !== "All") {
-        const count = s.selectedCompanies?.length || 0;
+        const count = getSelectedCompanyCount(s);
         if (selectedIn === "0 companies" && count !== 0) return false;
         if (selectedIn === "1 company" && count !== 1) return false;
         if (selectedIn === "2 companies" && count !== 2) return false;
@@ -933,7 +955,7 @@ export default function StudentDatabasePage() {
   ]);
 
   const total = students.length;
-  const placed = students.filter((s) => s.placementStatus === "Placed").length;
+  const placed = students.filter((s) => getPlacementStatus(s) === "Placed").length;
   const avgCgpa =
     total > 0
       ? (students.reduce((a, s) => a + (s.cgpa || 0), 0) / total).toFixed(2)
@@ -1248,11 +1270,11 @@ export default function StudentDatabasePage() {
                   style={{ color: C.textMuted }}
                   className="text-sm font-mono"
                 >
-                  {student.erpId}
+                  {getStudentErpId(student)}
                 </span>
 
                 {/* Course */}
-                <CourseBadge course={student.branch} />
+                <CourseBadge course={getStudentCourse(student)} />
 
                 {/* Batch */}
                 <span style={{ color: C.textMuted }} className="text-sm">
@@ -1287,7 +1309,7 @@ export default function StudentDatabasePage() {
                 </span>
                 {/* Selected In */}
                 <div className="flex flex-wrap gap-1">
-                  {(student.selectedCompanies?.length || 0) === 0 ? (
+                  {getSelectedCompanyCount(student) === 0 ? (
                     <span style={{ color: C.textMuted }} className="text-sm">
                       —
                     </span>
@@ -1300,15 +1322,15 @@ export default function StudentDatabasePage() {
                       }}
                       className="border text-xs font-semibold px-2 py-0.5 rounded-full"
                     >
-                      {student.selectedCompanies.length}{" "}
-                      {student.selectedCompanies.length === 1
+                      {getSelectedCompanyCount(student)}{" "}
+                      {getSelectedCompanyCount(student) === 1
                         ? "company"
                         : "companies"}
                     </span>
                   )}
                 </div>
                 {/* Status */}
-                <StatusBadge status={student.placementStatus} />
+                <StatusBadge status={getPlacementStatus(student)} />
               </div>
             );
           })
