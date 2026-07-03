@@ -330,9 +330,19 @@ export default function StudentSettingsPage() {
         }
 
         const fields = [
-          "name", "email", "phone", "dob", "gender", "address",
-          "college", "rollNo", "school", "branch", "course",
-          "batch", "cgpa",
+          "name",
+          "email",
+          "phone",
+          "dob",
+          "gender",
+          "address",
+          "college",
+          "rollNo",
+          "school",
+          "branch",
+          "course",
+          "batch",
+          "cgpa",
         ];
         const filled = fields.filter((f) => student[f]).length;
         setProfileCompletion(Math.round((filled / fields.length) * 100));
@@ -372,9 +382,7 @@ export default function StudentSettingsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="text-center py-20 text-[#64748B]">Loading...</div>
-    );
+    return <div className="text-center py-20 text-[#64748B]">Loading...</div>;
   }
 
   return (

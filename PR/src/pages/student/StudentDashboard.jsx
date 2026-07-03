@@ -346,6 +346,24 @@ function jobSortDate(job) {
   return d && !isNaN(d) ? d.getTime() : 0;
 }
 
+// A job posting past its lastDate (application deadline) shouldn't count
+// as "open" even if status is still Active in the DB — coordinators don't
+// always manually flip status to Closed once the deadline passes.
+function isStillOpen(job) {
+  if (!job.lastDate) return true; // no deadline set => treat as open
+  const deadline = new Date(job.lastDate);
+  if (isNaN(deadline)) return true;
+  const endOfDeadlineDay = new Date(
+    deadline.getFullYear(),
+    deadline.getMonth(),
+    deadline.getDate(),
+    23,
+    59,
+    59,
+  );
+  return endOfDeadlineDay >= new Date();
+}
+
 const POLL_INTERVAL_MS = 6000; // matches the polling interval used on StudentApplication
 
 // ─── Main Component ───────────────────────────────────────────
@@ -364,6 +382,7 @@ export default function PlacementDashboard() {
   const [applicationsLoading, setApplicationsLoading] = useState(true);
 
   const student = JSON.parse(localStorage.getItem("student") || "{}");
+  const currentYear = new Date().getFullYear();
   const todayLabel = new Date().toLocaleDateString("en-IN", {
     weekday: "long",
     day: "2-digit",
@@ -435,11 +454,26 @@ export default function PlacementDashboard() {
     .filter((a) => isAnnouncementForStudent(a, student))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-  // Only jobs eligible for this student's school, latest 4 for the dashboard.
+  // A job posting whose company was deleted still exists in the DB, but
+  // populate("companyId") comes back null for it — those must never show
+  // up or count as "open", so this drops them before anything else runs.
+  const isCompanyStillActive = (job) =>
+    Boolean(job.companyId && job.companyId.name);
+
+  // Only jobs eligible for this student's school+course, AND whose
+  // application deadline (lastDate) hasn't passed yet — a job posting past
+  // its lastDate shouldn't count as "open" even if status is still Active
+  // in the DB (coordinator may not always flip status to Closed manually).
   const eligibleJobs = jobs
+    .filter(isCompanyStillActive)
     .filter((j) => isJobForStudent(j, student))
+    .filter(isStillOpen)
     .sort((a, b) => jobSortDate(b) - jobSortDate(a));
   const latestFourJobs = eligibleJobs.slice(0, 4);
+
+  // "X companies are open" counts each eligible, still-open job posting —
+  // if the same company has 2 roles matching the student's course, that's
+  // 2 separate listings the student can apply to, so it counts as 2.
 
   // "Applied" = total number of applications submitted, regardless of
   // current status (mirrors the "Applied" tab logic in StudentApplication.jsx).
@@ -470,7 +504,7 @@ export default function PlacementDashboard() {
               >
                 <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
               </svg>
-              Placement Season 2026
+              Placement Season {currentYear}
             </span>
             <h1 className="text-4xl font-bold text-white mb-1">
               Hey {student.name},

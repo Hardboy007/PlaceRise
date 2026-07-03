@@ -10,8 +10,13 @@ const createCoordinator = async (req, res) => {
       req.body;
 
     if (
-      !name || !email || !erpId || !password ||
-      !designation || !department || !college
+      !name ||
+      !email ||
+      !erpId ||
+      !password ||
+      !designation ||
+      !department ||
+      !college
     ) {
       return res
         .status(400)
@@ -71,7 +76,7 @@ const updateMyProfile = async (req, res) => {
     const coordinator = await Coordinator.findOneAndUpdate(
       { userId: req.user.id },
       { name, phone, designation, department, college },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
     if (!coordinator) {
@@ -104,7 +109,7 @@ const updateNotificationPreferences = async (req, res) => {
           weeklyReport,
         },
       },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
     if (!coordinator) {
@@ -142,7 +147,9 @@ const getRecentActivity = async (req, res) => {
       return res.status(404).json({ message: "Coordinator profile not found" });
     }
 
-    const announcements = await Announcement.find({ createdBy: coordinator._id })
+    const announcements = await Announcement.find({
+      createdBy: coordinator._id,
+    })
       .sort({ createdAt: -1 })
       .limit(5);
 
