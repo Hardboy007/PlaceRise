@@ -323,8 +323,17 @@ export default function AnnouncementManagementPage() {
 
   const updateForm = (patch) => setForm((prev) => ({ ...prev, ...patch }));
 
+  // Title AND description are both required by the backend schema
+  // (Announcement.description has `required: true`). Previously only
+  // title was validated on the frontend — leaving description blank
+  // made Mongoose reject the create on the server, but since api.js
+  // didn't throw on non-2xx responses, that failure was silently
+  // swallowed and the modal just closed as if it had worked. Validating
+  // both fields here stops the broken request from ever being sent.
+  const isFormValid = form.title.trim() && form.description.trim();
+
   const handleSave = async () => {
-    if (!form.title.trim() || saving) return;
+    if (!isFormValid || saving) return;
     setSaving(true);
     setError("");
 
@@ -360,7 +369,10 @@ export default function AnnouncementManagementPage() {
       closeModal();
     } catch (err) {
       console.error("Failed to save announcement:", err);
-      setError("Could not save the announcement. Please try again.");
+      // api.js now throws on non-2xx responses with the backend's actual
+      // message (e.g. a Mongoose validation error), so show that instead
+      // of a generic string whenever we have one.
+      setError(err.message || "Could not save the announcement. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -386,7 +398,7 @@ export default function AnnouncementManagementPage() {
       await fetchAnnouncements();
     } catch (err) {
       console.error("Failed to delete announcement:", err);
-      setError("Could not delete the announcement. Please try again.");
+      setError(err.message || "Could not delete the announcement. Please try again.");
     } finally {
       setDeletingId(null);
       setDeleteConfirm(null);
@@ -613,8 +625,9 @@ export default function AnnouncementManagementPage() {
                 />
               </FormField>
 
-              {/* Description */}
-              <FormField label="Description">
+              {/* Description — required by the backend schema, so marked
+                  required here too and validated before the request is sent */}
+              <FormField label="Description" required>
                 <textarea
                   value={form.description}
                   onChange={(e) => updateForm({ description: e.target.value })}
@@ -716,7 +729,7 @@ export default function AnnouncementManagementPage() {
                 </button>
                 <button
                   onClick={handleSave}
-                  disabled={!form.title.trim() || saving}
+                  disabled={!isFormValid || saving}
                   className="px-5 py-2 text-[13px] font-semibold text-white rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   style={{
                     background: TYPE_CONFIG[form.type]?.glow ?? "#1e293b",
