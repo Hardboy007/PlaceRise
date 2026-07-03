@@ -20,14 +20,6 @@ import {
 } from "lucide-react";
 import { api } from "../../utils/api";
 
-const activityLog = [
-  { action: "Shortlisted 3 students for Google SWE", time: "2 hours ago" },
-  { action: "Added Microsoft — Product Engineer JD", time: "Yesterday" },
-  { action: "Posted announcement — Amazon drive update", time: "2 days ago" },
-  { action: "Updated TCS application deadline", time: "3 days ago" },
-  { action: "Marked Priya Verma as Placed", time: "4 days ago" },
-];
-
 const notificationOptions = [
   {
     key: "emailNotifications",
@@ -236,7 +228,27 @@ function PasswordModal({ onClose, onSave }) {
     </div>
   );
 }
-
+function Field({ label, name, icon: Icon, editing, value, onChange }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-xs font-semibold uppercase tracking-widest text-text-muted flex items-center gap-1.5">
+        <Icon size={11} /> {label}
+      </span>
+      {editing ? (
+        <input
+          name={name}
+          value={value || ""}
+          onChange={onChange}
+          className="w-full px-3 py-2 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] bg-[#F8FAFC] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+        />
+      ) : (
+        <span className="text-sm font-medium text-[#1E293B]">
+          {value || "—"}
+        </span>
+      )}
+    </div>
+  );
+}
 export default function CoordinatorProfile() {
   const navigate = useNavigate();
   const [coordinator, setCoordinator] = useState(null);
@@ -245,9 +257,11 @@ export default function CoordinatorProfile() {
   const [form, setForm] = useState(null);
   const [showPassModal, setShowPassModal] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [notifSaved, setNotifSaved] = useState(false);
   const [placedCount, setPlacedCount] = useState(0);
   const [totalDrives, setTotalDrives] = useState(0);
   const [totalStudents, setTotalStudents] = useState(0);
+  const [activityLog, setActivityLog] = useState([]);
   const [toggles, setToggles] = useState({
     emailNotifications: true,
     applicationUpdates: true,
@@ -257,23 +271,33 @@ export default function CoordinatorProfile() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const storedCoord = JSON.parse(
-        localStorage.getItem("coordinator") || "{}",
-      );
-      setCoordinator(storedCoord);
+      try {
+        const coordData = await api.get("/coordinators/me");
+        setCoordinator(coordData);
 
-      const students = await api.get("/students");
-      const jobs = await api.get("/companies/jobs");
+        if (coordData.notificationPreferences) {
+          setToggles(coordData.notificationPreferences);
+        }
 
-      setTotalStudents(Array.isArray(students) ? students.length : 0);
-      setPlacedCount(
-        Array.isArray(students)
-          ? students.filter((s) => s.placementStatus === "Placed").length
-          : 0,
-      );
-      setTotalDrives(Array.isArray(jobs) ? jobs.length : 0);
+        const [students, jobs, activity] = await Promise.all([
+          api.get("/students"),
+          api.get("/companies/jobs"),
+          api.get("/coordinators/me/activity"),
+        ]);
 
-      setLoading(false);
+        setTotalStudents(Array.isArray(students) ? students.length : 0);
+        setPlacedCount(
+          Array.isArray(students)
+            ? students.filter((s) => s.placementStatus === "Placed").length
+            : 0,
+        );
+        setTotalDrives(Array.isArray(jobs) ? jobs.length : 0);
+        setActivityLog(Array.isArray(activity) ? activity : []);
+      } catch (err) {
+        console.error("Failed to load coordinator profile:", err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchProfile();
   }, []);
@@ -282,12 +306,25 @@ export default function CoordinatorProfile() {
     setForm({ ...coordinator });
     setEditing(true);
   };
-  const handleSave = () => {
-    setCoordinator({ ...form });
-    setEditing(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+
+  const handleSave = async () => {
+    try {
+      const updated = await api.put("/coordinators/me", {
+        name: form.name,
+        phone: form.phone,
+        designation: form.designation,
+        department: form.department,
+        college: form.college,
+      });
+      setCoordinator(updated);
+      setEditing(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error("Failed to save profile:", err);
+    }
   };
+
   const handleCancel = () => {
     setForm(null);
     setEditing(false);
@@ -297,27 +334,19 @@ export default function CoordinatorProfile() {
   const handleToggle = (key) =>
     setToggles((prev) => ({ ...prev, [key]: !prev[key] }));
 
+  const handleSaveNotifications = async () => {
+    try {
+      const updated = await api.put("/coordinators/me/notifications", toggles);
+      setToggles(updated);
+      setNotifSaved(true);
+      setTimeout(() => setNotifSaved(false), 3000);
+    } catch (err) {
+      console.error("Failed to save notification preferences:", err);
+    }
+  };
+
   const displayData = editing ? form : coordinator;
 
-  const Field = ({ label, name, icon: Icon }) => (
-    <div className="flex flex-col gap-1">
-      <span className="text-xs font-semibold uppercase tracking-widest text-text-muted flex items-center gap-1.5">
-        <Icon size={11} /> {label}
-      </span>
-      {editing ? (
-        <input
-          name={name}
-          value={form[name] || ""}
-          onChange={handleChange}
-          className="w-full px-3 py-2 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] bg-[#F8FAFC] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
-        />
-      ) : (
-        <span className="text-sm font-medium text-[#1E293B]">
-          {displayData[name] || "—"}
-        </span>
-      )}
-    </div>
-  );
   if (loading)
     return <div className="text-center py-20 text-text-muted">Loading...</div>;
   if (!coordinator)
@@ -550,17 +579,23 @@ export default function CoordinatorProfile() {
           </h3>
         </div>
         <div className="flex flex-col gap-2">
-          {activityLog.map((log, i) => (
-            <div
-              key={i}
-              className="flex items-center justify-between p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]"
-            >
-              <p className="text-sm text-[#1E293B]">{log.action}</p>
-              <span className="text-xs text-text-muted shrink-0 ml-4">
-                {log.time}
-              </span>
-            </div>
-          ))}
+          {activityLog.length === 0 ? (
+            <p className="text-sm text-text-muted px-1 py-2">
+              No recent activity yet.
+            </p>
+          ) : (
+            activityLog.map((log, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]"
+              >
+                <p className="text-sm text-[#1E293B]">{log.action}</p>
+                <span className="text-xs text-text-muted shrink-0 ml-4">
+                  {log.time}
+                </span>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
@@ -653,13 +688,10 @@ export default function CoordinatorProfile() {
         </div>
         <div className="px-6 py-4 border-t border-background">
           <button
-            onClick={() => {
-              setSaved(true);
-              setTimeout(() => setSaved(false), 3000);
-            }}
+            onClick={handleSaveNotifications}
             className="flex items-center gap-2 bg-[#1E293B] hover:bg-primary text-white text-sm font-semibold px-6 py-2.5 rounded-xl shadow-md transition-colors"
           >
-            {saved ? (
+            {notifSaved ? (
               <>
                 <Check size={14} /> Saved
               </>
