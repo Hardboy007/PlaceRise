@@ -72,6 +72,9 @@ function StatCard({ icon, label, value, bg, borderColor }) {
   );
 }
 
+// FIXED: erpId lives on the User model, not the Student model. Because the
+// backend populates userId with "erpId email", the correct path is
+// student.userId?.erpId — student.erpId itself is always undefined.
 function NameCell({ student }) {
   if (!student)
     return <span className="text-xs text-[#94A3B8]">Unknown student</span>;
@@ -235,7 +238,7 @@ function JDBanner({ jobs, selectedJobId, setSelectedJobId, selectedJob }) {
                 className="text-[10px] font-semibold uppercase tracking-wide mb-1"
                 style={{ color: "#64748B" }}
               >
-                Branches
+                Eligible Courses
               </p>
               <div className="flex flex-wrap gap-1">
                 {branchList.length === 0 ? (
@@ -288,7 +291,7 @@ function EligibleTab({ selectedJob, allStudents }) {
     });
   }, [selectedJob, allStudents]);
 
-  const cols = "2fr 1.2fr 1fr 0.8fr 0.8fr";
+  const cols = "2fr 1.2fr 1.4fr 0.8fr 0.8fr";
 
   return (
     <div className="space-y-4">
@@ -309,7 +312,7 @@ function EligibleTab({ selectedJob, allStudents }) {
         />
         <StatCard
           icon={<Building2 size={20} color="#8B5CF6" />}
-          label="Branches"
+          label="Courses"
           value={selectedJob?.eligibleBranches?.length || 0}
           bg="#F5F3FF"
           borderColor="#DDD6FE"
@@ -331,10 +334,10 @@ function EligibleTab({ selectedJob, allStudents }) {
             gridTemplateColumns: cols,
             padding: "12px 20px",
             backgroundColor: "#F1F5F9",
-            minWidth: "600px",
+            minWidth: "650px",
           }}
         >
-          {["Name", "ERP ID", "Branch", "CGPA", "Backlogs"].map((h) => (
+          {["Name", "ERP ID", "Course", "CGPA", "Backlogs"].map((h) => (
             <span
               key={h}
               className="text-[10px] font-bold uppercase tracking-wider"
@@ -363,13 +366,15 @@ function EligibleTab({ selectedJob, allStudents }) {
                 padding: "14px 20px",
                 borderBottom:
                   idx !== eligible.length - 1 ? "1px solid #F1F5F9" : "none",
-                minWidth: "600px",
+                minWidth: "650px",
               }}
             >
               <NameCell student={student} />
+              {/* FIXED: erpId comes from populated userId, not student.erpId */}
               <span className="text-xs font-mono" style={{ color: "#64748B" }}>
-                {student.erpId}
+                {student.userId?.erpId || "—"}
               </span>
+              {/* FIXED: show course (e.g. "B.Tech CSE") instead of branch/department */}
               <span
                 className="border text-xs font-semibold px-2.5 py-0.5 rounded-full w-fit"
                 style={{
@@ -378,7 +383,7 @@ function EligibleTab({ selectedJob, allStudents }) {
                   borderColor: "#BFDBFE",
                 }}
               >
-                {student.branch}
+                {student.course || "—"}
               </span>
               <span
                 className="text-sm font-bold"
@@ -455,7 +460,7 @@ function AppliedTab({ selectedJobId }) {
     [applications],
   );
 
-  const cols = "2fr 1.2fr 1fr 0.8fr 1.1fr 1.8fr";
+  const cols = "2fr 1.2fr 1.4fr 0.8fr 1.1fr 1.8fr";
 
   if (loading)
     return (
@@ -545,10 +550,10 @@ function AppliedTab({ selectedJobId }) {
             gridTemplateColumns: cols,
             padding: "12px 20px",
             backgroundColor: "#F1F5F9",
-            minWidth: "800px",
+            minWidth: "850px",
           }}
         >
-          {["Name", "ERP ID", "Branch", "CGPA", "Applied Date", "Status"].map(
+          {["Name", "ERP ID", "Course", "CGPA", "Applied Date", "Status"].map(
             (h) => (
               <span
                 key={h}
@@ -581,16 +586,18 @@ function AppliedTab({ selectedJobId }) {
                   padding: "14px 20px",
                   borderBottom:
                     idx !== filtered.length - 1 ? "1px solid #F1F5F9" : "none",
-                  minWidth: "800px",
+                  minWidth: "850px",
                 }}
               >
                 <NameCell student={student} />
+                {/* FIXED: erpId comes from populated userId, not student.erpId */}
                 <span
                   className="text-xs font-mono"
                   style={{ color: "#64748B" }}
                 >
-                  {student?.erpId || "—"}
+                  {student?.userId?.erpId || "—"}
                 </span>
+                {/* FIXED: show course instead of branch/department */}
                 <span
                   className="border text-xs font-semibold px-2.5 py-0.5 rounded-full w-fit"
                   style={{
@@ -599,7 +606,7 @@ function AppliedTab({ selectedJobId }) {
                     borderColor: "#BFDBFE",
                   }}
                 >
-                  {student?.branch || "—"}
+                  {student?.course || "—"}
                 </span>
                 <span
                   className="text-sm font-bold"
