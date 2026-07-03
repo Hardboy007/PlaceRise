@@ -372,7 +372,9 @@ export default function AnnouncementManagementPage() {
       // api.js now throws on non-2xx responses with the backend's actual
       // message (e.g. a Mongoose validation error), so show that instead
       // of a generic string whenever we have one.
-      setError(err.message || "Could not save the announcement. Please try again.");
+      setError(
+        err.message || "Could not save the announcement. Please try again.",
+      );
     } finally {
       setSaving(false);
     }
@@ -398,7 +400,9 @@ export default function AnnouncementManagementPage() {
       await fetchAnnouncements();
     } catch (err) {
       console.error("Failed to delete announcement:", err);
-      setError(err.message || "Could not delete the announcement. Please try again.");
+      setError(
+        err.message || "Could not delete the announcement. Please try again.",
+      );
     } finally {
       setDeletingId(null);
       setDeleteConfirm(null);
