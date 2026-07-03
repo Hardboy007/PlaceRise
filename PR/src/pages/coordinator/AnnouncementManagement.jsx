@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { api } from "../../utils/api";
+import universityStructure from "../../data/universityStructure";
 
 const TYPE_CONFIG = {
   Urgent: {
@@ -34,78 +35,351 @@ const TYPE_CONFIG = {
   },
 };
 
-const TARGETS = ["All Students", "CSE", "IT", "ECE", "ME", "CE"];
 const TYPES = ["General", "Important", "Urgent"];
+const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")); // 01-12
+const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0")); // 00-59
+const PERIODS = ["AM", "PM"];
+
+// Short label for a school name, e.g. "School of Engineering & Computing (SoEC)" -> "SoEC"
+function schoolShort(name) {
+  return name?.match(/\(([^)]+)\)/)?.[1] || name || "";
+}
+
+// Flattens every course under a school (across all its departments) into
+// a single array. Used both to "select everything" when a school
+// checkbox is ticked, and to know what "fully selected" means.
+function allCoursesOfSchool(schoolObj) {
+  return (schoolObj?.departments || []).flatMap((d) => d.courses || []);
+}
+
+// Normalizes whatever shape `target.schools` happens to be into
+// `[{ school, courses }]`. Handles the new shape (array of objects),
+// the old shape (array of plain school-name strings), and the legacy
+// single-`school` field, so old announcements still render/edit fine.
+function normalizeTargetSchools(target) {
+  if (!target) return [];
+  if (Array.isArray(target.schools) && target.schools.length) {
+    return target.schools.map((s) =>
+      typeof s === "string" ? { school: s, courses: [] } : s,
+    );
+  }
+  if (target.school) return [{ school: target.school, courses: [] }];
+  return [];
+}
+
+// Human readable summary of who an announcement targets.
+function targetLabel(target) {
+  if (!target || target.all) return "All Students";
+  const schools = normalizeTargetSchools(target);
+  if (!schools.length) return "All Students";
+  if (schools.length === 1) return schoolShort(schools[0].school);
+  return `${schools.length} Schools`;
+}
+
+// Parses a "YYYY-MM-DD" date string as LOCAL time (avoids the classic
+// `new Date("2026-10-09")` UTC-parsing bug that can shift the day back
+// by one depending on the user's timezone) and returns "Monday, 09/10/2026".
+function formatDayDate(dateStr) {
+  if (!dateStr) return "—";
+  const [y, m, d] = dateStr.split("-").map(Number);
+  if (!y || !m || !d) return "—";
+  const dt = new Date(y, m - 1, d);
+  if (isNaN(dt)) return "—";
+  const day = dt.toLocaleDateString("en-IN", { weekday: "long" });
+  const dd = String(d).padStart(2, "0");
+  const mm = String(m).padStart(2, "0");
+  return `${day}, ${dd}/${mm}/${y}`;
+}
+
+// Splits a stored time string into 12hr picker parts. Handles both the
+// new "hh:mm AM/PM" format and legacy 24hr "HH:mm" values so old
+// announcements still edit correctly.
+function to12HourParts(timeStr) {
+  if (!timeStr) return null;
+  const ampm = timeStr.match(/^(\d{1,2}):(\d{2})\s?(AM|PM)$/i);
+  if (ampm) {
+    return {
+      hour: ampm[1].padStart(2, "0"),
+      minute: ampm[2],
+      period: ampm[3].toUpperCase(),
+    };
+  }
+  const legacy = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+  if (legacy) {
+    let h = Number(legacy[1]);
+    const period = h >= 12 ? "PM" : "AM";
+    let hour12 = h % 12;
+    if (hour12 === 0) hour12 = 12;
+    return { hour: String(hour12).padStart(2, "0"), minute: legacy[2], period };
+  }
+  return null;
+}
+
+function formatTime12(hour, minute, period) {
+  return `${hour}:${minute} ${period}`;
+}
+
+function defaultDateTime() {
+  const now = new Date();
+  const date = now.toISOString().split("T")[0];
+  let h = now.getHours();
+  const period = h >= 12 ? "PM" : "AM";
+  let hour12 = h % 12;
+  if (hour12 === 0) hour12 = 12;
+  const minute = String(now.getMinutes()).padStart(2, "0");
+  return { date, hour: String(hour12).padStart(2, "0"), minute, period };
+}
+
+// Unwraps whatever envelope shape the backend happens to respond with
+// (`{data:{...}}`, `{announcement:{...}}`, or the plain object itself)
+// so callers always get the real announcement fields. Previously this
+// only handled `{data:{...}}` — if the API used a different key the
+// unwrapped object came back with no title/date/type at all, which is
+// why some cards were rendering blank.
+function unwrap(res) {
+  if (!res || typeof res !== "object") return res;
+  if ("data" in res && res.data && typeof res.data === "object") {
+    return unwrap(res.data);
+  }
+  if ("announcement" in res && res.announcement && typeof res.announcement === "object") {
+    return res.announcement;
+  }
+  return res;
+}
+
+// Same idea but for list responses.
+function unwrapList(res) {
+  if (Array.isArray(res)) return res;
+  if (!res || typeof res !== "object") return [];
+  if (Array.isArray(res.data)) return res.data;
+  if (Array.isArray(res.announcements)) return res.announcements;
+  return [];
+}
+
+// The backend's id field name isn't guaranteed to be `id` or `_id` —
+// this checks every common variant. Getting this wrong is exactly what
+// caused "delete" to wipe out every card: when the id resolves to
+// `undefined` for every item, the filter `x !== undefined` is false for
+// ALL of them, so everything gets removed instead of just the one row.
+function getAnnId(ann) {
+  return ann?.id ?? ann?._id ?? ann?.announcementId ?? ann?.uuid ?? null;
+}
+
 const EMPTY_FORM = {
   title: "",
   description: "",
   type: "General",
-  target: "All Students",
-  status: "Draft",
+  targetAll: true,
+  // { [schoolName]: string[] of selected course names under that school }
+  targetSelections: {},
+  room: "",
+  ...defaultDateTime(),
 };
+
+// Live current date + time, ticks every second so it rolls over to the
+// next day/minute on its own without needing a page refresh.
+function useLiveClock() {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+}
+
+function LiveDateTimeBar() {
+  const now = useLiveClock();
+  const dayDate = now.toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+  const time = now.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+
+  return (
+    <div className="max-w-4xl mx-auto px-8 pb-4">
+      <div className="flex items-center justify-center gap-2 text-[12.5px] font-semibold text-slate-500 bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5">
+        <svg
+          className="w-3.5 h-3.5 text-slate-400"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+        <span>{dayDate}</span>
+        <span className="text-slate-300">•</span>
+        <span className="tabular-nums">{time}</span>
+      </div>
+    </div>
+  );
+}
 
 export default function AnnouncementManagementPage() {
   const [announcements, setAnnouncements] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  // Pulled out so it can be re-run after create/update/delete. Re-fetching
+  // from the server (instead of patching local state with whatever the
+  // mutation endpoint happened to return) guarantees the cards always show
+  // exactly what's actually saved — this is what fixes the "I filled in
+  // details but nothing shows" bug, since it no longer matters how the
+  // backend shapes its create/update response.
+  const fetchAnnouncements = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const data = await api.get("/announcements");
+      setAnnouncements(unwrapList(data));
+    } catch (err) {
+      console.error("Failed to load announcements:", err);
+      setError("Could not load announcements. Please refresh the page.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchAnnouncements = async () => {
-      const data = await api.get("/announcements");
-      setAnnouncements(Array.isArray(data) ? data : data?.data || []);
-    };
     fetchAnnouncements();
-  }, []);
+  }, [fetchAnnouncements]);
 
   const openCreate = () => {
     setEditingId(null);
-    setForm(EMPTY_FORM);
+    setForm({ ...EMPTY_FORM, ...defaultDateTime() });
     setModalOpen(true);
   };
+
   const openEdit = (ann) => {
-    setEditingId(ann.id);
+    const id = getAnnId(ann);
+    setEditingId(id);
+    const dt = defaultDateTime();
+    const parts = to12HourParts(ann.time) || {
+      hour: dt.hour,
+      minute: dt.minute,
+      period: dt.period,
+    };
+
+    // Rebuild the { school: [courses] } selection map from whatever the
+    // server stored. Legacy / whole-school entries (no explicit course
+    // list) are expanded to every course under that school so the UI
+    // shows the school as fully ticked.
+    const schools = normalizeTargetSchools(ann.target);
+    const targetSelections = {};
+    schools.forEach(({ school, courses }) => {
+      if (courses && courses.length) {
+        targetSelections[school] = courses;
+      } else {
+        const schoolObj = universityStructure.find((s) => s.school === school);
+        targetSelections[school] = allCoursesOfSchool(schoolObj);
+      }
+    });
+
     setForm({
-      title: ann.title,
-      description: ann.description,
-      type: ann.type,
-      target: ann.target,
-      status: ann.status,
+      title: ann.title || "",
+      description: ann.description || "",
+      type: ann.type || "General",
+      targetAll: ann.target?.all ?? true,
+      targetSelections,
+      room: ann.room || "",
+      date: ann.date || dt.date,
+      hour: parts.hour,
+      minute: parts.minute,
+      period: parts.period,
     });
     setModalOpen(true);
   };
+
   const closeModal = () => {
     setModalOpen(false);
     setEditingId(null);
     setForm(EMPTY_FORM);
   };
 
+  const updateForm = (patch) => setForm((prev) => ({ ...prev, ...patch }));
+
   const handleSave = async () => {
-    if (!form.title.trim()) return;
-    if (editingId !== null) {
-      // update baad mein
+    if (!form.title.trim() || saving) return;
+    setSaving(true);
+    setError("");
+
+    // Only include schools that actually have at least one course
+    // selected. Each entry always carries its explicit course list —
+    // whether that's "all courses" (whole school ticked) or a partial
+    // subset — so there's no ambiguity on the reading side (student
+    // dashboard) about what "selecting a school" means.
+    const schoolsPayload = Object.entries(form.targetSelections)
+      .filter(([, courses]) => courses && courses.length > 0)
+      .map(([school, courses]) => ({ school, courses }));
+
+    const payload = {
+      title: form.title,
+      description: form.description,
+      type: form.type,
+      target: form.targetAll
+        ? { all: true, schools: [] }
+        : { all: false, schools: schoolsPayload },
+      room: form.room,
+      date: form.date,
+      time: formatTime12(form.hour, form.minute, form.period),
+    };
+
+    try {
+      if (editingId !== null) {
+        await api.put(`/announcements/${editingId}`, payload);
+      } else {
+        await api.post("/announcements", payload);
+      }
+      // Re-fetch so the list is always the source of truth from the server.
+      await fetchAnnouncements();
       closeModal();
-    } else {
-      const newAnn = await api.post("/announcements", {
-        ...form,
-        date: new Date().toISOString().split("T")[0],
-      });
-      setAnnouncements((prev) => [newAnn, ...prev]);
-      closeModal();
+    } catch (err) {
+      console.error("Failed to save announcement:", err);
+      setError("Could not save the announcement. Please try again.");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleDelete = async (id) => {
-    await api.delete(`/announcements/${id}`);
-    setAnnouncements((prev) => prev.filter((a) => (a.id || a._id) !== id));
-    setDeleteConfirm(null);
+    // Guard against the "delete everything" bug: if we can't resolve a
+    // real id for this card, refuse to call the delete endpoint at all
+    // instead of silently deleting the wrong (or every) row.
+    if (id === null || id === undefined) {
+      console.error("Refusing to delete: this announcement has no resolvable id.");
+      setError("Couldn't identify this announcement to delete it. Please refresh and try again.");
+      setDeleteConfirm(null);
+      return;
+    }
+    setDeletingId(id);
+    try {
+      await api.delete(`/announcements/${id}`);
+      await fetchAnnouncements();
+    } catch (err) {
+      console.error("Failed to delete announcement:", err);
+      setError("Could not delete the announcement. Please try again.");
+    } finally {
+      setDeletingId(null);
+      setDeleteConfirm(null);
+    }
   };
-
-  const published = announcements.filter(
-    (a) => a.status === "Published",
-  ).length;
-  const draft = announcements.filter((a) => a.status === "Draft").length;
 
   return (
     <div style={{ fontFamily: "Inter, sans-serif" }}>
@@ -118,20 +392,12 @@ export default function AnnouncementManagementPage() {
       <div className="bg-white border-b border-slate-100 px-8 py-4 sticky top-0 z-20">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-[17px] font-bold text-slate-900 tracking-tight">
+            <h1
+              className="text-[18px] font-extrabold tracking-tight"
+              style={{ color: "#0f172a" }}
+            >
               Announcement Board
             </h1>
-            <div className="flex items-center gap-2 mt-1.5">
-              <StatPill bg="bg-slate-100" text="text-slate-500">
-                {announcements.length} Total
-              </StatPill>
-              <StatPill bg="bg-emerald-50" text="text-emerald-700">
-                {published} Live
-              </StatPill>
-              <StatPill bg="bg-amber-50" text="text-amber-700">
-                {draft} Draft
-              </StatPill>
-            </div>
           </div>
           <button
             onClick={openCreate}
@@ -155,62 +421,81 @@ export default function AnnouncementManagementPage() {
         </div>
       </div>
 
+      {/* ── Error banner ── */}
+      {error && (
+        <div className="max-w-4xl mx-auto px-8 pt-4">
+          <div className="flex items-center justify-between gap-3 text-[12.5px] font-semibold text-rose-600 bg-rose-50 border border-rose-100 rounded-xl px-4 py-2.5">
+            <span>{error}</span>
+            <button
+              onClick={() => setError("")}
+              className="text-rose-400 hover:text-rose-600"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Live date/time bar, ticks every second so it rolls to the next day on its own ── */}
+      <LiveDateTimeBar />
+
       {/* ── Card Feed ── */}
-      <div className="max-w-4xl mx-auto px-8 py-7 space-y-3">
-        {announcements.length === 0 && (
+      <div className="max-w-4xl mx-auto px-8 pb-7 space-y-3">
+        {loading && announcements.length === 0 && (
+          <div className="text-center py-24 text-slate-400 text-sm">
+            Loading announcements…
+          </div>
+        )}
+
+        {!loading && announcements.length === 0 && (
           <div className="text-center py-24 text-slate-400 text-sm">
             No announcements yet. Create one!
           </div>
         )}
 
         {announcements.map((ann) => {
+          const id = getAnnId(ann);
           const tc = TYPE_CONFIG[ann.type] || TYPE_CONFIG.General;
-          const d = new Date(ann.date);
+          const isDeleting = deletingId === id;
           return (
             <div
-              key={ann.id || ann._id}
-              className={`group bg-white rounded-2xl border border-slate-100 border-l-4 ${tc.border} shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200`}
+              key={id ?? `${ann.title}-${ann.date}-${ann.time}`}
+              className={`group bg-white rounded-2xl border border-slate-100 border-l-4 ${tc.border} shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${isDeleting ? "opacity-40" : ""}`}
             >
               <div className="flex items-stretch gap-0 px-5 py-4">
-                {/* Date stamp */}
-                <div className="hidden sm:flex flex-col items-center justify-center w-12 shrink-0 mr-4">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                    {d.toLocaleDateString("en-IN", { month: "short" })}
-                  </span>
-                  <span className="text-[22px] font-bold text-slate-800 leading-none mt-0.5">
-                    {d.getDate().toString().padStart(2, "0")}
-                  </span>
-                </div>
-
-                <div className="hidden sm:block w-px bg-slate-100 mr-5" />
-
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-1.5 mb-2">
                     <span
                       className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${tc.badge}`}
                     >
-                      {tc.icon} {ann.type}
+                      {tc.icon} {ann.type || "General"}
                     </span>
                     <span className="text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                      {ann.target}
+                      {targetLabel(ann.target)}
                     </span>
-                    <span
-                      className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-                        ann.status === "Published"
-                          ? "bg-emerald-50 text-emerald-700"
-                          : "bg-slate-100 text-slate-500"
-                      }`}
-                    >
-                      {ann.status === "Published" ? "● Live" : "○ Draft"}
+                    {ann.room && (
+                      <span className="text-[11px] font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+                        📍 {ann.room}
+                      </span>
+                    )}
+                    {/* Date/time badge — always visible now (previously only
+                        shown on mobile, since there used to be a separate
+                        date-stamp column on desktop; that column was removed
+                        so this is now the only place date/time is shown). */}
+                    <span className="text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                      {formatDayDate(ann.date)}
+                      {ann.time ? ` · ${ann.time}` : ""}
                     </span>
                   </div>
                   <h3 className="text-[14.5px] font-bold text-slate-900 leading-snug">
-                    {ann.title}
+                    {ann.title || "(untitled announcement)"}
                   </h3>
-                  <p className="text-[13px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
-                    {ann.description}
-                  </p>
+                  {ann.description && (
+                    <p className="text-[13px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                      {ann.description}
+                    </p>
+                  )}
                 </div>
 
                 {/* Action buttons — appear on hover */}
@@ -234,7 +519,7 @@ export default function AnnouncementManagementPage() {
                     </svg>
                   </button>
                   <button
-                    onClick={() => setDeleteConfirm(ann.id)}
+                    onClick={() => setDeleteConfirm(id)}
                     className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 hover:bg-red-100 text-red-400 transition-colors"
                   >
                     <svg
@@ -265,14 +550,14 @@ export default function AnnouncementManagementPage() {
             className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
             onClick={closeModal}
           />
-          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden modal-pop">
+          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden modal-pop max-h-[90vh] flex flex-col">
             {/* Accent bar — changes colour with type */}
             <div
-              className="h-1.5 w-full transition-colors duration-300"
+              className="h-1.5 w-full shrink-0 transition-colors duration-300"
               style={{ background: TYPE_CONFIG[form.type]?.glow ?? "#64748b" }}
             />
 
-            <div className="px-7 py-6 space-y-5">
+            <div className="px-7 py-6 space-y-5 overflow-y-auto">
               {/* Header */}
               <div className="flex items-start justify-between">
                 <div>
@@ -310,7 +595,7 @@ export default function AnnouncementManagementPage() {
                 <input
                   type="text"
                   value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  onChange={(e) => updateForm({ title: e.target.value })}
                   placeholder="e.g. Amazon SDE Drive – 2025 Batch"
                   className="w-full px-4 py-2.5 text-[13.5px] border border-slate-200 rounded-xl outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 placeholder-slate-300 transition-all"
                 />
@@ -320,76 +605,94 @@ export default function AnnouncementManagementPage() {
               <FormField label="Description">
                 <textarea
                   value={form.description}
-                  onChange={(e) =>
-                    setForm({ ...form, description: e.target.value })
-                  }
+                  onChange={(e) => updateForm({ description: e.target.value })}
                   placeholder="Describe this announcement..."
                   rows={3}
                   className="w-full px-4 py-2.5 text-[13.5px] border border-slate-200 rounded-xl outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 placeholder-slate-300 resize-none transition-all"
                 />
               </FormField>
 
-              {/* Type + Target */}
+              {/* Room / Venue */}
+              <FormField label="Room / Venue">
+                <input
+                  type="text"
+                  value={form.room}
+                  onChange={(e) => updateForm({ room: e.target.value })}
+                  placeholder="e.g. 1012, SOMC Building, First Floor"
+                  className="w-full px-4 py-2.5 text-[13.5px] border border-slate-200 rounded-xl outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 placeholder-slate-300 transition-all"
+                />
+              </FormField>
+
+              {/* Type + Date */}
               <div className="grid grid-cols-2 gap-3">
                 <FormField label="Type">
                   <select
                     value={form.type}
-                    onChange={(e) => setForm({ ...form, type: e.target.value })}
-                    className="w-full px-4 py-2.5 text-[13.5px] border border-slate-200 rounded-xl outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-white transition-all"
+                    onChange={(e) => updateForm({ type: e.target.value })}
+                    className="w-full px-3 py-2.5 text-[13.5px] border border-slate-200 rounded-xl outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-white transition-all"
                   >
                     {TYPES.map((t) => (
                       <option key={t}>{t}</option>
                     ))}
                   </select>
                 </FormField>
-                <FormField label="Target">
-                  <select
-                    value={form.target}
-                    onChange={(e) =>
-                      setForm({ ...form, target: e.target.value })
-                    }
-                    className="w-full px-4 py-2.5 text-[13.5px] border border-slate-200 rounded-xl outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-white transition-all"
-                  >
-                    {TARGETS.map((t) => (
-                      <option key={t}>{t}</option>
-                    ))}
-                  </select>
+                <FormField label="Date">
+                  <input
+                    type="date"
+                    value={form.date}
+                    onChange={(e) => updateForm({ date: e.target.value })}
+                    className="w-full px-3 py-2.5 text-[13.5px] border border-slate-200 rounded-xl outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-white transition-all"
+                  />
                 </FormField>
               </div>
 
-              {/* Status toggle */}
-              <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-                <div>
-                  <p className="text-[13px] font-semibold text-slate-700">
-                    {form.status === "Published"
-                      ? "Live — visible to students"
-                      : "Draft — hidden from students"}
-                  </p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
-                    Toggle to change
-                  </p>
+              {/* Time — 12hr with AM/PM (cycles 1-12, not 0-23) */}
+              <FormField label="Time">
+                <div className="grid grid-cols-3 gap-2">
+                  <select
+                    value={form.hour}
+                    onChange={(e) => updateForm({ hour: e.target.value })}
+                    className="w-full px-3 py-2.5 text-[13.5px] border border-slate-200 rounded-xl outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-white transition-all"
+                  >
+                    {HOURS.map((h) => (
+                      <option key={h} value={h}>
+                        {h}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={form.minute}
+                    onChange={(e) => updateForm({ minute: e.target.value })}
+                    className="w-full px-3 py-2.5 text-[13.5px] border border-slate-200 rounded-xl outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-white transition-all"
+                  >
+                    {MINUTES.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={form.period}
+                    onChange={(e) => updateForm({ period: e.target.value })}
+                    className="w-full px-3 py-2.5 text-[13.5px] border border-slate-200 rounded-xl outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-white transition-all"
+                  >
+                    {PERIODS.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-                <button
-                  onClick={() =>
-                    setForm({
-                      ...form,
-                      status:
-                        form.status === "Published" ? "Draft" : "Published",
-                    })
-                  }
-                  className={`relative w-12 h-6 rounded-full transition-colors duration-200 ${
-                    form.status === "Published"
-                      ? "bg-emerald-500"
-                      : "bg-slate-300"
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
-                      form.status === "Published" ? "translate-x-6" : ""
-                    }`}
-                  />
-                </button>
-              </div>
+              </FormField>
+
+              {/* Target Audience — All, or expand a school to tick individual
+                  courses. Ticking a school ticks all its courses; ticking
+                  just a course leaves the rest of the school untouched. */}
+              <TargetAudience
+                targetAll={form.targetAll}
+                targetSelections={form.targetSelections}
+                onChange={updateForm}
+              />
 
               {/* Footer */}
               <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
@@ -401,13 +704,17 @@ export default function AnnouncementManagementPage() {
                 </button>
                 <button
                   onClick={handleSave}
-                  disabled={!form.title.trim()}
+                  disabled={!form.title.trim() || saving}
                   className="px-5 py-2 text-[13px] font-semibold text-white rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   style={{
                     background: TYPE_CONFIG[form.type]?.glow ?? "#1e293b",
                   }}
                 >
-                  {editingId ? "Save Changes" : "Create Announcement"}
+                  {saving
+                    ? "Saving…"
+                    : editingId
+                      ? "Save Changes"
+                      : "Create Announcement"}
                 </button>
               </div>
             </div>
@@ -416,7 +723,7 @@ export default function AnnouncementManagementPage() {
       )}
 
       {/* ── Delete Confirm ── */}
-      {deleteConfirm && (
+      {deleteConfirm !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
@@ -473,13 +780,219 @@ export default function AnnouncementManagementPage() {
   );
 }
 
-function StatPill({ bg, text, children }) {
+// ── Target Audience: All Students, or expand a school to see its
+// departments/courses and tick them individually.
+//
+// Behaviour:
+// - Ticking the SCHOOL checkbox selects every course under it in one go.
+// - Unticking the SCHOOL checkbox clears every course under it.
+// - Ticking/unticking an individual COURSE only affects that course —
+//   e.g. picking just 2 out of SoEC's 5 courses leaves the other 3 untouched
+//   and the school checkbox shows as partially selected (indeterminate).
+// - Only ONE school's dropdown stays open at a time.
+function TargetAudience({ targetAll, targetSelections, onChange }) {
+  const [expandedSchool, setExpandedSchool] = useState(null);
+
+  const setAll = (checked) => {
+    onChange({ targetAll: checked, targetSelections: checked ? {} : targetSelections });
+  };
+
+  const isSchoolFullySelected = (schoolObj) => {
+    const selected = targetSelections[schoolObj.school] || [];
+    const total = allCoursesOfSchool(schoolObj);
+    return total.length > 0 && selected.length === total.length;
+  };
+
+  const isSchoolPartiallySelected = (schoolObj) => {
+    const selected = targetSelections[schoolObj.school] || [];
+    return selected.length > 0 && !isSchoolFullySelected(schoolObj);
+  };
+
+  const toggleSchool = (schoolObj) => {
+    const fully = isSchoolFullySelected(schoolObj);
+    const next = { ...targetSelections };
+    if (fully) {
+      delete next[schoolObj.school];
+    } else {
+      next[schoolObj.school] = allCoursesOfSchool(schoolObj);
+    }
+    onChange({ targetAll: false, targetSelections: next });
+  };
+
+  const toggleCourse = (school, course) => {
+    const current = targetSelections[school] || [];
+    const next = { ...targetSelections };
+    if (current.includes(course)) {
+      const updated = current.filter((c) => c !== course);
+      if (updated.length) next[school] = updated;
+      else delete next[school];
+    } else {
+      next[school] = [...current, course];
+    }
+    onChange({ targetAll: false, targetSelections: next });
+  };
+
+  const toggleExpand = (school) => {
+    setExpandedSchool((prev) => (prev === school ? null : school));
+  };
+
+  const selectAllSchools = () => {
+    const next = {};
+    universityStructure.forEach((s) => {
+      next[s.school] = allCoursesOfSchool(s);
+    });
+    onChange({ targetAll: false, targetSelections: next });
+  };
+
+  const selectedSchoolCount = Object.values(targetSelections).filter(
+    (courses) => courses && courses.length > 0,
+  ).length;
+
   return (
-    <span
-      className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${bg} ${text}`}
-    >
-      {children}
-    </span>
+    <div>
+      <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
+        Target Audience
+      </label>
+
+      <label className="flex items-center gap-2.5 px-3.5 py-2.5 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+        <input
+          type="checkbox"
+          checked={targetAll}
+          onChange={(e) => setAll(e.target.checked)}
+          className="w-4 h-4 accent-slate-900"
+        />
+        <span className="text-[13px] font-semibold text-slate-700">
+          All Students
+        </span>
+      </label>
+
+      {!targetAll && (
+        <div className="mt-2.5 border border-slate-200 rounded-xl p-3 max-h-72 overflow-y-auto">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10.5px] font-bold text-slate-400 uppercase tracking-widest">
+              Schools
+              {selectedSchoolCount > 0 && ` (${selectedSchoolCount})`}
+            </span>
+            <button
+              type="button"
+              onClick={selectAllSchools}
+              className="text-[11px] font-semibold text-indigo-500 hover:underline"
+            >
+              Select all
+            </button>
+          </div>
+
+          <div className="space-y-0.5">
+            {universityStructure.map((s) => {
+              const isExpanded = expandedSchool === s.school;
+              const departments = s.departments || [];
+              const selectedCourses = targetSelections[s.school] || [];
+              const fully = isSchoolFullySelected(s);
+              const partial = isSchoolPartiallySelected(s);
+
+              return (
+                <div key={s.school} className="rounded-lg overflow-hidden">
+                  <div className="flex items-center gap-2.5 px-1 py-1.5 text-[13px] text-slate-700 hover:bg-slate-50 rounded-lg transition-colors">
+                    <SchoolCheckbox
+                      checked={fully}
+                      indeterminate={partial}
+                      onChange={() => toggleSchool(s)}
+                    />
+                    <span
+                      className="flex-1 cursor-pointer"
+                      onClick={() => toggleSchool(s)}
+                    >
+                      {s.school}
+                      {partial && (
+                        <span className="ml-1.5 text-[10.5px] font-semibold text-indigo-500">
+                          ({selectedCourses.length}/{allCoursesOfSchool(s).length})
+                        </span>
+                      )}
+                    </span>
+                    {departments.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => toggleExpand(s.school)}
+                        className="w-6 h-6 flex items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors shrink-0"
+                      >
+                        <svg
+                          className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                            isExpanded ? "rotate-180" : ""
+                          }`}
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2.5}
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Expanded course list — tick individual courses to
+                      target only part of a school. The school checkbox
+                      above stays in sync automatically (checked when
+                      every course is picked, dash/indeterminate when
+                      only some are). */}
+                  {isExpanded && departments.length > 0 && (
+                    <div className="ml-8 mb-1.5 pl-3 border-l-2 border-slate-100 space-y-2">
+                      {departments.map((dept) => (
+                        <div key={dept.name}>
+                          <div className="text-[11px] font-bold text-slate-500 mb-1">
+                            {dept.name}
+                          </div>
+                          <div className="flex flex-wrap gap-x-3 gap-y-1.5">
+                            {(dept.courses || []).map((c) => (
+                              <label
+                                key={c}
+                                className="flex items-center gap-1.5 cursor-pointer"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={selectedCourses.includes(c)}
+                                  onChange={() => toggleCourse(s.school, c)}
+                                  className="w-3.5 h-3.5 accent-indigo-500"
+                                />
+                                <span className="text-[11.5px] text-slate-600">
+                                  {c}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Native checkboxes can't express an indeterminate (dash) state through
+// props — it has to be set imperatively on the DOM node via a ref.
+function SchoolCheckbox({ checked, indeterminate, onChange }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (ref.current) ref.current.indeterminate = indeterminate && !checked;
+  }, [indeterminate, checked]);
+  return (
+    <input
+      ref={ref}
+      type="checkbox"
+      checked={checked}
+      onChange={onChange}
+      className="w-4 h-4 accent-indigo-500 shrink-0"
+    />
   );
 }
 

@@ -1,5 +1,19 @@
 const JobPosting = require("../models/JobPosting");
 
+// GET /api/jobs
+// Returns all active job postings, newest first, with company name populated.
+// (Students' dashboard/company-list pages need this — it didn't exist before.)
+const getJobs = async (req, res) => {
+  try {
+    const jobs = await JobPosting.find({ status: "Active" })
+      .populate("companyId", "name")
+      .sort({ createdAt: -1 });
+    res.json(jobs);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // POST /api/jobs
 const createJob = async (req, res) => {
   try {
@@ -34,4 +48,4 @@ const deleteJob = async (req, res) => {
   }
 };
 
-module.exports = { createJob, updateJob, deleteJob };
+module.exports = { getJobs, createJob, updateJob, deleteJob };
