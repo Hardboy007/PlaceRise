@@ -41,6 +41,15 @@ const SELECTED_IN = [
   "3+ companies",
 ];
 
+const BRANCH_TO_COURSES = universityStructure.reduce((map, school) => {
+  school.departments.forEach((dept) => {
+    if (dept.name) {
+      map[dept.name] = dept.courses || [];
+    }
+  });
+  return map;
+}, {});
+
 // ── SVG Icons ─────────────────────────────────────────────────
 const Icon = {
   search: (
@@ -896,24 +905,43 @@ export default function StudentDatabasePage() {
     const q = search.toLowerCase().trim();
 
     return students.filter((s) => {
+      const erpSearch = (s.userId?.erpId || s.erpId || "").toString().toLowerCase();
       if (
         q &&
         !s.name.toLowerCase().includes(q) &&
-        !s.erpId.toLowerCase().includes(q)
+        !erpSearch.includes(q)
       )
         return false;
 
       // Course filter — matches any of the ticked courses, regardless
       // of which school they came from.
-      if (selectedCourses.length > 0 && !selectedCourses.includes(s.branch))
+      const studentCourse = s.course || "";
+      const studentBranch = s.branch || "";
+      const branchCourses = BRANCH_TO_COURSES[studentBranch] || [];
+
+      if (
+        selectedCourses.length > 0 &&
+        !selectedCourses.some(
+          (selectedCourse) =>
+            selectedCourse === studentCourse ||
+            branchCourses.includes(selectedCourse),
+        )
+      ) {
         return false;
+      }
 
       if (batch !== "All" && String(s.batch) !== batch) return false;
-      if (s.cgpa < cgpaOpt.min || s.cgpa > cgpaOpt.max) return false;
-      if (placement !== "All" && s.placementStatus !== placement) return false;
+      const studentCgpa = typeof s.cgpa === "number" ? s.cgpa : -1;
+      if (studentCgpa < cgpaOpt.min || studentCgpa > cgpaOpt.max)
+        return false;
+      const studentPlacement = s.placementStatus || "Not Placed";
+      if (placement !== "All" && studentPlacement !== placement)
+        return false;
 
       if (selectedIn !== "All") {
-        const count = s.selectedCompanies?.length || 0;
+        const count = Array.isArray(s.selectedCompanies)
+          ? s.selectedCompanies.length
+          : 0;
         if (selectedIn === "0 companies" && count !== 0) return false;
         if (selectedIn === "1 company" && count !== 1) return false;
         if (selectedIn === "2 companies" && count !== 2) return false;
@@ -1248,11 +1276,11 @@ export default function StudentDatabasePage() {
                   style={{ color: C.textMuted }}
                   className="text-sm font-mono"
                 >
-                  {student.erpId}
+                  {student.userId?.erpId || student.erpId || "—"}
                 </span>
 
                 {/* Course */}
-                <CourseBadge course={student.branch} />
+                <CourseBadge course={student.course || student.branch} />
 
                 {/* Batch */}
                 <span style={{ color: C.textMuted }} className="text-sm">

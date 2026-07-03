@@ -20,7 +20,7 @@ const findSchoolAndDept = (course) => {
 // GET all students
 const getAllStudents = async (req, res) => {
   try {
-    const students = await Student.find();
+    const students = await Student.find().populate("userId", "erpId email");
     res.json(students);
   } catch (error) {
     res.status(500).json({ message: error.message });

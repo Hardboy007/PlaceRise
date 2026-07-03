@@ -38,9 +38,10 @@ const studentSchema = new mongoose.Schema(
       enum: ["Not Placed", "Placed"],
       default: "Not Placed",
     },
-    selectedCompanies: [
-      { type: mongoose.Schema.Types.ObjectId, ref: "JobPosting" },
-    ],
+    selectedCompanies: {
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: "JobPosting" }],
+      default: [],
+    },
 
     // Notification preferences
     notificationPreferences: {

@@ -9,51 +9,8 @@ import {
   Megaphone,
   AlertCircle,
 } from "lucide-react";
-import mockCompanies from "../../data/mockCompanies";
-import mockStudents from "../../data/mockStudents";
-import { useEffect } from "react";
-import { useState } from "react";
-
-// Derived Stats
-const totalStudents = mockStudents.length;
-const placedStudents = mockStudents.filter(
-  (s) => s.placementStatus === "Placed",
-).length;
-const placementPercent = Math.round((placedStudents / totalStudents) * 100);
-const activeCompanies = mockCompanies.length;
-const pendingApplications = mockStudents.reduce(
-  (acc, s) => acc + s.appliedCompanies.length,
-  0,
-);
-
-//Upcoming Deadlines
-const today = new Date();
-const upcomingDeadlines = mockCompanies
-  .map((c) => {
-    const last = new Date(c.lastDate);
-    const diff = Math.ceil((last - today) / (1000 * 60 * 60 * 24));
-    return { ...c, daysLeft: diff };
-  })
-  .filter((c) => c.daysLeft >= 0 && c.daysLeft <= 7)
-  .sort((a, b) => a.daysLeft - b.daysLeft);
-
-//Recent Applications - Last 5
-const recentApplications = mockStudents
-  .flatMap((s) =>
-    s.appliedCompanies.map((cId) => {
-      const company = mockCompanies.find((c) => c.id === cId);
-      return company
-        ? {
-            student: s.name,
-            company: company.company,
-            role: company.role,
-            status: "Applied",
-          }
-        : null;
-    }),
-  )
-  .filter(Boolean)
-  .slice(0, 5);
+import { useEffect, useState } from "react";
+import { api } from "../../utils/api";
 
 // Greeting
 const getGreeting = () => {
@@ -63,8 +20,8 @@ const getGreeting = () => {
   return "Good Evening";
 };
 
-const formatDate = () => {
-  return today.toLocaleDateString("en-IN", {
+const formatDate = (date) => {
+  return date.toLocaleDateString("en-IN", {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -75,14 +32,70 @@ const formatDate = () => {
 export default function CoordinatorDashboard() {
   const navigate = useNavigate();
 
-  const [coordinator, setCoordinator] = useState({});
+  const [coordinator, setCoordinator] = useState(null);
+  const [students, setStudents] = useState([]);
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedCoordinator = JSON.parse(
-      localStorage.getItem("coordinator") || "{}",
-    );
-    setCoordinator(storedCoordinator);
+    const loadDashboard = async () => {
+      try {
+        const [coordData, studentData, jobsData] = await Promise.all([
+          api.get("/coordinators/me"),
+          api.get("/students"),
+          api.get("/companies/jobs"),
+        ]);
+        setCoordinator(coordData);
+        setStudents(Array.isArray(studentData) ? studentData : []);
+        setJobs(Array.isArray(jobsData) ? jobsData : []);
+      } catch (error) {
+        console.error("Failed to load dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboard();
   }, []);
+
+  const totalStudents = students.length;
+  const placedStudents = students.filter(
+    (s) => s.placementStatus === "Placed",
+  ).length;
+  const placementPercent = totalStudents
+    ? Math.round((placedStudents / totalStudents) * 100)
+    : 0;
+  const activeCompanies = Array.from(
+    new Set(jobs.map((j) => j.companyId?.name).filter(Boolean)),
+  ).length;
+  const activeJobs = jobs.length;
+
+  const today = new Date();
+  const upcomingDeadlines = jobs
+    .map((c) => {
+      const last = new Date(c.lastDate);
+      const diff = Math.ceil((last - today) / (1000 * 60 * 60 * 24));
+      return { ...c, daysLeft: diff };
+    })
+    .filter((c) => !Number.isNaN(c.daysLeft) && c.daysLeft >= 0 && c.daysLeft <= 7)
+    .sort((a, b) => a.daysLeft - b.daysLeft);
+
+  const recentApplications = jobs
+    .slice()
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 5)
+    .map((job) => ({
+      student: "",
+      company: job.companyId?.name || "Unknown",
+      role: job.role,
+      status: job.status || "Active",
+    }));
+
+  if (loading) {
+    return (
+      <div className="text-center py-20 text-text-muted">Loading dashboard…</div>
+    );
+  }
 
   return (
     <div
@@ -114,7 +127,7 @@ export default function CoordinatorDashboard() {
             >
               {coordinator.name || "Coordinator"}
             </h1>
-            <p className="text-sm text-white/60">{formatDate()}</p>
+            <p className="text-sm text-white/60">{formatDate(today)}</p>
           </div>
           <span className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 border border-white/30 text-white text-sm font-semibold">
             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
@@ -151,8 +164,8 @@ export default function CoordinatorDashboard() {
             iconColor: "text-[#F59E0B]",
           },
           {
-            label: "Pending Applications",
-            value: pendingApplications,
+            label: "Active Jobs",
+            value: activeJobs,
             icon: Clock,
             color: "border-t-[#EF4444]",
             bg: "bg-red-50",
@@ -244,20 +257,20 @@ export default function CoordinatorDashboard() {
                 className="text-sm font-bold text-[#1E293B]"
                 style={{ fontFamily: "Space Grotesk, sans-serif" }}
               >
-                Recent Applications
+                Recent Job Postings
               </h3>
             </div>
             <button
-              onClick={() => navigate("/coordinator/applications")}
+              onClick={() => navigate("/coordinator/companies")}
               className="text-xs text-primary font-semibold hover:underline"
             >
-              View All
+              View Companies
             </button>
           </div>
           <div className="p-4 flex flex-col gap-2">
             {recentApplications.length === 0 ? (
               <p className="text-sm text-text-muted text-center py-6">
-                No applications yet
+                No recent job postings yet
               </p>
             ) : (
               recentApplications.map((app, i) => (
