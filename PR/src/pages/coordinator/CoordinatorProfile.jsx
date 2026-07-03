@@ -291,7 +291,26 @@ export default function CoordinatorProfile() {
             ? students.filter((s) => s.placementStatus === "Placed").length
             : 0,
         );
-        setTotalDrives(Array.isArray(jobs) ? jobs.length : 0);
+
+        // FIXED: "Total Drives" was counting every job doc, including ones
+        // whose company was deleted (companyId becomes null/undefined —
+        // same orphan issue fixed earlier in ApplicationsManagementPage)
+        // and ones whose application deadline has already passed. The
+        // JobPosting.status field is just a default "Active" string that
+        // never actually gets flipped to "Closed" anywhere, so a drive is
+        // only "closed" in practice once its lastDate is in the past. Now
+        // only counting live drives — company still exists AND (no
+        // lastDate set, or lastDate is today/in the future).
+        const now = new Date();
+        const activeDrives = Array.isArray(jobs)
+          ? jobs.filter((j) => {
+              if (!j.companyId || !j.companyId.name) return false;
+              if (!j.lastDate) return true;
+              return new Date(j.lastDate) >= now;
+            })
+          : [];
+        setTotalDrives(activeDrives.length);
+
         setActivityLog(Array.isArray(activity) ? activity : []);
       } catch (err) {
         console.error("Failed to load coordinator profile:", err);
