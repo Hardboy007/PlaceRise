@@ -514,14 +514,63 @@ export default function CoordinatorProfile() {
           </h3>
         </div>
         <div className="grid grid-cols-2 gap-5">
-          <Field label="Full Name" name="name" icon={Users} />
-          <Field label="Email" name="email" icon={Mail} />
-          <Field label="Phone" name="phone" icon={Phone} />
-          <Field label="Designation" name="designation" icon={TrendingUp} />
-          <Field label="Department" name="department" icon={Building2} />
-          <Field label="Active Since" name="activeSince" icon={Calendar} />
+          <Field
+            label="Full Name"
+            name="name"
+            icon={Users}
+            editing={editing}
+            value={displayData.name}
+            onChange={handleChange}
+          />
+          <Field
+            label="Email"
+            name="email"
+            icon={Mail}
+            editing={editing}
+            value={displayData.email}
+            onChange={handleChange}
+          />
+          <Field
+            label="Phone"
+            name="phone"
+            icon={Phone}
+            editing={editing}
+            value={displayData.phone}
+            onChange={handleChange}
+          />
+          <Field
+            label="Designation"
+            name="designation"
+            icon={TrendingUp}
+            editing={editing}
+            value={displayData.designation}
+            onChange={handleChange}
+          />
+          <Field
+            label="Department"
+            name="department"
+            icon={Building2}
+            editing={editing}
+            value={displayData.department}
+            onChange={handleChange}
+          />
+          <Field
+            label="Active Since"
+            name="activeSince"
+            icon={Calendar}
+            editing={editing}
+            value={displayData.activeSince}
+            onChange={handleChange}
+          />
           <div className="col-span-2">
-            <Field label="College" name="college" icon={MapPin} />
+            <Field
+              label="College"
+              name="college"
+              icon={MapPin}
+              editing={editing}
+              value={displayData.college}
+              onChange={handleChange}
+            />
           </div>
         </div>
       </div>
