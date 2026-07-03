@@ -263,12 +263,25 @@ function JDBanner({ jobs, selectedJobId, setSelectedJobId, selectedJob }) {
 }
 
 function EligibleTab({ selectedJob, allStudents }) {
+  // FIXED: was matching selectedJob.eligibleBranches against s.branch
+  // (e.g. "CSE"), but eligibleBranches actually stores full COURSE names
+  // (e.g. "B.Tech Computer Science Engineering") as selected via
+  // BranchSelectorModal in CompanyManagementPage.jsx. That mismatch meant
+  // the branch check could never pass, so "Eligible Students" was always
+  // empty regardless of course. Now matching against s.course instead,
+  // which uses the same universityStructure course-name strings.
+  //
+  // Also fixed: the old "All" sentinel check never fired, because the
+  // BranchSelectorModal's "All Courses" quick-select fills the array with
+  // every individual course name rather than the literal string "All".
+  // An empty eligibleBranches array (JD posted with no restriction) is now
+  // treated as open to everyone instead.
   const eligible = useMemo(() => {
     if (!selectedJob) return [];
     return allStudents.filter((s) => {
       const branchOk =
-        selectedJob.eligibleBranches?.includes("All") ||
-        selectedJob.eligibleBranches?.includes(s.branch);
+        !selectedJob.eligibleBranches?.length ||
+        selectedJob.eligibleBranches?.includes(s.course);
       const cgpaOk = (s.cgpa ?? 0) >= (selectedJob.minCgpa || 0);
       const backlogOk = (s.backlogs ?? 0) <= (selectedJob.maxBacklogs ?? 0);
       return branchOk && cgpaOk && backlogOk;
