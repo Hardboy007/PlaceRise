@@ -67,6 +67,20 @@ const isExpired = (lastDate) => {
   return d !== null && d < 0;
 };
 
+// FIXED: plain `.toLocaleDateString()` (no locale arg) renders mm/dd/yyyy
+// or dd/mm/yyyy depending on the visiting browser's own locale setting —
+// so the same date showed differently for different users/machines.
+// Forcing "en-GB" always gives dd/mm/yyyy regardless of the browser.
+const formatDDMMYYYY = (date) => {
+  const d = date instanceof Date ? date : new Date(date);
+  if (isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
+
 // ─────────────────────────────────────────────────────────────
 //  BRANCH SELECTOR — flat accordion with smart quick-select
 // ─────────────────────────────────────────────────────────────
@@ -1062,7 +1076,7 @@ export default function CompanyManagementPage() {
                           className={`flex items-center gap-1 text-xs font-medium ${expired ? "text-red-400" : isUrgent ? "text-red-500" : "text-text-muted"}`}
                         >
                           <Calendar size={11} />
-                          {new Date(job.lastDate).toLocaleDateString()}
+                          {formatDDMMYYYY(job.lastDate)}
                           {isUrgent && (
                             <span className="ml-1 px-1.5 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-200 text-[10px] font-bold">
                               {days}d left
@@ -1236,9 +1250,7 @@ export default function CompanyManagementPage() {
                           <p
                             className={`text-xs font-semibold ${(daysLeft(viewingCompany.job.lastDate) ?? 999) <= 7 ? "text-red-500" : "text-[#1E293B]"}`}
                           >
-                            {new Date(
-                              viewingCompany.job.lastDate,
-                            ).toLocaleDateString()}
+                            {formatDDMMYYYY(viewingCompany.job.lastDate)}
                           </p>
                         </div>
                       )}

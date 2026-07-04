@@ -275,6 +275,15 @@ export default function CoordinatorProfile() {
         const coordData = await api.get("/coordinators/me");
         setCoordinator(coordData);
 
+        // FIXED: keep localStorage("coordinator") in sync with whatever we
+        // just fetched from the server. CoordinatorLayout's navbar/sidebar
+        // read from localStorage as an instant-paint fallback — if this
+        // page loads fresh data but never writes it back, and the layout
+        // hasn't independently re-fetched yet, the two can briefly (or, if
+        // the layout stays mounted across route changes, persistently)
+        // disagree on the coordinator's name.
+        localStorage.setItem("coordinator", JSON.stringify(coordData));
+
         if (coordData.notificationPreferences) {
           setToggles(coordData.notificationPreferences);
         }
@@ -306,7 +315,15 @@ export default function CoordinatorProfile() {
           ? jobs.filter((j) => {
               if (!j.companyId || !j.companyId.name) return false;
               if (!j.lastDate) return true;
-              return new Date(j.lastDate) >= now;
+              // FIXED: same contradiction bug as the dashboard — lastDate
+              // is stored at midnight, so comparing the exact time meant a
+              // job flipped to "closed" here as soon as the clock passed
+              // 00:00 on its deadline day, even though the whole day was
+              // still meant to count as open. Now checks against the end
+              // of the deadline day instead.
+              const last = new Date(j.lastDate);
+              last.setHours(23, 59, 59, 999);
+              return last >= now;
             })
           : [];
         setTotalDrives(activeDrives.length);
@@ -336,6 +353,15 @@ export default function CoordinatorProfile() {
         college: form.college,
       });
       setCoordinator(updated);
+
+      // FIXED: without this, editing your name here updates the DB and
+      // this page's own state, but the navbar/sidebar (CoordinatorLayout)
+      // — which reads localStorage("coordinator") — kept showing the old
+      // pre-edit name until the next full login. Writing the freshly
+      // saved doc back to localStorage immediately keeps every part of
+      // the UI in sync with the edit, not just this page.
+      localStorage.setItem("coordinator", JSON.stringify(updated));
+
       setEditing(false);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);

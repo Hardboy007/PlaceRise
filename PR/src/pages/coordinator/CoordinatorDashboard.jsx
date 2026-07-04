@@ -48,6 +48,21 @@ const formatDate = (date) => {
   });
 };
 
+// FIXED: coordinator.name is rendered exactly as stored in the DB. Whoever
+// last saved the profile via the edit form could type any casing —
+// "Rajesh kumar", "rajesh KUMAR" etc — and that's what showed up here,
+// looking "random" across visits. The backend now normalizes casing on
+// every save going forward, but that doesn't fix names already saved with
+// bad casing, so this display-only helper title-cases whatever comes back
+// from the API before rendering, regardless of what's actually in the DB.
+const toDisplayName = (name = "") =>
+  name
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word) => (word ? word.charAt(0).toUpperCase() + word.slice(1) : word))
+    .join(" ");
+
 export default function CoordinatorDashboard() {
   const navigate = useNavigate();
 
@@ -108,9 +123,21 @@ export default function CoordinatorDashboard() {
   // FIXED: a job is only actually "closed" once its lastDate has passed —
   // JobPosting.status just defaults to "Active" and is never flipped in the
   // backend, so it can't be trusted. No lastDate set = treated as still open.
+  //
+  // FIXED (contradiction bug): lastDate is stored at midnight (00:00:00).
+  // The old check compared `lastDate >= now` using the exact time — so on
+  // the deadline day itself, as soon as it passed midnight (e.g. by
+  // evening), lastDate (00:00 today) became "earlier than" now and the job
+  // flipped to "Closed" here — while upcomingDeadlines below (which works
+  // in whole days via daysLeft) still correctly showed it as "Today". Same
+  // job, two different verdicts. Now compares against the END of the
+  // deadline day (23:59:59.999), so a job stays "Active" for its entire
+  // last day, matching the day-based daysLeft logic.
   const isJobOpen = (job) => {
     if (!job.lastDate) return true;
-    return new Date(job.lastDate) >= today;
+    const last = new Date(job.lastDate);
+    last.setHours(23, 59, 59, 999);
+    return last >= today;
   };
 
   // FIXED: "Active Companies" was counting every distinct company with any
@@ -193,7 +220,7 @@ export default function CoordinatorDashboard() {
               className="text-2xl font-bold text-white mb-1"
               style={{ fontFamily: "Space Grotesk, sans-serif" }}
             >
-              {coordinator.name || "Coordinator"}
+              {toDisplayName(coordinator.name) || "Coordinator"}
             </h1>
             <p className="text-sm text-white/60">{formatDate(today)}</p>
           </div>
