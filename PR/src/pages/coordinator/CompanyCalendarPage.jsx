@@ -75,6 +75,25 @@ const dateKey = (d) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 const initials = (name) => (name || "??").slice(0, 2).toUpperCase();
 const daysUntil = (date, ref) => Math.ceil((date - ref) / 86400000);
 
+// FIXED: job.lastDate is a calendar DAY the coordinator picked (e.g. "3
+// July"), not a precise moment in time. It comes back from the API as a
+// full ISO timestamp (Mongoose Date, serialized to UTC midnight for that
+// day). Reading it with LOCAL getters (getFullYear/getMonth/getDate)
+// reinterprets that UTC instant in the viewer's own timezone, which can
+// silently shift the date forward or backward by a day — e.g. a deadline
+// stored as "3 July 00:00 UTC" could read back as "4 July" locally
+// depending on the viewer's offset. This pulls the date out using UTC
+// components instead (so "3 July" always means the 3rd, everywhere), then
+// builds a genuine local midnight Date from those same numbers so all the
+// existing local-time comparisons (daysUntil, todayMid, calendar grid
+// cells) keep working unchanged.
+function toDeadlineDate(rawDate) {
+  if (!rawDate) return null;
+  const d = new Date(rawDate);
+  if (isNaN(d.getTime())) return null;
+  return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+}
+
 function DaysBadge({ diff }) {
   const base =
     "text-[10px] px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap flex-shrink-0 border";
@@ -104,7 +123,7 @@ function DaysBadge({ diff }) {
     );
   return (
     <span
-      className={`${base} bg-emerald-50 text-emerald-700 border-emerald-200`}
+      className={`${base} bg-emerald-50 text-emerald-700 border-emerald-100`}
     >
       {diff}d left
     </span>
@@ -146,6 +165,9 @@ function JobDetailModal({ job, onClose }) {
   const [activeTab, setActiveTab] = useState("overview");
   if (!job) return null;
   const companyName = job.companyId?.name || "Unknown";
+  // FIXED: use the timezone-safe deadline instead of new Date(job.lastDate)
+  // directly, so the modal shows the same day as everywhere else.
+  const deadlineDate = toDeadlineDate(job.lastDate);
 
   return (
     <div
@@ -299,9 +321,7 @@ function JobDetailModal({ job, onClose }) {
                     Application deadline
                   </p>
                   <p className="text-[12px] text-red-800 font-semibold">
-                    {job.lastDate
-                      ? new Date(job.lastDate).toLocaleDateString()
-                      : "—"}
+                    {deadlineDate ? deadlineDate.toLocaleDateString() : "—"}
                   </p>
                 </div>
               </div>
@@ -476,11 +496,15 @@ export default function CompanyCalendarPage() {
     fetchJobs();
   }, []);
 
+  // FIXED: group jobs into calendar cells using the timezone-safe deadline
+  // date (toDeadlineDate) instead of raw `new Date(j.lastDate)` — this is
+  // what was placing a "3 July" deadline into the "4 July" cell for
+  // viewers in certain timezones.
   const dateMap = useMemo(() => {
     const map = {};
     jobs.forEach((j) => {
-      const d = new Date(j.lastDate);
-      if (isNaN(d.getTime())) return;
+      const d = toDeadlineDate(j.lastDate);
+      if (!d) return;
       const k = dateKey(d);
       if (!map[k]) map[k] = [];
       map[k].push(j);
@@ -488,11 +512,14 @@ export default function CompanyCalendarPage() {
     return map;
   }, [jobs]);
 
+  // FIXED: same timezone-safe parsing used for the sidebar list, so
+  // "upcoming" vs "closed" classification and the displayed date always
+  // agree with the calendar grid.
   const sortedJobs = useMemo(
     () =>
-      [...jobs]
-        .map((j) => ({ ...j, parsedDate: new Date(j.lastDate) }))
-        .filter((j) => !isNaN(j.parsedDate.getTime()))
+      jobs
+        .map((j) => ({ ...j, parsedDate: toDeadlineDate(j.lastDate) }))
+        .filter((j) => j.parsedDate)
         .sort((a, b) => a.parsedDate - b.parsedDate),
     [jobs],
   );
@@ -528,7 +555,9 @@ export default function CompanyCalendarPage() {
   // Returns tailwind classes for a deadline chip in the calendar grid,
   // based on how many days remain until that job's lastDate (relative
   // to today). >7 days => green, <=7 days (and not yet closed) => red,
-  // already past => muted gray.
+  // already past => muted gray. cellDate is already the timezone-safe,
+  // correctly-grouped day (see dateMap above), so this now agrees with
+  // the sidebar's Closed/Today/Nd-left badges.
   function calendarChipClasses(jobDate) {
     const diff = daysUntil(jobDate, todayMid);
     if (diff < 0) return "bg-gray-50 text-gray-400 border-gray-200";
@@ -796,4 +825,3 @@ export default function CompanyCalendarPage() {
     </div>
   );
 }
-//fixed
