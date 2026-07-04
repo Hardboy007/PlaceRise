@@ -350,6 +350,7 @@ export default function AnnouncementManagementPage() {
       title: form.title,
       description: form.description,
       type: form.type,
+      status: "Published",
       target: form.targetAll
         ? { all: true, schools: [] }
         : { all: false, schools: schoolsPayload },
@@ -359,11 +360,27 @@ export default function AnnouncementManagementPage() {
     };
 
     try {
+      let savedAnnouncement = null;
       if (editingId !== null) {
-        await api.put(`/announcements/${editingId}`, payload);
+        savedAnnouncement = unwrap(await api.put(`/announcements/${editingId}`, payload));
       } else {
-        await api.post("/announcements", payload);
+        savedAnnouncement = unwrap(await api.post("/announcements", payload));
       }
+
+      if (savedAnnouncement) {
+        const savedId = getAnnId(savedAnnouncement);
+        setAnnouncements((prev) => {
+          if (!savedId) return [savedAnnouncement, ...prev];
+          const exists = prev.some((item) => getAnnId(item) === savedId);
+          if (exists) {
+            return prev.map((item) =>
+              getAnnId(item) === savedId ? savedAnnouncement : item,
+            );
+          }
+          return [savedAnnouncement, ...prev];
+        });
+      }
+
       // Re-fetch so the list is always the source of truth from the server.
       await fetchAnnouncements();
       closeModal();
