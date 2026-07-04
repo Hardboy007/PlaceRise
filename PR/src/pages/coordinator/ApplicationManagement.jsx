@@ -13,6 +13,7 @@ import {
   Hash,
   GraduationCap,
   TrendingUp,
+  Lock,
 } from "lucide-react";
 import { api } from "../../utils/api";
 
@@ -45,6 +46,16 @@ const STATUS_STYLE = {
   },
 };
 
+// A drive is "Closed" once its application deadline (lastDate) has passed —
+// same rule used on CompanyManagementPage's Active/Closed filter, so the
+// two pages agree on what "closed" means.
+function isJobClosed(job) {
+  if (!job?.lastDate) return false;
+  const d = new Date(job.lastDate);
+  if (isNaN(d.getTime())) return false;
+  return d < new Date();
+}
+
 function StatCard({ icon, label, value, bg, borderColor }) {
   return (
     <div
@@ -75,9 +86,8 @@ function StatCard({ icon, label, value, bg, borderColor }) {
   );
 }
 
-// FIXED: erpId lives on the User model, not the Student model. Because the
-// backend populates userId with "erpId email", the correct path is
-// student.userId?.erpId — student.erpId itself is always undefined.
+// erpId lives on the User model, not the Student model. Backend populates
+// userId with "erpId email", so the correct path is student.userId?.erpId.
 function NameCell({ student }) {
   if (!student)
     return <span className="text-xs text-[#94A3B8]">Unknown student</span>;
@@ -104,7 +114,7 @@ function NameCell({ student }) {
   );
 }
 
-function StatusActions({ current, onChange }) {
+function StatusActions({ current, onChange, disabled }) {
   const actions = [
     {
       label: "Shortlist",
@@ -131,7 +141,8 @@ function StatusActions({ current, onChange }) {
         <button
           key={action.value}
           onClick={() => onChange(action.value)}
-          className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${current === action.value ? action.activeColor : action.inactiveColor}`}
+          disabled={disabled}
+          className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all ${current === action.value ? action.activeColor : action.inactiveColor} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
         >
           {action.label}
         </button>
@@ -140,11 +151,49 @@ function StatusActions({ current, onChange }) {
   );
 }
 
-// --- FIXED: Branches ab individual pills mein wrap honge, ek lambi string nahi ---
-function JDBanner({ jobs, selectedJobId, setSelectedJobId, selectedJob }) {
+// Small segmented control — lets the coordinator narrow the drive dropdown
+// to Active / Closed / All. Defaults to Active so the dropdown stays short
+// day-to-day, but Closed drives' data (who applied/was selected) is never
+// lost — it's just one click away instead of cluttering the default view.
+function DriveFilterTabs({ value, onChange, counts }) {
+  const options = [
+    { key: "Active", label: "Active", count: counts.active },
+    { key: "Closed", label: "Closed", count: counts.closed },
+    { key: "All", label: "All", count: counts.all },
+  ];
+  return (
+    <div className="flex items-center gap-1 bg-white border border-[#E2E8F0] rounded-xl p-1 w-fit">
+      {options.map((opt) => (
+        <button
+          key={opt.key}
+          onClick={() => onChange(opt.key)}
+          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            value === opt.key
+              ? "bg-[#3B82F6] text-white"
+              : "text-[#64748B] hover:text-[#0F172A]"
+          }`}
+        >
+          {opt.label} ({opt.count})
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// --- Branches/courses shown as individual pills instead of one long string ---
+function JDBanner({
+  jobs,
+  selectedJobId,
+  setSelectedJobId,
+  selectedJob,
+  driveFilter,
+  onDriveFilterChange,
+  driveCounts,
+}) {
   const branchList = selectedJob?.eligibleBranches?.includes("All")
     ? ["All Branches"]
     : selectedJob?.eligibleBranches || [];
+  const closed = isJobClosed(selectedJob);
 
   return (
     <div
@@ -154,39 +203,58 @@ function JDBanner({ jobs, selectedJobId, setSelectedJobId, selectedJob }) {
         borderColor: "#BFDBFE",
       }}
     >
-      <div className="flex items-center gap-3">
-        <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: "linear-gradient(135deg,#3B82F6,#60A5FA)" }}
-        >
-          <Briefcase size={18} color="white" />
-        </div>
-        <div className="min-w-0">
-          <p
-            className="text-[10px] font-semibold uppercase tracking-widest mb-1"
-            style={{ color: "#64748B" }}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+            style={{ background: "linear-gradient(135deg,#3B82F6,#60A5FA)" }}
           >
-            Select Drive
-          </p>
-          {jobs.length === 0 ? (
-            <p className="text-sm font-bold" style={{ color: "#0F172A" }}>
-              No jobs posted yet
-            </p>
-          ) : (
-            <select
-              value={selectedJobId || ""}
-              onChange={(e) => setSelectedJobId(e.target.value)}
-              className="text-sm font-bold border border-blue-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:border-blue-400 max-w-full"
-              style={{ color: "#0F172A" }}
+            <Briefcase size={18} color="white" />
+          </div>
+          <div className="min-w-0">
+            <p
+              className="text-[10px] font-semibold uppercase tracking-widest mb-1"
+              style={{ color: "#64748B" }}
             >
-              {jobs.map((j) => (
-                <option key={j._id} value={j._id}>
-                  {j.companyId?.name || "Unknown"} — {j.role}
-                </option>
-              ))}
-            </select>
-          )}
+              Select Drive
+            </p>
+            {jobs.length === 0 ? (
+              <p className="text-sm font-bold" style={{ color: "#0F172A" }}>
+                No {driveFilter !== "All" ? driveFilter.toLowerCase() : ""}{" "}
+                drives{driveFilter !== "All" ? "" : " posted yet"}
+              </p>
+            ) : (
+              <div className="flex items-center gap-2 flex-wrap">
+                <select
+                  value={selectedJobId || ""}
+                  onChange={(e) => setSelectedJobId(e.target.value)}
+                  className="text-sm font-bold border border-blue-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:border-blue-400 max-w-full"
+                  style={{ color: "#0F172A" }}
+                >
+                  {jobs.map((j) => (
+                    <option key={j._id} value={j._id}>
+                      {j.companyId?.name || "Unknown"} — {j.role}
+                      {isJobClosed(j) ? " (Closed)" : ""}
+                    </option>
+                  ))}
+                </select>
+                {closed && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
+                    <Lock size={10} /> Closed — read only
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* Active / Closed / All switch — keeps the dropdown short by
+            default without hiding closed-drive data permanently. */}
+        <DriveFilterTabs
+          value={driveFilter}
+          onChange={onDriveFilterChange}
+          counts={driveCounts}
+        />
       </div>
 
       {selectedJob && (
@@ -228,7 +296,7 @@ function JDBanner({ jobs, selectedJobId, setSelectedJobId, selectedJob }) {
             </div>
           ))}
 
-          {/* Branches - own row, wraps as individual pills instead of one long string */}
+          {/* Eligible courses - own row, wraps as individual pills */}
           <div
             className="rounded-xl px-3 py-1.5 border flex items-start gap-1.5 flex-1 min-w-[240px]"
             style={{ backgroundColor: "#fff", borderColor: "#BFDBFE" }}
@@ -272,19 +340,11 @@ function JDBanner({ jobs, selectedJobId, setSelectedJobId, selectedJob }) {
 }
 
 function EligibleTab({ selectedJob, allStudents }) {
-  // FIXED: was matching selectedJob.eligibleBranches against s.branch
-  // (e.g. "CSE"), but eligibleBranches actually stores full COURSE names
-  // (e.g. "B.Tech Computer Science Engineering") as selected via
-  // BranchSelectorModal in CompanyManagementPage.jsx. That mismatch meant
-  // the branch check could never pass, so "Eligible Students" was always
-  // empty regardless of course. Now matching against s.course instead,
-  // which uses the same universityStructure course-name strings.
-  //
-  // Also fixed: the old "All" sentinel check never fired, because the
-  // BranchSelectorModal's "All Courses" quick-select fills the array with
-  // every individual course name rather than the literal string "All".
-  // An empty eligibleBranches array (JD posted with no restriction) is now
-  // treated as open to everyone instead.
+  // Matching against s.course (not s.branch) — eligibleBranches actually
+  // stores full COURSE name strings (e.g. "B.Tech Computer Science
+  // Engineering") as selected via BranchSelectorModal in
+  // CompanyManagementPage.jsx, which use the same universityStructure
+  // course-name strings as Student.course.
   const eligible = useMemo(() => {
     if (!selectedJob) return [];
     return allStudents.filter((s) => {
@@ -376,11 +436,9 @@ function EligibleTab({ selectedJob, allStudents }) {
               }}
             >
               <NameCell student={student} />
-              {/* FIXED: erpId comes from populated userId, not student.erpId */}
               <span className="text-xs font-mono" style={{ color: "#64748B" }}>
                 {student.userId?.erpId || "—"}
               </span>
-              {/* FIXED: show course (e.g. "B.Tech CSE") instead of branch/department */}
               <span
                 className="border text-xs font-semibold px-2.5 py-0.5 rounded-full w-fit"
                 style={{
@@ -421,7 +479,7 @@ function EligibleTab({ selectedJob, allStudents }) {
   );
 }
 
-function AppliedTab({ selectedJobId }) {
+function AppliedTab({ selectedJobId, readOnly }) {
   const [applications, setApplications] = useState([]);
   const [filterStatus, setFilterStatus] = useState("All");
   const [loading, setLoading] = useState(true);
@@ -466,7 +524,9 @@ function AppliedTab({ selectedJobId }) {
     [applications],
   );
 
-  const cols = "2fr 1.2fr 1.4fr 0.8fr 1.1fr 1.8fr";
+  const cols = readOnly
+    ? "2fr 1.2fr 1.4fr 0.8fr 1.1fr 1fr"
+    : "2fr 1.2fr 1.4fr 0.8fr 1.1fr 1.8fr";
 
   if (loading)
     return (
@@ -477,6 +537,14 @@ function AppliedTab({ selectedJobId }) {
 
   return (
     <div className="space-y-4">
+      {readOnly && (
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5">
+          <Lock size={13} />
+          This drive is closed — status changes are disabled, showing final
+          results only.
+        </div>
+      )}
+
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <StatCard
           icon={<Users size={20} color="#3B82F6" />}
@@ -559,17 +627,22 @@ function AppliedTab({ selectedJobId }) {
             minWidth: "850px",
           }}
         >
-          {["Name", "ERP ID", "Course", "CGPA", "Applied Date", "Status"].map(
-            (h) => (
-              <span
-                key={h}
-                className="text-[10px] font-bold uppercase tracking-wider"
-                style={{ color: "#64748B" }}
-              >
-                {h}
-              </span>
-            ),
-          )}
+          {[
+            "Name",
+            "ERP ID",
+            "Course",
+            "CGPA",
+            "Applied Date",
+            readOnly ? "Final Status" : "Status",
+          ].map((h) => (
+            <span
+              key={h}
+              className="text-[10px] font-bold uppercase tracking-wider"
+              style={{ color: "#64748B" }}
+            >
+              {h}
+            </span>
+          ))}
         </div>
 
         {filtered.length === 0 ? (
@@ -582,6 +655,7 @@ function AppliedTab({ selectedJobId }) {
         ) : (
           filtered.map((app, idx) => {
             const student = app.studentId;
+            const s = STATUS_STYLE[app.status] || STATUS_STYLE.Applied;
             return (
               <div
                 key={app._id}
@@ -596,14 +670,12 @@ function AppliedTab({ selectedJobId }) {
                 }}
               >
                 <NameCell student={student} />
-                {/* FIXED: erpId comes from populated userId, not student.erpId */}
                 <span
                   className="text-xs font-mono"
                   style={{ color: "#64748B" }}
                 >
                   {student?.userId?.erpId || "—"}
                 </span>
-                {/* FIXED: show course instead of branch/department */}
                 <span
                   className="border text-xs font-semibold px-2.5 py-0.5 rounded-full w-fit"
                   style={{
@@ -636,10 +708,24 @@ function AppliedTab({ selectedJobId }) {
                     ? new Date(app.appliedDate).toLocaleDateString()
                     : "—"}
                 </div>
-                <StatusActions
-                  current={app.status}
-                  onChange={(val) => updateStatus(app._id, val)}
-                />
+
+                {readOnly ? (
+                  // Closed drive: final status shown as a plain badge, no
+                  // action buttons — this is what preserves "who was
+                  // selected in this closed company" without letting the
+                  // coordinator accidentally re-open decisions.
+                  <span
+                    className="text-xs font-semibold px-2.5 py-1 rounded-full w-fit border"
+                    style={{ color: s.color, backgroundColor: s.bg, borderColor: s.border }}
+                  >
+                    {app.status}
+                  </span>
+                ) : (
+                  <StatusActions
+                    current={app.status}
+                    onChange={(val) => updateStatus(app._id, val)}
+                  />
+                )}
               </div>
             );
           })
@@ -654,6 +740,7 @@ export default function ApplicationsManagementPage() {
   const [jobs, setJobs] = useState([]);
   const [allStudents, setAllStudents] = useState([]);
   const [selectedJobId, setSelectedJobId] = useState(null);
+  const [driveFilter, setDriveFilter] = useState("Active"); // Active | Closed | All
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -662,21 +749,57 @@ export default function ApplicationsManagementPage() {
       const studentsData = await api.get("/students");
 
       // Filter out jobs whose company has been deleted (orphaned jobs).
-      // A deleted company leaves companyId as null/undefined on the job doc,
-      // which previously showed up as "Unknown — <role>" in the dropdown.
+      // A deleted company leaves companyId as null/undefined on the job doc.
       const jobList = Array.isArray(jobsData)
         ? jobsData.filter((j) => j.companyId && j.companyId.name)
         : [];
 
       setJobs(jobList);
       setAllStudents(Array.isArray(studentsData) ? studentsData : []);
-      if (jobList.length > 0) setSelectedJobId(jobList[0]._id);
       setLoading(false);
     };
     fetchData();
   }, []);
 
+  // Drive counts for the Active/Closed/All tabs, computed from the full
+  // (unfiltered) job list so the numbers stay accurate regardless of which
+  // tab is currently active.
+  const driveCounts = useMemo(
+    () => ({
+      active: jobs.filter((j) => !isJobClosed(j)).length,
+      closed: jobs.filter((j) => isJobClosed(j)).length,
+      all: jobs.length,
+    }),
+    [jobs],
+  );
+
+  // The dropdown only ever lists jobs matching the current Active/Closed/All
+  // tab — this is what keeps "Select Drive" short day-to-day instead of
+  // growing forever as more companies close.
+  const visibleJobs = useMemo(
+    () =>
+      jobs.filter((j) => {
+        if (driveFilter === "Active") return !isJobClosed(j);
+        if (driveFilter === "Closed") return isJobClosed(j);
+        return true;
+      }),
+    [jobs, driveFilter],
+  );
+
+  // If the currently selected drive isn't in the visible list anymore
+  // (e.g. coordinator switched from Active to Closed), fall back to the
+  // first visible job instead of showing a stale/invisible selection.
+  useEffect(() => {
+    if (visibleJobs.length === 0) {
+      setSelectedJobId(null);
+      return;
+    }
+    const stillVisible = visibleJobs.some((j) => j._id === selectedJobId);
+    if (!stillVisible) setSelectedJobId(visibleJobs[0]._id);
+  }, [visibleJobs, selectedJobId]);
+
   const selectedJob = jobs.find((j) => j._id === selectedJobId);
+  const driveIsClosed = isJobClosed(selectedJob);
 
   const tabs = [
     {
@@ -695,7 +818,6 @@ export default function ApplicationsManagementPage() {
     return <div className="text-center py-20 text-text-muted">Loading...</div>;
 
   return (
-    // FIXED: added p-6 so content doesn't touch the browser edges
     <div
       className="space-y-5 p-6"
       style={{ fontFamily: "Inter, system-ui, sans-serif" }}
@@ -710,13 +832,16 @@ export default function ApplicationsManagementPage() {
       </div>
 
       <JDBanner
-        jobs={jobs}
+        jobs={visibleJobs}
         selectedJobId={selectedJobId}
         setSelectedJobId={setSelectedJobId}
         selectedJob={selectedJob}
+        driveFilter={driveFilter}
+        onDriveFilterChange={setDriveFilter}
+        driveCounts={driveCounts}
       />
 
-      {jobs.length > 0 && (
+      {jobs.length > 0 && selectedJob && (
         <>
           <div className="flex items-center gap-1 bg-white rounded-2xl border border-gray-100 p-1.5 shadow-sm w-fit">
             {tabs.map((tab) => {
@@ -744,7 +869,10 @@ export default function ApplicationsManagementPage() {
           {activeTab === "eligible" ? (
             <EligibleTab selectedJob={selectedJob} allStudents={allStudents} />
           ) : (
-            <AppliedTab selectedJobId={selectedJobId} />
+            <AppliedTab
+              selectedJobId={selectedJobId}
+              readOnly={driveIsClosed}
+            />
           )}
         </>
       )}
