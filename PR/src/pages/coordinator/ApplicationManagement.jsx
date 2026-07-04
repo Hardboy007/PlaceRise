@@ -58,7 +58,10 @@ function StatCard({ icon, label, value, bg, borderColor }) {
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-xs font-medium truncate" style={{ color: "#64748B" }}>
+        <p
+          className="text-xs font-medium truncate"
+          style={{ color: "#64748B" }}
+        >
           {label}
         </p>
         <p
@@ -242,7 +245,10 @@ function JDBanner({ jobs, selectedJobId, setSelectedJobId, selectedJob }) {
               </p>
               <div className="flex flex-wrap gap-1">
                 {branchList.length === 0 ? (
-                  <span className="text-xs font-bold" style={{ color: "#1D4ED8" }}>
+                  <span
+                    className="text-xs font-bold"
+                    style={{ color: "#1D4ED8" }}
+                  >
                     —
                   </span>
                 ) : (
