@@ -209,6 +209,14 @@ function RoleSelectionPage() {
 
   const handleLogin = async () => {
     setError("");
+
+    const normalizedErpId = erpId.trim();
+    if (!normalizedErpId) {
+      setError("ERP ID is required");
+      return;
+    }
+
+    setErpId(normalizedErpId);
     setLoading(true);
 
     try {
@@ -224,7 +232,7 @@ function RoleSelectionPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          erpId,
+          erpId: normalizedErpId,
           password,
         }),
       });
