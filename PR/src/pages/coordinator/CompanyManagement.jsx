@@ -874,9 +874,7 @@ export default function CompanyManagementPage() {
       if (pdfFile && jobId) {
         const formData = new FormData();
         formData.append("pdf", pdfFile);
-        await api.post(`/companies/jobs/${jobId}/upload-pdf`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await api.post(`/companies/jobs/${jobId}/upload-pdf`, formData);
       }
 
       setPdfFile(null);

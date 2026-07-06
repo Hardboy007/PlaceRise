@@ -3,12 +3,16 @@ const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 const getToken = () => localStorage.getItem("token");
 
 const request = async (endpoint, options = {}) => {
+  const isFormData = options.body instanceof FormData;
+
+  const headers = {
+    Authorization: `Bearer ${getToken()}`,
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
+    ...(options.headers || {}),
+  };
+
   const res = await fetch(`${BASE_URL}${endpoint}`, {
-    headers: {
-      Authorization: `Bearer ${getToken()}`,
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
+    headers,
     ...options,
   });
 
@@ -30,8 +34,14 @@ const request = async (endpoint, options = {}) => {
 export const api = {
   get: async (endpoint) => request(endpoint, { method: "GET" }),
   post: async (endpoint, body) =>
-    request(endpoint, { method: "POST", body: JSON.stringify(body) }),
+    request(endpoint, {
+      method: "POST",
+      body: body instanceof FormData ? body : JSON.stringify(body),
+    }),
   put: async (endpoint, body) =>
-    request(endpoint, { method: "PUT", body: JSON.stringify(body) }),
+    request(endpoint, {
+      method: "PUT",
+      body: body instanceof FormData ? body : JSON.stringify(body),
+    }),
   delete: async (endpoint) => request(endpoint, { method: "DELETE" }),
 };
