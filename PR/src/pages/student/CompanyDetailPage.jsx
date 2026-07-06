@@ -92,12 +92,17 @@ export default function CompanyDetailPage() {
       alert("No JD PDF available for this job yet.");
       return;
     }
-    // fl_attachment flag Cloudinary ko force download karne ke liye kehta hai,
-    // varna browser PDF ko naye tab me render kar deta hai
+
+    const companyName = (companyInfo.name || "JD").replace(
+      /[^a-zA-Z0-9_-]/g,
+      "_",
+    ); // spaces/special chars hata di, warna URL/download issue ho sakta hai
+
     const downloadUrl = company.jdPdfUrl.replace(
       "/upload/",
-      "/upload/fl_attachment/",
+      `/upload/fl_attachment:${companyName}/`,
     );
+
     window.open(downloadUrl, "_blank");
   };
 
