@@ -677,7 +677,7 @@ export default function CompanyManagementPage() {
   const [jdForm, setJdForm] = useState(emptyJD);
   const [jdErrors, setJdErrors] = useState({});
   const [pdfFile, setPdfFile] = useState(null);
-  const [uploadingPdf, setUploadingPdf] = useState(false);
+  const [savingJD, setSavingJD] = useState(false);
 
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewingCompany, setViewingCompany] = useState(null);
@@ -859,33 +859,33 @@ export default function CompanyManagementPage() {
       selectionProcess: jdForm.selectionProcess,
     };
 
-    if (jdTargetJob) {
-      await api.put(`/jobs/${jdTargetJob._id}`, payload);
-    } else {
-      await api.post("/jobs", payload);
-    }
-    await fetchData();
-    setShowJDModal(false);
-  };
-
-  const handleUploadPdf = async () => {
-    if (!pdfFile || !jdTargetJob) return;
-    setUploadingPdf(true);
+    setSavingJD(true);
     try {
-      const formData = new FormData();
-      formData.append("pdf", pdfFile);
-      const res = await api.post(
-        `/companies/jobs/${jdTargetJob._id}/upload-pdf`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } },
-      );
-      setJdTargetJob({ ...jdTargetJob, jdPdfUrl: res.jdPdfUrl });
+      let jobId = jdTargetJob?._id;
+
+      if (jdTargetJob) {
+        await api.put(`/jobs/${jdTargetJob._id}`, payload);
+      } else {
+        const newJob = await api.post("/jobs", payload);
+        jobId = newJob._id;
+      }
+
+      // PDF select ki hui hai to usko bhi save karte hi upload kar do
+      if (pdfFile && jobId) {
+        const formData = new FormData();
+        formData.append("pdf", pdfFile);
+        await api.post(`/companies/jobs/${jobId}/upload-pdf`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      }
+
       setPdfFile(null);
       await fetchData();
+      setShowJDModal(false);
     } catch (err) {
-      alert("PDF upload failed");
+      alert("Something went wrong while saving JD");
     }
-    setUploadingPdf(false);
+    setSavingJD(false);
   };
 
   const openDeleteDialog = (company) => {
@@ -1704,25 +1704,16 @@ export default function CompanyManagementPage() {
                     </a>
                   )}
 
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="file"
-                      accept="application/pdf"
-                      onChange={(e) => setPdfFile(e.target.files[0])}
-                      className="flex-1 text-xs text-[#64748B]"
-                    />
-                    <button
-                      onClick={handleUploadPdf}
-                      disabled={!pdfFile || uploadingPdf}
-                      className="px-3 py-1.5 rounded-lg bg-[#3B82F6] text-white text-xs font-semibold hover:bg-[#2563EB] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
-                    >
-                      {uploadingPdf ? "Uploading..." : "Upload"}
-                    </button>
-                  </div>
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    onChange={(e) => setPdfFile(e.target.files[0])}
+                    className="w-full text-xs text-[#64748B]"
+                  />
 
                   {pdfFile && (
                     <p className="text-[10px] text-[#94A3B8] mt-1.5">
-                      Selected: {pdfFile.name}
+                      Selected: {pdfFile.name} (will upload on Save)
                     </p>
                   )}
                 </div>
@@ -1737,9 +1728,11 @@ export default function CompanyManagementPage() {
               </button>
               <button
                 onClick={submitJD}
-                className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-[#2563EB] transition-colors flex items-center gap-2"
+                disabled={savingJD}
+                className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-[#2563EB] transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <FileText size={14} /> {jdTargetJob ? "Save JD" : "Post JD"}
+                <FileText size={14} />
+                {savingJD ? "Saving..." : jdTargetJob ? "Save JD" : "Post JD"}
               </button>
             </div>
           </div>
