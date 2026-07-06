@@ -106,6 +106,7 @@ export default function CompanyDetailPage() {
     window.open(downloadUrl, "_blank");
   };
 
+  
   if (loading)
     return (
       <div className="flex items-center justify-center min-h-64">
