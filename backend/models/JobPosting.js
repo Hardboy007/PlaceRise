@@ -28,6 +28,7 @@ const jobPostingSchema = new mongoose.Schema({
   bonus: { type: String, default: '' },
   registrationLink: { type: String, default: '' },
   status: { type: String, default: 'Active' },
+  jdPdfUrl: { type: String, default: '' },
 }, { timestamps: true })
 
 module.exports = mongoose.model('JobPosting', jobPostingSchema)

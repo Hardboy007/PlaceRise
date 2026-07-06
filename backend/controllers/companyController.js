@@ -1,6 +1,7 @@
 const Company = require("../models/company");
 const JobPosting = require("../models/JobPosting");
 const Application = require("../models/Application");
+const { cloudinary, uploadPDF } = require("../config/cloudinary");
 
 // GET ALL COMPANIES
 const getAllCompanies = async (req, res) => {
@@ -78,10 +79,30 @@ const getJobById = async (req, res) => {
   }
 };
 
+//UPLOAD JOB JD PDF
+const uploadJobPDF = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+
+    const job = await JobPosting.findByIdAndUpdate(
+      req.params.id,
+      { jdPdfUrl: req.file.path },
+      { new: true },
+    );
+
+    if (!job) return res.status(404).json({ message: "Job not found" });
+
+    res.json({ jdPdfUrl: req.file.path });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getAllCompanies,
   createCompany,
   getAllJobs,
   getJobById,
   deleteCompany,
+  uploadJobPDF
 };
