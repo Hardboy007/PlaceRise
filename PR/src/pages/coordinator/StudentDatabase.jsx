@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { api } from "../../utils/api";
 import universityStructure from "../../data/universityStructure";
-
+import { Download, Upload } from "lucide-react";
 // ── Design Tokens ─────────────────────────────────────────────
 const C = {
   primary: "#3B82F6",
@@ -891,6 +891,8 @@ export default function StudentDatabasePage() {
   const [selected, setSelected] = useState(null);
   const [selectedIn, setSelectedIn] = useState("All");
   const [students, setStudents] = useState([]);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -901,6 +903,48 @@ export default function StudentDatabasePage() {
     };
     fetchStudents();
   }, []);
+
+  const handleImport = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImporting(true);
+    setImportResult(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/students/bulk-import`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        },
+      );
+      const data = await res.json();
+      setImportResult(data);
+      // Students refresh karo
+      const updated = await api.get("/students");
+      setStudents(Array.isArray(updated) ? updated : []);
+    } catch (err) {
+      setImportResult({ error: "Import failed" });
+    }
+    setImporting(false);
+  };
+
+  const handleExport = async () => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/students/export`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "students.xlsx";
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
 
   const cgpaOpt = useMemo(
     () => CGPA_RANGES.find((r) => r.label === cgpaRange) || CGPA_RANGES[0],
@@ -993,13 +1037,61 @@ export default function StudentDatabasePage() {
       className="min-h-screen p-6 space-y-6"
     >
       {/* ── Page Title ── */}
-      <div>
-        <h1 style={{ color: C.textMain }} className="text-2xl font-bold">
-          Student Database
-        </h1>
-        <p style={{ color: C.textMuted }} className="text-sm mt-0.5">
-          Manage and track placement status of all registered students.
-        </p>
+      {/* ── Page Title ── */}
+      <div className="flex items-center justify-between">
+        {/* Left Side */}
+        <div>
+          <h1 style={{ color: C.textMain }} className="text-2xl font-bold">
+            Student Database
+          </h1>
+
+          <p style={{ color: C.textMuted }} className="text-sm mt-0.5">
+            Manage and track placement status of all registered students.
+          </p>
+        </div>
+
+        {/* Right Side - Import / Export */}
+        <div className="flex items-center gap-3">
+          {importResult && (
+            <span
+              className={`text-xs font-medium ${
+                importResult.error ? "text-red-500" : "text-green-600"
+              }`}
+            >
+              {importResult.error
+                ? `❌ ${importResult.error}`
+                : `✓ ${importResult.imported} imported, ${importResult.skipped} skipped`}
+            </span>
+          )}
+
+          <label
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer transition
+        ${
+          importing
+            ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+            : "bg-slate-900 hover:bg-blue-600 text-white"
+        }`}
+          >
+            <Upload size={14} />
+            {importing ? "Importing..." : "Import CSV"}
+
+            <input
+              type="file"
+              accept=".csv,.xlsx"
+              className="hidden"
+              onChange={handleImport}
+              disabled={importing}
+            />
+          </label>
+
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-300 transition"
+          >
+            <Download size={14} />
+            Export Excel
+          </button>
+        </div>
       </div>
 
       {/* ── Stats Strip ── */}
@@ -1351,4 +1443,3 @@ export default function StudentDatabasePage() {
     </div>
   );
 }
-
