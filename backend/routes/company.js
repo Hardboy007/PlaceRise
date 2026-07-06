@@ -7,6 +7,7 @@ const {
   getAllJobs,
   getJobById,
   deleteCompany,
+  uploadJobPDF
 } = require("../controllers/companyController");
 
 const router = express.Router();
