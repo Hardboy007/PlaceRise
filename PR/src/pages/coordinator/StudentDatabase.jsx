@@ -1,3 +1,4 @@
+import * as XLSX from 'xlsx'
 import { useState, useMemo, useEffect, useRef } from "react";
 import { api } from "../../utils/api";
 import universityStructure from "../../data/universityStructure";
