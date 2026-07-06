@@ -1037,7 +1037,6 @@ export default function StudentDatabasePage() {
       className="min-h-screen p-6 space-y-6"
     >
       {/* ── Page Title ── */}
-      {/* ── Page Title ── */}
       <div className="flex items-center justify-between">
         {/* Left Side */}
         <div>
@@ -1051,46 +1050,52 @@ export default function StudentDatabasePage() {
         </div>
 
         {/* Right Side - Import / Export */}
-        <div className="flex items-center gap-3">
-          {importResult && (
-            <span
-              className={`text-xs font-medium ${
-                importResult.error ? "text-red-500" : "text-green-600"
-              }`}
+        <div className="flex flex-col items-end gap-2">
+          <p className="text-xs text-[#64748B] text-right">
+            Import new student data or export current database to Excel
+          </p>
+
+          <div className="flex items-center gap-3">
+            {importResult && (
+              <span
+                className={`text-xs font-medium ${
+                  importResult.error ? "text-red-500" : "text-green-600"
+                }`}
+              >
+                {importResult.error
+                  ? `❌ ${importResult.error}`
+                  : `✓ ${importResult.imported} imported, ${importResult.skipped} skipped`}
+              </span>
+            )}
+
+            <label
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer transition
+      ${
+        importing
+          ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+          : "bg-slate-900 hover:bg-blue-600 text-white"
+      }`}
             >
-              {importResult.error
-                ? `❌ ${importResult.error}`
-                : `✓ ${importResult.imported} imported, ${importResult.skipped} skipped`}
-            </span>
-          )}
+              <Upload size={14} />
+              {importing ? "Importing..." : "Import CSV"}
 
-          <label
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer transition
-        ${
-          importing
-            ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-            : "bg-slate-900 hover:bg-blue-600 text-white"
-        }`}
-          >
-            <Upload size={14} />
-            {importing ? "Importing..." : "Import CSV"}
+              <input
+                type="file"
+                accept=".csv,.xlsx"
+                className="hidden"
+                onChange={handleImport}
+                disabled={importing}
+              />
+            </label>
 
-            <input
-              type="file"
-              accept=".csv,.xlsx"
-              className="hidden"
-              onChange={handleImport}
-              disabled={importing}
-            />
-          </label>
-
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-300 transition"
-          >
-            <Download size={14} />
-            Export Excel
-          </button>
+            <button
+              onClick={handleExport}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-300 transition"
+            >
+              <Download size={14} />
+              Export Excel
+            </button>
+          </div>
         </div>
       </div>
 
