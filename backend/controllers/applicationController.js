@@ -1,5 +1,6 @@
 const Application = require("../models/Application");
 const Student = require("../models/Student");
+const JobPosting = require("../models/JobPosting");
 
 // Student apply kare
 const createApplication = async (req, res) => {
@@ -12,7 +13,16 @@ const createApplication = async (req, res) => {
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
-
+    // Job dhundho aur expiry check karo
+    const job = await JobPosting.findById(jobId);
+    if (!job) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+    if (new Date(job.lastDate) < new Date()) {
+      return res
+        .status(400)
+        .json({ message: "Application deadline has passed" });
+    }
     // Already applied check karo
     const alreadyApplied = await Application.findOne({
       studentId: student._id,
@@ -124,4 +134,3 @@ module.exports = {
   getJobApplications,
   updateApplicationStatus,
 };
-

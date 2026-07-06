@@ -71,11 +71,13 @@ export default function CompanyDetailPage() {
     fetchJob();
   }, [companyId]);
 
+  const isExpired = new Date(company.lastDate) < new Date();
+
   const handleApply = async () => {
     setApplyLoading(true);
     try {
       const res = await api.post("/applications", { jobId: company._id });
-      if (res.message && res.message !== "Password changed successfully") {
+      if (res.message) {
         alert(res.message);
       } else {
         setApplied(true);
@@ -179,13 +181,15 @@ export default function CompanyDetailPage() {
           </div>
           <button
             onClick={handleApply}
-            disabled={applied || applyLoading}
+            disabled={applied || applyLoading || isExpired}
             className={`w-full py-3 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-all
-              ${
-                applied
-                  ? "bg-white/20 text-white border border-white/30 cursor-not-allowed"
-                  : "bg-white text-[#3B82F6] hover:bg-white/90 shadow-md"
-              }`}
+    ${
+      applied
+        ? "bg-white/20 text-white border border-white/30 cursor-not-allowed"
+        : isExpired
+          ? "bg-white/20 text-white border border-white/30 cursor-not-allowed"
+          : "bg-white text-[#3B82F6] hover:bg-white/90 shadow-md"
+    }`}
           >
             {applied ? (
               <>
@@ -193,6 +197,8 @@ export default function CompanyDetailPage() {
               </>
             ) : applyLoading ? (
               "Applying..."
+            ) : isExpired ? (
+              "Deadline Passed"
             ) : (
               <>
                 <Send size={16} /> Apply Now
@@ -479,12 +485,14 @@ export default function CompanyDetailPage() {
       {/* Bottom Apply Button */}
       <button
         onClick={handleApply}
-        disabled={applied || applyLoading}
+        disabled={applied || applyLoading || isExpired}
         className={`w-full py-3.5 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-all mb-6
           ${
             applied
-              ? "bg-[#22C55E] text-white cursor-not-allowed"
-              : "bg-[#1E293B] hover:bg-[#3B82F6] text-white shadow-md"
+              ? "bg-white/20 text-white border border-white/30 cursor-not-allowed"
+              : isExpired
+                ? "bg-white/20 text-white border border-white/30 cursor-not-allowed"
+                : "bg-white text-[#3B82F6] hover:bg-white/90 shadow-md"
           }`}
       >
         {applied ? (
@@ -493,6 +501,8 @@ export default function CompanyDetailPage() {
           </>
         ) : applyLoading ? (
           "Applying..."
+        ) : isExpired ? (
+          "Deadline Passed"
         ) : (
           <>
             <Send size={16} /> Apply for this Role
