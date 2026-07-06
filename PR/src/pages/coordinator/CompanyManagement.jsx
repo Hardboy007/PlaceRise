@@ -1704,12 +1704,20 @@ export default function CompanyManagementPage() {
                     </a>
                   )}
 
-                  <input
-                    type="file"
-                    accept="application/pdf"
-                    onChange={(e) => setPdfFile(e.target.files[0])}
-                    className="w-full text-xs text-[#64748B]"
-                  />
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <span className="px-3 py-1.5 rounded-lg bg-blue-50 text-[#3B82F6] text-xs font-semibold border border-blue-200 hover:bg-blue-100 transition-colors flex-shrink-0">
+                      Choose File
+                    </span>
+                    <span className="text-xs text-[#94A3B8] truncate">
+                      {pdfFile ? pdfFile.name : "No file chosen"}
+                    </span>
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      onChange={(e) => setPdfFile(e.target.files[0])}
+                      className="hidden"
+                    />
+                  </label>
 
                   {pdfFile && (
                     <p className="text-[10px] text-[#94A3B8] mt-1.5">
