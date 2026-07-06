@@ -932,18 +932,25 @@ export default function StudentDatabasePage() {
     setImporting(false);
   };
 
-  const handleExport = async () => {
-    const token = localStorage.getItem("token");
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/students/export`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const blob = await res.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "students.xlsx";
-    a.click();
-    window.URL.revokeObjectURL(url);
+  const handleExport = () => {
+    const exportData = filtered.map((s) => ({
+      Name: s.name,
+      "ERP ID": s.userId?.erpId || "",
+      Email: s.email || "",
+      Phone: s.phone || "",
+      School: s.school || "",
+      Course: s.course || "",
+      Batch: s.batch || "",
+      CGPA: s.cgpa || "",
+      Backlogs: s.backlogs ?? 0,
+      "Placement Status": s.placementStatus || "Not Placed",
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Students");
+    const fileName = `students_${filtered.length}_${new Date().toLocaleDateString("en-IN").replace(/\//g, "-")}.xlsx`;
+    XLSX.writeFile(wb, fileName);
   };
 
   const cgpaOpt = useMemo(
