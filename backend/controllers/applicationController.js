@@ -121,7 +121,24 @@ const updateApplicationStatus = async (req, res) => {
     if (!application) {
       return res.status(404).json({ message: "Application not found" });
     }
-
+    // Student placementStatus update karo
+    if (status === "Selected") {
+      await Student.findByIdAndUpdate(application.studentId, {
+        placementStatus: "Placed",
+      });
+    } else if (status === "Rejected") {
+      // Check karo koi aur selected application hai ya nahi
+      const otherSelected = await Application.findOne({
+        studentId: application.studentId,
+        status: "Selected",
+        _id: { $ne: id },
+      });
+      if (!otherSelected) {
+        await Student.findByIdAndUpdate(application.studentId, {
+          placementStatus: "Not Placed",
+        });
+      }
+    }
     res.json(application);
   } catch (error) {
     res.status(500).json({ message: error.message });
