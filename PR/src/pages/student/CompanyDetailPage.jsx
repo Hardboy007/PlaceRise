@@ -1,4 +1,3 @@
-import jsPDF from "jspdf";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../../utils/api";
@@ -89,87 +88,11 @@ export default function CompanyDetailPage() {
   };
 
   const handleDownloadPDF = () => {
-    const doc = new jsPDF();
-
-    const companyInfo = company.companyId || {};
-
-    // Header
-    doc.setFontSize(20);
-    doc.setFont("helvetica", "bold");
-    doc.text("PlaceRise — Job Description", 20, 20);
-
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Generated: ${new Date().toLocaleDateString("en-IN")}`, 20, 30);
-
-    // Divider
-    doc.setDrawColor(59, 130, 246);
-    doc.setLineWidth(0.5);
-    doc.line(20, 35, 190, 35);
-
-    // Company Info
-    doc.setFontSize(16);
-    doc.setFont("helvetica", "bold");
-    doc.text(companyInfo.name || "Company", 20, 45);
-
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Role: ${company.role || "—"}`, 20, 55);
-    doc.text(`CTC: ₹${company.ctc} LPA`, 20, 63);
-    doc.text(`Location: ${company.location || "—"}`, 20, 71);
-    doc.text(`Job Type: ${company.jobType || "—"}`, 20, 79);
-    doc.text(
-      `Last Date: ${company.lastDate ? new Date(company.lastDate).toLocaleDateString("en-IN") : "—"}`,
-      20,
-      87,
-    );
-
-    // Divider
-    doc.line(20, 93, 190, 93);
-
-    // Eligibility
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("Eligibility Criteria", 20, 103);
-
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Min CGPA: ${company.minCgpa}+`, 20, 113);
-    doc.text(
-      `Max Backlogs: ${company.maxBacklogs === 0 ? "None" : company.maxBacklogs}`,
-      20,
-      121,
-    );
-    doc.text(
-      `Eligible Courses: ${company.eligibleCourses?.join(", ") || "All"}`,
-      20,
-      129,
-    );
-
-    // About
-    if (companyInfo.about) {
-      doc.line(20, 137, 190, 137);
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
-      doc.text("About Company", 20, 147);
-      doc.setFontSize(11);
-      doc.setFont("helvetica", "normal");
-      const aboutLines = doc.splitTextToSize(companyInfo.about, 170);
-      doc.text(aboutLines, 20, 157);
+    if (!company.jdPdfUrl) {
+      alert("No JD PDF available for this job yet.");
+      return;
     }
-
-    // Skills
-    if (company.skills?.length > 0) {
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
-      doc.text("Skills Required", 20, 185);
-      doc.setFontSize(11);
-      doc.setFont("helvetica", "normal");
-      doc.text(company.skills.join(", "), 20, 195);
-    }
-
-    // Save
-    doc.save(`${companyInfo.name || "JD"}_${company.role || "job"}.pdf`);
+    window.open(company.jdPdfUrl, "_blank");
   };
 
   if (loading)
@@ -226,7 +149,8 @@ export default function CompanyDetailPage() {
 
         <button
           onClick={handleDownloadPDF}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-[#1E293B] hover:bg-[#3B82F6] text-white transition-colors"
+          disabled={!company.jdPdfUrl}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-[#1E293B] hover:bg-[#3B82F6] text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#1E293B]"
         >
           <Download size={14} /> Download JD
         </button>
