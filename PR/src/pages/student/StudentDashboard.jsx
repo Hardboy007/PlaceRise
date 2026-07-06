@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../utils/api";
+import universityStructure from "../../data/universityStructure";
 
 // ─── Design Tokens ───────────────────────────────────────────
 const C = {
@@ -15,6 +16,10 @@ const C = {
   white: "#FFFFFF",
   border: "#E2E8F0",
 };
+
+// How many announcements show in the dashboard's compact panel before the
+// person has to open "View All" to see the rest.
+const ANNOUNCEMENTS_PREVIEW_COUNT = 5;
 
 // Rotates through a small set of icons/colors for however many
 // announcements come back from the server (server has no icon field).
@@ -274,12 +279,33 @@ function normalizeTargetSchools(target) {
 
 // Human readable summary of who an announcement targets — same logic as
 // the coordinator's own card, so students see exactly what was set.
+// - A school that's fully selected (every course under it) shows as its
+//   short name, e.g. "SoEC".
+// - A school that's only partially selected (a subset of its courses)
+//   shows those individual course names instead, e.g. "B.Tech CSE, BBA".
+// - Multiple entries are joined with commas — never a generic "3 Schools".
 function targetLabel(target) {
   if (!target || target.all) return "All Students";
   const schools = normalizeTargetSchools(target);
   if (!schools.length) return "All Students";
-  if (schools.length === 1) return schoolShort(schools[0].school);
-  return `${schools.length} Schools`;
+
+  const parts = [];
+  schools.forEach(({ school, courses }) => {
+    const schoolObj = universityStructure.find((s) => s.school === school);
+    const total = schoolObj
+      ? (schoolObj.departments || []).flatMap((d) => d.courses || [])
+      : [];
+    // Legacy entries with no explicit course list are treated as "whole school".
+    const selected = courses && courses.length ? courses : total;
+
+    if (total.length > 0 && selected.length === total.length) {
+      parts.push(schoolShort(school));
+    } else {
+      parts.push(...selected);
+    }
+  });
+
+  return parts.length ? parts.join(", ") : "All Students";
 }
 
 // Parses a "YYYY-MM-DD" date string as LOCAL time (avoids the UTC-parsing
@@ -366,6 +392,71 @@ function isStillOpen(job) {
 
 const POLL_INTERVAL_MS = 6000; // matches the polling interval used on StudentApplication
 
+// One rendered announcement row — pulled out so the compact preview list
+// and the "View All" history modal render identically instead of drifting
+// out of sync if one gets tweaked later.
+function AnnouncementItem({ a, isLast }) {
+  const tc = ANN_TYPE_CONFIG[a.type] || ANN_TYPE_CONFIG.General;
+  return (
+    <div
+      style={!isLast ? { borderColor: C.border } : {}}
+      className={`flex gap-3 ${!isLast ? "pb-5 border-b" : ""}`}
+    >
+      <div
+        style={{ backgroundColor: C.background }}
+        className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+      >
+        {announcementIconPool[0]}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+          <span
+            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${tc.badge}`}
+          >
+            {a.type || "General"}
+          </span>
+          <span
+            style={{
+              color: C.textMuted,
+              backgroundColor: C.background,
+            }}
+            className="text-[10px] font-medium px-2 py-0.5 rounded-full"
+          >
+            {targetLabel(a.target)}
+          </span>
+        </div>
+
+        <p
+          style={{ color: C.textMain }}
+          className="font-semibold text-sm leading-tight mb-1"
+        >
+          {a.title}
+        </p>
+
+        {a.description && (
+          <p
+            style={{ color: C.textMuted }}
+            className="text-xs leading-relaxed mb-1.5"
+          >
+            {a.description}
+          </p>
+        )}
+
+        {a.room && (
+          <p style={{ color: C.textMuted }} className="text-xs leading-relaxed mb-1">
+            📍 {a.room}
+          </p>
+        )}
+
+        <p style={{ color: C.textMuted }} className="text-[11px] font-medium">
+          {formatDayDate(a.date)}
+          {a.time ? ` · ${a.time}` : ""}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────
 export default function PlacementDashboard() {
   const navigate = useNavigate();
@@ -373,6 +464,7 @@ export default function PlacementDashboard() {
   const [announcements, setAnnouncements] = useState([]);
   const [announcementsLoading, setAnnouncementsLoading] = useState(true);
   const [announcementsError, setAnnouncementsError] = useState("");
+  const [showAnnouncementHistory, setShowAnnouncementHistory] = useState(false);
 
   const [jobs, setJobs] = useState([]);
   const [jobsLoading, setJobsLoading] = useState(true);
@@ -453,6 +545,15 @@ export default function PlacementDashboard() {
     .filter((a) => a.status === "Published")
     .filter((a) => isAnnouncementForStudent(a, student))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  // Compact dashboard panel only shows the most recent few — the rest are
+  // one click away in the "View All" history modal, not gone.
+  const previewAnnouncements = visibleAnnouncements.slice(
+    0,
+    ANNOUNCEMENTS_PREVIEW_COUNT,
+  );
+  const hasMoreAnnouncements =
+    visibleAnnouncements.length > ANNOUNCEMENTS_PREVIEW_COUNT;
 
   // A job posting whose company was deleted still exists in the DB, but
   // populate("companyId") comes back null for it — those must never show
@@ -730,13 +831,26 @@ export default function PlacementDashboard() {
 
           {/* Announcements — live, polled every 6s, filtered to student's school */}
           <div>
-            <div className="mb-4">
-              <h2 style={{ color: C.textMain }} className="text-xl font-bold">
-                Announcements
-              </h2>
-              <p style={{ color: C.textMuted }} className="text-sm">
-                Latest from your placement cell
-              </p>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 style={{ color: C.textMain }} className="text-xl font-bold">
+                  Announcements
+                </h2>
+                <p style={{ color: C.textMuted }} className="text-sm">
+                  Latest from your placement cell
+                </p>
+              </div>
+              {!announcementsLoading &&
+                !announcementsError &&
+                visibleAnnouncements.length > 0 && (
+                  <button
+                    onClick={() => setShowAnnouncementHistory(true)}
+                    style={{ color: C.primary }}
+                    className="text-sm font-medium hover:opacity-80 shrink-0"
+                  >
+                    History
+                  </button>
+                )}
             </div>
 
             <div
@@ -774,87 +888,30 @@ export default function PlacementDashboard() {
 
               {!announcementsLoading &&
                 !announcementsError &&
-                visibleAnnouncements.length > 0 && (
+                previewAnnouncements.length > 0 && (
                   <div className="space-y-5">
-                    {visibleAnnouncements.map((a, idx) => {
-                      const id = getAnnId(a);
-                      const isLast = idx === visibleAnnouncements.length - 1;
-                      const tc =
-                        ANN_TYPE_CONFIG[a.type] || ANN_TYPE_CONFIG.General;
-                      return (
-                        <div
-                          key={id ?? `${a.title}-${idx}`}
-                          style={!isLast ? { borderColor: C.border } : {}}
-                          className={`flex gap-3 ${!isLast ? "pb-5 border-b" : ""}`}
-                        >
-                          <div
-                            style={{ backgroundColor: C.background }}
-                            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                          >
-                            {
-                              announcementIconPool[
-                                idx % announcementIconPool.length
-                              ]
-                            }
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            {/* Type + Target badges — everything the coordinator set, visible here too */}
-                            <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-                              <span
-                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${tc.badge}`}
-                              >
-                                {a.type || "General"}
-                              </span>
-                              <span
-                                style={{
-                                  color: C.textMuted,
-                                  backgroundColor: C.background,
-                                }}
-                                className="text-[10px] font-medium px-2 py-0.5 rounded-full"
-                              >
-                                {targetLabel(a.target)}
-                              </span>
-                            </div>
-
-                            <p
-                              style={{ color: C.textMain }}
-                              className="font-semibold text-sm leading-tight mb-1"
-                            >
-                              {a.title}
-                            </p>
-
-                            {a.description && (
-                              <p
-                                style={{ color: C.textMuted }}
-                                className="text-xs leading-relaxed mb-1.5"
-                              >
-                                {a.description}
-                              </p>
-                            )}
-
-                            {a.room && (
-                              <p
-                                style={{ color: C.textMuted }}
-                                className="text-xs leading-relaxed mb-1"
-                              >
-                                📍 {a.room}
-                              </p>
-                            )}
-
-                            {/* Exact date + time, exactly as the coordinator entered it */}
-                            <p
-                              style={{ color: C.textMuted }}
-                              className="text-[11px] font-medium"
-                            >
-                              {formatDayDate(a.date)}
-                              {a.time ? ` · ${a.time}` : ""}
-                            </p>
-                          </div>
-                        </div>
-                      );
-                    })}
+                    {previewAnnouncements.map((a, idx) => (
+                      <AnnouncementItem
+                        key={getAnnId(a) ?? `${a.title}-${idx}`}
+                        a={a}
+                        isLast={idx === previewAnnouncements.length - 1}
+                      />
+                    ))}
                   </div>
                 )}
+
+              {/* Fallback link at the bottom of the card too, in case there
+                  are more than the preview count but the header button is
+                  easy to miss */}
+              {hasMoreAnnouncements && (
+                <button
+                  onClick={() => setShowAnnouncementHistory(true)}
+                  style={{ color: C.primary, borderColor: C.border }}
+                  className="w-full mt-4 pt-3 border-t text-xs font-semibold hover:opacity-80 transition-opacity"
+                >
+                  View all {visibleAnnouncements.length} announcements
+                </button>
+              )}
             </div>
 
             {/* Need Help */}
@@ -902,7 +959,75 @@ export default function PlacementDashboard() {
           </div>
         </div>
       </main>
+
+      {/* ── Announcement History Modal — shows every announcement ever
+          published for this student, not just the latest N ── */}
+      {showAnnouncementHistory && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+          onClick={() => setShowAnnouncementHistory(false)}
+        >
+          <div
+            style={{ backgroundColor: C.white }}
+            className="rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{ borderColor: C.border }}
+              className="flex items-center justify-between p-5 border-b shrink-0"
+            >
+              <div>
+                <h2 style={{ color: C.textMain }} className="text-base font-bold">
+                  All Announcements
+                </h2>
+                <p style={{ color: C.textMuted }} className="text-xs mt-0.5">
+                  {visibleAnnouncements.length} total
+                </p>
+              </div>
+              <button
+                onClick={() => setShowAnnouncementHistory(false)}
+                style={{ backgroundColor: C.background }}
+                className="w-8 h-8 rounded-lg flex items-center justify-center hover:opacity-80 transition-opacity"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke={C.textMuted}
+                  strokeWidth={2.2}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-5 overflow-y-auto">
+              {visibleAnnouncements.length === 0 ? (
+                <p
+                  style={{ color: C.textMuted }}
+                  className="text-sm text-center py-8"
+                >
+                  No announcements yet.
+                </p>
+              ) : (
+                <div className="space-y-5">
+                  {visibleAnnouncements.map((a, idx) => (
+                    <AnnouncementItem
+                      key={getAnnId(a) ?? `${a.title}-${idx}`}
+                      a={a}
+                      isLast={idx === visibleAnnouncements.length - 1}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-

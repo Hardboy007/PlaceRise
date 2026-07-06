@@ -72,12 +72,32 @@ function normalizeTargetSchools(target) {
 }
 
 // Human readable summary of who an announcement targets.
+// - A school that's fully selected (every course under it) shows as its
+//   short name, e.g. "SoEC".
+// - A school that's only partially selected (a subset of its courses)
+//   shows those individual course names instead, e.g. "Data Science, AI & ML".
+// - Multiple entries (whether school names or course names) are joined
+//   with commas, e.g. "SoEC, Data Science" — never a generic "2 Schools".
 function targetLabel(target) {
   if (!target || target.all) return "All Students";
   const schools = normalizeTargetSchools(target);
   if (!schools.length) return "All Students";
-  if (schools.length === 1) return schoolShort(schools[0].school);
-  return `${schools.length} Schools`;
+
+  const parts = [];
+  schools.forEach(({ school, courses }) => {
+    const schoolObj = universityStructure.find((s) => s.school === school);
+    const total = schoolObj ? allCoursesOfSchool(schoolObj) : [];
+    // Legacy entries with no explicit course list are treated as "whole school".
+    const selected = courses && courses.length ? courses : total;
+
+    if (total.length > 0 && selected.length === total.length) {
+      parts.push(schoolShort(school));
+    } else {
+      parts.push(...selected);
+    }
+  });
+
+  return parts.length ? parts.join(", ") : "All Students";
 }
 
 // Parses a "YYYY-MM-DD" date string as LOCAL time (avoids the classic
