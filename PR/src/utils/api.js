@@ -29,7 +29,9 @@ const request = async (endpoint, options = {}) => {
 
 export const api = {
   get: async (endpoint) => request(endpoint, { method: "GET" }),
-  post: async (endpoint, body) => request(endpoint, { method: "POST", body: JSON.stringify(body) }),
-  put: async (endpoint, body) => request(endpoint, { method: "PUT", body: JSON.stringify(body) }),
+  post: async (endpoint, body) =>
+    request(endpoint, { method: "POST", body: JSON.stringify(body) }),
+  put: async (endpoint, body) =>
+    request(endpoint, { method: "PUT", body: JSON.stringify(body) }),
   delete: async (endpoint) => request(endpoint, { method: "DELETE" }),
 };

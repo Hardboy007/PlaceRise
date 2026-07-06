@@ -443,7 +443,10 @@ function AnnouncementItem({ a, isLast }) {
         )}
 
         {a.room && (
-          <p style={{ color: C.textMuted }} className="text-xs leading-relaxed mb-1">
+          <p
+            style={{ color: C.textMuted }}
+            className="text-xs leading-relaxed mb-1"
+          >
             📍 {a.room}
           </p>
         )}
@@ -977,7 +980,10 @@ export default function PlacementDashboard() {
               className="flex items-center justify-between p-5 border-b shrink-0"
             >
               <div>
-                <h2 style={{ color: C.textMain }} className="text-base font-bold">
+                <h2
+                  style={{ color: C.textMain }}
+                  className="text-base font-bold"
+                >
                   All Announcements
                 </h2>
                 <p style={{ color: C.textMuted }} className="text-xs mt-0.5">

@@ -382,7 +382,9 @@ export default function AnnouncementManagementPage() {
     try {
       let savedAnnouncement = null;
       if (editingId !== null) {
-        savedAnnouncement = unwrap(await api.put(`/announcements/${editingId}`, payload));
+        savedAnnouncement = unwrap(
+          await api.put(`/announcements/${editingId}`, payload),
+        );
       } else {
         savedAnnouncement = unwrap(await api.post("/announcements", payload));
       }
@@ -1077,4 +1079,3 @@ function FormField({ label, required, children }) {
     </div>
   );
 }
-

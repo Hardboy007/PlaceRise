@@ -716,7 +716,11 @@ function AppliedTab({ selectedJobId, readOnly }) {
                   // coordinator accidentally re-open decisions.
                   <span
                     className="text-xs font-semibold px-2.5 py-1 rounded-full w-fit border"
-                    style={{ color: s.color, backgroundColor: s.bg, borderColor: s.border }}
+                    style={{
+                      color: s.color,
+                      backgroundColor: s.bg,
+                      borderColor: s.border,
+                    }}
                   >
                     {app.status}
                   </span>
