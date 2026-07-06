@@ -676,6 +676,8 @@ export default function CompanyManagementPage() {
   const [jdTargetJob, setJdTargetJob] = useState(null);
   const [jdForm, setJdForm] = useState(emptyJD);
   const [jdErrors, setJdErrors] = useState({});
+  const [pdfFile, setPdfFile] = useState(null);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
 
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewingCompany, setViewingCompany] = useState(null);
@@ -864,6 +866,26 @@ export default function CompanyManagementPage() {
     }
     await fetchData();
     setShowJDModal(false);
+  };
+
+  const handleUploadPdf = async () => {
+    if (!pdfFile || !jdTargetJob) return;
+    setUploadingPdf(true);
+    try {
+      const formData = new FormData();
+      formData.append("pdf", pdfFile);
+      const res = await api.post(
+        `/companies/jobs/${jdTargetJob._id}/upload-pdf`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } },
+      );
+      setJdTargetJob({ ...jdTargetJob, jdPdfUrl: res.jdPdfUrl });
+      setPdfFile(null);
+      await fetchData();
+    } catch (err) {
+      alert("PDF upload failed");
+    }
+    setUploadingPdf(false);
   };
 
   const openDeleteDialog = (company) => {
@@ -1663,6 +1685,48 @@ export default function CompanyManagementPage() {
             </div>
             <div className="p-5">
               <JDFields form={jdForm} setForm={setJdForm} errors={jdErrors} />
+
+              {jdTargetJob && (
+                <div className="mt-5 pt-4 border-t border-[#F1F5F9]">
+                  <label className="block text-xs font-semibold text-text-muted uppercase tracking-widest mb-2">
+                    Job Description PDF
+                  </label>
+
+                  {jdTargetJob.jdPdfUrl && (
+                    <a
+                      href={jdTargetJob.jdPdfUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1.5 text-xs text-[#3B82F6] hover:underline mb-2"
+                    >
+                      <FileText size={12} />
+                      View current PDF
+                    </a>
+                  )}
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      onChange={(e) => setPdfFile(e.target.files[0])}
+                      className="flex-1 text-xs text-[#64748B]"
+                    />
+                    <button
+                      onClick={handleUploadPdf}
+                      disabled={!pdfFile || uploadingPdf}
+                      className="px-3 py-1.5 rounded-lg bg-[#3B82F6] text-white text-xs font-semibold hover:bg-[#2563EB] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                    >
+                      {uploadingPdf ? "Uploading..." : "Upload"}
+                    </button>
+                  </div>
+
+                  {pdfFile && (
+                    <p className="text-[10px] text-[#94A3B8] mt-1.5">
+                      Selected: {pdfFile.name}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
             <div className="flex items-center justify-end gap-3 p-5 border-t border-[#F1F5F9]">
               <button
