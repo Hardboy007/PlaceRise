@@ -71,8 +71,7 @@ export default function CompanyDetailPage() {
     fetchJob();
   }, [companyId]);
 
-  const isExpired = new Date(company.lastDate) < new Date();
-
+  
   const handleApply = async () => {
     setApplyLoading(true);
     try {
@@ -87,15 +86,15 @@ export default function CompanyDetailPage() {
     }
     setApplyLoading(false);
   };
-
+  
   if (loading)
     return (
       <div className="flex items-center justify-center min-h-64">
         <p className="text-sm text-[#64748B]">Loading...</p>
       </div>
     );
-
-  if (!company)
+    
+    if (!company)
     return (
       <div className="flex flex-col items-center justify-center min-h-64 gap-4">
         <Building2 size={48} className="text-[#CBD5E1]" />
@@ -103,15 +102,16 @@ export default function CompanyDetailPage() {
         <button
           onClick={goBack}
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#3B82F6] text-white text-sm font-medium"
-        >
+          >
           <ArrowLeft size={14} /> Back
         </button>
       </div>
     );
-
-  // Company info — JobPosting mein companyId populate hua hai
-  const companyInfo = company.companyId || {};
-
+    
+    // Company info — JobPosting mein companyId populate hua hai
+    const companyInfo = company.companyId || {};
+    const isExpired = new Date(company.lastDate) < new Date();
+    
   const daysLeft = () => {
     const today = new Date();
     const last = new Date(company.lastDate);
