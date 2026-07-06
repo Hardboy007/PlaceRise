@@ -14,6 +14,12 @@ const storage = new CloudinaryStorage({
     folder: "placerise/jd-pdfs",
     resource_type: "raw",
     allowed_formats: ["pdf"],
+    public_id: (req, file) => {
+      const cleanName = file.originalname
+        .replace(/\.pdf$/i, "")
+        .replace(/[^a-zA-Z0-9_-]/g, "_");
+      return `${cleanName}_${Date.now()}.pdf`;
+    },
   },
 });
 
