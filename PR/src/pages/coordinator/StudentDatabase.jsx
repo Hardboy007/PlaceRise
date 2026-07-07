@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx'
+import * as XLSX from "xlsx";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { api } from "../../utils/api";
 import universityStructure from "../../data/universityStructure";
@@ -800,19 +800,23 @@ function StudentModal({ student, onClose }) {
               Skills
             </h4>
             <div className="flex flex-wrap gap-2">
-              {student.skills.map((skill) => (
-                <span
-                  key={skill}
-                  style={{
-                    color: C.primary,
-                    backgroundColor: "#EFF6FF",
-                    borderColor: "#BFDBFE",
-                  }}
-                  className="border text-xs font-semibold px-3 py-1.5 rounded-full"
-                >
-                  {skill}
-                </span>
-              ))}
+              {(student.skills || []).length === 0 ? (
+                <span style={{ color: C.textMuted }} className="text-sm">No skills added yet</span>
+              ) : (
+                (student.skills || []).map((skill) => (
+                  <span
+                    key={skill}
+                    style={{
+                      color: C.primary,
+                      backgroundColor: "#EFF6FF",
+                      borderColor: "#BFDBFE",
+                    }}
+                    className="border text-xs font-semibold px-3 py-1.5 rounded-full"
+                  >
+                    {skill}
+                  </span>
+                ))
+              )}
             </div>
           </div>
 
@@ -840,7 +844,7 @@ function StudentModal({ student, onClose }) {
                     style={{ color: "#15803D" }}
                     className="font-bold text-base"
                   >
-                    {student.company}
+                    {student.selectedCompanies?.[0]?.companyId?.name || "—"}
                   </p>
                 </div>
                 <div>
@@ -854,7 +858,9 @@ function StudentModal({ student, onClose }) {
                     style={{ color: "#15803D" }}
                     className="font-bold text-base"
                   >
-                    {student.ctc}
+                    {student.selectedCompanies?.[0]?.ctc
+                      ? `₹${student.selectedCompanies[0].ctc} LPA`
+                      : "—"}
                   </p>
                 </div>
                 <div>
@@ -868,7 +874,11 @@ function StudentModal({ student, onClose }) {
                     style={{ color: "#15803D" }}
                     className="font-bold text-base"
                   >
-                    {student.offerDate}
+                    {student.selectedCompanies?.[0]?.lastDate
+                      ? new Date(
+                          student.selectedCompanies[0].lastDate,
+                        ).toLocaleDateString()
+                      : "—"}
                   </p>
                 </div>
               </div>
