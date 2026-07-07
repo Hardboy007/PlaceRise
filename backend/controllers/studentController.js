@@ -23,6 +23,9 @@ const enrichStudentWithPlacementData = async (student) => {
   const selectedApplications = await Application.find({
     studentId: student._id,
     status: "Selected",
+  }).populate({
+    path: "jobId",
+    populate: { path: "companyId" },
   });
 
   return {
