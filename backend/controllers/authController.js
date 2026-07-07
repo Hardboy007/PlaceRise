@@ -120,7 +120,6 @@ const changePassword = async (req, res) => {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await User.findByIdAndUpdate(userId, {
       password: hashedPassword,
-      isFirstLogin: false,
     });
 
     res.json({ message: "Password changed successfully" });
