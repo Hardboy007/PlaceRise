@@ -126,14 +126,14 @@ const updateApplicationStatus = async (req, res) => {
       await Student.findByIdAndUpdate(application.studentId, {
         placementStatus: "Placed",
       });
-    } else if (status === "Rejected") {
-      // Check karo koi aur selected application hai ya nahi
-      const otherSelected = await Application.findOne({
+    } else {
+      // Koi bhi non-Selected status pe check karo
+      const anySelected = await Application.findOne({
         studentId: application.studentId,
         status: "Selected",
         _id: { $ne: id },
       });
-      if (!otherSelected) {
+      if (!anySelected) {
         await Student.findByIdAndUpdate(application.studentId, {
           placementStatus: "Not Placed",
         });
