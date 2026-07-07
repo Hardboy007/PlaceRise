@@ -10,6 +10,7 @@ import {
   LogOut,
   Sparkles,
   Calendar,
+  FileText,
 } from "lucide-react";
 
 const navLinks = [
@@ -20,6 +21,7 @@ const navLinks = [
   { to: "/coordinator/applications", label: "Applications", icon: BarChart3 },
   { to: "/coordinator/announcements", label: "Announcements", icon: Megaphone },
   { to: "/coordinator/profile", label: "Profile & Settings", icon: User },
+  { to: '/coordinator/noc', label: 'NOC / LOR', icon: FileText },
 ];
 
 function CoordinatorLayout() {

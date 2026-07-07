@@ -9,6 +9,7 @@ import {
   Bell,
   LogOut,
   Sparkles,
+  FileText,
 } from "lucide-react";
 
 const navLinks = [
@@ -21,6 +22,7 @@ const navLinks = [
   },
   { to: "/student/profile", label: "Profile", icon: User },
   { to: "/student/settings", label: "Settings", icon: Settings },
+  { to: '/student/documents', label: 'My Documents', icon: FileText },
 ];
 
 function StudentLayout() {
