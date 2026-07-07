@@ -75,7 +75,7 @@ export default function StudentProfilePage() {
   useEffect(() => {
     const fetchProfile = async () => {
       const storedStudent = JSON.parse(localStorage.getItem("student") || "{}");
-      const data = await api.get(`/students/${storedStudent.id}`);
+      const data = await api.get("/students/me");
       setStudent(data);
       setLoading(false);
     };
@@ -88,8 +88,7 @@ export default function StudentProfilePage() {
   };
 
   const handleSave = async () => {
-    const storedStudent = JSON.parse(localStorage.getItem("student") || "{}");
-    const updated = await api.put(`/students/${storedStudent.id}`, form);
+    const updated = await api.put("/students/me", form);
     setStudent(updated);
     setForm(null);
     setEditing(false);

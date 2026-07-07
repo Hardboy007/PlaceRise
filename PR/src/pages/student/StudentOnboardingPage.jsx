@@ -111,8 +111,7 @@ function StudentOnboardingPage() {
   };
 
   const handleSubmit = async () => {
-    const storedStudent = JSON.parse(localStorage.getItem("student") || "{}");
-    const studentId = storedStudent.id;
+    const updatedStudent = await api.put("/students/me/onboard", payload);
 
     const payload = {
       name: formData.fullName,
