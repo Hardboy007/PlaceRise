@@ -23,6 +23,27 @@ const createApplication = async (req, res) => {
         .status(400)
         .json({ message: "Application deadline has passed" });
     }
+    // Eligibility check
+    if (
+      job.eligibleBranches &&
+      !job.eligibleBranches.includes("All") &&
+      job.eligibleBranches.length > 0
+    ) {
+      const student = await Student.findOne({ userId });
+      if (!student) {
+        return res.status(404).json({ message: "Student not found" });
+      }
+
+      const isEligible =
+        job.eligibleBranches.includes(student.course) ||
+        job.eligibleBranches.includes(student.branch);
+
+      if (!isEligible) {
+        return res
+          .status(403)
+          .json({ message: "You are not eligible for this job" });
+      }
+    }
     // Already applied check karo
     const alreadyApplied = await Application.findOne({
       studentId: student._id,

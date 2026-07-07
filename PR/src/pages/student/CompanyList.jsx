@@ -42,32 +42,16 @@ function BranchSearchDropdown({ value, onChange }) {
   const ref = useRef(null);
 
   useEffect(() => {
-    const fetchJobs = async () => {
-      const [data, studentData] = await Promise.all([
-        api.get("/companies/jobs"),
-        api.get("/students/me"),
-      ]);
-
-      const valid = (Array.isArray(data) ? data : []).filter(
-        (j) => j.companyId && j.companyId._id && j.companyId.name,
-      );
-
-      const eligible = valid.filter((j) => {
-        if (!j.eligibleBranches || j.eligibleBranches.length === 0) return true;
-        if (j.eligibleBranches.includes("All")) return true;
-        return (
-          j.eligibleBranches.includes(studentData.course) ||
-          j.eligibleBranches.includes(studentData.branch)
-        );
-      });
-
-      setCompanies(eligible);
-      setLoading(false);
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false);
+        setQuery("");
+      }
     };
-    fetchJobs();
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  
   // Group courses by school, filtered by search query
   const groupedFiltered = useMemo(() => {
     const q = query.toLowerCase().trim();
