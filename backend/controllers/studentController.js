@@ -84,16 +84,54 @@ const getMyProfile = async (req, res) => {
 // UPDATE student by ID
 const updateStudent = async (req, res) => {
   try {
-    const { id } = req.params;
-    const data = req.body;
+    const student = await Student.findOne({ userId: req.user.id });
+    if (!student) return res.status(404).json({ message: "Student not found" });
 
-    const updatedStudent = await Student.findByIdAndUpdate(id, data, {
-      new: true,
+    const allowedFields = [
+      "phone",
+      "skills",
+      "address",
+      "city",
+      "state",
+      "gender",
+      "resume",
+    ];
+    const updates = {};
+    allowedFields.forEach((field) => {
+      if (req.body[field] !== undefined) updates[field] = req.body[field];
     });
 
-    if (!updatedStudent) {
-      return res.status(404).json({ message: "Student not found" });
+    const updatedStudent = await Student.findByIdAndUpdate(
+      student._id,
+      updates,
+      { new: true },
+    );
+
+    res.json(updatedStudent);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const onboardStudent = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (!user.isFirstLogin) {
+      return res.status(403).json({ message: "Onboarding already completed" });
     }
+
+    const student = await Student.findOne({ userId: req.user.id });
+    if (!student) return res.status(404).json({ message: "Student not found" });
+
+    const updatedStudent = await Student.findByIdAndUpdate(
+      student._id,
+      req.body,
+      { new: true },
+    );
+
+    await User.findByIdAndUpdate(req.user.id, { isFirstLogin: false });
 
     res.json(updatedStudent);
   } catch (error) {
@@ -273,8 +311,8 @@ module.exports = {
   getStudentById,
   getMyProfile,
   updateStudent,
+  onboardStudent,
   updateNotificationPreferences,
   bulkImportStudents,
   exportStudentsExcel,
 };
-
