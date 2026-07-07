@@ -36,7 +36,7 @@ function AppRouter() {
             </ProtectedRoute>
           }
         />
-        
+
         {/* Student Routes - Layout ke andar */}
         <Route
           path="/student"
@@ -52,6 +52,7 @@ function AppRouter() {
           <Route path="applications" element={<StudentApplication />} />
           <Route path="profile" element={<StudentProfilePage />} />
           <Route path="settings" element={<StudentSettingsPage />} />
+          <Route path="documents" element={<div>Document Requests</div>} />
         </Route>
 
         {/* Coordinator Routes - Layout ke andar */}
@@ -73,8 +74,8 @@ function AppRouter() {
             element={<AnnouncementManagementPage />}
           />
           <Route path="profile" element={<CoordinatorProfile />} />
+          <Route path="noc" element={<div>NOC Management</div>} />
         </Route>
-
         <Route path="*" element={<div>404 - Page Not Found</div>} />
       </Routes>
     </BrowserRouter>
