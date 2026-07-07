@@ -67,6 +67,7 @@ function BranchSearchDropdown({ value, onChange }) {
     fetchJobs();
   }, []);
 
+  
   // Group courses by school, filtered by search query
   const groupedFiltered = useMemo(() => {
     const q = query.toLowerCase().trim();
