@@ -26,6 +26,7 @@ export default function CompanyDetailPage() {
   const [applied, setApplied] = useState(false);
   const [existingStatus, setExistingStatus] = useState(null); // FIXED: tracks Shortlisted/Selected/Rejected too
   const [applyLoading, setApplyLoading] = useState(false);
+  const [isEligible, setIsEligible] = useState(true); // default true
 
   // FIXED: goes back to whichever page the student actually came from
   // (StudentApplication, CompanyList, etc.) instead of always jumping to
@@ -42,14 +43,25 @@ export default function CompanyDetailPage() {
   useEffect(() => {
     const fetchJob = async () => {
       try {
-        const data = await api.get(`/companies/jobs/${companyId}`);
+        const [data, studentData] = await Promise.all([
+          api.get(`/companies/jobs/${companyId}`),
+          api.get("/students/me"),
+        ]);
         setCompany(data);
 
-        // FIXED: check if the student has already applied to THIS job,
-        // instead of always assuming applied=false. Without this, a
-        // student clicking through from StudentApplication (where they
-        // are, by definition, already applied) would incorrectly see
-        // "Apply Now" again and could submit a duplicate application.
+        // Eligibility check
+        if (
+          data.eligibleBranches &&
+          !data.eligibleBranches.includes("All") &&
+          data.eligibleBranches.length > 0
+        ) {
+          const eligible =
+            data.eligibleBranches.includes(studentData.course) ||
+            data.eligibleBranches.includes(studentData.branch);
+          setIsEligible(eligible);
+        }
+
+        // Already applied check
         try {
           const myApps = await api.get("/applications/my");
           const existing = Array.isArray(myApps)
@@ -60,8 +72,6 @@ export default function CompanyDetailPage() {
             setExistingStatus(existing.status);
           }
         } catch (e) {
-          // non-fatal — if this check fails, worst case student sees
-          // "Apply Now" and backend should still reject a true duplicate
           console.error("Could not verify existing application:", e);
         }
       } catch (err) {
@@ -106,7 +116,6 @@ export default function CompanyDetailPage() {
     window.open(downloadUrl, "_blank");
   };
 
-  
   if (loading)
     return (
       <div className="flex items-center justify-center min-h-64">
@@ -211,14 +220,16 @@ export default function CompanyDetailPage() {
           </div>
           <button
             onClick={handleApply}
-            disabled={applied || applyLoading || isExpired}
+            disabled={applied || applyLoading || isExpired || !isEligible}
             className={`w-full py-3 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-all
     ${
       applied
         ? "bg-white/20 text-white border border-white/30 cursor-not-allowed"
         : isExpired
           ? "bg-white/20 text-white border border-white/30 cursor-not-allowed"
-          : "bg-white text-[#3B82F6] hover:bg-white/90 shadow-md"
+          : !isEligible
+            ? "bg-white/20 text-white border border-white/30 cursor-not-allowed"
+            : "bg-white text-[#3B82F6] hover:bg-white/90 shadow-md"
     }`}
           >
             {applied ? (
@@ -229,6 +240,8 @@ export default function CompanyDetailPage() {
               "Applying..."
             ) : isExpired ? (
               "Deadline Passed"
+            ) : !isEligible ? (
+              "Not Eligible for This Role"
             ) : (
               <>
                 <Send size={16} /> Apply Now
@@ -515,14 +528,16 @@ export default function CompanyDetailPage() {
       {/* Bottom Apply Button */}
       <button
         onClick={handleApply}
-        disabled={applied || applyLoading || isExpired}
+        disabled={applied || applyLoading || isExpired || !isEligible}
         className={`w-full py-3.5 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-all mb-6
           ${
             applied
               ? "bg-white/20 text-white border border-white/30 cursor-not-allowed"
               : isExpired
                 ? "bg-white/20 text-white border border-white/30 cursor-not-allowed"
-                : "bg-white text-[#3B82F6] hover:bg-white/90 shadow-md"
+                : !isEligible
+                  ? "bg-white/20 text-white border border-white/30 cursor-not-allowed"
+                  : "bg-white text-[#3B82F6] hover:bg-white/90 shadow-md"
           }`}
       >
         {applied ? (
@@ -533,6 +548,8 @@ export default function CompanyDetailPage() {
           "Applying..."
         ) : isExpired ? (
           "Deadline Passed"
+        ) : !isEligible ? (
+          "Not Eligible for This Role"
         ) : (
           <>
             <Send size={16} /> Apply for this Role
