@@ -111,8 +111,6 @@ function StudentOnboardingPage() {
   };
 
   const handleSubmit = async () => {
-    const updatedStudent = await api.put("/students/me/onboard", payload);
-
     const payload = {
       name: formData.fullName,
       dob: formData.dob,
@@ -134,19 +132,8 @@ function StudentOnboardingPage() {
         .map((s) => s.trim())
         .filter(Boolean),
     };
-    console.log("formData.department value:", formData.department);
-    console.log("Full payload:", payload);
-    const updatedStudent = await api.put(`/students/${studentId}`, payload);
 
-    // localStorage ka cached student object refresh karo naye data se
-    localStorage.setItem(
-      "student",
-      JSON.stringify({
-        ...storedStudent,
-        ...updatedStudent,
-      }),
-    );
-
+    await api.put("/students/me/onboard", payload);
     navigate("/student/dashboard");
   };
 
