@@ -2,12 +2,16 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./config/db");
+const nocRoutes = require('./routes/noc')
+
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 app.use(cors());
+const nocRoutes = require('./routes/noc')
+app.use('/api/noc', nocRoutes)
 
 const authRoutes = require("./routes/auth");
 const studentRoutes = require("./routes/student");
