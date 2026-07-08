@@ -42,7 +42,26 @@ const getAllRequests = async (req, res) => {
     const requests = await NOCRequest.find()
       .populate("studentId", "name course school branch")
       .sort({ createdAt: -1 });
-    res.json(requests);
+
+    // Frontend expects flattened fields (studentName, course, requestType)
+    // instead of a nested studentId object + a raw "type" field.
+    const formatted = requests.map((r) => ({
+      _id: r._id,
+      studentId: r.studentId?._id,
+      studentName: r.studentId?.name || "Unknown",
+      course: r.studentId?.course || "",
+      school: r.studentId?.school || "",
+      branch: r.studentId?.branch || "",
+      requestType: r.type,
+      purpose: r.purpose,
+      status: r.status,
+      rejectionReason: r.rejectionReason,
+      pdfUrl: r.pdfUrl,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    }));
+
+    res.json(formatted);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
