@@ -510,21 +510,7 @@ export default function PlacementDashboard() {
       }
 
       if (jobsRes.status === "fulfilled") {
-        const allJobs = unwrapList(jobsRes.value, "jobs");
-        const studentData = studentRes.value;
-
-        const eligible = allJobs.filter((j) => {
-          if (!j.companyId || !j.companyId._id) return false; // invalid job
-          if (!j.eligibleBranches || j.eligibleBranches.length === 0)
-            return true;
-          if (j.eligibleBranches.includes("All")) return true;
-          return (
-            j.eligibleBranches.includes(studentData.course) ||
-            j.eligibleBranches.includes(studentData.branch)
-          );
-        });
-
-        setJobs(eligible);
+        setJobs(unwrapList(jobsRes.value, "jobs"));
       } else {
         setJobsError("Could not load companies.");
       }
