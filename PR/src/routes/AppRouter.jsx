@@ -19,6 +19,7 @@ import AnnouncementManagementPage from "../pages/coordinator/AnnouncementManagem
 import ProtectedRoute from "../components/common/ProtectedRoute";
 import ChangePasswordPage from "../pages/student/ChangePasswordPage";
 import NOCManagementPage from "../pages/coordinator/NOCManagementPage";
+import DocumentRequestPage from '../pages/student/DocumentRequestPage'
 
 function AppRouter() {
   return (
@@ -53,7 +54,7 @@ function AppRouter() {
           <Route path="applications" element={<StudentApplication />} />
           <Route path="profile" element={<StudentProfilePage />} />
           <Route path="settings" element={<StudentSettingsPage />} />
-          <Route path="documents" element={<div>Document Requests</div>} />
+          <Route path="documents" element={<DocumentRequestPage />} />
         </Route>
 
         {/* Coordinator Routes - Layout ke andar */}

@@ -1,14 +1,16 @@
-import { useState, useEffect } from 'react';
-import { api } from '../../utils/api';
+import { useState, useEffect } from "react";
+import { api } from "../../utils/api";
 
-const NOC_PLACEHOLDER = 'e.g. Appearing for campus recruitment at [Company Name]';
-const LOR_PLACEHOLDER = 'e.g. Applying for Masters program at [University Name]';
+const NOC_PLACEHOLDER =
+  "e.g. Appearing for campus recruitment at [Company Name]";
+const LOR_PLACEHOLDER =
+  "e.g. Applying for Masters program at [University Name]";
 
 const StatusBadge = ({ status }) => {
   const styles = {
-    Pending: 'bg-warning/10 text-warning border-warning/30',
-    Approved: 'bg-success/10 text-success border-success/30',
-    Rejected: 'bg-danger/10 text-danger border-danger/30',
+    Pending: "bg-warning/10 text-warning border-warning/30",
+    Approved: "bg-success/10 text-success border-success/30",
+    Rejected: "bg-danger/10 text-danger border-danger/30",
   };
   return (
     <span
@@ -23,21 +25,21 @@ const StatusBadge = ({ status }) => {
 
 const DocumentRequestPage = () => {
   const [requests, setRequests] = useState([]);
-  const [type, setType] = useState('NOC');
-  const [purpose, setPurpose] = useState('');
+  const [type, setType] = useState("NOC");
+  const [purpose, setPurpose] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchRequests = async () => {
       try {
         setLoading(true);
-        const data = await api.get('/noc/my');
+        const data = await api.get("/noc/my");
         setRequests(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error(err);
-        setError('Failed to load requests.');
+        setError("Failed to load requests.");
       } finally {
         setLoading(false);
       }
@@ -46,27 +48,24 @@ const DocumentRequestPage = () => {
   }, []);
 
   const handleSubmit = async () => {
-    if (!purpose.trim()) return;
+    if (!purpose.trim() || submitting) return;
+    setSubmitting(true);
     try {
-      setSubmitting(true);
-      setError('');
-      const newRequest = await api.post('/noc', { type, purpose });
+      const newRequest = await api.post("/noc", { type, purpose });
       setRequests((prev) => [newRequest, ...prev]);
-      setPurpose('');
+      setPurpose("");
     } catch (err) {
       console.error(err);
-      setError('Failed to submit request. Try again.');
-    } finally {
-      setSubmitting(false);
     }
+    setSubmitting(false);
   };
 
   const formatDate = (dateStr) => {
-    if (!dateStr) return '-';
-    return new Date(dateStr).toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
+    if (!dateStr) return "-";
+    return new Date(dateStr).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
     });
   };
 
@@ -106,15 +105,15 @@ const DocumentRequestPage = () => {
                 Request Type
               </label>
               <div className="inline-flex bg-slate-100 rounded-lg p-1 gap-1">
-                {['NOC', 'LOR'].map((t) => (
+                {["NOC", "LOR"].map((t) => (
                   <button
                     key={t}
                     type="button"
                     onClick={() => setType(t)}
                     className={`px-5 py-2 rounded-md text-sm font-semibold transition-all ${
                       type === t
-                        ? 'bg-primary text-white shadow'
-                        : 'text-text-muted hover:text-text-main'
+                        ? "bg-primary text-white shadow"
+                        : "text-text-muted hover:text-text-main"
                     }`}
                   >
                     {t}
@@ -131,13 +130,15 @@ const DocumentRequestPage = () => {
               <textarea
                 value={purpose}
                 onChange={(e) => setPurpose(e.target.value)}
-                placeholder={type === 'NOC' ? NOC_PLACEHOLDER : LOR_PLACEHOLDER}
+                placeholder={type === "NOC" ? NOC_PLACEHOLDER : LOR_PLACEHOLDER}
                 rows={4}
                 className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-text-main placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition resize-none"
               />
             </div>
 
-            {error && <p className="text-danger text-sm font-medium">{error}</p>}
+            {error && (
+              <p className="text-danger text-sm font-medium">{error}</p>
+            )}
 
             <button
               onClick={handleSubmit}
@@ -150,7 +151,7 @@ const DocumentRequestPage = () => {
                   Submitting...
                 </span>
               ) : (
-                'Submit Request'
+                "Submit Request"
               )}
             </button>
           </div>
@@ -168,7 +169,10 @@ const DocumentRequestPage = () => {
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-12 bg-slate-100 rounded-lg animate-pulse" />
+                <div
+                  key={i}
+                  className="h-12 bg-slate-100 rounded-lg animate-pulse"
+                />
               ))}
             </div>
           ) : requests.length === 0 ? (
@@ -195,21 +199,25 @@ const DocumentRequestPage = () => {
                     key={req._id}
                     className="border-b border-slate-100 hover:bg-slate-50 transition"
                   >
-                    <td className="py-3 pr-4 font-semibold text-text-main">{req.type}</td>
+                    <td className="py-3 pr-4 font-semibold text-text-main">
+                      {req.type}
+                    </td>
                     <td className="py-3 pr-4 text-text-muted max-w-xs">
                       <span className="line-clamp-2">{req.purpose}</span>
-                      {req.status === 'Rejected' && req.rejectionReason && (
+                      {req.status === "Rejected" && req.rejectionReason && (
                         <p className="text-danger text-xs mt-1">
                           Reason: {req.rejectionReason}
                         </p>
                       )}
                     </td>
-                    <td className="py-3 pr-4 text-text-muted">{formatDate(req.createdAt)}</td>
+                    <td className="py-3 pr-4 text-text-muted">
+                      {formatDate(req.createdAt)}
+                    </td>
                     <td className="py-3 pr-4">
                       <StatusBadge status={req.status} />
                     </td>
                     <td className="py-3">
-                      {req.status === 'Approved' && req.pdfUrl ? (
+                      {req.status === "Approved" && req.pdfUrl ? (
                         <a
                           href={req.pdfUrl}
                           target="_blank"
