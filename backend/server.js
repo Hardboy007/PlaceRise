@@ -9,7 +9,6 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 app.use(cors());
-const nocRoutes = require("./routes/noc");
 app.use("/api/noc", nocRoutes);
 
 const authRoutes = require("./routes/auth");
