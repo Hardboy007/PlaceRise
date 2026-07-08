@@ -509,7 +509,7 @@ export default function PlacementDashboard() {
         setAnnouncementsError("Could not load announcements.");
       }
 
-      if (jobsRes.status === "fulfilled" && studentRes.status === "fulfilled") {
+      if (jobsRes.status === "fulfilled") {
         const allJobs = unwrapList(jobsRes.value, "jobs");
         const studentData = studentRes.value;
 
