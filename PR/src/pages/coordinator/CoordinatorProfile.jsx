@@ -17,6 +17,7 @@ import {
   MapPin,
   Calendar,
   ExternalLink,
+  FileText,
 } from "lucide-react";
 import { api } from "../../utils/api";
 
@@ -268,13 +269,14 @@ export default function CoordinatorProfile() {
     newCompanyAlerts: false,
     weeklyReport: true,
   });
-
+  const [signatureUploading, setSignatureUploading] = useState(false);
+  const [signatureUrl, setSignatureUrl] = useState("");
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const coordData = await api.get("/coordinators/me");
         setCoordinator(coordData);
-
+        setSignatureUrl(coordData.signatureUrl || "");
         // FIXED: keep localStorage("coordinator") in sync with whatever we
         // just fetched from the server. CoordinatorLayout's navbar/sidebar
         // read from localStorage as an instant-paint fallback — if this
@@ -389,7 +391,20 @@ export default function CoordinatorProfile() {
       console.error("Failed to save notification preferences:", err);
     }
   };
-
+  const handleSignatureUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setSignatureUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("signature", file);
+      const data = await api.post("/coordinators/signature", formData);
+      setSignatureUrl(data.signatureUrl);
+    } catch (err) {
+      console.error("Signature upload failed");
+    }
+    setSignatureUploading(false);
+  };
   const displayData = editing ? form : coordinator;
 
   if (loading)
@@ -738,6 +753,68 @@ export default function CoordinatorProfile() {
         </div>
       </div>
 
+      {/* Signature Upload */}
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm mb-5">
+        <div className="flex items-center gap-3 px-6 pt-6 pb-4 border-b border-background">
+          <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+            <FileText size={15} className="text-primary" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold text-[#1E293B]">
+              Digital Signature
+            </h2>
+            <p className="text-xs text-text-muted mt-0.5">
+              Used on NOC/LOR documents
+            </p>
+          </div>
+        </div>
+        <div className="p-6">
+          {signatureUrl ? (
+            <div className="flex items-center gap-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4">
+              <img
+                src={signatureUrl}
+                alt="Signature"
+                className="h-16 object-contain"
+              />
+              <div>
+                <p className="text-sm font-semibold text-[#1E293B]">
+                  Signature uploaded
+                </p>
+                <label className="text-xs text-primary cursor-pointer hover:underline">
+                  Change signature
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleSignatureUpload}
+                  />
+                </label>
+              </div>
+            </div>
+          ) : (
+            <label
+              className={`flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed cursor-pointer transition-all
+        ${signatureUploading ? "border-[#CBD5E1] opacity-50" : "border-primary bg-blue-50/50 hover:bg-blue-50"}`}
+            >
+              <FileText size={28} className="text-primary mb-2" />
+              <p className="text-sm font-medium text-[#1E293B]">
+                {signatureUploading ? "Uploading..." : "Upload your signature"}
+              </p>
+              <p className="text-xs text-text-muted mt-1">
+                PNG or JPG — white background recommended
+              </p>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleSignatureUpload}
+                disabled={signatureUploading}
+              />
+            </label>
+          )}
+        </div>
+      </div>
+      
       {/* Notifications */}
       <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm mb-6">
         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-background">

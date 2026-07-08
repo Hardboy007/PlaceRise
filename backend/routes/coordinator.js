@@ -8,6 +8,40 @@ const {
   updateNotificationPreferences,
   getRecentActivity,
 } = require("../controllers/coordinatorController");
+const Coordinator = require("../models/Coordinator");
+const { uploadPDF } = require("../config/cloudinary");
+
+router.put(
+  "/signature",
+  protect,
+  coordinatorOnly,
+  uploadPDF.single("signature"),
+  async (req, res) => {
+    try {
+      if (!req.file)
+        return res.status(400).json({ message: "No file uploaded" });
+
+      const uploadResult = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "placerise/signatures", resource_type: "image" },
+          (error, result) => (error ? reject(error) : resolve(result)),
+        );
+        const { Readable } = require("stream");
+        Readable.from(req.file.buffer).pipe(stream);
+      });
+
+      const coordinator = await Coordinator.findOneAndUpdate(
+        { userId: req.user.id },
+        { signatureUrl: uploadResult.secure_url },
+        { new: true },
+      );
+      res.json({ signatureUrl: coordinator.signatureUrl });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+);
+const { cloudinary } = require("../config/cloudinary");
 
 router.post("/", protect, coordinatorOnly, createCoordinator);
 router.get("/me", protect, coordinatorOnly, getMyProfile);

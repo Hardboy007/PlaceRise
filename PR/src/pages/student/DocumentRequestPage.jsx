@@ -1,14 +1,16 @@
-import { useState, useEffect } from 'react';
-import { api } from '../../utils/api';
+import { useState, useEffect } from "react";
+import { api } from "../../utils/api";
 
-const NOC_PLACEHOLDER = 'e.g. Appearing for campus recruitment at [Company Name]';
-const LOR_PLACEHOLDER = 'e.g. Applying for Masters program at [University Name]';
+const NOC_PLACEHOLDER =
+  "e.g. Appearing for campus recruitment at [Company Name]";
+const LOR_PLACEHOLDER =
+  "e.g. Applying for Masters program at [University Name]";
 
 const StatusBadge = ({ status }) => {
   const styles = {
-    Pending: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-    Approved: 'bg-green-500/15 text-green-400 border-green-500/30',
-    Rejected: 'bg-red-500/15 text-red-400 border-red-500/30',
+    Pending: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+    Approved: "bg-green-500/15 text-green-400 border-green-500/30",
+    Rejected: "bg-red-500/15 text-red-400 border-red-500/30",
   };
   return (
     <span
@@ -23,21 +25,22 @@ const StatusBadge = ({ status }) => {
 
 const DocumentRequestPage = () => {
   const [requests, setRequests] = useState([]);
-  const [type, setType] = useState('NOC');
-  const [purpose, setPurpose] = useState('');
+  const [type, setType] = useState("NOC");
+  const [purpose, setPurpose] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchRequests = async () => {
       try {
         setLoading(true);
-        const data = await api.get('/noc/my');
+        const data = await api.get("/noc/my");
         setRequests(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error(err);
-        setError('Failed to load requests.');
+        setError("Failed to load requests.");
       } finally {
         setLoading(false);
       }
@@ -46,27 +49,24 @@ const DocumentRequestPage = () => {
   }, []);
 
   const handleSubmit = async () => {
-    if (!purpose.trim()) return;
+    if (!purpose.trim() || submitting) return;
+    setSubmitting(true);
     try {
-      setSubmitting(true);
-      setError('');
-      const newRequest = await api.post('/noc', { type, purpose });
+      const newRequest = await api.post("/noc", { type, purpose });
       setRequests((prev) => [newRequest, ...prev]);
-      setPurpose('');
+      setPurpose("");
     } catch (err) {
       console.error(err);
-      setError('Failed to submit request. Try again.');
-    } finally {
-      setSubmitting(false);
     }
+    setSubmitting(false);
   };
 
   const formatDate = (dateStr) => {
-    if (!dateStr) return '-';
-    return new Date(dateStr).toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
+    if (!dateStr) return "-";
+    return new Date(dateStr).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
     });
   };
 
@@ -77,7 +77,9 @@ const DocumentRequestPage = () => {
         <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
           Document Requests
         </h1>
-        <p className="text-gray-400 mt-1">Request NOC or LOR and track their status.</p>
+        <p className="text-gray-400 mt-1">
+          Request NOC or LOR and track their status.
+        </p>
       </div>
 
       {/* New Request Form */}
@@ -87,7 +89,9 @@ const DocumentRequestPage = () => {
         <div className="space-y-5">
           {/* Request Type Dropdown */}
           <div>
-            <label className="block text-sm text-gray-400 mb-2">Request Type</label>
+            <label className="block text-sm text-gray-400 mb-2">
+              Request Type
+            </label>
             <select
               value={type}
               onChange={(e) => setType(e.target.value)}
@@ -104,7 +108,7 @@ const DocumentRequestPage = () => {
             <textarea
               value={purpose}
               onChange={(e) => setPurpose(e.target.value)}
-              placeholder={type === 'NOC' ? NOC_PLACEHOLDER : LOR_PLACEHOLDER}
+              placeholder={type === "NOC" ? NOC_PLACEHOLDER : LOR_PLACEHOLDER}
               rows={4}
               className="w-full bg-gray-900 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition resize-none"
             />
@@ -114,10 +118,10 @@ const DocumentRequestPage = () => {
 
           <button
             onClick={handleSubmit}
-            disabled={submitting || !purpose.trim()}
+            disabled={submitting}
             className="px-6 py-2.5 rounded-lg font-medium bg-gradient-to-r from-cyan-500 to-purple-600 hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition"
           >
-            {submitting ? 'Submitting...' : 'Submit Request'}
+            {submitting ? "Submitting..." : "Submit Request"}
           </button>
         </div>
       </div>
@@ -143,22 +147,27 @@ const DocumentRequestPage = () => {
             </thead>
             <tbody>
               {requests.map((req) => (
-                <tr key={req._id} className="border-b border-white/5 hover:bg-white/5 transition">
+                <tr
+                  key={req._id}
+                  className="border-b border-white/5 hover:bg-white/5 transition"
+                >
                   <td className="py-3 pr-4 font-medium">{req.type}</td>
                   <td className="py-3 pr-4 text-gray-300 max-w-xs">
                     <span className="line-clamp-2">{req.purpose}</span>
-                    {req.status === 'Rejected' && req.rejectionReason && (
+                    {req.status === "Rejected" && req.rejectionReason && (
                       <p className="text-red-400 text-xs mt-1">
                         Reason: {req.rejectionReason}
                       </p>
                     )}
                   </td>
-                  <td className="py-3 pr-4 text-gray-400">{formatDate(req.createdAt)}</td>
+                  <td className="py-3 pr-4 text-gray-400">
+                    {formatDate(req.createdAt)}
+                  </td>
                   <td className="py-3 pr-4">
                     <StatusBadge status={req.status} />
                   </td>
                   <td className="py-3">
-                    {req.status === 'Approved' && req.pdfUrl ? (
+                    {req.status === "Approved" && req.pdfUrl ? (
                       <a
                         href={req.pdfUrl}
                         target="_blank"
