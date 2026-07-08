@@ -18,7 +18,7 @@ import ApplicationsManagementPage from "../pages/coordinator/ApplicationManageme
 import AnnouncementManagementPage from "../pages/coordinator/AnnouncementManagement";
 import ProtectedRoute from "../components/common/ProtectedRoute";
 import ChangePasswordPage from "../pages/student/ChangePasswordPage";
-import DocumentRequestPage from '../pages/student/DocumentRequestPage'
+import NOCManagementPage from "../pages/coordinator/NOCManagementPage";
 
 function AppRouter() {
   return (
@@ -53,7 +53,7 @@ function AppRouter() {
           <Route path="applications" element={<StudentApplication />} />
           <Route path="profile" element={<StudentProfilePage />} />
           <Route path="settings" element={<StudentSettingsPage />} />
-          <Route path="documents" element={<DocumentRequestPage />} />
+          <Route path="documents" element={<div>Document Requests</div>} />
         </Route>
 
         {/* Coordinator Routes - Layout ke andar */}
@@ -75,7 +75,7 @@ function AppRouter() {
             element={<AnnouncementManagementPage />}
           />
           <Route path="profile" element={<CoordinatorProfile />} />
-          <Route path="noc" element={<div>NOC Management</div>} />
+          <Route path="noc" element={<NOCManagementPage />} />
         </Route>
         <Route path="*" element={<div>404 - Page Not Found</div>} />
       </Routes>
