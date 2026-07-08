@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import {
   CheckCircle2,
   XCircle,
@@ -10,21 +10,24 @@ import {
   ClipboardList,
   Clock,
   GraduationCap,
-} from 'lucide-react';
-import { api } from '../../utils/api';
-import universityStructure from '../../data/universityStructure';
+} from "lucide-react";
+import { api } from "../../utils/api";
+import universityStructure from "../../data/universityStructure";
 
 // Flatten universityStructure once into a course -> school lookup,
 // so we can group/roll up NOC/LOR requests by school without
 // re-walking the nested structure on every render.
-const COURSE_TO_SCHOOL = universityStructure.reduce((acc, { school, departments }) => {
-  departments.forEach((dept) => {
-    dept.courses.forEach((course) => {
-      acc[course] = school;
+const COURSE_TO_SCHOOL = universityStructure.reduce(
+  (acc, { school, departments }) => {
+    departments.forEach((dept) => {
+      dept.courses.forEach((course) => {
+        acc[course] = school;
+      });
     });
-  });
-  return acc;
-}, {});
+    return acc;
+  },
+  {},
+);
 
 // Shorten "School of Engineering & Computing (SoEC)" -> "SoEC" for compact pills
 const shortSchoolName = (school) => {
@@ -35,16 +38,17 @@ const shortSchoolName = (school) => {
 // ---------- Small helper components ----------
 
 const STATUS_STYLES = {
-  Pending: 'bg-amber-100 text-amber-700 border border-amber-300',
-  Approved: 'bg-green-100 text-green-700 border border-green-300',
-  Rejected: 'bg-red-100 text-red-700 border border-red-300',
+  Pending: "bg-amber-100 text-amber-700 border border-amber-300",
+  Approved: "bg-green-100 text-green-700 border border-green-300",
+  Rejected: "bg-red-100 text-red-700 border border-red-300",
 };
 
 function StatusBadge({ status }) {
   return (
     <span
       className={`px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
-        STATUS_STYLES[status] || 'bg-gray-100 text-gray-700 border border-gray-300'
+        STATUS_STYLES[status] ||
+        "bg-gray-100 text-gray-700 border border-gray-300"
       }`}
     >
       {status}
@@ -80,12 +84,14 @@ function ApproveModal({ open, request, onCancel, onConfirm, loading }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Approve Request?</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          Approve Request?
+        </h3>
         <p className="text-sm text-gray-600 mb-5">
-          You're about to approve{' '}
-          <span className="font-medium">{request?.studentName}</span>'s{' '}
-          <span className="font-medium">{request?.requestType}</span> request. The status
-          will update immediately after you confirm.
+          You're about to approve{" "}
+          <span className="font-medium">{request?.studentName}</span>'s{" "}
+          <span className="font-medium">{request?.requestType}</span> request.
+          The status will update immediately after you confirm.
         </p>
         <div className="flex justify-end gap-3">
           <button
@@ -111,10 +117,10 @@ function ApproveModal({ open, request, onCancel, onConfirm, loading }) {
 
 // Reason input modal for Reject action
 function RejectModal({ open, request, onCancel, onSubmit, loading }) {
-  const [reason, setReason] = useState('');
+  const [reason, setReason] = useState("");
 
   useEffect(() => {
-    if (open) setReason('');
+    if (open) setReason("");
   }, [open]);
 
   if (!open) return null;
@@ -125,15 +131,20 @@ function RejectModal({ open, request, onCancel, onSubmit, loading }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-lg font-semibold text-gray-900">Reject Request</h3>
-          <button onClick={onCancel} className="text-gray-400 hover:text-gray-600">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Reject Request
+          </h3>
+          <button
+            onClick={onCancel}
+            className="text-gray-400 hover:text-gray-600"
+          >
             <X size={18} />
           </button>
         </div>
         <p className="text-sm text-gray-600 mb-3">
-          <span className="font-medium">{request?.studentName}</span>'s{' '}
-          <span className="font-medium">{request?.requestType}</span> request. Please provide
-          a reason for rejecting this request.
+          <span className="font-medium">{request?.studentName}</span>'s{" "}
+          <span className="font-medium">{request?.requestType}</span> request.
+          Please provide a reason for rejecting this request.
         </p>
         <textarea
           value={reason}
@@ -166,15 +177,15 @@ function RejectModal({ open, request, onCancel, onSubmit, loading }) {
 
 // ---------- Main Page ----------
 
-const FILTERS = ['All', 'NOC', 'LOR', 'Pending', 'Approved', 'Rejected'];
+const FILTERS = ["All", "NOC", "LOR", "Pending", "Approved", "Rejected"];
 
 export default function NOCManagementPage() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [activeFilter, setActiveFilter] = useState('All');
-  const [schoolFilter, setSchoolFilter] = useState('All'); // school pill selection
-  const [courseFilter, setCourseFilter] = useState('All'); // specific course dropdown
+  const [error, setError] = useState("");
+  const [activeFilter, setActiveFilter] = useState("All");
+  const [schoolFilter, setSchoolFilter] = useState("All"); // school pill selection
+  const [courseFilter, setCourseFilter] = useState("All"); // specific course dropdown
 
   // modal state
   const [approveTarget, setApproveTarget] = useState(null); // request object
@@ -184,13 +195,15 @@ export default function NOCManagementPage() {
   const fetchRequests = async (isInitialLoad = false) => {
     try {
       if (isInitialLoad) setLoading(true);
-      setError('');
-      const data = await api.get('/noc');
+      setError("");
+      const data = await api.get("/noc");
       setRequests(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error('Failed to fetch NOC/LOR requests:', err);
+      console.error("Failed to fetch NOC/LOR requests:", err);
       if (isInitialLoad) {
-        setError('Failed to load requests. Please refresh the page and try again.');
+        setError(
+          "Failed to load requests. Please refresh the page and try again.",
+        );
         setRequests([]);
       }
     } finally {
@@ -221,9 +234,9 @@ export default function NOCManagementPage() {
 
   const stats = {
     total: requests.length,
-    pending: requests.filter((r) => r.status === 'Pending').length,
-    approved: requests.filter((r) => r.status === 'Approved').length,
-    rejected: requests.filter((r) => r.status === 'Rejected').length,
+    pending: requests.filter((r) => r.status === "Pending").length,
+    approved: requests.filter((r) => r.status === "Approved").length,
+    rejected: requests.filter((r) => r.status === "Rejected").length,
   };
 
   // School-wise breakdown: how many NOC/LOR requests came from each school.
@@ -231,7 +244,7 @@ export default function NOCManagementPage() {
   const schoolBreakdown = useMemo(() => {
     const counts = {};
     requests.forEach((r) => {
-      const school = COURSE_TO_SCHOOL[r.course] || 'Other';
+      const school = COURSE_TO_SCHOOL[r.course] || "Other";
       counts[school] = (counts[school] || 0) + 1;
     });
     return Object.entries(counts)
@@ -251,13 +264,14 @@ export default function NOCManagementPage() {
 
     const bySchool = {};
     Object.entries(courseCounts).forEach(([course, count]) => {
-      const school = COURSE_TO_SCHOOL[course] || 'Other';
+      const school = COURSE_TO_SCHOOL[course] || "Other";
       if (!bySchool[school]) bySchool[school] = [];
       bySchool[school].push({ course, count });
     });
 
     // If a school pill is active, only show that school's courses
-    const schools = schoolFilter === 'All' ? Object.keys(bySchool) : [schoolFilter];
+    const schools =
+      schoolFilter === "All" ? Object.keys(bySchool) : [schoolFilter];
 
     return schools
       .filter((school) => bySchool[school])
@@ -271,25 +285,25 @@ export default function NOCManagementPage() {
   const filteredRequests = requests.filter((req) => {
     // Type/Status pill filter (existing)
     const matchesTypeStatus =
-      activeFilter === 'All'
+      activeFilter === "All"
         ? true
-        : activeFilter === 'NOC' || activeFilter === 'LOR'
-        ? req.requestType === activeFilter
-        : req.status === activeFilter;
+        : activeFilter === "NOC" || activeFilter === "LOR"
+          ? req.requestType === activeFilter
+          : req.status === activeFilter;
 
     // School pill filter
-    const reqSchool = COURSE_TO_SCHOOL[req.course] || 'Other';
-    const matchesSchool = schoolFilter === 'All' || reqSchool === schoolFilter;
+    const reqSchool = COURSE_TO_SCHOOL[req.course] || "Other";
+    const matchesSchool = schoolFilter === "All" || reqSchool === schoolFilter;
 
     // Specific course dropdown filter
-    const matchesCourse = courseFilter === 'All' || req.course === courseFilter;
+    const matchesCourse = courseFilter === "All" || req.course === courseFilter;
 
     return matchesTypeStatus && matchesSchool && matchesCourse;
   });
 
   const handleSchoolFilterChange = (school) => {
     setSchoolFilter(school);
-    setCourseFilter('All'); // reset course selection when switching schools
+    setCourseFilter("All"); // reset course selection when switching schools
   };
 
   // ----- Approve flow -----
@@ -297,16 +311,16 @@ export default function NOCManagementPage() {
     if (!approveTarget) return;
     try {
       setActionLoading(true);
-      await api.put(`/noc/${approveTarget._id}/status`, { status: 'Approved' });
+      await api.put(`/noc/${approveTarget._id}/status`, { status: "Approved" });
       setRequests((prev) =>
         prev.map((r) =>
-          r._id === approveTarget._id ? { ...r, status: 'Approved' } : r
-        )
+          r._id === approveTarget._id ? { ...r, status: "Approved" } : r,
+        ),
       );
       setApproveTarget(null);
     } catch (err) {
-      console.error('Approve failed:', err);
-      alert('Failed to approve. Please try again.');
+      console.error("Approve failed:", err);
+      alert("Failed to approve. Please try again.");
     } finally {
       setActionLoading(false);
     }
@@ -318,20 +332,20 @@ export default function NOCManagementPage() {
     try {
       setActionLoading(true);
       await api.put(`/noc/${rejectTarget._id}/status`, {
-        status: 'Rejected',
+        status: "Rejected",
         rejectionReason: reason,
       });
       setRequests((prev) =>
         prev.map((r) =>
           r._id === rejectTarget._id
-            ? { ...r, status: 'Rejected', rejectionReason: reason }
-            : r
-        )
+            ? { ...r, status: "Rejected", rejectionReason: reason }
+            : r,
+        ),
       );
       setRejectTarget(null);
     } catch (err) {
-      console.error('Reject failed:', err);
-      alert('Failed to reject. Please try again.');
+      console.error("Reject failed:", err);
+      alert("Failed to reject. Please try again.");
     } finally {
       setActionLoading(false);
     }
@@ -339,11 +353,11 @@ export default function NOCManagementPage() {
 
   const handleDownload = (request) => {
     if (!request.pdfUrl) return;
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = request.pdfUrl;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.download = `${request.requestType}_${request.studentName || 'student'}.pdf`;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.download = `${request.requestType}_${request.studentName || "student"}.pdf`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -356,7 +370,7 @@ export default function NOCManagementPage() {
         className="rounded-2xl px-6 py-8 mb-6 shadow-lg"
         style={{
           background:
-            'linear-gradient(135deg, #3B82F6 0%, #60A5FA 60%, #818CF8 100%)',
+            "linear-gradient(135deg, #3B82F6 0%, #60A5FA 60%, #818CF8 100%)",
         }}
       >
         <h1 className="text-2xl font-bold text-white">NOC / LOR Requests</h1>
@@ -366,9 +380,17 @@ export default function NOCManagementPage() {
 
         {/* Stat strip */}
         <div className="flex flex-wrap gap-3">
-          <StatPill icon={ClipboardList} label="Total Requests" value={stats.total} />
+          <StatPill
+            icon={ClipboardList}
+            label="Total Requests"
+            value={stats.total}
+          />
           <StatPill icon={Clock} label="Pending" value={stats.pending} />
-          <StatPill icon={CheckCircle2} label="Approved" value={stats.approved} />
+          <StatPill
+            icon={CheckCircle2}
+            label="Approved"
+            value={stats.approved}
+          />
           <StatPill icon={XCircle} label="Rejected" value={stats.rejected} />
         </div>
       </div>
@@ -383,11 +405,11 @@ export default function NOCManagementPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               <button
-                onClick={() => handleSchoolFilterChange('All')}
+                onClick={() => handleSchoolFilterChange("All")}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                  schoolFilter === 'All'
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  schoolFilter === "All"
+                    ? "bg-gray-900 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
               >
                 All Schools ({stats.total})
@@ -399,8 +421,8 @@ export default function NOCManagementPage() {
                   title={school}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                     schoolFilter === school
-                      ? 'bg-gray-900 text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? "bg-gray-900 text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                   }`}
                 >
                   {shortSchoolName(school)} ({count})
@@ -419,8 +441,8 @@ export default function NOCManagementPage() {
               onClick={() => setActiveFilter(f)}
               className={`px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors ${
                 activeFilter === f
-                  ? 'bg-[#3B82F6] text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? "bg-[#3B82F6] text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
               {f}
@@ -455,98 +477,116 @@ export default function NOCManagementPage() {
 
         {/* Table */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200 text-left text-gray-500 text-xs uppercase tracking-wide">
-                <th className="px-4 py-3 font-medium">Student</th>
-                <th className="px-4 py-3 font-medium">Course</th>
-                <th className="px-4 py-3 font-medium">Type</th>
-                <th className="px-4 py-3 font-medium">Purpose</th>
-                <th className="px-4 py-3 font-medium">Date</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {loading ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-gray-400">
-                    <Loader2 size={20} className="animate-spin inline-block mr-2" />
-                    Loading requests...
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200 text-left text-gray-500 text-xs uppercase tracking-wide">
+                  <th className="px-4 py-3 font-medium">Student</th>
+                  <th className="px-4 py-3 font-medium">Course</th>
+                  <th className="px-4 py-3 font-medium">Type</th>
+                  <th className="px-4 py-3 font-medium">Purpose</th>
+                  <th className="px-4 py-3 font-medium">Date</th>
+                  <th className="px-4 py-3 font-medium">Status</th>
+                  <th className="px-4 py-3 font-medium text-right">Actions</th>
                 </tr>
-              ) : filteredRequests.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-gray-400">
-                    <FileText size={22} className="inline-block mb-2 opacity-50" />
-                    <div>No requests found.</div>
-                  </td>
-                </tr>
-              ) : (
-                filteredRequests.map((req) => (
-                  <tr key={req._id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-800">
-                      {req.studentName}
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">{req.course}</td>
-                    <td className="px-4 py-3">
-                      <TypeBadge type={req.requestType} />
-                    </td>
-                    <td className="px-4 py-3 text-gray-600 max-w-xs truncate" title={req.purpose}>
-                      {req.purpose}
-                    </td>
-                    <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
-                      {req.createdAt
-                        ? new Date(req.createdAt).toLocaleDateString('en-IN', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric',
-                          })
-                        : '-'}
-                    </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={req.status} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-2">
-                        {req.status === 'Pending' && (
-                          <>
-                            <button
-                              onClick={() => setApproveTarget(req)}
-                              className="p-1.5 rounded-lg text-green-600 hover:bg-green-50"
-                              title="Approve"
-                            >
-                              <CheckCircle2 size={18} />
-                            </button>
-                            <button
-                              onClick={() => setRejectTarget(req)}
-                              className="p-1.5 rounded-lg text-red-600 hover:bg-red-50"
-                              title="Reject"
-                            >
-                              <XCircle size={18} />
-                            </button>
-                          </>
-                        )}
-                        {req.status === 'Approved' && (
-                          <button
-                            onClick={() => handleDownload(req)}
-                            disabled={!req.pdfUrl}
-                            className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1"
-                            title="Download PDF"
-                          >
-                            <Download size={18} />
-                          </button>
-                        )}
-                      </div>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {loading ? (
+                  <tr>
+                    <td
+                      colSpan={7}
+                      className="px-4 py-10 text-center text-gray-400"
+                    >
+                      <Loader2
+                        size={20}
+                        className="animate-spin inline-block mr-2"
+                      />
+                      Loading requests...
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : filteredRequests.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={7}
+                      className="px-4 py-10 text-center text-gray-400"
+                    >
+                      <FileText
+                        size={22}
+                        className="inline-block mb-2 opacity-50"
+                      />
+                      <div>No requests found.</div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredRequests.map((req) => (
+                    <tr key={req._id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 font-medium text-gray-800">
+                        {req.studentName}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">{req.course}</td>
+                      <td className="px-4 py-3">
+                        <TypeBadge type={req.requestType} />
+                      </td>
+                      <td
+                        className="px-4 py-3 text-gray-600 max-w-xs truncate"
+                        title={req.purpose}
+                      >
+                        {req.purpose}
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
+                        {req.createdAt
+                          ? new Date(req.createdAt).toLocaleDateString(
+                              "en-IN",
+                              {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              },
+                            )
+                          : "-"}
+                      </td>
+                      <td className="px-4 py-3">
+                        <StatusBadge status={req.status} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-2">
+                          {req.status === "Pending" && (
+                            <>
+                              <button
+                                onClick={() => setApproveTarget(req)}
+                                className="p-1.5 rounded-lg text-green-600 hover:bg-green-50"
+                                title="Approve"
+                              >
+                                <CheckCircle2 size={18} />
+                              </button>
+                              <button
+                                onClick={() => setRejectTarget(req)}
+                                className="p-1.5 rounded-lg text-red-600 hover:bg-red-50"
+                                title="Reject"
+                              >
+                                <XCircle size={18} />
+                              </button>
+                            </>
+                          )}
+                          {req.status === "Approved" && (
+                            <button
+                              onClick={() => handleDownload(req)}
+                              disabled={!req.pdfUrl}
+                              className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1"
+                              title="Download PDF"
+                            >
+                              <Download size={18} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
 
         {/* Modals */}
         <ApproveModal
