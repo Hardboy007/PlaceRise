@@ -1,5 +1,4 @@
 const cloudinary = require("cloudinary").v2;
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const multer = require("multer");
 
 cloudinary.config({
@@ -8,21 +7,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: "placerise/jd-pdfs",
-    resource_type: "raw",
-    allowed_formats: ["pdf"],
-    public_id: (req, file) => {
-      const cleanName = file.originalname
-        .replace(/\.pdf$/i, "")
-        .replace(/[^a-zA-Z0-9_-]/g, "_");
-      return `${cleanName}_${Date.now()}.pdf`;
-    },
-  },
-});
-
-const uploadPDF = multer({ storage });
+// Memory storage — file disk pe save nahi hogi, buffer mein rahegi
+const uploadPDF = multer({ storage: multer.memoryStorage() });
 
 module.exports = { cloudinary, uploadPDF };

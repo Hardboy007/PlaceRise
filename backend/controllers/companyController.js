@@ -84,15 +84,23 @@ const uploadJobPDF = async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
+    const uploadResult = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: "placerise/jd-pdfs", resource_type: "raw", format: "pdf" },
+        (error, result) => (error ? reject(error) : resolve(result)),
+      );
+      const { Readable } = require("stream");
+      Readable.from(req.file.buffer).pipe(stream);
+    });
+
     const job = await JobPosting.findByIdAndUpdate(
       req.params.id,
-      { jdPdfUrl: req.file.path },
+      { jdPdfUrl: uploadResult.secure_url },
       { new: true },
     );
 
     if (!job) return res.status(404).json({ message: "Job not found" });
-
-    res.json({ jdPdfUrl: req.file.path });
+    res.json({ jdPdfUrl: uploadResult.secure_url });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -104,5 +112,5 @@ module.exports = {
   getAllJobs,
   getJobById,
   deleteCompany,
-  uploadJobPDF
+  uploadJobPDF,
 };
