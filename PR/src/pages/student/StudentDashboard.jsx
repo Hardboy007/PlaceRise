@@ -498,8 +498,9 @@ export default function PlacementDashboard() {
 
       const [annRes, jobsRes, appsRes] = await Promise.allSettled([
         api.get("/announcements"),
-        api.get("/jobs"),
+        api.get("/companies/jobs"),
         api.get("/applications/my"),
+        api.get("/students/me"),
       ]);
 
       if (annRes.status === "fulfilled") {
@@ -508,8 +509,22 @@ export default function PlacementDashboard() {
         setAnnouncementsError("Could not load announcements.");
       }
 
-      if (jobsRes.status === "fulfilled") {
-        setJobs(unwrapList(jobsRes.value, "jobs"));
+      if (jobsRes.status === "fulfilled" && studentRes.status === "fulfilled") {
+        const allJobs = unwrapList(jobsRes.value, "jobs");
+        const studentData = studentRes.value;
+
+        const eligible = allJobs.filter((j) => {
+          if (!j.companyId || !j.companyId._id) return false; // invalid job
+          if (!j.eligibleBranches || j.eligibleBranches.length === 0)
+            return true;
+          if (j.eligibleBranches.includes("All")) return true;
+          return (
+            j.eligibleBranches.includes(studentData.course) ||
+            j.eligibleBranches.includes(studentData.branch)
+          );
+        });
+
+        setJobs(eligible);
       } else {
         setJobsError("Could not load companies.");
       }
