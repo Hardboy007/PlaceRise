@@ -18,7 +18,6 @@ import ApplicationsManagementPage from "../pages/coordinator/ApplicationManageme
 import AnnouncementManagementPage from "../pages/coordinator/AnnouncementManagement";
 import ProtectedRoute from "../components/common/ProtectedRoute";
 import ChangePasswordPage from "../pages/student/ChangePasswordPage";
-import NOCManagementPage from '../pages/coordinator/NOCManagementPage'
 import DocumentRequestPage from '../pages/student/DocumentRequestPage'
 
 function AppRouter() {
