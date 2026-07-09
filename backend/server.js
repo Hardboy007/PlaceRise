@@ -18,11 +18,13 @@ const announcementRoutes = require("./routes/announcement");
 const applicationRoutes = require("./routes/application");
 const jobRoutes = require("./routes/jobs");
 const coordinatorRoutes = require("./routes/coordinator");
+const attendanceRoutes = require("./routes/attendance");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/companies", companyRoutes);
 app.use("/api/announcements", announcementRoutes);
+app.use("/api/attendance", attendanceRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/coordinators", coordinatorRoutes);
