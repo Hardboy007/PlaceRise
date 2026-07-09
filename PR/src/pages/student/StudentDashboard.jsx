@@ -496,7 +496,7 @@ export default function PlacementDashboard() {
       setAnnouncementsError("");
       setJobsError("");
 
-      const [annRes, jobsRes, appsRes] = await Promise.allSettled([
+      const [annRes, jobsRes, appsRes, studentRes] = await Promise.allSettled([
         api.get("/announcements"),
         api.get("/companies/jobs"),
         api.get("/applications/my"),
