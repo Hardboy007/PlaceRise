@@ -509,8 +509,22 @@ export default function PlacementDashboard() {
         setAnnouncementsError("Could not load announcements.");
       }
 
-      if (jobsRes.status === "fulfilled") {
-        setJobs(unwrapList(jobsRes.value, "jobs"));
+      if (jobsRes.status === "fulfilled" && studentRes.status === "fulfilled") {
+        const allJobs = unwrapList(jobsRes.value, "jobs");
+        const studentData = studentRes.value; // direct value, unwrap nahi
+
+        const eligible = allJobs.filter((j) => {
+          if (!j.companyId || !j.companyId._id) return false;
+          if (!j.eligibleBranches || j.eligibleBranches.length === 0)
+            return true;
+          if (j.eligibleBranches.includes("All")) return true;
+          return (
+            j.eligibleBranches.includes(studentData?.course) ||
+            j.eligibleBranches.includes(studentData?.branch)
+          );
+        });
+
+        setJobs(eligible);
       } else {
         setJobsError("Could not load companies.");
       }
