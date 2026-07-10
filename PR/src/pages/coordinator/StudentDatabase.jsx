@@ -742,7 +742,33 @@ function StudentModal({ student, onClose }) {
               value={student.address}
             />
           </Section>
-
+          {/* About */}
+          {student.about && (
+            <div>
+              <h4
+                style={{ color: C.textMain, borderColor: C.border }}
+                className="text-xs font-bold uppercase tracking-widest mb-4 pb-2 border-b"
+              >
+                About
+              </h4>
+              <p
+                style={{ color: C.textMuted }}
+                className="text-sm leading-relaxed"
+              >
+                {student.about}
+              </p>
+              {student.linkedinUrl && (
+                <a
+                  href={student.linkedinUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 mt-3 text-xs font-medium text-primary hover:underline"
+                >
+                  View LinkedIn Profile →
+                </a>
+              )}
+            </div>
+          )}
           {/* Academic Info */}
           <Section title="Academic Details">
             <InfoRow
@@ -801,7 +827,9 @@ function StudentModal({ student, onClose }) {
             </h4>
             <div className="flex flex-wrap gap-2">
               {(student.skills || []).length === 0 ? (
-                <span style={{ color: C.textMuted }} className="text-sm">No skills added yet</span>
+                <span style={{ color: C.textMuted }} className="text-sm">
+                  No skills added yet
+                </span>
               ) : (
                 (student.skills || []).map((skill) => (
                   <span
