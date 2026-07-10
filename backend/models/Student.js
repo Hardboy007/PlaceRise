@@ -17,6 +17,8 @@ const studentSchema = new mongoose.Schema(
     address: { type: String },
     city: { type: String },
     state: { type: String },
+    about: { type: String },
+    linkedinUrl: { type: String },
 
     // Academic
     college: { type: String },

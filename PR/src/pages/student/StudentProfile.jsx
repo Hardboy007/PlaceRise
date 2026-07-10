@@ -83,7 +83,11 @@ export default function StudentProfilePage() {
   }, []);
 
   const handleEdit = () => {
-    setForm({ ...student });
+    setForm({
+      ...student,
+      about: student.about || "",
+      linkedinUrl: student.linkedinUrl || "",
+    });
     setEditing(true);
   };
 
@@ -104,13 +108,39 @@ export default function StudentProfilePage() {
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleResumeUpload = (e) => {
+  const handleResumeUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    setForm({
-      ...form,
-      resume: { name: file.name, size: (file.size / 1024).toFixed(0) + " KB" },
-    });
+
+    // Size check — 5MB max
+    if (file.size > 5 * 1024 * 1024) {
+      alert("File size must be less than 5MB");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/students/me/resume`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: formData,
+        },
+      );
+      const data = await res.json();
+      if (data.resumeUrl) {
+        setStudent({ ...student, resume: data.resumeUrl });
+        setForm({ ...form, resume: data.resumeUrl });
+        alert("Resume uploaded successfully!");
+      }
+    } catch (err) {
+      alert("Resume upload failed");
+    }
   };
 
   const addSkill = () => {
@@ -437,6 +467,62 @@ export default function StudentProfilePage() {
         </SectionCard>
       </div>
 
+      {/*About Section*/}
+      <div className="mt-5 mb-5">
+        <SectionCard
+          icon={User}
+          title="About & Links"
+          iconBg="bg-blue-50 text-primary"
+          borderColor="border-l-primary"
+        >
+          {/* About */}
+          <div className="mb-4">
+            <span className="text-xs font-semibold uppercase tracking-widest text-[#64748B] block mb-1.5">
+              About
+            </span>
+            {editing ? (
+              <textarea
+                name="about"
+                value={form?.about || ""}
+                onChange={handleChange}
+                rows={4}
+                placeholder="Write a short bio about yourself..."
+                className="w-full px-3 py-2 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] bg-[#F8FAFC] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition resize-none"
+              />
+            ) : (
+              <p className="text-sm text-[#1E293B]">{student?.about || "—"}</p>
+            )}
+          </div>
+
+          {/* LinkedIn */}
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-widest text-[#64748B] block mb-1.5">
+              LinkedIn URL
+            </span>
+            {editing ? (
+              <input
+                name="linkedinUrl"
+                value={form?.linkedinUrl || ""}
+                onChange={handleChange}
+                placeholder="https://linkedin.com/in/yourprofile"
+                className="w-full px-3 py-2 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] bg-[#F8FAFC] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+              />
+            ) : student?.linkedinUrl ? (
+              <a
+                href={student.linkedinUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm font-medium text-primary hover:underline"
+              >
+                View LinkedIn Profile
+              </a>
+            ) : (
+              <span className="text-sm font-medium text-[#1E293B]">—</span>
+            )}
+          </div>
+        </SectionCard>
+      </div>
+
       {/* Skills */}
       <SectionCard
         icon={Zap}
@@ -502,11 +588,16 @@ export default function StudentProfilePage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-[#1E293B] truncate">
-                  {displayData.resume.name}
+                  Resume Uploaded
                 </p>
-                <p className="text-xs text-[#64748B]">
-                  Uploaded · {displayData.resume.size}
-                </p>
+                <a
+                  href={displayData.resume}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs text-primary hover:underline"
+                >
+                  View Resume
+                </a>
               </div>
               {editing && (
                 <button
