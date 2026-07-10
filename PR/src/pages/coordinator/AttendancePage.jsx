@@ -119,7 +119,9 @@ export default function AttendancePage() {
 
         setSession(restoredSession);
         setSessionId(savedSessionId);
-        setSelectedJobId(restoredSession.jobId?._id || restoredSession.jobId || "");
+        setSelectedJobId(
+          restoredSession.jobId?._id || restoredSession.jobId || "",
+        );
         setRecords(Array.isArray(data.records) ? data.records : []);
 
         const url = `https://placerise.vercel.app/attendance?token=${restoredSession.token}`;
@@ -213,7 +215,12 @@ export default function AttendancePage() {
   // ── Close session ──
   const handleCloseSession = async () => {
     if (!sessionId || closing) return;
-    if (!window.confirm("Close this attendance session? The QR will stop working.")) return;
+    if (
+      !window.confirm(
+        "Close this attendance session? The QR will stop working.",
+      )
+    )
+      return;
     setClosing(true);
     try {
       const updated = await api.put(`/attendance/${sessionId}/close`);
@@ -260,7 +267,10 @@ export default function AttendancePage() {
   const selectedJob = jobs.find((j) => j._id === selectedJobId);
 
   return (
-    <div className="max-w-5xl mx-auto" style={{ fontFamily: "Inter, sans-serif" }}>
+    <div
+      className="max-w-5xl mx-auto"
+      style={{ fontFamily: "Inter, sans-serif" }}
+    >
       <div
         className="rounded-2xl px-6 py-8 mb-6 shadow-lg"
         style={{
@@ -284,7 +294,9 @@ export default function AttendancePage() {
 
       {restoring && (
         <div className="bg-white rounded-2xl border border-[#E2E8F0] p-10 shadow-sm mb-6 text-center">
-          <p className="text-sm text-[#64748B]">Checking for an active session...</p>
+          <p className="text-sm text-[#64748B]">
+            Checking for an active session...
+          </p>
         </div>
       )}
 
@@ -503,10 +515,10 @@ export default function AttendancePage() {
                         <td className="px-6 py-3 text-gray-500 flex items-center gap-1.5">
                           <Clock size={12} />
                           {r.markedAt
-                            ? new Date(r.markedAt).toLocaleTimeString(
-                                "en-IN",
-                                { hour: "2-digit", minute: "2-digit" },
-                              )
+                            ? new Date(r.markedAt).toLocaleTimeString("en-IN", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
                             : "—"}
                         </td>
                         <td className="px-6 py-3">
