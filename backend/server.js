@@ -43,3 +43,5 @@ connectDB()
     console.error("Failed to connect to database:", error.message);
     process.exit(1);
   });
+
+  
