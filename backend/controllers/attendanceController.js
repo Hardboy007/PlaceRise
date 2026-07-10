@@ -8,13 +8,20 @@ const PDFDocument = require("pdfkit");
 const { cloudinary } = require("../config/cloudinary");
 const { Readable } = require("stream");
 
-// Session start karo
+// Session start karo — agar iss job ka session pehle se active hai,
+// naya create mat karo, purana hi return karo (idempotent, race-safe)
 const startSession = async (req, res) => {
   try {
     const { jobId } = req.body;
     const coordinator = await Coordinator.findOne({ userId: req.user.id });
     if (!coordinator)
       return res.status(404).json({ message: "Coordinator not found" });
+
+    const existing = await AttendanceSession.findOne({
+      jobId,
+      status: { $ne: "closed" },
+    }).populate("jobId", "role");
+    if (existing) return res.status(200).json(existing);
 
     const token = randomUUID();
     const session = await AttendanceSession.create({
@@ -28,6 +35,27 @@ const startSession = async (req, res) => {
   }
 };
 
+// Ek specific job ka active session dhoondo (job-wise, global nahi)
+// Query: GET /attendance/active?jobId=xxx
+const getActiveSession = async (req, res) => {
+  try {
+    const { jobId } = req.query;
+    if (!jobId) return res.status(400).json({ message: "jobId required" });
+
+    const session = await AttendanceSession.findOne({
+      jobId,
+      status: { $ne: "closed" },
+    })
+      .sort({ createdAt: -1 })
+      .populate("jobId", "role");
+
+    if (!session) return res.status(404).json({ message: "No active session" });
+    res.json(session);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Live attendance list dekho
 const getSessionAttendance = async (req, res) => {
   try {
@@ -36,11 +64,6 @@ const getSessionAttendance = async (req, res) => {
     ).populate("jobId", "role");
     if (!session) return res.status(404).json({ message: "Session not found" });
 
-    // FIXED: erpId lives on the User model, not Student — nested populate
-    // through studentId.userId is required, same pattern used in
-    // nocController/applicationController. Previously only "name course
-    // branch" was populated, so studentId.userId was never present and
-    // the frontend's ERP ID column had nothing to read.
     const records = await AttendanceRecord.find({ sessionId: session._id })
       .populate({
         path: "studentId",
@@ -105,8 +128,6 @@ const manualMark = async (req, res) => {
       isLate: isLate || false,
     });
 
-    // FIXED: same nested populate as getSessionAttendance, so the row
-    // this manual-mark call returns also carries erpId consistently.
     const populated = await record.populate({
       path: "studentId",
       select: "name course branch",
@@ -172,7 +193,6 @@ const exportAttendancePDF = async (req, res) => {
     await new Promise((resolve) => {
       doc.on("end", resolve);
 
-      // Header
       doc
         .fontSize(16)
         .font("Helvetica-Bold")
@@ -211,7 +231,6 @@ const exportAttendancePDF = async (req, res) => {
         .stroke();
       doc.moveDown(0.5);
 
-      // Table header
       doc.fontSize(10).font("Helvetica-Bold");
       doc.text("Name", 50, doc.y, { width: 180, continued: true });
       doc.text("ERP ID", 230, doc.y, { width: 130, continued: true });
@@ -226,9 +245,8 @@ const exportAttendancePDF = async (req, res) => {
         .stroke();
       doc.moveDown(0.5);
 
-      // Rows
       doc.font("Helvetica").fontSize(10);
-      records.forEach((r, i) => {
+      records.forEach((r) => {
         const y = doc.y;
         const time = new Date(r.markedAt).toLocaleTimeString("en-IN", {
           hour: "2-digit",
@@ -266,6 +284,7 @@ const exportAttendancePDF = async (req, res) => {
 
 module.exports = {
   startSession,
+  getActiveSession,
   getSessionAttendance,
   markAttendance,
   manualMark,

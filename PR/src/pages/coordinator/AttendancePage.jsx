@@ -21,8 +21,11 @@ export default function AttendancePage() {
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState("");
 
+  // ── Checking if selected drive already has a live session ──
+  const [checkingSession, setCheckingSession] = useState(false);
+
   // ── Session / QR ──
-  const [session, setSession] = useState(null); // { _id/id, token, status, ... }
+  const [session, setSession] = useState(null);
   const [sessionId, setSessionId] = useState(null);
   const [qrDataUrl, setQrDataUrl] = useState("");
 
@@ -41,12 +44,8 @@ export default function AttendancePage() {
   const [closing, setClosing] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
-  // A drive whose application deadline (lastDate) has already passed is
-  // "closed" — attendance sessions only make sense for drives that are
-  // still open/happening, so closed ones are filtered out of the dropdown
-  // entirely rather than just being greyed out.
   const isJobStillOpen = (job) => {
-    if (!job.lastDate) return true; // no deadline set => treat as open
+    if (!job.lastDate) return true;
     const deadline = new Date(job.lastDate);
     if (isNaN(deadline)) return true;
     const endOfDeadlineDay = new Date(
@@ -67,8 +66,8 @@ export default function AttendancePage() {
         setJobsLoading(true);
         const data = await api.get("/companies/jobs");
         const valid = (Array.isArray(data) ? data : [])
-          .filter((j) => j.companyId && j.companyId.name) // drop orphaned jobs (deleted company)
-          .filter(isJobStillOpen); // drop closed/expired drives
+          .filter((j) => j.companyId && j.companyId.name)
+          .filter(isJobStillOpen);
         setJobs(valid);
       } catch (err) {
         console.error("Failed to load jobs:", err);
@@ -93,49 +92,49 @@ export default function AttendancePage() {
     fetchStudents();
   }, []);
 
-  // ── Restore an in-progress session on mount (e.g. after navigating away
-  // and coming back — component state resets on unmount, but the session
-  // is still live on the backend, so we just need to reconnect to it) ──
-  const [restoring, setRestoring] = useState(true);
+  // ── Load QR + records for a session object (shared by join/start) ──
+  const hydrateSession = async (sess) => {
+    const id = sess._id || sess.id;
+    setSession(sess);
+    setSessionId(id);
 
+    const data = await api.get(`/attendance/${id}`);
+    setRecords(Array.isArray(data.records) ? data.records : []);
+
+    const url = `https://placerise.vercel.app/attendance?token=${sess.token}`;
+    const dataUrl = await QRCode.toDataURL(url, { width: 480, margin: 2 });
+    setQrDataUrl(dataUrl);
+  };
+
+  // ── FIX: job-wise session check ──
+  // Jab bhi coordinator koi drive select karta hai, backend se poochte
+  // hain "iss job ka koi active session hai kya" — agar haan, toh usी
+  // mein join ho jao (kisi ne bhi start kiya ho, kisi bhi device se).
+  // Agar nahi, toh "Start Session" button enable rahega us job ke liye.
   useEffect(() => {
-    const restoreSession = async () => {
-      const savedSessionId = localStorage.getItem("attendance_session_id");
-      if (!savedSessionId) {
-        setRestoring(false);
-        return;
-      }
+    if (!selectedJobId) return;
+
+    let cancelled = false;
+    const checkExisting = async () => {
+      setCheckingSession(true);
+      setError("");
       try {
-        const data = await api.get(`/attendance/${savedSessionId}`);
-        const restoredSession = data.session;
-
-        // If the session was closed while we were away, don't restore it —
-        // just clear the stale pointer and show the start screen again.
-        if (!restoredSession || restoredSession.status === "closed") {
-          localStorage.removeItem("attendance_session_id");
-          setRestoring(false);
-          return;
+        const found = await api.get(`/attendance/active?jobId=${selectedJobId}`);
+        if (!cancelled && found && found.status !== "closed") {
+          await hydrateSession(found);
         }
-
-        setSession(restoredSession);
-        setSessionId(savedSessionId);
-        setSelectedJobId(
-          restoredSession.jobId?._id || restoredSession.jobId || "",
-        );
-        setRecords(Array.isArray(data.records) ? data.records : []);
-
-        const url = `https://placerise.vercel.app/attendance?token=${restoredSession.token}`;
-        const dataUrl = await QRCode.toDataURL(url, { width: 480, margin: 2 });
-        setQrDataUrl(dataUrl);
       } catch (err) {
-        console.error("Failed to restore attendance session:", err);
-        localStorage.removeItem("attendance_session_id");
+        // 404 = iss job ka abhi koi active session nahi hai, normal hai
       } finally {
-        setRestoring(false);
+        if (!cancelled) setCheckingSession(false);
       }
     };
-    restoreSession();
-  }, []);
+    checkExisting();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedJobId]);
 
   // ── Start session ──
   const handleStartSession = async () => {
@@ -146,18 +145,8 @@ export default function AttendancePage() {
       const res = await api.post("/attendance/start", {
         jobId: selectedJobId,
       });
-      // Backend response shape isn't confirmed — support a couple of
-      // reasonable shapes so this doesn't silently break.
       const newSession = res.session || res;
-      const newSessionId = newSession._id || newSession.id || res.sessionId;
-      setSession(newSession);
-      setSessionId(newSessionId);
-      localStorage.setItem("attendance_session_id", newSessionId);
-
-      const url = `https://placerise.vercel.app/attendance?token=${newSession.token}`;
-      const dataUrl = await QRCode.toDataURL(url, { width: 480, margin: 2 });
-      setQrDataUrl(dataUrl);
-      setRecords([]);
+      await hydrateSession(newSession);
     } catch (err) {
       console.error("Failed to start session:", err);
       setError(err.message || "Failed to start attendance session.");
@@ -180,7 +169,7 @@ export default function AttendancePage() {
 
   useEffect(() => {
     if (!sessionId) return;
-    pollAttendance(); // immediate first fetch
+    pollAttendance();
     pollRef.current = setInterval(pollAttendance, 5000);
     return () => clearInterval(pollRef.current);
   }, [sessionId, pollAttendance]);
@@ -226,7 +215,11 @@ export default function AttendancePage() {
       const updated = await api.put(`/attendance/${sessionId}/close`);
       setSession(updated.session || updated);
       clearInterval(pollRef.current);
-      localStorage.removeItem("attendance_session_id");
+      // Session band ho gaya — wapas drive-select flow pe le jao,
+      // taaki chahe toh isi job ka naya session ya koi aur drive select kare
+      setSessionId(null);
+      setQrDataUrl("");
+      setRecords([]);
     } catch (err) {
       console.error("Failed to close session:", err);
       alert(err.message || "Failed to close session.");
@@ -292,16 +285,8 @@ export default function AttendancePage() {
         </div>
       )}
 
-      {restoring && (
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-10 shadow-sm mb-6 text-center">
-          <p className="text-sm text-[#64748B]">
-            Checking for an active session...
-          </p>
-        </div>
-      )}
-
-      {/* ── 1. Drive Select ── */}
-      {!restoring && !sessionId && (
+      {/* ── 1. Drive Select — always visible jab tak session join na ho ── */}
+      {!sessionId && (
         <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm mb-6">
           <h2 className="text-sm font-bold text-[#1E293B] mb-4">
             Select Drive
@@ -326,13 +311,22 @@ export default function AttendancePage() {
               </select>
               <button
                 onClick={handleStartSession}
-                disabled={!selectedJobId || starting}
+                disabled={!selectedJobId || starting || checkingSession}
                 className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <PlayCircle size={16} />
-                {starting ? "Starting..." : "Start Session"}
+                {checkingSession
+                  ? "Checking..."
+                  : starting
+                    ? "Starting..."
+                    : "Start Session"}
               </button>
             </div>
+          )}
+          {checkingSession && (
+            <p className="text-xs text-[#94A3B8] mt-2">
+              Checking if this drive already has a live session...
+            </p>
           )}
         </div>
       )}
@@ -346,9 +340,10 @@ export default function AttendancePage() {
                 Active Drive
               </p>
               <p className="text-sm font-bold text-[#1E293B] mt-0.5">
-                {selectedJob
-                  ? `${selectedJob.companyId?.name} — ${selectedJob.role}`
-                  : "—"}
+                {session?.jobId?.role ||
+                  (selectedJob
+                    ? `${selectedJob.companyId?.name} — ${selectedJob.role}`
+                    : "—")}
               </p>
             </div>
             <span
