@@ -468,7 +468,7 @@ export default function StudentProfilePage() {
       </div>
 
       {/*About Section*/}
-      <div className="mt-5">
+      <div className="mt-5 mb-5">
         <SectionCard
           icon={User}
           title="About & Links"
