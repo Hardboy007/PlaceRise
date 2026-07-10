@@ -21,6 +21,7 @@ import ChangePasswordPage from "../pages/student/ChangePasswordPage";
 import NOCManagementPage from "../pages/coordinator/NOCManagementPage";
 import AttendancePage from "../pages/coordinator/AttendancePage";
 import DocumentRequestPage from '../pages/student/DocumentRequestPage'
+import ScanAttendancePage from "../pages/student/ScanAttendancePage";
 
 function AppRouter() {
   return (
@@ -39,7 +40,7 @@ function AppRouter() {
             </ProtectedRoute>
           }
         />
-
+        <Route path="/attendance" element={<ScanAttendancePage />} />
         {/* Student Routes - Layout ke andar */}
         <Route
           path="/student"

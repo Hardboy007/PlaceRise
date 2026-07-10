@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import api from "../../services/api"; // Change this path if needed
+import { api } from "../../utils/api";
 
 const ScanAttendancePage = () => {
   const navigate = useNavigate();
@@ -16,19 +16,13 @@ const ScanAttendancePage = () => {
   // Function should be declared BEFORE useEffect
   const markAttendance = async () => {
     try {
-      const response = await api.post("/attendance/mark", {
-        token,
-      });
-
-      const data = response.data;
+      const data = await api.post("/attendance/mark", { token });
 
       setSuccess(data.message || "Attendance Marked Successfully!");
       setStudentName(data.studentName || "");
     } catch (err) {
       setError(
-        err.response?.data?.message ||
-          err.message ||
-          "Something went wrong"
+        err.response?.data?.message || err.message || "Something went wrong",
       );
     } finally {
       setLoading(false);
@@ -52,17 +46,12 @@ const ScanAttendancePage = () => {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 text-center">
-
-        <h1 className="text-3xl font-bold text-blue-600 mb-8">
-          PlaceRise
-        </h1>
+        <h1 className="text-3xl font-bold text-blue-600 mb-8">PlaceRise</h1>
 
         {loading && (
           <>
             <div className="animate-spin rounded-full h-14 w-14 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-5"></div>
-            <h2 className="text-xl font-semibold">
-              Marking attendance...
-            </h2>
+            <h2 className="text-xl font-semibold">Marking attendance...</h2>
           </>
         )}
 
@@ -80,12 +69,10 @@ const ScanAttendancePage = () => {
               </p>
             )}
 
-            <p className="mt-2 text-gray-700">
-              {success}
-            </p>
+            <p className="mt-2 text-gray-700">{success}</p>
 
             <button
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/student/dashboard")}
               className="mt-8 w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg"
             >
               Go to Dashboard
@@ -114,7 +101,7 @@ const ScanAttendancePage = () => {
             )}
 
             <button
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/student/dashboard")}
               className="mt-8 w-full bg-gray-800 hover:bg-gray-900 text-white py-3 rounded-lg"
             >
               Go to Dashboard
