@@ -8,6 +8,7 @@ const {
   updateStudent,
   onboardStudent,
   updateNotificationPreferences,
+  uploadResume,
   bulkImportStudents,
   exportStudentsExcel,
 } = require("../controllers/studentController");
@@ -28,6 +29,7 @@ router.get("/me", protect, getMyProfile);
 router.put("/me", protect, updateStudent);
 router.put("/me/onboard", protect, onboardStudent);
 router.put("/me/notifications", protect, updateNotificationPreferences);
+router.post('/me/resume', protect, upload.single('file'), uploadResume)
 // Read only — coordinator only
 router.get("/:id", protect, coordinatorOnly, getStudentById);
 

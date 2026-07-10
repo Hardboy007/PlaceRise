@@ -104,13 +104,39 @@ export default function StudentProfilePage() {
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleResumeUpload = (e) => {
+  const handleResumeUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    setForm({
-      ...form,
-      resume: { name: file.name, size: (file.size / 1024).toFixed(0) + " KB" },
-    });
+
+    // Size check — 5MB max
+    if (file.size > 5 * 1024 * 1024) {
+      alert("File size must be less than 5MB");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/students/me/resume`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: formData,
+        },
+      );
+      const data = await res.json();
+      if (data.resumeUrl) {
+        setStudent({ ...student, resume: data.resumeUrl });
+        setForm({ ...form, resume: data.resumeUrl });
+        alert("Resume uploaded successfully!");
+      }
+    } catch (err) {
+      alert("Resume upload failed");
+    }
   };
 
   const addSkill = () => {
@@ -502,11 +528,16 @@ export default function StudentProfilePage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-[#1E293B] truncate">
-                  {displayData.resume.name}
+                  Resume Uploaded
                 </p>
-                <p className="text-xs text-[#64748B]">
-                  Uploaded · {displayData.resume.size}
-                </p>
+                <a
+                  href={displayData.resume}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs text-primary hover:underline"
+                >
+                  View Resume
+                </a>
               </div>
               {editing && (
                 <button

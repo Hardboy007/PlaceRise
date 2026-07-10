@@ -6,6 +6,7 @@ const bcrypt = require("bcryptjs");
 const ExcelJS = require("exceljs");
 const User = require("../models/User");
 const universityStructure = require("../data/universityStructure");
+const { cloudinary } = require("../config/cloudinary");
 
 const findSchoolAndDept = (course) => {
   for (const s of universityStructure) {
@@ -97,7 +98,8 @@ const updateStudent = async (req, res) => {
       "city",
       "state",
       "gender",
-      "resume",
+      "about",
+      "linkedinUrl",
     ];
     const updates = {};
     allowedFields.forEach((field) => {
@@ -174,6 +176,35 @@ const updateNotificationPreferences = async (req, res) => {
     }
 
     res.json(student.notificationPreferences);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+//=================== UPLOAD RESUME =================
+const uploadResume = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      resource_type: "raw",
+      folder: "placerise/resumes",
+      format: "pdf",
+    });
+
+    // Temp file delete karo
+    fs.unlink(req.file.path, () => {});
+
+    // Student ka resume URL update karo
+    const student = await Student.findOneAndUpdate(
+      { userId: req.user.id },
+      { resume: result.secure_url },
+      { new: true },
+    );
+
+    res.json({ resumeUrl: result.secure_url, student });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -316,6 +347,7 @@ module.exports = {
   updateStudent,
   onboardStudent,
   updateNotificationPreferences,
+  uploadResume,
   bulkImportStudents,
   exportStudentsExcel,
 };
