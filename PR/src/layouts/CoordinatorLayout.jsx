@@ -11,6 +11,7 @@ import {
   Sparkles,
   Calendar,
   FileText,
+  QrCode,
 } from "lucide-react";
 
 const navLinks = [
@@ -22,6 +23,7 @@ const navLinks = [
   { to: "/coordinator/announcements", label: "Announcements", icon: Megaphone },
   { to: "/coordinator/profile", label: "Profile & Settings", icon: User },
   { to: '/coordinator/noc', label: 'NOC / LOR', icon: FileText },
+  { to: '/coordinator/attendance', label: 'Attendance', icon: QrCode },
 ];
 
 function CoordinatorLayout() {
