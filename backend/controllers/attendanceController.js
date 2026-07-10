@@ -36,8 +36,17 @@ const getSessionAttendance = async (req, res) => {
     ).populate("jobId", "role");
     if (!session) return res.status(404).json({ message: "Session not found" });
 
+    // FIXED: erpId lives on the User model, not Student — nested populate
+    // through studentId.userId is required, same pattern used in
+    // nocController/applicationController. Previously only "name course
+    // branch" was populated, so studentId.userId was never present and
+    // the frontend's ERP ID column had nothing to read.
     const records = await AttendanceRecord.find({ sessionId: session._id })
-      .populate("studentId", "name course branch")
+      .populate({
+        path: "studentId",
+        select: "name course branch",
+        populate: { path: "userId", select: "erpId" },
+      })
       .sort({ markedAt: 1 });
 
     res.json({ session, records });
@@ -96,7 +105,13 @@ const manualMark = async (req, res) => {
       isLate: isLate || false,
     });
 
-    const populated = await record.populate("studentId", "name course branch");
+    // FIXED: same nested populate as getSessionAttendance, so the row
+    // this manual-mark call returns also carries erpId consistently.
+    const populated = await record.populate({
+      path: "studentId",
+      select: "name course branch",
+      populate: { path: "userId", select: "erpId" },
+    });
     res.status(201).json(populated);
   } catch (error) {
     res.status(500).json({ message: error.message });

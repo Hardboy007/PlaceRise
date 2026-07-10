@@ -19,6 +19,7 @@ import AnnouncementManagementPage from "../pages/coordinator/AnnouncementManagem
 import ProtectedRoute from "../components/common/ProtectedRoute";
 import ChangePasswordPage from "../pages/student/ChangePasswordPage";
 import NOCManagementPage from "../pages/coordinator/NOCManagementPage";
+import AttendancePage from "../pages/coordinator/AttendancePage";
 import DocumentRequestPage from '../pages/student/DocumentRequestPage'
 
 function AppRouter() {
@@ -77,6 +78,7 @@ function AppRouter() {
           />
           <Route path="profile" element={<CoordinatorProfile />} />
           <Route path="noc" element={<NOCManagementPage />} />
+          <Route path="attendance" element={<AttendancePage />} />
         </Route>
         <Route path="*" element={<div>404 - Page Not Found</div>} />
       </Routes>
