@@ -83,7 +83,11 @@ export default function StudentProfilePage() {
   }, []);
 
   const handleEdit = () => {
-    setForm({ ...student });
+    setForm({
+      ...student,
+      about: student.about || "",
+      linkedinUrl: student.linkedinUrl || "",
+    });
     setEditing(true);
   };
 
@@ -462,6 +466,60 @@ export default function StudentProfilePage() {
           )}
         </SectionCard>
       </div>
+
+      {/*About Section*/}
+      <SectionCard
+        icon={User}
+        title="About & Links"
+        iconBg="bg-blue-50 text-primary"
+        borderColor="border-l-primary"
+      >
+        {/* About */}
+        <div className="mb-4">
+          <span className="text-xs font-semibold uppercase tracking-widest text-[#64748B] block mb-1.5">
+            About
+          </span>
+          {editing ? (
+            <textarea
+              name="about"
+              value={form?.about || ""}
+              onChange={handleChange}
+              rows={4}
+              placeholder="Write a short bio about yourself..."
+              className="w-full px-3 py-2 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] bg-[#F8FAFC] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition resize-none"
+            />
+          ) : (
+            <p className="text-sm text-[#1E293B]">{student?.about || "—"}</p>
+          )}
+        </div>
+
+        {/* LinkedIn */}
+        <div>
+          <span className="text-xs font-semibold uppercase tracking-widest text-[#64748B] block mb-1.5">
+            LinkedIn URL
+          </span>
+          {editing ? (
+            <input
+              name="linkedinUrl"
+              value={form?.linkedinUrl || ""}
+              onChange={handleChange}
+              placeholder="https://linkedin.com/in/yourprofile"
+              className="w-full px-3 py-2 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] bg-[#F8FAFC] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+            />
+          ) : student?.linkedinUrl ? (
+            <a
+              href={student.linkedinUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              View LinkedIn Profile
+            </a>
+          ) : (
+            <span className="text-sm font-medium text-[#1E293B]">—</span>
+          )}
+        </div>
+      </SectionCard>
 
       {/* Skills */}
       <SectionCard
