@@ -74,7 +74,10 @@ const getStudentById = async (req, res) => {
 // GET logged-in student's own profile
 const getMyProfile = async (req, res) => {
   try {
-    const student = await Student.findOne({ userId: req.user.id });
+    const student = await Student.findOne({ userId: req.user.id }).populate(
+      "userId",
+      "erpId email",
+    );
     if (!student) {
       return res.status(404).json({ message: "Student profile not found" });
     }
@@ -88,7 +91,10 @@ const getMyProfile = async (req, res) => {
 // UPDATE student by ID
 const updateStudent = async (req, res) => {
   try {
-    const student = await Student.findOne({ userId: req.user.id });
+    const student = await Student.findOne({ userId: req.user.id }).populate(
+      "userId",
+      "erpId email",
+    );
     if (!student) return res.status(404).json({ message: "Student not found" });
 
     const allowedFields = [
