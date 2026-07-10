@@ -119,7 +119,9 @@ export default function AttendancePage() {
       setCheckingSession(true);
       setError("");
       try {
-        const found = await api.get(`/attendance/active?jobId=${selectedJobId}`);
+        const found = await api.get(
+          `/attendance/active?jobId=${selectedJobId}`,
+        );
         if (!cancelled && found && found.status !== "closed") {
           await hydrateSession(found);
         }
