@@ -68,6 +68,16 @@ const createJob = async (req, res) => {
             subject: `New Placement Drive — ${companyName} | ${job.role}`,
             html: `
               <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+                <div style="background: linear-gradient(135deg, #1D4ED8, #3B82F6); border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px;">
+                  <img 
+                    src="https://res.cloudinary.com/saviaykm/image/upload/v1783784651/WhatsApp_Image_2026-07-11_at_18.55.23_krac4c.jpg" 
+                    alt="PlaceRise" 
+                    style="height: 40px; border-radius: 8px;"
+                  />
+                  <p style="color: white; font-size: 12px; margin: 8px 0 0 0; opacity: 0.85; font-weight: 600; letter-spacing: 1px;">
+                    PLACERISE - Connect . Grow . Succeed
+                  </p>
+                </div>
                 <h2 style="color: #1E293B;">Hi ${student.name || "Student"},</h2>
                 <p style="color: #64748B;">A new placement opportunity has been posted on PlaceRise.</p>
                 <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 20px; margin: 20px 0;">

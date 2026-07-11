@@ -246,6 +246,16 @@ const updateRequestStatus = async (req, res) => {
             subject: `${request.type} Request ${status} — PlaceRise`,
             html: `
           <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+            <div style="background: linear-gradient(135deg, #1D4ED8, #3B82F6); border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px;">
+              <img 
+                src="https://res.cloudinary.com/saviaykm/image/upload/v1783784651/WhatsApp_Image_2026-07-11_at_18.55.23_krac4c.jpg" 
+                alt="PlaceRise" 
+                style="height: 40px; border-radius: 8px;"
+              />
+              <p style="color: white; font-size: 12px; margin: 8px 0 0 0; opacity: 0.85; font-weight: 600; letter-spacing: 1px;">
+                PLACERISE - Connect . Grow . Succeed
+              </p>
+            </div>
             <h2 style="color: #1E293B;">Your ${request.type} Request Update</h2>
             <div style="background: ${status === "Approved" ? "#F0FDF4" : "#FEF2F2"}; border-radius: 12px; padding: 20px; margin: 20px 0;">
               <p style="color: ${status === "Approved" ? "#22C55E" : "#EF4444"}; font-weight: bold; font-size: 18px;">
