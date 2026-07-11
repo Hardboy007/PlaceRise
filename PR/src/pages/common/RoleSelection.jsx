@@ -257,6 +257,8 @@ function RoleSelectionPage() {
         localStorage.setItem("isFirstLogin", data.isFirstLogin);
         if (data.isFirstLogin) {
           navigate("/student/change-password");
+        } else if (redirect) {
+          navigate(redirect);
         } else {
           navigate("/student/dashboard");
         }
