@@ -104,19 +104,25 @@ const getJobApplications = async (req, res) => {
   try {
     const { jobId } = req.params;
 
-    // FIXED: was .populate("studentId") — a flat populate that only pulls
-    // fields living directly on the Student document (name, email, course,
-    // cgpa, etc). erpId lives on the User model, so student.userId was
-    // coming back as just an ObjectId string, and student.userId.erpId was
-    // always undefined on the frontend. Nested populate below resolves
-    // studentId -> then resolves studentId.userId -> erpId/email, matching
-    // what getAllStudents already does in studentController.js.
     const applications = await Application.find({ jobId }).populate({
       path: "studentId",
-      populate: { path: "userId", select: "erpId email" },
+      populate: { path: "selectedCompanies" },
     });
 
-    res.json(applications);
+    const result = applications.map((app) => {
+      const studentObj = app.studentId?.toObject
+        ? app.studentId.toObject()
+        : app.studentId;
+      return {
+        ...app.toObject(),
+        studentId: {
+          ...studentObj,
+          selectedCount: studentObj?.selectedCompanies?.length ?? 0,
+        },
+      };
+    });
+
+    res.json(result);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

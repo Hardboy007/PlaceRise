@@ -14,6 +14,7 @@ import {
   GraduationCap,
   TrendingUp,
   Lock,
+  X,
 } from "lucide-react";
 import { api } from "../../utils/api";
 
@@ -483,6 +484,7 @@ function AppliedTab({ selectedJobId, readOnly }) {
   const [applications, setApplications] = useState([]);
   const [filterStatus, setFilterStatus] = useState("All");
   const [loading, setLoading] = useState(true);
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
   useEffect(() => {
     if (!selectedJobId) return;
@@ -659,6 +661,7 @@ function AppliedTab({ selectedJobId, readOnly }) {
             return (
               <div
                 key={app._id}
+                onClick={() => setSelectedStudent(student)}
                 style={{
                   display: "grid",
                   gridTemplateColumns: cols,
@@ -667,9 +670,19 @@ function AppliedTab({ selectedJobId, readOnly }) {
                   borderBottom:
                     idx !== filtered.length - 1 ? "1px solid #F1F5F9" : "none",
                   minWidth: "850px",
+                  cursor: "pointer",
                 }}
+                className="hover:bg-[#F8FAFC] transition-colors"
               >
-                <NameCell student={student} />
+                <div className="flex flex-col gap-0.5">
+                  <NameCell student={student} />
+                  {(student?.selectedCount ?? 0) > 0 && (
+                    <span className="text-[10px] font-semibold text-[#22C55E] ml-10">
+                      ✓ Selected in {student.selectedCount}{" "}
+                      {student.selectedCount === 1 ? "company" : "companies"}
+                    </span>
+                  )}
+                </div>
                 <span
                   className="text-xs font-mono"
                   style={{ color: "#64748B" }}
@@ -710,10 +723,6 @@ function AppliedTab({ selectedJobId, readOnly }) {
                 </div>
 
                 {readOnly ? (
-                  // Closed drive: final status shown as a plain badge, no
-                  // action buttons — this is what preserves "who was
-                  // selected in this closed company" without letting the
-                  // coordinator accidentally re-open decisions.
                   <span
                     className="text-xs font-semibold px-2.5 py-1 rounded-full w-fit border"
                     style={{
@@ -725,16 +734,181 @@ function AppliedTab({ selectedJobId, readOnly }) {
                     {app.status}
                   </span>
                 ) : (
-                  <StatusActions
-                    current={app.status}
-                    onChange={(val) => updateStatus(app._id, val)}
-                  />
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <StatusActions
+                      current={app.status}
+                      onChange={(val) => updateStatus(app._id, val)}
+                    />
+                  </div>
                 )}
               </div>
             );
           })
         )}
       </div>
+
+      {/* Student Detail Modal */}
+      {selectedStudent && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{
+            backgroundColor: "rgba(15,23,42,0.5)",
+            backdropFilter: "blur(4px)",
+          }}
+          onClick={(e) =>
+            e.target === e.currentTarget && setSelectedStudent(null)
+          }
+        >
+          <div
+            className="rounded-3xl border shadow-2xl w-full max-w-2xl overflow-y-auto bg-white border-[#E2E8F0]"
+            style={{ maxHeight: "90vh" }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-7 py-5 border-b border-[#E2E8F0] sticky top-0 bg-white rounded-t-3xl z-10">
+              <div className="flex items-center gap-4">
+                <div
+                  className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-lg shrink-0"
+                  style={{
+                    background: "linear-gradient(135deg, #3B82F6, #60A5FA)",
+                  }}
+                >
+                  {selectedStudent.name?.charAt(0) || "?"}
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-[#0F172A]">
+                    {selectedStudent.name}
+                  </h2>
+                  <p className="text-sm text-[#64748B]">
+                    {selectedStudent.userId?.erpId || "—"} ·{" "}
+                    {selectedStudent.course || "—"} · Batch{" "}
+                    {selectedStudent.batch || "—"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                {(selectedStudent.selectedCount ?? 0) > 0 && (
+                  <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-green-50 text-green-700 border border-green-200">
+                    ✓ Selected in {selectedStudent.selectedCount}{" "}
+                    {selectedStudent.selectedCount === 1
+                      ? "company"
+                      : "companies"}
+                  </span>
+                )}
+                <span
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-full border ${
+                    selectedStudent.placementStatus === "Placed"
+                      ? "bg-green-50 text-green-700 border-green-200"
+                      : "bg-amber-50 text-amber-700 border-amber-200"
+                  }`}
+                >
+                  {selectedStudent.placementStatus || "Not Placed"}
+                </span>
+                <button
+                  onClick={() => setSelectedStudent(null)}
+                  className="w-9 h-9 rounded-xl flex items-center justify-center bg-[#F1F5F9] text-[#64748B] hover:opacity-80 transition"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="px-7 py-6 space-y-7">
+              {/* Personal */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-widest mb-4 pb-2 border-b border-[#E2E8F0] text-[#0F172A]">
+                  Personal Information
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { label: "Email", value: selectedStudent.email },
+                    { label: "Phone", value: selectedStudent.phone },
+                    { label: "Gender", value: selectedStudent.gender },
+                    { label: "Address", value: selectedStudent.address },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <p className="text-xs font-medium text-[#64748B] mb-0.5">
+                        {label}
+                      </p>
+                      <p className="text-sm font-semibold text-[#0F172A]">
+                        {value || "—"}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Academic */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-widest mb-4 pb-2 border-b border-[#E2E8F0] text-[#0F172A]">
+                  Academic Details
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { label: "Course", value: selectedStudent.course },
+                    { label: "Batch", value: selectedStudent.batch },
+                    {
+                      label: "CGPA",
+                      value: (selectedStudent.cgpa ?? 0).toFixed(1),
+                    },
+                    {
+                      label: "Backlogs",
+                      value:
+                        selectedStudent.backlogs === 0
+                          ? "None"
+                          : selectedStudent.backlogs,
+                    },
+                    {
+                      label: "10th Marks",
+                      value: selectedStudent.tenthMarks
+                        ? `${selectedStudent.tenthMarks}%`
+                        : "—",
+                    },
+                    {
+                      label: "12th Marks",
+                      value: selectedStudent.twelfthMarks
+                        ? `${selectedStudent.twelfthMarks}%`
+                        : "—",
+                    },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <p className="text-xs font-medium text-[#64748B] mb-0.5">
+                        {label}
+                      </p>
+                      <p className="text-sm font-semibold text-[#0F172A]">
+                        {value || "—"}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Skills */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-widest mb-4 pb-2 border-b border-[#E2E8F0] text-[#0F172A]">
+                  Skills
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {(selectedStudent.skills || []).length === 0 ? (
+                    <span className="text-sm text-[#64748B]">
+                      No skills added yet
+                    </span>
+                  ) : (
+                    (selectedStudent.skills || []).map((skill) => (
+                      <span
+                        key={skill}
+                        className="border text-xs font-semibold px-3 py-1.5 rounded-full text-[#3B82F6] bg-[#EFF6FF] border-[#BFDBFE]"
+                      >
+                        {skill}
+                      </span>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

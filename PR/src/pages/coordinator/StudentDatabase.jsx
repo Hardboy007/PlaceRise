@@ -1098,7 +1098,7 @@ export default function StudentDatabasePage() {
         {/* Right Side - Import / Export */}
         <div className="flex flex-col items-end gap-2">
           <p className="text-xs text-[#64748B] text-right">
-            Import new student database or export current database to Excel
+            Bulk student database Upload or Export current database to Excel
           </p>
 
           <div className="flex items-center gap-3">
