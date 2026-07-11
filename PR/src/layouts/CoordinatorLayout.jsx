@@ -25,8 +25,8 @@ const navLinks = [
   { to: "/coordinator/applications", label: "Applications", icon: BarChart3 },
   { to: "/coordinator/announcements", label: "Announcements", icon: Megaphone },
   { to: "/coordinator/profile", label: "Profile & Settings", icon: User },
-  { to: '/coordinator/noc', label: 'NOC / LOR', icon: FileText },
-  { to: '/coordinator/attendance', label: 'Attendance', icon: QrCode },
+  { to: "/coordinator/noc", label: "NOC / LOR", icon: FileText },
+  { to: "/coordinator/attendance", label: "Attendance", icon: QrCode },
 ];
 
 function CoordinatorLayout() {
@@ -49,7 +49,7 @@ function CoordinatorLayout() {
   // Poll unread notification count every 30s
   useEffect(() => {
     const fetchCount = async () => {
-      const data = await api.get('/notifications/unread-count');
+      const data = await api.get("/notifications/unread-count");
       setUnreadCount(data.count || 0);
     };
     fetchCount();
@@ -60,10 +60,10 @@ function CoordinatorLayout() {
   const handleBellClick = async () => {
     setShowNotifs(!showNotifs);
     if (!showNotifs) {
-      const data = await api.get('/notifications');
+      const data = await api.get("/notifications");
       setNotifications(Array.isArray(data) ? data : []);
       // Saari read mark karo
-      await api.put('/notifications/mark-all-read');
+      await api.put("/notifications/mark-all-read");
       setUnreadCount(0);
     }
   };
@@ -110,7 +110,7 @@ function CoordinatorLayout() {
               <Bell size={16} className="text-[#64748B]" />
               {unreadCount > 0 && (
                 <span className="absolute top-1 right-1 w-4 h-4 bg-[#EF4444] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                  {unreadCount > 9 ? '9+' : unreadCount}
+                  {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
             </button>
@@ -118,7 +118,9 @@ function CoordinatorLayout() {
             {showNotifs && (
               <div className="absolute right-0 top-11 w-80 bg-white rounded-2xl shadow-xl border border-[#E2E8F0] z-50 overflow-hidden">
                 <div className="px-4 py-3 border-b border-[#F1F5F9] flex items-center justify-between">
-                  <p className="text-sm font-bold text-[#1E293B]">Notifications</p>
+                  <p className="text-sm font-bold text-[#1E293B]">
+                    Notifications
+                  </p>
                   <button
                     onClick={() => setShowNotifs(false)}
                     className="p-1.5 rounded-full text-[#64748B] hover:text-[#EF4444] hover:bg-red-50 transition-all duration-300 hover:rotate-90"
@@ -128,13 +130,24 @@ function CoordinatorLayout() {
                 </div>
                 <div className="max-h-80 overflow-y-auto">
                   {notifications.length === 0 ? (
-                    <p className="text-sm text-[#64748B] text-center py-8">No notifications</p>
+                    <p className="text-sm text-[#64748B] text-center py-8">
+                      No notifications
+                    </p>
                   ) : (
-                    notifications.map(n => (
-                      <div key={n._id} className={`px-4 py-3 border-b border-[#F8FAFC] hover:bg-[#F8FAFC] cursor-pointer ${!n.isRead ? 'bg-blue-50/50' : ''}`}>
-                        <p className="text-sm font-semibold text-[#1E293B]">{n.title}</p>
-                        <p className="text-xs text-[#64748B] mt-0.5">{n.message}</p>
-                        <p className="text-xs text-[#94A3B8] mt-1">{new Date(n.createdAt).toLocaleString('en-IN')}</p>
+                    notifications.map((n) => (
+                      <div
+                        key={n._id}
+                        className={`px-4 py-3 border-b border-[#F8FAFC] hover:bg-[#F8FAFC] cursor-pointer ${!n.isRead ? "bg-blue-50/50" : ""}`}
+                      >
+                        <p className="text-sm font-semibold text-[#1E293B]">
+                          {n.title}
+                        </p>
+                        <p className="text-xs text-[#64748B] mt-0.5">
+                          {n.message}
+                        </p>
+                        <p className="text-xs text-[#94A3B8] mt-1">
+                          {new Date(n.createdAt).toLocaleString("en-IN")}
+                        </p>
                       </div>
                     ))
                   )}

@@ -21,7 +21,7 @@ const navLinks = [
     label: "My Applications",
     icon: ClipboardList,
   },
-  { to: '/student/documents', label: 'My Documents', icon: FileText },
+  { to: "/student/documents", label: "My Documents", icon: FileText },
   { to: "/student/profile", label: "Profile", icon: User },
   { to: "/student/settings", label: "Settings", icon: Settings },
 ];
@@ -47,7 +47,9 @@ function StudentLayout() {
       try {
         const data = await api.get("/notifications/unread-count");
         setUnreadCount(data.count || 0);
-      } catch { /* empty */ }
+      } catch {
+        /* empty */
+      }
     };
     fetchCount();
     const interval = setInterval(fetchCount, 30000);
