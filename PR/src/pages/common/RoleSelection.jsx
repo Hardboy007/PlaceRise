@@ -249,6 +249,9 @@ function RoleSelectionPage() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", modalRole);
 
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirect = searchParams.get("redirect");
+
       if (modalRole === "student") {
         localStorage.setItem("student", JSON.stringify(data.student));
         localStorage.setItem("isFirstLogin", data.isFirstLogin);
