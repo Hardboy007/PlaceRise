@@ -1,28 +1,23 @@
-const nodemailer = require("nodemailer");
-require('dotenv').config()
+const { Resend } = require('resend')
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com", // hostname used
-  port: 587,
-  secure: false,
-  family: 4, //IPv4 forced
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 const sendEmail = async ({ to, subject, html }) => {
   try {
-    await transporter.sendMail({
-      from: `"PlaceRise" <${process.env.EMAIL_USER}>`,
+    const { error } = await resend.emails.send({
+      from: 'PlaceRise <onboarding@resend.dev>',
       to,
       subject,
       html,
-    });
-  } catch (error) {
-    console.error("Email send failed:", error.message);
+    })
+    if (error) {
+      console.error('Email send failed:', error.message)
+    } else {
+      console.log('Email sent to:', to)
+    }
+  } catch (err) {
+    console.error('Email send failed:', err.message)
   }
-};
+}
 
-module.exports = { sendEmail };
+module.exports = { sendEmail }
