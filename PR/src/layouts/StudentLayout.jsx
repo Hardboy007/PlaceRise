@@ -10,9 +10,9 @@ import {
   LogOut,
   Sparkles,
   FileText,
+  Icon,
 } from "lucide-react";
 import { api } from "../utils/api";
-
 const navLinks = [
   { to: "/student/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/student/companies", label: "Companies", icon: Building2 },
