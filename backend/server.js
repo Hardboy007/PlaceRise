@@ -19,6 +19,8 @@ const applicationRoutes = require("./routes/application");
 const jobRoutes = require("./routes/jobs");
 const coordinatorRoutes = require("./routes/coordinator");
 const attendanceRoutes = require("./routes/attendance");
+const notificationRoutes = require('./routes/notifications')
+
 
 app.use("/api/auth", authRoutes);
 app.use("/api/students", studentRoutes);
@@ -28,6 +30,7 @@ app.use("/api/attendance", attendanceRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/coordinators", coordinatorRoutes);
+app.use('/api/notifications', notificationRoutes)
 
 app.get("/", (req, res) => {
   res.json({ message: "PlaceRise Backend Running" });

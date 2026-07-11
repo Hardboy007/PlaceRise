@@ -1,4 +1,6 @@
 const Announcement = require("../models/Announcement");
+const Notification = require('../models/Notification')
+const User = require('../models/User')
 
 // GET /api/announcements
 // Students ko sirf 'Published' announcements dikhani hain
@@ -29,6 +31,18 @@ const createAnnouncement = async (req, res) => {
       // req.user coordinator ke auth middleware se aata hai
       ...(req.user?.id ? { createdBy: req.user.id } : {}),
     });
+
+    // Saare students ko in-app notification bhejo
+    const studentUsers = await User.find({ role: 'student' })
+    const notifications = studentUsers.map(u => ({
+      userId: u._id,
+      type: 'ANNOUNCEMENT',
+      title: req.body.type === 'Urgent' ? '🚨 Urgent Announcement' : '📢 New Announcement',
+      message: req.body.title,
+      link: '/student/dashboard',
+    }))
+    await Notification.insertMany(notifications)
+
     res.status(201).json(announcement);
   } catch (error) {
     res.status(500).json({ message: error.message });
