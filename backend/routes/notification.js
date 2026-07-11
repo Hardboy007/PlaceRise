@@ -5,7 +5,7 @@ const { getMyNotifications, getUnreadCount, markAsRead, markAllRead } = require(
 
 router.get('/', protect, getMyNotifications)
 router.get('/unread-count', protect, getUnreadCount)
-router.put('/:id/read', protect, markAsRead)
 router.put('/mark-all-read', protect, markAllRead)
+router.put('/:id/read', protect, markAsRead)
 
 module.exports = router

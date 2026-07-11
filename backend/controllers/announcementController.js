@@ -1,6 +1,6 @@
 const Announcement = require("../models/Announcement");
-const Notification = require('../models/Notification')
-const User = require('../models/User')
+const Notification = require("../models/Notification");
+const User = require("../models/User");
 
 // GET /api/announcements
 // Students ko sirf 'Published' announcements dikhani hain
@@ -33,15 +33,18 @@ const createAnnouncement = async (req, res) => {
     });
 
     // Saare students ko in-app notification bhejo
-    const studentUsers = await User.find({ role: 'student' })
-    const notifications = studentUsers.map(u => ({
+    const studentUsers = await User.find({ role: "student" });
+    const notifications = studentUsers.map((u) => ({
       userId: u._id,
-      type: 'ANNOUNCEMENT',
-      title: req.body.type === 'Urgent' ? '🚨 Urgent Announcement' : '📢 New Announcement',
+      type: "ANNOUNCEMENT",
+      title:
+        req.body.type === "Urgent"
+          ? "🚨 Urgent Announcement"
+          : "📢 New Announcement",
       message: req.body.title,
-      link: '/student/dashboard',
-    }))
-    await Notification.insertMany(notifications)
+      link: "/student/dashboard",
+    }));
+    await Notification.insertMany(notifications);
 
     res.status(201).json(announcement);
   } catch (error) {
