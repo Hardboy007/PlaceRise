@@ -19,7 +19,7 @@ const applicationRoutes = require("./routes/application");
 const jobRoutes = require("./routes/jobs");
 const coordinatorRoutes = require("./routes/coordinator");
 const attendanceRoutes = require("./routes/attendance");
-const notificationRoutes = require("./routes/notifications");
+const notificationRoutes = require("./routes/notification");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/students", studentRoutes);
