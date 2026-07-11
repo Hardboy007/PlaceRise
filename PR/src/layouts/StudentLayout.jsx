@@ -129,7 +129,7 @@ function StudentLayout() {
                   </p>
                   <button
                     onClick={() => setShowNotifs(false)}
-                    className="w-6 h-6 rounded-lg flex items-center justify-center text-[#64748B] hover:text-[#1E293B] hover:bg-[#F1F5F9] hover:rotate-90 transition-all duration-200"
+                    className="p-1.5 rounded-full text-[#64748B] hover:text-[#EF4444] hover:bg-red-50 transition-all duration-300 hover:rotate-90"
                   >
                     <X size={14} />
                   </button>
