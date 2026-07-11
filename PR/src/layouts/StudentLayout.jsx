@@ -10,7 +10,6 @@ import {
   LogOut,
   Sparkles,
   FileText,
-  Icon,
 } from "lucide-react";
 import { api } from "../utils/api";
 const navLinks = [
@@ -203,7 +202,7 @@ function StudentLayout() {
         >
           <div className="flex-1 flex flex-col gap-1 p-2 mt-2 overflow-hidden">
             // eslint-disable-next-line no-unused-vars
-            {navLinks.map(({ to, label }) => (
+            {navLinks.map(({ to, label, icon: NavIcon }) => (
               <NavLink
                 key={to}
                 to={to}
@@ -216,7 +215,7 @@ function StudentLayout() {
                   }`
                 }
               >
-                <Icon size={18} className="shrink-0" />
+                <NavIcon size={18} className="shrink-0" />
                 <span
                   className={`transition-all duration-200 ${expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}
                 >
