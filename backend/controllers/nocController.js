@@ -4,6 +4,9 @@ const PDFDocument = require("pdfkit");
 const { cloudinary } = require("../config/cloudinary");
 const { Readable } = require("stream");
 const Coordinator = require("../models/Coordinator");
+const Notification = require("../models/Notification");
+const User = require("../models/User");
+const { sendEmail } = require("../config/email");
 
 // Student request bheje
 const createRequest = async (req, res) => {
@@ -213,6 +216,60 @@ const updateRequestStatus = async (req, res) => {
     }
 
     await request.save();
+    // Background mein notification + email
+    setImmediate(async () => {
+      try {
+        const studentUser = request.studentId?.userId
+          ? await User.findById(
+              request.studentId.userId._id || request.studentId.userId,
+            )
+          : null;
+
+        if (studentUser && ["Approved", "Rejected"].includes(status)) {
+          await Notification.create({
+            userId: studentUser._id,
+            type: "NOC_STATUS",
+            title:
+              status === "Approved"
+                ? `✅ ${request.type} Approved`
+                : `❌ ${request.type} Rejected`,
+            message:
+              status === "Approved"
+                ? `Your ${request.type} request has been approved. Download your document from My Documents.`
+                : `Your ${request.type} request was rejected. Reason: ${rejectionReason || "Not specified"}`,
+            link: "/student/documents",
+            isRead: false,
+          });
+
+          await sendEmail({
+            to: studentUser.email,
+            subject: `${request.type} Request ${status} — PlaceRise`,
+            html: `
+          <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+            <h2 style="color: #1E293B;">Your ${request.type} Request Update</h2>
+            <div style="background: ${status === "Approved" ? "#F0FDF4" : "#FEF2F2"}; border-radius: 12px; padding: 20px; margin: 20px 0;">
+              <p style="color: ${status === "Approved" ? "#22C55E" : "#EF4444"}; font-weight: bold; font-size: 18px;">
+                ${status === "Approved" ? "✅ Approved" : "❌ Rejected"}
+              </p>
+              <p><strong>Request Type:</strong> ${request.type}</p>
+              <p><strong>Purpose:</strong> ${request.purpose}</p>
+              ${rejectionReason ? `<p><strong>Reason:</strong> ${rejectionReason}</p>` : ""}
+            </div>
+            ${
+              status === "Approved"
+                ? '<a href="https://placerise.vercel.app/student/documents" style="display: inline-block; background: #3B82F6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Download Document</a>'
+                : ""
+            }
+            <p style="color: #94A3B8; font-size: 12px; margin-top: 24px;">PlaceRise | Dev Bhoomi Uttarakhand University</p>
+          </div>
+        `,
+          });
+        }
+      } catch (bgError) {
+        console.error("NOC notification error:", bgError.message);
+      }
+    });
+
     res.json(request);
   } catch (error) {
     res.status(500).json({ message: error.message });

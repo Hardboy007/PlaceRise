@@ -1,4 +1,8 @@
 const JobPosting = require("../models/JobPosting");
+const Notification = require("../models/Notification");
+const Student = require("../models/Student");
+const Company = require("../models/company");
+const { sendEmail } = require("../config/email");
 
 // GET /api/jobs
 // Returns all active job postings, newest first, with company name populated.
@@ -18,6 +22,78 @@ const getJobs = async (req, res) => {
 const createJob = async (req, res) => {
   try {
     const job = await JobPosting.create(req.body);
+
+    // Background mein notifications bhejo — response block mat karo
+    setImmediate(async () => {
+      try {
+        const allStudents = await Student.find().populate("userId", "email");
+
+        const eligibleStudents = allStudents.filter((s) => {
+          if (!s.userId) return false;
+          const branchOk =
+            !job.eligibleBranches?.length ||
+            job.eligibleBranches.includes("All") ||
+            job.eligibleBranches.includes(s.course) ||
+            job.eligibleBranches.includes(s.branch);
+          const cgpaOk = !job.minCgpa || (s.cgpa ?? 0) >= job.minCgpa;
+          const backlogOk = (s.backlogs ?? 0) <= (job.maxBacklogs ?? 99);
+          return branchOk && cgpaOk && backlogOk;
+        });
+
+        const company = await Company.findById(job.companyId);
+        const companyName = company?.name || "A Company";
+        const lastDate = job.lastDate
+          ? new Date(job.lastDate).toLocaleDateString("en-IN")
+          : "N/A";
+
+        // In-app notifications
+        const notifs = eligibleStudents.map((s) => ({
+          userId: s.userId._id,
+          type: "JD_POSTED",
+          title: `New Drive: ${companyName}`,
+          message: `${companyName} — ${job.role} | Apply by ${lastDate}`,
+          link: `/student/companies`,
+          isRead: false,
+        }));
+        if (notifs.length > 0) {
+          await Notification.insertMany(notifs);
+        }
+
+        // Gmail notifications
+        for (const student of eligibleStudents) {
+          const email = student.userId?.email;
+          if (!email) continue;
+          await sendEmail({
+            to: email,
+            subject: `New Placement Drive — ${companyName} | ${job.role}`,
+            html: `
+              <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+                <h2 style="color: #1E293B;">Hi ${student.name || "Student"},</h2>
+                <p style="color: #64748B;">A new placement opportunity has been posted on PlaceRise.</p>
+                <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 20px; margin: 20px 0;">
+                  <p><strong>Company:</strong> ${companyName}</p>
+                  <p><strong>Role:</strong> ${job.role}</p>
+                  <p><strong>CTC:</strong> ₹${job.ctc} LPA</p>
+                  <p><strong>Location:</strong> ${job.location || "N/A"}</p>
+                  <p><strong>Last Date:</strong> ${lastDate}</p>
+                </div>
+                <p style="color: #64748B;">You are eligible for this drive based on your course and CGPA.</p>
+                <a href="https://placerise.vercel.app/student/companies" 
+                   style="display: inline-block; background: #3B82F6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                  Apply Now
+                </a>
+                <p style="color: #94A3B8; font-size: 12px; margin-top: 24px;">
+                  PlaceRise | Dev Bhoomi Uttarakhand University
+                </p>
+              </div>
+            `,
+          });
+        }
+      } catch (bgError) {
+        console.error("Notification error:", bgError.message);
+      }
+    });
+
     res.status(201).json(job);
   } catch (error) {
     res.status(500).json({ message: error.message });

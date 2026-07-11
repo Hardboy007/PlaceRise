@@ -1,6 +1,9 @@
 const Application = require("../models/Application");
 const Student = require("../models/Student");
 const JobPosting = require("../models/JobPosting");
+const Notification = require("../models/Notification");
+const User = require("../models/User");
+const { sendEmail } = require("../config/email");
 
 // Student apply kare
 const createApplication = async (req, res) => {
@@ -142,13 +145,13 @@ const updateApplicationStatus = async (req, res) => {
     if (!application) {
       return res.status(404).json({ message: "Application not found" });
     }
-    // Student placementStatus update karo
+
+    // PlacementStatus update
     if (status === "Selected") {
       await Student.findByIdAndUpdate(application.studentId, {
         placementStatus: "Placed",
       });
     } else {
-      // Koi bhi non-Selected status pe check karo
       const anySelected = await Application.findOne({
         studentId: application.studentId,
         status: "Selected",
@@ -160,6 +163,86 @@ const updateApplicationStatus = async (req, res) => {
         });
       }
     }
+
+    // Notification + Email — sirf meaningful statuses pe
+    if (["Shortlisted", "Selected", "Rejected"].includes(status)) {
+      setImmediate(async () => {
+        try {
+          const student = await Student.findById(
+            application.studentId,
+          ).populate("userId", "email");
+
+          if (!student?.userId) return;
+
+          const job = await JobPosting.findById(application.jobId).populate(
+            "companyId",
+            "name",
+          );
+
+          const companyName = job?.companyId?.name || "Company";
+          const role = job?.role || "Role";
+
+          const notifTitle =
+            status === "Selected"
+              ? `🎉 Congratulations! Selected at ${companyName}`
+              : status === "Shortlisted"
+                ? `✅ Shortlisted at ${companyName}`
+                : `❌ Application Update — ${companyName}`;
+
+          const notifMessage = `Your application for ${role} at ${companyName} has been ${status}.`;
+
+          // In-app notification
+          await Notification.create({
+            userId: student.userId._id,
+            type: "STATUS_CHANGED",
+            title: notifTitle,
+            message: notifMessage,
+            link: "/student/applications",
+            isRead: false,
+          });
+
+          // Email
+          const bgColor =
+            status === "Selected"
+              ? "#F0FDF4"
+              : status === "Shortlisted"
+                ? "#EFF6FF"
+                : "#FEF2F2";
+          const textColor =
+            status === "Selected"
+              ? "#22C55E"
+              : status === "Shortlisted"
+                ? "#3B82F6"
+                : "#EF4444";
+
+          await sendEmail({
+            to: student.userId.email,
+            subject: `Application Update — ${companyName} | ${role}`,
+            html: `
+              <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+                <h2 style="color: #1E293B;">Hi ${student.name || "Student"},</h2>
+                <div style="background: ${bgColor}; border-radius: 12px; padding: 20px; margin: 20px 0;">
+                  <h3 style="color: ${textColor};">${notifTitle}</h3>
+                  <p><strong>Company:</strong> ${companyName}</p>
+                  <p><strong>Role:</strong> ${role}</p>
+                  <p><strong>Status:</strong> ${status}</p>
+                </div>
+                <a href="https://placerise.vercel.app/student/applications"
+                   style="display: inline-block; background: #3B82F6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                  View Applications
+                </a>
+                <p style="color: #94A3B8; font-size: 12px; margin-top: 24px;">
+                  PlaceRise | Dev Bhoomi Uttarakhand University
+                </p>
+              </div>
+            `,
+          });
+        } catch (bgError) {
+          console.error("Status notification error:", bgError.message);
+        }
+      });
+    }
+
     res.json(application);
   } catch (error) {
     res.status(500).json({ message: error.message });
