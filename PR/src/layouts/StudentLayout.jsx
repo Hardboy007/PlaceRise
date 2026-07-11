@@ -201,7 +201,6 @@ function StudentLayout() {
           className={`fixed top-16 left-0 bottom-0 z-40 flex flex-col bg-white border-r border-[#CBD5E1] transition-all duration-300 ease-in-out overflow-hidden ${expanded ? "w-60" : "w-15"}`}
         >
           <div className="flex-1 flex flex-col gap-1 p-2 mt-2 overflow-hidden">
-            // eslint-disable-next-line no-unused-vars
             {navLinks.map(({ to, label, icon: NavIcon }) => (
               <NavLink
                 key={to}
