@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, NavLink, useNavigate, Link } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -11,6 +11,7 @@ import {
   Sparkles,
   FileText,
 } from "lucide-react";
+import { api } from "../utils/api";
 
 const navLinks = [
   { to: "/student/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -28,6 +29,9 @@ const navLinks = [
 function StudentLayout() {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifs, setShowNotifs] = useState(false);
   const student = JSON.parse(localStorage.getItem("student") || "{}");
   const initials = student.name
     ? student.name
@@ -37,6 +41,34 @@ function StudentLayout() {
         .toUpperCase()
         .slice(0, 2)
     : "ST";
+
+  useEffect(() => {
+    const fetchCount = async () => {
+      try {
+        const data = await api.get("/notifications/unread-count");
+        setUnreadCount(data.count || 0);
+      } catch { /* empty */ }
+    };
+    fetchCount();
+    const interval = setInterval(fetchCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleBellClick = async () => {
+    setShowNotifs(!showNotifs);
+    if (!showNotifs) {
+      const data = await api.get("/notifications");
+      setNotifications(Array.isArray(data) ? data : []);
+      await api.put("/notifications/mark-all-read");
+      setUnreadCount(0);
+    }
+  };
+
+  const handleNotifClick = async (notif) => {
+    await api.put(`/notifications/${notif._id}/read`);
+    setShowNotifs(false);
+    if (notif.link) navigate(notif.link);
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -75,10 +107,59 @@ function StudentLayout() {
         {/* Right Side */}
         <div className="flex items-center gap-3">
           {/* Notification Bell */}
-          <button className="relative w-9 h-9 rounded-xl bg-background hover:bg-[#E2E8F0] flex items-center justify-center transition-colors">
-            <Bell size={16} className="text-text-muted" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-danger rounded-full" />
-          </button>
+          <div className="relative">
+            <button
+              onClick={handleBellClick}
+              className="relative w-9 h-9 rounded-xl bg-background hover:bg-[#E2E8F0] flex items-center justify-center transition-colors"
+            >
+              <Bell size={16} className="text-text-muted" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 w-4 h-4 bg-[#EF4444] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </button>
+            {showNotifs && (
+              <div className="absolute right-0 top-11 w-80 bg-white rounded-2xl shadow-xl border border-[#E2E8F0] z-50 overflow-hidden">
+                <div className="px-4 py-3 border-b border-[#F1F5F9] flex items-center justify-between">
+                  <p className="text-sm font-bold text-[#1E293B]">
+                    Notifications
+                  </p>
+                  <button
+                    onClick={() => setShowNotifs(false)}
+                    className="text-[#64748B] hover:text-[#1E293B] text-xs"
+                  >
+                    Close
+                  </button>
+                </div>
+                <div className="max-h-80 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <p className="text-sm text-[#64748B] text-center py-8">
+                      No notifications yet
+                    </p>
+                  ) : (
+                    notifications.map((n) => (
+                      <div
+                        key={n._id}
+                        onClick={() => handleNotifClick(n)}
+                        className={`px-4 py-3 border-b border-[#F8FAFC] hover:bg-[#F8FAFC] cursor-pointer transition-colors ${!n.isRead ? "bg-blue-50/50 border-l-2 border-l-[#3B82F6]" : ""}`}
+                      >
+                        <p className="text-sm font-semibold text-[#1E293B]">
+                          {n.title}
+                        </p>
+                        <p className="text-xs text-[#64748B] mt-0.5">
+                          {n.message}
+                        </p>
+                        <p className="text-xs text-[#94A3B8] mt-1">
+                          {new Date(n.createdAt).toLocaleString("en-IN")}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Divider */}
           <div className="w-px h-6 bg-[#CBD5E1]" />
@@ -119,7 +200,8 @@ function StudentLayout() {
           className={`fixed top-16 left-0 bottom-0 z-40 flex flex-col bg-white border-r border-[#CBD5E1] transition-all duration-300 ease-in-out overflow-hidden ${expanded ? "w-60" : "w-15"}`}
         >
           <div className="flex-1 flex flex-col gap-1 p-2 mt-2 overflow-hidden">
-            {navLinks.map(({ to, label, icon: Icon }) => (
+            // eslint-disable-next-line no-unused-vars
+            {navLinks.map(({ to, label }) => (
               <NavLink
                 key={to}
                 to={to}
