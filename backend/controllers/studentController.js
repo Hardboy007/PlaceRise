@@ -346,6 +346,49 @@ const exportStudentsExcel = async (req, res) => {
   }
 };
 
+//================SAVE JOB===================
+const saveJob = async (req, res) => {
+  try {
+    const student = await Student.findOne({ userId: req.user.id });
+    if (!student) return res.status(404).json({ message: "Student not found" });
+
+    if (!student.savedJobs.includes(req.params.jobId)) {
+      student.savedJobs.push(req.params.jobId);
+      await student.save();
+    }
+    res.json({ savedJobs: student.savedJobs });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const unsaveJob = async (req, res) => {
+  try {
+    const student = await Student.findOne({ userId: req.user.id });
+    if (!student) return res.status(404).json({ message: "Student not found" });
+
+    student.savedJobs = student.savedJobs.filter(
+      (id) => id.toString() !== req.params.jobId,
+    );
+    await student.save();
+    res.json({ savedJobs: student.savedJobs });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getSavedJobs = async (req, res) => {
+  try {
+    const student = await Student.findOne({ userId: req.user.id }).populate(
+      "savedJobs",
+    );
+    if (!student) return res.status(404).json({ message: "Student not found" });
+    res.json(student.savedJobs);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getAllStudents,
   getStudentById,
@@ -356,4 +399,7 @@ module.exports = {
   uploadResume,
   bulkImportStudents,
   exportStudentsExcel,
+  saveJob,
+  unsaveJob,
+  getSavedJobs,
 };

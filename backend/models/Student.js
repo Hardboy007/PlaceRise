@@ -44,6 +44,7 @@ const studentSchema = new mongoose.Schema(
       type: [{ type: mongoose.Schema.Types.ObjectId, ref: "JobPosting" }],
       default: [],
     },
+    savedJobs: [{ type: mongoose.Schema.Types.ObjectId, ref: "JobPosting" }],
 
     // Notification preferences
     notificationPreferences: {

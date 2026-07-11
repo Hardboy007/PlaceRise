@@ -228,7 +228,7 @@ function BranchChips({ branches }) {
   );
 }
 
-function CompanyCard({ company, onViewDetails }) {
+function CompanyCard({ company, onViewDetails, isSaved, onToggleSave }) {
   const days = Math.ceil(
     (new Date(company.lastDate) - new Date()) / (1000 * 60 * 60 * 24),
   );
@@ -256,11 +256,32 @@ function CompanyCard({ company, onViewDetails }) {
             <p className="text-xs text-[#64748B]">{company.role}</p>
           </div>
         </div>
-        <span
-          className={`text-xs font-semibold px-2 py-1 rounded-lg border shrink-0 ml-2 ${urgency}`}
-        >
-          {days > 0 ? `${days}d left` : "Expired"}
-        </span>
+        <div className="flex items-center gap-2 shrink-0 ml-2">
+          <button
+            onClick={onToggleSave}
+            className={`p-1.5 rounded-lg border transition-all ${
+              isSaved
+                ? "bg-[#EFF6FF] border-[#3B82F6] text-[#3B82F6]"
+                : "bg-white border-[#E2E8F0] text-[#94A3B8] hover:border-[#3B82F6] hover:text-[#3B82F6]"
+            }`}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill={isSaved ? "currentColor" : "none"}
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+            </svg>
+          </button>
+          <span
+            className={`text-xs font-semibold px-2 py-1 rounded-lg border ${urgency}`}
+          >
+            {days > 0 ? `${days}d left` : "Expired"}
+          </span>
+        </div>
       </div>
 
       <div className="h-px bg-[#F1F5F9] mb-3" />
@@ -312,18 +333,43 @@ export default function CompanyListPage() {
   const [role, setRole] = useState("All");
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [savedJobIds, setSavedJobIds] = useState(new Set());
+  const [activeTab, setActiveTab] = useState("all"); // "all" | "saved"
 
   useEffect(() => {
-    const fetchJobs = async () => {
-      const data = await api.get("/companies/jobs");
-      const valid = (Array.isArray(data) ? data : []).filter(
+    const fetchData = async () => {
+      const [jobsData, savedData] = await Promise.all([
+        api.get("/companies/jobs"),
+        api.get("/students/saved-jobs"),
+      ]);
+      const valid = (Array.isArray(jobsData) ? jobsData : []).filter(
         (j) => j.companyId && j.companyId._id && j.companyId.name,
       );
       setCompanies(valid);
+      const savedIds = (Array.isArray(savedData) ? savedData : []).map(
+        (j) => j._id,
+      );
+      setSavedJobIds(new Set(savedIds));
       setLoading(false);
     };
-    fetchJobs();
+    fetchData();
   }, []);
+
+  const toggleSave = async (jobId, e) => {
+    e.stopPropagation();
+    const isSaved = savedJobIds.has(jobId);
+    if (isSaved) {
+      await api.delete(`/students/save-job/${jobId}`);
+      setSavedJobIds((prev) => {
+        const next = new Set(prev);
+        next.delete(jobId);
+        return next;
+      });
+    } else {
+      await api.post(`/students/save-job/${jobId}`);
+      setSavedJobIds((prev) => new Set([...prev, jobId]));
+    }
+  };
 
   const allRoles = useMemo(() => {
     return ["All", ...new Set(companies.map((c) => c.role).filter(Boolean))];
@@ -331,6 +377,7 @@ export default function CompanyListPage() {
 
   const filteredCompanies = useMemo(() => {
     return companies.filter((c) => {
+      if (activeTab === "saved" && !savedJobIds.has(c._id)) return false;
       const companyName = c.companyId?.name || "";
       const matchesSearch =
         companyName.toLowerCase().includes(search.toLowerCase()) ||
@@ -342,7 +389,7 @@ export default function CompanyListPage() {
         c.eligibleBranches?.includes(branch);
       return matchesSearch && matchesRole && matchesBranch;
     });
-  }, [search, role, branch, companies]);
+  }, [search, role, branch, companies, activeTab, savedJobIds]);
 
   const highestCTC = filteredCompanies.length
     ? Math.max(...filteredCompanies.map((c) => c.ctc || 0))
@@ -414,7 +461,25 @@ export default function CompanyListPage() {
           </div>
         </div>
       </div>
-
+      {/* Tabs */}
+      <div className="flex items-center gap-2 mb-5">
+        {[
+          { id: "all", label: "All Jobs" },
+          { id: "saved", label: `Saved Jobs (${savedJobIds.size})` },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+              activeTab === tab.id
+                ? "bg-[#1E293B] text-white"
+                : "bg-white border border-[#E2E8F0] text-[#64748B] hover:border-[#3B82F6]"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
       {/* Filters */}
       <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 mb-6 shadow-sm">
         <div className="flex items-center gap-2 mb-3">
@@ -471,6 +536,8 @@ export default function CompanyListPage() {
             <CompanyCard
               key={company._id}
               company={company}
+              isSaved={savedJobIds.has(company._id)}
+              onToggleSave={(e) => toggleSave(company._id, e)}
               onViewDetails={(id) => navigate(`/student/companies/${id}`)}
             />
           ))}

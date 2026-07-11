@@ -11,6 +11,9 @@ const {
   uploadResume,
   bulkImportStudents,
   exportStudentsExcel,
+  saveJob,
+  unsaveJob,
+  getSavedJobs,
 } = require("../controllers/studentController");
 const { protect, coordinatorOnly } = require("../middleware/auth");
 
@@ -29,7 +32,10 @@ router.get("/me", protect, getMyProfile);
 router.put("/me", protect, updateStudent);
 router.put("/me/onboard", protect, onboardStudent);
 router.put("/me/notifications", protect, updateNotificationPreferences);
-router.post('/me/resume', protect, upload.single('file'), uploadResume)
+router.post("/me/resume", protect, upload.single("file"), uploadResume);
+router.post("/save-job/:jobId", protect, saveJob);
+router.delete("/save-job/:jobId", protect, unsaveJob);
+router.get("/saved-jobs", protect, getSavedJobs);
 // Read only — coordinator only
 router.get("/:id", protect, coordinatorOnly, getStudentById);
 
