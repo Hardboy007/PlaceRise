@@ -10,6 +10,7 @@ import {
   LogOut,
   Sparkles,
   FileText,
+  X,
 } from "lucide-react";
 import { api } from "../utils/api";
 const navLinks = [
@@ -128,9 +129,9 @@ function StudentLayout() {
                   </p>
                   <button
                     onClick={() => setShowNotifs(false)}
-                    className="text-[#64748B] hover:text-[#1E293B] text-xs"
+                    className="w-6 h-6 rounded-lg flex items-center justify-center text-[#64748B] hover:text-[#1E293B] hover:bg-[#F1F5F9] hover:rotate-90 transition-all duration-200"
                   >
-                    Close
+                    <X size={14} />
                   </button>
                 </div>
                 <div className="max-h-80 overflow-y-auto">
