@@ -1,22 +1,20 @@
-const { Resend } = require('resend')
+const SibApiV3Sdk = require('@getbrevo/brevo')
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi()
+apiInstance.authentications['api-key'].apiKey = process.env.BREVO_API_KEY
 
 const sendEmail = async ({ to, subject, html }) => {
   try {
-    const { error } = await resend.emails.send({
-      from: 'PlaceRise <onboarding@resend.dev>',
-      to,
-      subject,
-      html,
-    })
-    if (error) {
-      console.error('Email send failed:', error.message)
-    } else {
-      console.log('Email sent to:', to)
-    }
-  } catch (err) {
-    console.error('Email send failed:', err.message)
+    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail()
+    sendSmtpEmail.subject = subject
+    sendSmtpEmail.htmlContent = html
+    sendSmtpEmail.sender = { name: 'PlaceRise', email: 'placerise.notifications@gmail.com' }
+    sendSmtpEmail.to = [{ email: to }]
+
+    await apiInstance.sendTransacEmail(sendSmtpEmail)
+    console.log('Email sent to:', to)
+  } catch (error) {
+    console.error('Email send failed:', error.message)
   }
 }
 
