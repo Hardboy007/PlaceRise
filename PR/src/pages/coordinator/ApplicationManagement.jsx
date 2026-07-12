@@ -14,6 +14,8 @@ import {
   GraduationCap,
   TrendingUp,
   Lock,
+  ShieldCheck,
+  RotateCcw,
   X,
 } from "lucide-react";
 import { api } from "../../utils/api";
@@ -48,8 +50,10 @@ const STATUS_STYLE = {
 };
 
 // A drive is "Closed" once its application deadline (lastDate) has passed —
-// same rule used on CompanyManagementPage's Active/Closed filter, so the
-// two pages agree on what "closed" means.
+// this ONLY controls whether new students can apply, and which
+// Active/Closed/All tab the drive shows up under. It no longer controls
+// whether the coordinator can update student statuses — rounds (interviews,
+// tests, etc.) routinely continue well after the apply deadline.
 function isJobClosed(job) {
   if (!job?.lastDate) return false;
   const d = new Date(job.lastDate);
@@ -190,11 +194,14 @@ function JDBanner({
   driveFilter,
   onDriveFilterChange,
   driveCounts,
+  onToggleFinalize,
+  finalizing,
 }) {
   const branchList = selectedJob?.eligibleBranches?.includes("All")
     ? ["All Branches"]
     : selectedJob?.eligibleBranches || [];
-  const closed = isJobClosed(selectedJob);
+  const applicationsClosed = isJobClosed(selectedJob);
+  const resultsFinalized = !!selectedJob?.resultsFinalized;
 
   return (
     <div
@@ -239,9 +246,14 @@ function JDBanner({
                     </option>
                   ))}
                 </select>
-                {closed && (
+                {applicationsClosed && (
                   <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
-                    <Lock size={10} /> Closed — read only
+                    <Lock size={10} /> Applications Closed
+                  </span>
+                )}
+                {resultsFinalized && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                    <ShieldCheck size={10} /> Results Finalized
                   </span>
                 )}
               </div>
@@ -334,6 +346,31 @@ function JDBanner({
               </div>
             </div>
           </div>
+
+          {/* Finalize / Reopen results toggle — coordinator's manual gate
+              on whether status buttons are editable. Independent of the
+              apply deadline (lastDate) so rounds can continue after it. */}
+          <button
+            onClick={onToggleFinalize}
+            disabled={finalizing}
+            className={`rounded-xl px-3 py-1.5 border flex items-center gap-1.5 shrink-0 text-xs font-bold transition-all ${
+              finalizing ? "opacity-60 cursor-not-allowed" : ""
+            } ${
+              resultsFinalized
+                ? "bg-white border-[#BFDBFE] text-[#64748B] hover:text-[#0F172A]"
+                : "bg-[#0F172A] border-[#0F172A] text-white hover:opacity-90"
+            }`}
+          >
+            {resultsFinalized ? (
+              <>
+                <RotateCcw size={12} /> Reopen
+              </>
+            ) : (
+              <>
+                <ShieldCheck size={12} /> Mark Results as Final
+              </>
+            )}
+          </button>
         </div>
       )}
     </div>
@@ -542,8 +579,8 @@ function AppliedTab({ selectedJobId, readOnly }) {
       {readOnly && (
         <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5">
           <Lock size={13} />
-          This drive is closed — status changes are disabled, showing final
-          results only.
+          Results for this drive have been finalized — status changes are
+          disabled, showing final results only.
         </div>
       )}
 
@@ -920,6 +957,7 @@ export default function ApplicationsManagementPage() {
   const [selectedJobId, setSelectedJobId] = useState(null);
   const [driveFilter, setDriveFilter] = useState("Active"); // Active | Closed | All
   const [loading, setLoading] = useState(true);
+  const [finalizing, setFinalizing] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -977,7 +1015,30 @@ export default function ApplicationsManagementPage() {
   }, [visibleJobs, selectedJobId]);
 
   const selectedJob = jobs.find((j) => j._id === selectedJobId);
-  const driveIsClosed = isJobClosed(selectedJob);
+
+  // Manual, coordinator-controlled gate — independent of the apply
+  // deadline. Status buttons stay editable through all interview rounds
+  // and only lock once the coordinator explicitly finalizes results.
+  const resultsFinalized = !!selectedJob?.resultsFinalized;
+
+  const handleToggleFinalize = async () => {
+    if (!selectedJob) return;
+    setFinalizing(true);
+    try {
+      const updated = await api.put(`/jobs/${selectedJob._id}`, {
+        resultsFinalized: !selectedJob.resultsFinalized,
+      });
+      setJobs((prev) =>
+        prev.map((j) =>
+          j._id === updated._id
+            ? { ...j, resultsFinalized: updated.resultsFinalized }
+            : j,
+        ),
+      );
+    } finally {
+      setFinalizing(false);
+    }
+  };
 
   const tabs = [
     {
@@ -1017,6 +1078,8 @@ export default function ApplicationsManagementPage() {
         driveFilter={driveFilter}
         onDriveFilterChange={setDriveFilter}
         driveCounts={driveCounts}
+        onToggleFinalize={handleToggleFinalize}
+        finalizing={finalizing}
       />
 
       {jobs.length > 0 && selectedJob && (
@@ -1049,7 +1112,7 @@ export default function ApplicationsManagementPage() {
           ) : (
             <AppliedTab
               selectedJobId={selectedJobId}
-              readOnly={driveIsClosed}
+              readOnly={resultsFinalized}
             />
           )}
         </>
