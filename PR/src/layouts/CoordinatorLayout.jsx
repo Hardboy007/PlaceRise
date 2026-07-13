@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Outlet, NavLink, useNavigate, Link } from "react-router-dom";
+import { Outlet, NavLink, useNavigate, Link, useLocation } from "react-router-dom";
 import { api } from "../utils/api";
 import {
   LayoutDashboard,
@@ -20,7 +20,14 @@ import {
 const navLinks = [
   { to: "/coordinator/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/coordinator/students", label: "Students", icon: Users },
-  { to: "/coordinator/companies", label: "Companies", icon: Building2 },
+  {
+    label: "Jobs",
+    icon: Building2,
+    children: [
+      { to: "/coordinator/jobs/all", label: "All Jobs" },
+      { to: "/coordinator/recruiter-crm", label: "Recruiter CRM" },
+    ],
+  },
   { to: "/coordinator/calendar", label: "Calendar", icon: Calendar },
   { to: "/coordinator/applications", label: "Applications", icon: BarChart3 },
   { to: "/coordinator/announcements", label: "Announcements", icon: Megaphone },
@@ -31,10 +38,12 @@ const navLinks = [
 
 function CoordinatorLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [expanded, setExpanded] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifs, setShowNotifs] = useState(false);
+  const [openGroup, setOpenGroup] = useState("Jobs");
   const coordinator = JSON.parse(localStorage.getItem("coordinator") || "{}");
 
   const initials = coordinator.name
@@ -188,27 +197,97 @@ function CoordinatorLayout() {
           className={`fixed top-16 left-0 bottom-0 z-40 flex flex-col bg-white border-r border-[#CBD5E1] transition-all duration-300 ease-in-out overflow-hidden ${expanded ? "w-60" : "w-15"}`}
         >
           <div className="flex-1 flex flex-col gap-1 p-2 mt-2 overflow-hidden">
-            {navLinks.map(({ to, label, icon: Icon }) => (
-              <NavLink
-                key={to}
-                to={to}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap
-                  ${
-                    isActive
-                      ? "bg-primary text-white shadow-[0_4px_12px_rgba(59,130,246,0.3)]"
-                      : "text-text-muted hover:bg-background hover:text-[#1E293B]"
-                  }`
-                }
-              >
-                <Icon size={18} className="shrink-0" />
-                <span
-                  className={`transition-all duration-200 ${expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}
+            {navLinks.map(({ to, label, icon: Icon, children }) => {
+              if (children) {
+                const isGroupActive = children.some((c) =>
+                  location.pathname.startsWith(c.to),
+                );
+                const isOpen = openGroup === label;
+
+                return (
+                  <div key={label}>
+                    {/* Group Header */}
+                    <button
+                      onClick={() => setOpenGroup(isOpen ? null : label)}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap
+              ${
+                isGroupActive
+                  ? "bg-primary/10 text-primary"
+                  : "text-text-muted hover:bg-background hover:text-[#1E293B]"
+              }`}
+                    >
+                      <Icon size={18} className="shrink-0" />
+                      <span
+                        className={`flex-1 text-left transition-all duration-200 ${expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}
+                      >
+                        {label}
+                      </span>
+                      {expanded && (
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          className={`shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      )}
+                    </button>
+
+                    {/* Children */}
+                    {(isOpen || isGroupActive) && expanded && (
+                      <div className="ml-4 mt-1 flex flex-col gap-1 border-l-2 border-[#E2E8F0] pl-3">
+                        {children.map(({ to: childTo, label: childLabel }) => (
+                          <NavLink
+                            key={childTo}
+                            to={childTo}
+                            className={({ isActive }) =>
+                              `flex items-center px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 whitespace-nowrap
+                    ${
+                      isActive
+                        ? "bg-primary text-white shadow-[0_4px_12px_rgba(59,130,246,0.3)]"
+                        : "text-text-muted hover:bg-background hover:text-[#1E293B]"
+                    }`
+                            }
+                          >
+                            {childLabel}
+                          </NavLink>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              return (
+                <NavLink
+                  key={to}
+                  to={to}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap
+          ${
+            isActive
+              ? "bg-primary text-white shadow-[0_4px_12px_rgba(59,130,246,0.3)]"
+              : "text-text-muted hover:bg-background hover:text-[#1E293B]"
+          }`
+                  }
                 >
-                  {label}
-                </span>
-              </NavLink>
-            ))}
+                  <Icon size={18} className="shrink-0" />
+                  <span
+                    className={`transition-all duration-200 ${expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}
+                  >
+                    {label}
+                  </span>
+                </NavLink>
+              );
+            })}
           </div>
 
           {/* Bottom user card */}
