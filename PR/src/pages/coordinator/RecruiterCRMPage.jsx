@@ -458,7 +458,7 @@ export default function RecruiterCRMPage() {
               onClick={exportAll}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/15 text-white border border-white/25 text-sm font-semibold hover:bg-white/25 transition-colors"
             >
-              <Download size={15} /> Export Excel
+              <Download size={15} /> Export all POCs Excel
             </button>
             <button
               onClick={() => {
