@@ -43,7 +43,7 @@ function CoordinatorLayout() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifs, setShowNotifs] = useState(false);
-  const [openGroup, setOpenGroup] = useState("Jobs");
+  const [openGroup, setOpenGroup] = useState(null);
   const coordinator = JSON.parse(localStorage.getItem("coordinator") || "{}");
 
   const initials = coordinator.name
@@ -242,7 +242,7 @@ function CoordinatorLayout() {
                     </button>
 
                     {/* Children */}
-                    {(isOpen || isGroupActive) && expanded && (
+                    {isOpen && expanded && (
                       <div className="ml-4 mt-1 flex flex-col gap-1 border-l-2 border-[#E2E8F0] pl-3">
                         {children.map(({ to: childTo, label: childLabel }) => (
                           <NavLink
