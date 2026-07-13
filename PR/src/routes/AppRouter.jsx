@@ -22,6 +22,7 @@ import NOCManagementPage from "../pages/coordinator/NOCManagementPage";
 import AttendancePage from "../pages/coordinator/AttendancePage";
 import DocumentRequestPage from "../pages/student/DocumentRequestPage";
 import ScanAttendancePage from "../pages/student/ScanAttendancePage";
+import RecruiterCRMPage from "../pages/coordinator/RecruiterCRMPage";
 
 function AppRouter() {
   return (
@@ -73,7 +74,7 @@ function AppRouter() {
           <Route path="jobs">
             <Route path="all" element={<CompanyManagementPage />} />
           </Route>
-          <Route path="recruiter-crm" element={<div>Recruiter CRM</div>} />
+          <Route path="recruiter-crm" element={<RecruiterCRMPage />} />
           <Route path="calendar" element={<CompanyCalendarPage />} />
           <Route path="applications" element={<ApplicationsManagementPage />} />
           <Route
