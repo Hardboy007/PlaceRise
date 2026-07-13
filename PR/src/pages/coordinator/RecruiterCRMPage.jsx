@@ -383,14 +383,21 @@ export default function RecruiterCRMPage() {
         className="relative rounded-3xl overflow-hidden mb-6 p-6"
         style={{
           background:
-            "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
+            "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
         }}
       >
         <div
-          className="absolute inset-0 pointer-events-none"
+          className="absolute top-0 right-0 w-72 h-72 rounded-full pointer-events-none"
           style={{
-            background: `radial-gradient(circle at 20% 50%, rgba(59,130,246,0.2) 0%, transparent 50%),
-                       radial-gradient(circle at 80% 20%, rgba(96,165,250,0.1) 0%, transparent 40%)`,
+            background: "rgba(255,255,255,0.08)",
+            transform: "translate(35%,-45%)",
+          }}
+        />
+        <div
+          className="absolute bottom-0 left-0 w-52 h-52 rounded-full pointer-events-none"
+          style={{
+            background: "rgba(255,255,255,0.06)",
+            transform: "translate(-30%,40%)",
           }}
         />
         <div className="relative flex items-start justify-between gap-4 mb-6">
@@ -439,7 +446,7 @@ export default function RecruiterCRMPage() {
             <div
               key={label}
               className="rounded-xl px-4 py-3 border border-white/10"
-              style={{ background: "rgba(255,255,255,0.08)" }}
+              style={{ background: "rgba(255,255,255,0.12)" }}
             >
               <div className="flex items-center gap-1.5 mb-1">
                 <Icon size={12} className="text-white/60" />
@@ -569,7 +576,11 @@ export default function RecruiterCRMPage() {
                   <StatusBadge status={poc.status} />
                 </button>
                 {openMenu === poc.id && (
-                  <div className="absolute left-0 top-8 z-20 bg-white rounded-xl border border-[#E2E8F0] shadow-lg py-1 min-w-45">
+                  <div
+                    className={`absolute left-0 z-20 bg-white rounded-xl border border-[#E2E8F0] shadow-lg py-1 min-w-45 ${
+                      idx >= filtered.length - 2 ? "bottom-8" : "top-8"
+                    }`}
+                  >
                     {STATUS_OPTIONS.map((s) => (
                       <button
                         key={s}
