@@ -713,10 +713,16 @@ function AppliedTab({ selectedJobId, readOnly }) {
               >
                 <div className="flex flex-col gap-0.5">
                   <NameCell student={student} />
-                  {(student?.selectedCount ?? 0) > 0 && (
-                    <span className="text-[10px] font-semibold text-[#22C55E] ml-10">
-                      ✓ Selected in {student.selectedCount}{" "}
-                      {student.selectedCount === 1 ? "company" : "companies"}
+                  {(student?.selectedCount ?? 0) > 0 ? (
+                    <span
+                      className="text-[10px] font-semibold text-success ml-10 truncate max-w-55"
+                      title={student.selectedCompanies?.join(", ")}
+                    >
+                      ✓ Selected in: {student.selectedCompanies?.join(", ")}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-medium text-[#94A3B8] ml-10">
+                      Not selected anywhere yet
                     </span>
                   )}
                 </div>
@@ -823,12 +829,17 @@ function AppliedTab({ selectedJobId, readOnly }) {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                {(selectedStudent.selectedCount ?? 0) > 0 && (
-                  <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-green-50 text-green-700 border border-green-200">
-                    ✓ Selected in {selectedStudent.selectedCount}{" "}
-                    {selectedStudent.selectedCount === 1
-                      ? "company"
-                      : "companies"}
+                {(selectedStudent.selectedCount ?? 0) > 0 ? (
+                  <span
+                    className="text-xs font-semibold px-3 py-1.5 rounded-full bg-green-50 text-green-700 border border-green-200"
+                    title={selectedStudent.selectedCompanies?.join(", ")}
+                  >
+                    ✓ Selected in:{" "}
+                    {selectedStudent.selectedCompanies?.join(", ")}
+                  </span>
+                ) : (
+                  <span className="text-xs font-medium px-3 py-1.5 rounded-full bg-slate-50 text-slate-500 border border-slate-200">
+                    Not selected anywhere yet
                   </span>
                 )}
                 <span

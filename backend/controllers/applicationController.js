@@ -103,23 +103,59 @@ const getMyApplications = async (req, res) => {
 };
 
 // Coordinator ek JD ki saari applications dekhe
+// Coordinator ek JD ki saari applications dekhe
 const getJobApplications = async (req, res) => {
   try {
     const { jobId } = req.params;
 
-    // FIXED: was .populate("studentId") — a flat populate that only pulls
-    // fields living directly on the Student document (name, email, course,
-    // cgpa, etc). erpId lives on the User model, so student.userId was
-    // coming back as just an ObjectId string, and student.userId.erpId was
-    // always undefined on the frontend. Nested populate below resolves
-    // studentId -> then resolves studentId.userId -> erpId/email, matching
-    // what getAllStudents already does in studentController.js.
     const applications = await Application.find({ jobId }).populate({
       path: "studentId",
       populate: { path: "userId", select: "erpId email" },
     });
 
-    res.json(applications);
+    // Har applied student ke liye check karo ki wo kis-kis company me
+    // "Selected" hai — sab distinct studentIds nikalo, unki saari
+    // Selected applications fetch karo (company naam ke saath), phir
+    // studentId -> [company names] ka map bana lo.
+    const studentIds = [
+      ...new Set(
+        applications
+          .filter((a) => a.studentId)
+          .map((a) => a.studentId._id.toString()),
+      ),
+    ];
+
+    const selectedApps = await Application.find({
+      studentId: { $in: studentIds },
+      status: "Selected",
+    }).populate({
+      path: "jobId",
+      populate: { path: "companyId", select: "name" },
+    });
+
+    const selectionsMap = {};
+    selectedApps.forEach((app) => {
+      const sid = app.studentId.toString();
+      const companyName = app.jobId?.companyId?.name;
+      if (!companyName) return;
+      if (!selectionsMap[sid]) selectionsMap[sid] = [];
+      selectionsMap[sid].push(companyName);
+    });
+
+    // Har application ke studentId object me selectedCount aur
+    // selectedCompanies attach karo taaki frontend ko alag call na karni pade
+    const enriched = applications.map((app) => {
+      const appObj = app.toObject();
+      if (appObj.studentId) {
+        const sid = appObj.studentId._id.toString();
+        const companies = selectionsMap[sid] || [];
+        appObj.studentId.selectedCount = companies.length;
+        appObj.studentId.selectedCompanies = companies;
+      }
+      return appObj;
+    });
+
+    res.json(enriched);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
