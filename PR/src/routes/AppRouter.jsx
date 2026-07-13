@@ -73,7 +73,7 @@ function AppRouter() {
           <Route path="jobs">
             <Route path="all" element={<CompanyManagementPage />} />
           </Route>
-          <Route path="recruiter-crm" element={<RecruiterCRMPage />} />
+          <Route path="recruiter-crm" element={<div>Recruiter CRM</div>} />
           <Route path="calendar" element={<CompanyCalendarPage />} />
           <Route path="applications" element={<ApplicationsManagementPage />} />
           <Route
