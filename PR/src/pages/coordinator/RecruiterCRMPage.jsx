@@ -1,3 +1,4 @@
+import * as XLSX from "xlsx";
 import { useState, useMemo } from "react";
 import {
   Search,
@@ -15,6 +16,7 @@ import {
   Users,
   Clock,
   CheckCircle,
+  Download,
 } from "lucide-react";
 
 const STATUS_CONFIG = {
@@ -366,6 +368,37 @@ export default function RecruiterCRMPage() {
     setDeleteConfirm(null);
   };
 
+  const exportToExcel = (data, filename) => {
+    const rows = data.map((p) => ({
+      "Company Name": p.companyName,
+      "POC Name": p.pocName,
+      "Managed By": p.managedBy || "—",
+      Status: p.status,
+      Email: p.email || "—",
+      Phone: p.phone || "—",
+      Notes: p.notes || "—",
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    worksheet["!cols"] = [
+      { wch: 20 },
+      { wch: 18 },
+      { wch: 18 },
+      { wch: 22 },
+      { wch: 26 },
+      { wch: 16 },
+      { wch: 30 },
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "POCs");
+    XLSX.writeFile(workbook, `${filename}.xlsx`);
+  };
+
+  const exportAll = () => exportToExcel(filtered, "All_POCs");
+
+  const exportSingle = (poc) => exportToExcel([poc], poc.companyName);
+
   const handleStatusChange = (id, newStatus) => {
     setPocs((prev) =>
       prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p)),
@@ -420,15 +453,23 @@ export default function RecruiterCRMPage() {
               Track recruiter interactions, contacts, and engagement status
             </p>
           </div>
-          <button
-            onClick={() => {
-              setEditingPoc(null);
-              setShowModal(true);
-            }}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[#1E293B] text-sm font-bold hover:bg-blue-50 transition-colors shadow-lg shrink-0 mt-1"
-          >
-            <Plus size={15} /> Add POC
-          </button>
+          <div className="flex items-center gap-2 shrink-0 mt-1">
+            <button
+              onClick={exportAll}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/15 text-white border border-white/25 text-sm font-semibold hover:bg-white/25 transition-colors"
+            >
+              <Download size={15} /> Export Excel
+            </button>
+            <button
+              onClick={() => {
+                setEditingPoc(null);
+                setShowModal(true);
+              }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[#1E293B] text-sm font-bold hover:bg-blue-50 transition-colors shadow-lg"
+            >
+              <Plus size={15} /> Add POC
+            </button>
+          </div>
         </div>
 
         {/* Stats */}
@@ -643,6 +684,12 @@ export default function RecruiterCRMPage() {
 
               {/* Actions */}
               <div className="flex items-center gap-1 justify-end">
+                <button
+                  onClick={() => exportSingle(poc)}
+                  className="w-7 h-7 rounded-lg bg-background hover:bg-green-50 hover:text-green-600 text-text-muted flex items-center justify-center transition-colors"
+                >
+                  <Download size={13} />
+                </button>
                 <button
                   onClick={() => {
                     setEditingPoc(poc);
