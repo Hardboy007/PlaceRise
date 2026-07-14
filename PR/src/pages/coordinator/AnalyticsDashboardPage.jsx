@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { api } from '../../utils/api'
+import { useState, useEffect } from "react";
+import { api } from "../../utils/api";
 import {
   BarChart,
   Bar,
@@ -7,50 +7,52 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-} from 'recharts'
-import universityStructure from '../../data/universityStructure'
+} from "recharts";
+import universityStructure from "../../data/universityStructure";
 import {
   BranchChart,
   CTCChart,
   PlacementDonut,
   FunnelChart,
-} from '../../components/coordinator/AnalyticsCharts'
+} from "../../components/coordinator/AnalyticsCharts";
 
 // ---- Consistent color palette across whole dashboard ----
 const COLORS = {
-  selected: '#3B82F6',
-  placed: '#10B981',
-  notPlaced: '#EF4444',
-}
+  selected: "#3B82F6",
+  placed: "#10B981",
+  notPlaced: "#EF4444",
+};
 
 // ---- Small reusable count-up hook (no extra dependency needed) ----
 const useCountUp = (target, duration = 800) => {
-  const [value, setValue] = useState(0)
+  const [value, setValue] = useState(0);
 
   useEffect(() => {
-    const numericTarget = parseFloat(target)
+    const numericTarget = parseFloat(target);
     if (isNaN(numericTarget)) {
-      setValue(target)
-      return
+      setValue(target);
+      return;
     }
-    let startTime = null
+    let startTime = null;
     const step = (timestamp) => {
-      if (!startTime) startTime = timestamp
-      const progress = Math.min((timestamp - startTime) / duration, 1)
-      setValue((numericTarget * progress).toFixed(
-        Number.isInteger(numericTarget) ? 0 : 1
-      ))
-      if (progress < 1) requestAnimationFrame(step)
-    }
-    requestAnimationFrame(step)
-  }, [target, duration])
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      setValue(
+        (numericTarget * progress).toFixed(
+          Number.isInteger(numericTarget) ? 0 : 1,
+        ),
+      );
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, [target, duration]);
 
-  return value
-}
+  return value;
+};
 
 // ---- Custom tooltip for Company-wise chart ----
 const CustomTooltip = ({ active, payload, label }) => {
-  if (!active || !payload || !payload.length) return null
+  if (!active || !payload || !payload.length) return null;
   return (
     <div className="bg-white rounded-lg shadow-lg border border-[#E2E8F0] px-3 py-2">
       <p className="text-xs font-semibold text-[#1E293B]">{label}</p>
@@ -58,8 +60,8 @@ const CustomTooltip = ({ active, payload, label }) => {
         Selected: <span className="font-semibold">{payload[0].value}</span>
       </p>
     </div>
-  )
-}
+  );
+};
 
 // ---- Skeleton components ----
 const SkeletonCard = () => (
@@ -67,19 +69,25 @@ const SkeletonCard = () => (
     <div className="h-3 w-20 bg-[#E2E8F0] rounded mb-3"></div>
     <div className="h-6 w-14 bg-[#E2E8F0] rounded"></div>
   </div>
-)
+);
 
 const SkeletonChart = () => (
   <div className="bg-white rounded-xl border border-[#E2E8F0] p-4 animate-pulse">
     <div className="h-4 w-40 bg-[#E2E8F0] rounded mb-4"></div>
     <div className="h-[260px] w-full bg-[#F1F5F9] rounded"></div>
   </div>
-)
+);
 
 // ---- Icons (inline SVG, no extra dependency) ----
 const icons = {
   students: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      className="w-5 h-5"
+    >
       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
       <circle cx="9" cy="7" r="4" />
       <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -87,131 +95,170 @@ const icons = {
     </svg>
   ),
   placed: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      className="w-5 h-5"
+    >
       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
       <polyline points="22 4 12 14.01 9 11.01" />
     </svg>
   ),
   percent: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      className="w-5 h-5"
+    >
       <line x1="19" y1="5" x2="5" y2="19" />
       <circle cx="6.5" cy="6.5" r="2.5" />
       <circle cx="17.5" cy="17.5" r="2.5" />
     </svg>
   ),
   ctcHigh: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      className="w-5 h-5"
+    >
       <path d="M6 3h12M6 8h12M6 3v10c0 3 3 5 6 8l6-8" />
       <path d="M6 3l9 10" />
     </svg>
   ),
   ctcAvg: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      className="w-5 h-5"
+    >
       <path d="M6 3h12M6 8h12M6 3v10c0 3 3 5 6 8l6-8" />
       <path d="M6 3l9 10" />
     </svg>
   ),
   company: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      className="w-5 h-5"
+    >
       <rect x="3" y="7" width="18" height="14" rx="2" />
       <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
     </svg>
   ),
-}
+};
 
 const AnalyticsDashboardPage = () => {
-  const [analytics, setAnalytics] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [exporting, setExporting] = useState(false)
-  const [toast, setToast] = useState(null)
-  const [selectedCompany, setSelectedCompany] = useState(null)
+  const [analytics, setAnalytics] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [exporting, setExporting] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [selectedCompany, setSelectedCompany] = useState(null);
 
-  const [filters, setFilters] = useState({ batch: '', school: '', jobType: '' })
-  const [appliedFilters, setAppliedFilters] = useState({ batch: '', school: '', jobType: '' })
+  const [filters, setFilters] = useState({
+    batch: "",
+    school: "",
+    jobType: "",
+  });
+  const [appliedFilters, setAppliedFilters] = useState({
+    batch: "",
+    school: "",
+    jobType: "",
+  });
 
-  const batchOptions = ['2024', '2025', '2026', '2027']
-  const jobTypeOptions = ['Full Time', 'Internship']
-  const schoolOptions = (universityStructure || []).map((item) => item.school)
+  const batchOptions = ["2024", "2025", "2026", "2027"];
+  const jobTypeOptions = ["Full Time", "Internship"];
+  const schoolOptions = (universityStructure || []).map((item) => item.school);
 
   const fetchAnalytics = async (activeFilters) => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      const params = new URLSearchParams()
-      if (activeFilters.batch) params.append('batch', activeFilters.batch)
-      if (activeFilters.school) params.append('school', activeFilters.school)
-      if (activeFilters.jobType) params.append('jobType', activeFilters.jobType)
+      const params = new URLSearchParams();
+      if (activeFilters.batch) params.append("batch", activeFilters.batch);
+      if (activeFilters.school) params.append("school", activeFilters.school);
+      if (activeFilters.jobType)
+        params.append("jobType", activeFilters.jobType);
 
-      const data = await api.get(`/analytics?${params.toString()}`)
-      setAnalytics(data)
+      const data = await api.get(`/analytics?${params.toString()}`);
+      setAnalytics(data);
     } catch (err) {
-      console.error('Failed to fetch analytics:', err)
-      setError('Failed to load analytics data. Please try again.')
+      console.error("Failed to fetch analytics:", err);
+      setError("Failed to load analytics data. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchAnalytics(appliedFilters)
+    fetchAnalytics(appliedFilters);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []);
 
   const showToast = (message) => {
-    setToast(message)
-    setTimeout(() => setToast(null), 3000)
-  }
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const handleApply = () => {
-    setAppliedFilters(filters)
-    fetchAnalytics(filters)
-  }
+    setAppliedFilters(filters);
+    fetchAnalytics(filters);
+  };
 
   const handleReset = () => {
-    const cleared = { batch: '', school: '', jobType: '' }
-    setFilters(cleared)
-    setAppliedFilters(cleared)
-    fetchAnalytics(cleared)
-  }
+    const cleared = { batch: "", school: "", jobType: "" };
+    setFilters(cleared);
+    setAppliedFilters(cleared);
+    fetchAnalytics(cleared);
+  };
 
   const removeFilterChip = (key) => {
-    const updated = { ...appliedFilters, [key]: '' }
-    setFilters(updated)
-    setAppliedFilters(updated)
-    fetchAnalytics(updated)
-  }
+    const updated = { ...appliedFilters, [key]: "" };
+    setFilters(updated);
+    setAppliedFilters(updated);
+    fetchAnalytics(updated);
+  };
 
   const handleExport = async () => {
-    setExporting(true)
+    setExporting(true);
     try {
-      const token = localStorage.getItem('token')
-      const params = new URLSearchParams()
-      if (appliedFilters.batch) params.append('batch', appliedFilters.batch)
-      if (appliedFilters.school) params.append('school', appliedFilters.school)
+      const token = localStorage.getItem("token");
+      const params = new URLSearchParams();
+      if (appliedFilters.batch) params.append("batch", appliedFilters.batch);
+      if (appliedFilters.school) params.append("school", appliedFilters.school);
 
       const res = await fetch(
         `${import.meta.env.VITE_API_URL}/analytics/export?${params.toString()}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
 
-      if (!res.ok) throw new Error('Export failed')
+      if (!res.ok) throw new Error("Export failed");
 
-      const blob = await res.blob()
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'analytics.xlsx'
-      a.click()
-      window.URL.revokeObjectURL(url)
-      showToast('Excel file downloaded successfully')
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "analytics.xlsx";
+      a.click();
+      window.URL.revokeObjectURL(url);
+      showToast("Excel file downloaded successfully");
     } catch (err) {
-      console.error('Export failed:', err)
-      showToast('Excel export failed. Please try again.')
+      console.error("Export failed:", err);
+      showToast("Excel export failed. Please try again.");
     } finally {
-      setExporting(false)
+      setExporting(false);
     }
-  }
+  };
 
   // ---- Error state ----
   if (error) {
@@ -227,33 +274,83 @@ const AnalyticsDashboardPage = () => {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   // ---- Derived insight: top performing branch (only when data exists) ----
   const topBranch =
     analytics?.branchData && analytics.branchData.length > 0
       ? [...analytics.branchData].sort((a, b) => b.rate - a.rate)[0]
-      : null
+      : null;
 
   const activeFilterChips = [
-    appliedFilters.batch && { key: 'batch', label: `Batch: ${appliedFilters.batch}` },
-    appliedFilters.school && { key: 'school', label: `School: ${appliedFilters.school}` },
-    appliedFilters.jobType && { key: 'jobType', label: `Type: ${appliedFilters.jobType}` },
-  ].filter(Boolean)
+    appliedFilters.batch && {
+      key: "batch",
+      label: `Batch: ${appliedFilters.batch}`,
+    },
+    appliedFilters.school && {
+      key: "school",
+      label: `School: ${appliedFilters.school}`,
+    },
+    appliedFilters.jobType && {
+      key: "jobType",
+      label: `Type: ${appliedFilters.jobType}`,
+    },
+  ].filter(Boolean);
 
-  const RUPEE = '\u20B9'
+  const RUPEE = "\u20B9";
 
   const summaryCards = analytics
     ? [
-        { key: 'totalStudents', label: 'Total Students', value: analytics.summary.totalStudents, icon: icons.students, accent: 'border-blue-500' },
-        { key: 'placed', label: 'Placed', value: analytics.summary.placed, icon: icons.placed, accent: 'border-green-500' },
-        { key: 'placementPercent', label: 'Placement %', value: analytics.summary.placementPercent, suffix: '%', icon: icons.percent, accent: 'border-purple-500' },
-        { key: 'highestCTC', label: 'Highest CTC', value: analytics.summary.highestCTC, prefix: RUPEE, suffix: ' LPA', icon: icons.ctcHigh, accent: 'border-amber-500' },
-        { key: 'avgCTC', label: 'Avg CTC', value: analytics.summary.avgCTC, prefix: RUPEE, suffix: ' LPA', icon: icons.ctcAvg, accent: 'border-orange-500' },
-        { key: 'totalCompanies', label: 'Total Companies', value: analytics.summary.totalCompanies, icon: icons.company, accent: 'border-teal-500' },
+        {
+          key: "totalStudents",
+          label: "Total Students",
+          value: analytics.summary.totalStudents,
+          icon: icons.students,
+          accent: "border-blue-500",
+        },
+        {
+          key: "placed",
+          label: "Placed",
+          value: analytics.summary.placed,
+          icon: icons.placed,
+          accent: "border-green-500",
+        },
+        {
+          key: "placementPercent",
+          label: "Placement %",
+          value: analytics.summary.placementPercent,
+          suffix: "%",
+          icon: icons.percent,
+          accent: "border-purple-500",
+        },
+        {
+          key: "highestCTC",
+          label: "Highest CTC",
+          value: analytics.summary.highestCTC,
+          prefix: RUPEE,
+          suffix: " LPA",
+          icon: icons.ctcHigh,
+          accent: "border-amber-500",
+        },
+        {
+          key: "avgCTC",
+          label: "Avg CTC",
+          value: analytics.summary.avgCTC,
+          prefix: RUPEE,
+          suffix: " LPA",
+          icon: icons.ctcAvg,
+          accent: "border-orange-500",
+        },
+        {
+          key: "totalCompanies",
+          label: "Total Companies",
+          value: analytics.summary.totalCompanies,
+          icon: icons.company,
+          accent: "border-teal-500",
+        },
       ]
-    : []
+    : [];
 
   return (
     <div className="pb-10">
@@ -269,15 +366,18 @@ const AnalyticsDashboardPage = () => {
         className="rounded-b-2xl px-6 py-8 mb-6"
         style={{
           background:
-            'linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)',
+            "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
         }}
       >
         <p className="text-blue-100 text-xs font-medium tracking-wide uppercase mb-1">
           Placement Insights
         </p>
-        <h1 className="text-2xl font-bold text-white mb-1">Analytics Dashboard</h1>
+        <h1 className="text-2xl font-bold text-white mb-1">
+          Analytics Dashboard
+        </h1>
         <p className="text-blue-100 text-sm">
-          Track placement performance, company trends, and CTC breakdown — all in one place.
+          Track placement performance, company trends, and CTC breakdown — all
+          in one place.
         </p>
       </div>
 
@@ -287,34 +387,46 @@ const AnalyticsDashboardPage = () => {
           <div className="flex flex-wrap items-center gap-3">
             <select
               value={filters.batch}
-              onChange={(e) => setFilters({ ...filters, batch: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, batch: e.target.value })
+              }
               className="px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm"
             >
               <option value="">All Batches</option>
               {batchOptions.map((b) => (
-                <option key={b} value={b}>{b}</option>
+                <option key={b} value={b}>
+                  {b}
+                </option>
               ))}
             </select>
 
             <select
               value={filters.school}
-              onChange={(e) => setFilters({ ...filters, school: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, school: e.target.value })
+              }
               className="px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm max-w-[220px]"
             >
               <option value="">All Schools</option>
               {schoolOptions.map((s) => (
-                <option key={s} value={s}>{s}</option>
+                <option key={s} value={s}>
+                  {s}
+                </option>
               ))}
             </select>
 
             <select
               value={filters.jobType}
-              onChange={(e) => setFilters({ ...filters, jobType: e.target.value })}
+              onChange={(e) =>
+                setFilters({ ...filters, jobType: e.target.value })
+              }
               className="px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm"
             >
               <option value="">All Job Types</option>
               {jobTypeOptions.map((j) => (
-                <option key={j} value={j}>{j}</option>
+                <option key={j} value={j}>
+                  {j}
+                </option>
               ))}
             </select>
 
@@ -338,13 +450,15 @@ const AnalyticsDashboardPage = () => {
                 disabled={exporting || !analytics}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {exporting ? 'Exporting...' : 'Export Excel'}
+                {exporting ? "Exporting..." : "Export Excel"}
               </button>
               {analytics && !exporting && (
                 <div className="absolute right-0 top-full mt-1 hidden group-hover:block bg-[#1E293B] text-white text-xs rounded-md px-2 py-1 whitespace-nowrap z-40">
                   Exporting {analytics.summary.totalStudents} students
-                  {appliedFilters.batch ? ` · Batch ${appliedFilters.batch}` : ''}
-                  {appliedFilters.school ? ` · ${appliedFilters.school}` : ''}
+                  {appliedFilters.batch
+                    ? ` · Batch ${appliedFilters.batch}`
+                    : ""}
+                  {appliedFilters.school ? ` · ${appliedFilters.school}` : ""}
                 </div>
               )}
             </div>
@@ -375,10 +489,14 @@ const AnalyticsDashboardPage = () => {
         {loading ? (
           <>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+              {Array.from({ length: 6 }).map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {Array.from({ length: 4 }).map((_, i) => <SkeletonChart key={i} />)}
+              {Array.from({ length: 4 }).map((_, i) => (
+                <SkeletonChart key={i} />
+              ))}
             </div>
           </>
         ) : !analytics ? (
@@ -397,8 +515,10 @@ const AnalyticsDashboardPage = () => {
             {/* ---- Insight line ---- */}
             {topBranch && (
               <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-2.5 text-sm text-blue-800">
-                💡 <span className="font-medium">{topBranch.name}</span> has the highest placement rate at{' '}
-                <span className="font-semibold">{topBranch.rate}%</span> in the current selection.
+                💡 <span className="font-medium">{topBranch.name}</span> has the
+                highest placement rate at{" "}
+                <span className="font-semibold">{topBranch.rate}%</span> in the
+                current selection.
               </div>
             )}
 
@@ -418,7 +538,10 @@ const AnalyticsDashboardPage = () => {
                       <BarChart data={analytics.companyData}>
                         <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                         <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
-                        <Tooltip content={<CustomTooltip />} cursor={{ fill: '#F1F5F9' }} />
+                        <Tooltip
+                          content={<CustomTooltip />}
+                          cursor={{ fill: "#F1F5F9" }}
+                        />
                         <Bar
                           dataKey="Selected"
                           fill={COLORS.selected}
@@ -451,7 +574,8 @@ const AnalyticsDashboardPage = () => {
                 <h3 className="text-sm font-semibold text-[#1E293B] mb-3">
                   CTC Distribution
                 </h3>
-                {analytics.ctcDistribution && analytics.ctcDistribution.length > 0 ? (
+                {analytics.ctcDistribution &&
+                analytics.ctcDistribution.length > 0 ? (
                   <CTCChart data={analytics.ctcDistribution} />
                 ) : (
                   <EmptyState message="No CTC data available for this filter combination." />
@@ -484,38 +608,42 @@ const AnalyticsDashboardPage = () => {
         onClose={() => setSelectedCompany(null)}
       />
     </div>
-  )
-}
+  );
+};
 
 // ---- Extracted Summary Card with count-up ----
 const SummaryCard = ({ card }) => {
-  const animatedValue = useCountUp(card.value)
+  const animatedValue = useCountUp(card.value);
   return (
-    <div className={`bg-white rounded-xl border border-[#E2E8F0] border-l-4 ${card.accent} p-4 hover:shadow-md transition-shadow`}>
+    <div
+      className={`bg-white rounded-xl border border-[#E2E8F0] border-l-4 ${card.accent} p-4 hover:shadow-md transition-shadow`}
+    >
       <div className="flex items-center justify-between mb-2">
         <p className="text-xs text-[#64748B]">{card.label}</p>
         <span className="text-[#94A3B8]">{card.icon}</span>
       </div>
       <p className="text-xl font-bold text-[#1E293B]">
-        {card.prefix || ''}
+        {card.prefix || ""}
         {animatedValue}
-        {card.suffix || ''}
+        {card.suffix || ""}
       </p>
     </div>
-  )
-}
+  );
+};
 
 // ---- Reusable empty state ----
 const EmptyState = ({ message }) => (
   <div className="flex flex-col items-center justify-center py-12 text-center">
     <p className="text-sm text-[#64748B]">{message}</p>
-    <p className="text-xs text-[#94A3B8] mt-1">Try changing the filters and search again.</p>
+    <p className="text-xs text-[#94A3B8] mt-1">
+      Try changing the filters and search again.
+    </p>
   </div>
-)
+);
 
 // ---- Company students drill-down modal ----
 const CompanyStudentsModal = ({ company, onClose }) => {
-  if (!company) return null
+  if (!company) return null;
   return (
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
@@ -527,8 +655,12 @@ const CompanyStudentsModal = ({ company, onClose }) => {
       >
         <div className="px-5 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-[#1E293B]">{company.name}</h3>
-            <p className="text-xs text-[#64748B]">{company.Selected} students selected</p>
+            <h3 className="text-sm font-semibold text-[#1E293B]">
+              {company.name}
+            </h3>
+            <p className="text-xs text-[#64748B]">
+              {company.Selected} students selected
+            </p>
           </div>
           <button
             onClick={onClose}
@@ -567,7 +699,7 @@ const CompanyStudentsModal = ({ company, onClose }) => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AnalyticsDashboardPage
+export default AnalyticsDashboardPage;

@@ -46,9 +46,7 @@ const getAnalytics = async (req, res) => {
       "name",
     );
     const uniqueCompanies = new Set(
-      jobs
-        .map((j) => j.companyId?._id?.toString())
-        .filter(Boolean),
+      jobs.map((j) => j.companyId?._id?.toString()).filter(Boolean),
     ).size;
 
     // Branch-wise
