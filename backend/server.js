@@ -7,7 +7,11 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    exposedHeaders: ["Content-Disposition"],
+  }),
+);
 
 const authRoutes = require("./routes/auth");
 const studentRoutes = require("./routes/student");
