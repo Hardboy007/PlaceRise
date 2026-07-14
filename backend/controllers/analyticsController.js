@@ -4,6 +4,23 @@ const JobPosting = require("../models/JobPosting");
 const Company = require("../models/company");
 const ExcelJS = require("exceljs");
 
+// Pulls { name, erpId, course } out of a populated Application document.
+// Shared by companyData, ctcDistribution, and funnel so all three drill-
+// down modals show the same student info shape.
+const studentInfo = (application) => ({
+  name: application.studentId?.name || "Unknown Student",
+  erpId: application.studentId?.userId?.erpId || "N/A",
+  course: application.studentId?.course || "N/A",
+});
+
+// studentInfo + company name — used by the funnel drilldown so each
+// student in Applied/Shortlisted/Selected also shows which company
+// they applied to / were shortlisted or selected by.
+const studentWithCompany = (application) => ({
+  ...studentInfo(application),
+  company: application.jobId?.companyId?.name || "Unknown",
+});
+
 const getAnalytics = async (req, res) => {
   try {
     const { batch, school, jobType } = req.query;
@@ -65,26 +82,43 @@ const getAnalytics = async (req, res) => {
       rate: d.total > 0 ? ((d.placed / d.total) * 100).toFixed(1) : 0,
     }));
 
-    // CTC Distribution
+    // CTC Distribution — each bucket carries the list of selected students
+    // that fall into it, and now each student also carries their own CTC
+    // so the drilldown modal can show exactly what package they got.
     const ctcRanges = [
       { label: "0-5 LPA", min: 0, max: 5 },
       { label: "5-10 LPA", min: 5, max: 10 },
       { label: "10-15 LPA", min: 10, max: 15 },
       { label: "15+ LPA", min: 15, max: Infinity },
     ];
-    const ctcDistribution = ctcRanges.map((r) => ({
-      name: r.label,
-      Students: ctcs.filter((c) => c >= r.min && c < r.max).length,
-    }));
+    const ctcDistribution = ctcRanges.map((r) => {
+      const appsInRange = selectedApps.filter(
+        (a) => a.jobId.ctc >= r.min && a.jobId.ctc < r.max,
+      );
+      return {
+        name: r.label,
+        Students: appsInRange.length,
+        students: appsInRange.map((a) => ({
+          ...studentInfo(a),
+          ctc: a.jobId.ctc,
+        })),
+      };
+    });
 
-    // Funnel
-    const totalApplied = applications.length;
-    const totalShortlisted = applications.filter((a) =>
+    // Funnel — each stage now carries its own student list for drill-down,
+    // with each student also carrying the company name of the job they
+    // applied to / were shortlisted or selected for.
+    const appliedApps = applications;
+    const shortlistedApps = applications.filter((a) =>
       ["Shortlisted", "Selected"].includes(a.status),
-    ).length;
-    const totalSelected = applications.filter(
+    );
+    const selectedStageApps = applications.filter(
       (a) => a.status === "Selected",
-    ).length;
+    );
+
+    const totalApplied = appliedApps.length;
+    const totalShortlisted = shortlistedApps.length;
+    const totalSelected = selectedStageApps.length;
 
     // Company selections (with student details)
     const companySelections = {};
@@ -96,11 +130,7 @@ const getAnalytics = async (req, res) => {
           companySelections[name] = { count: 0, students: [] };
         }
         companySelections[name].count += 1;
-        companySelections[name].students.push({
-          name: a.studentId?.name || "Unknown Student",
-          erpId: a.studentId?.userId?.erpId || "N/A",
-          course: a.studentId?.course || "N/A",
-        });
+        companySelections[name].students.push(studentInfo(a));
       });
     const companyData = Object.entries(companySelections)
       .map(([name, data]) => ({
@@ -127,7 +157,14 @@ const getAnalytics = async (req, res) => {
       branchData,
       ctcDistribution,
       companyData,
-      funnel: { totalApplied, totalShortlisted, totalSelected },
+      funnel: {
+        totalApplied,
+        totalShortlisted,
+        totalSelected,
+        appliedStudents: appliedApps.map(studentWithCompany),
+        shortlistedStudents: shortlistedApps.map(studentWithCompany),
+        selectedStudents: selectedStageApps.map(studentWithCompany),
+      },
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

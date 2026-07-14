@@ -3,6 +3,7 @@ import { api } from "../../utils/api";
 import {
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   Tooltip,
@@ -11,9 +12,7 @@ import {
 import universityStructure from "../../data/universityStructure";
 import {
   BranchChart,
-  CTCChart,
   PlacementDonut,
-  FunnelChart,
 } from "../../components/coordinator/AnalyticsCharts";
 
 // ---- Consistent color palette across whole dashboard ----
@@ -21,6 +20,8 @@ const COLORS = {
   selected: "#3B82F6",
   placed: "#10B981",
   notPlaced: "#EF4444",
+  applied: "#3B82F6",
+  shortlisted: "#F59E0B",
 };
 
 // ---- Small reusable count-up hook (no extra dependency needed) ----
@@ -50,14 +51,14 @@ const useCountUp = (target, duration = 800) => {
   return value;
 };
 
-// ---- Custom tooltip for Company-wise chart ----
-const CustomTooltip = ({ active, payload, label }) => {
+// ---- Custom tooltip, reused by Company / CTC / Funnel bar charts ----
+const CustomTooltip = ({ active, payload, label, valueLabel = "Selected" }) => {
   if (!active || !payload || !payload.length) return null;
   return (
     <div className="bg-white rounded-lg shadow-lg border border-[#E2E8F0] px-3 py-2">
       <p className="text-xs font-semibold text-[#1E293B]">{label}</p>
       <p className="text-xs text-[#3B82F6]">
-        Selected: <span className="font-semibold">{payload[0].value}</span>
+        {valueLabel}: <span className="font-semibold">{payload[0].value}</span>
       </p>
     </div>
   );
@@ -163,7 +164,11 @@ const AnalyticsDashboardPage = () => {
   const [error, setError] = useState(null);
   const [exporting, setExporting] = useState(false);
   const [toast, setToast] = useState(null);
-  const [selectedCompany, setSelectedCompany] = useState(null);
+
+  // Generalized drill-down state — used by Company-wise, CTC Distribution,
+  // AND Application Funnel now, so all three share one modal shape:
+  // { title, subtitle, students }
+  const [drilldown, setDrilldown] = useState(null);
 
   const [filters, setFilters] = useState({
     batch: "",
@@ -348,6 +353,31 @@ const AnalyticsDashboardPage = () => {
           value: analytics.summary.totalCompanies,
           icon: icons.company,
           accent: "border-teal-500",
+        },
+      ]
+    : [];
+
+  // Application Funnel, reshaped into chart-friendly rows so it can use
+  // the same clickable BarChart pattern as Company-wise Selections.
+  const funnelRows = analytics
+    ? [
+        {
+          name: "Applied",
+          Count: analytics.funnel.totalApplied,
+          students: analytics.funnel.appliedStudents || [],
+          fill: COLORS.applied,
+        },
+        {
+          name: "Shortlisted",
+          Count: analytics.funnel.totalShortlisted,
+          students: analytics.funnel.shortlistedStudents || [],
+          fill: COLORS.shortlisted,
+        },
+        {
+          name: "Selected",
+          Count: analytics.funnel.totalSelected,
+          students: analytics.funnel.selectedStudents || [],
+          fill: COLORS.placed,
         },
       ]
     : [];
@@ -539,7 +569,7 @@ const AnalyticsDashboardPage = () => {
                         <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                         <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
                         <Tooltip
-                          content={<CustomTooltip />}
+                          content={<CustomTooltip valueLabel="Selected" />}
                           cursor={{ fill: "#F1F5F9" }}
                         />
                         <Bar
@@ -547,7 +577,13 @@ const AnalyticsDashboardPage = () => {
                           fill={COLORS.selected}
                           radius={[4, 4, 0, 0]}
                           cursor="pointer"
-                          onClick={(data) => setSelectedCompany(data)}
+                          onClick={(data) =>
+                            setDrilldown({
+                              title: data.name,
+                              subtitle: `${data.Selected} students selected`,
+                              students: data.students,
+                            })
+                          }
                         />
                       </BarChart>
                     </ResponsiveContainer>
@@ -569,14 +605,44 @@ const AnalyticsDashboardPage = () => {
                 )}
               </div>
 
-              {/* CTC Distribution */}
+              {/* CTC Distribution — clickable. Each bucket carries its own
+                  student list from the backend, and each student now also
+                  carries their own CTC (package) for the drilldown. */}
               <div className="bg-white rounded-xl border border-[#E2E8F0] p-4 hover:shadow-md transition-shadow">
-                <h3 className="text-sm font-semibold text-[#1E293B] mb-3">
+                <h3 className="text-sm font-semibold text-[#1E293B] mb-1">
                   CTC Distribution
                 </h3>
                 {analytics.ctcDistribution &&
-                analytics.ctcDistribution.length > 0 ? (
-                  <CTCChart data={analytics.ctcDistribution} />
+                analytics.ctcDistribution.length > 0 &&
+                analytics.ctcDistribution.some((r) => r.Students > 0) ? (
+                  <>
+                    <p className="text-xs text-[#94A3B8] mb-3">
+                      Click a bar to see student names
+                    </p>
+                    <ResponsiveContainer width="100%" height={280}>
+                      <BarChart data={analytics.ctcDistribution}>
+                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                        <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+                        <Tooltip
+                          content={<CustomTooltip valueLabel="Students" />}
+                          cursor={{ fill: "#F1F5F9" }}
+                        />
+                        <Bar
+                          dataKey="Students"
+                          fill={COLORS.selected}
+                          radius={[4, 4, 0, 0]}
+                          cursor="pointer"
+                          onClick={(data) =>
+                            setDrilldown({
+                              title: data.name,
+                              subtitle: `${data.Students} students`,
+                              students: data.students,
+                            })
+                          }
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </>
                 ) : (
                   <EmptyState message="No CTC data available for this filter combination." />
                 )}
@@ -590,23 +656,64 @@ const AnalyticsDashboardPage = () => {
                 <PlacementDonut summary={analytics.summary} />
               </div>
 
-              {/* Application Funnel */}
+              {/* Application Funnel — clickable. Applied / Shortlisted /
+                  Selected each carry their own student list from the
+                  backend, and each student now also carries the company
+                  name of the job they applied to / were shortlisted or
+                  selected for. */}
               <div className="bg-white rounded-xl border border-[#E2E8F0] p-4 hover:shadow-md transition-shadow md:col-span-2">
-                <h3 className="text-sm font-semibold text-[#1E293B] mb-3">
+                <h3 className="text-sm font-semibold text-[#1E293B] mb-1">
                   Application Funnel
                 </h3>
-                <FunnelChart funnel={analytics.funnel} />
+                {funnelRows.some((r) => r.Count > 0) ? (
+                  <>
+                    <p className="text-xs text-[#94A3B8] mb-3">
+                      Click a bar to see student names
+                    </p>
+                    <ResponsiveContainer width="100%" height={260}>
+                      <BarChart data={funnelRows} layout="vertical">
+                        <XAxis type="number" tick={{ fontSize: 12 }} allowDecimals={false} />
+                        <YAxis
+                          type="category"
+                          dataKey="name"
+                          tick={{ fontSize: 12 }}
+                          width={90}
+                        />
+                        <Tooltip
+                          content={<CustomTooltip valueLabel="Count" />}
+                          cursor={{ fill: "#F1F5F9" }}
+                        />
+                        <Bar
+                          dataKey="Count"
+                          radius={[0, 4, 4, 0]}
+                          cursor="pointer"
+                          onClick={(data) =>
+                            setDrilldown({
+                              title: data.name,
+                              subtitle: `${data.Count} students`,
+                              students: data.students,
+                            })
+                          }
+                        >
+                          {funnelRows.map((row) => (
+                            <Cell key={row.name} fill={row.fill} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </>
+                ) : (
+                  <EmptyState message="No funnel data available for this filter combination." />
+                )}
               </div>
             </div>
           </>
         )}
       </div>
 
-      {/* ---- Company Students Modal ---- */}
-      <CompanyStudentsModal
-        company={selectedCompany}
-        onClose={() => setSelectedCompany(null)}
-      />
+      {/* ---- Generalized drill-down modal — shared by Company-wise,
+          CTC Distribution, and Application Funnel clicks ---- */}
+      <DrilldownModal drilldown={drilldown} onClose={() => setDrilldown(null)} />
     </div>
   );
 };
@@ -641,9 +748,13 @@ const EmptyState = ({ message }) => (
   </div>
 );
 
-// ---- Company students drill-down modal ----
-const CompanyStudentsModal = ({ company, onClose }) => {
-  if (!company) return null;
+// ---- Generalized drill-down modal (was CompanyStudentsModal — renamed
+// and made generic since it's now used by 3 different charts, not just
+// company selections). Shape: { title, subtitle, students }
+// Each student may optionally carry `ctc` (CTC Distribution drilldown)
+// or `company` (Application Funnel drilldown) — shown inline when present.
+const DrilldownModal = ({ drilldown, onClose }) => {
+  if (!drilldown) return null;
   return (
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
@@ -656,11 +767,9 @@ const CompanyStudentsModal = ({ company, onClose }) => {
         <div className="px-5 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
           <div>
             <h3 className="text-sm font-semibold text-[#1E293B]">
-              {company.name}
+              {drilldown.title}
             </h3>
-            <p className="text-xs text-[#64748B]">
-              {company.Selected} students selected
-            </p>
+            <p className="text-xs text-[#64748B]">{drilldown.subtitle}</p>
           </div>
           <button
             onClick={onClose}
@@ -670,9 +779,9 @@ const CompanyStudentsModal = ({ company, onClose }) => {
           </button>
         </div>
         <div className="overflow-y-auto px-5 py-3">
-          {company.students && company.students.length > 0 ? (
+          {drilldown.students && drilldown.students.length > 0 ? (
             <ul className="space-y-2">
-              {company.students.map((student, i) => (
+              {drilldown.students.map((student, i) => (
                 <li
                   key={i}
                   className="flex items-center gap-3 py-2 border-b border-[#F1F5F9] last:border-0"
@@ -680,20 +789,26 @@ const CompanyStudentsModal = ({ company, onClose }) => {
                   <span className="w-7 h-7 shrink-0 rounded-full bg-blue-50 text-blue-600 text-xs font-medium flex items-center justify-center">
                     {i + 1}
                   </span>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-[#334155] truncate">
                       {student.name}
                     </p>
                     <p className="text-xs text-[#64748B]">
                       ERP: {student.erpId} · {student.course}
+                      {student.company ? ` · ${student.company}` : ""}
                     </p>
                   </div>
+                  {student.ctc !== undefined && (
+                    <span className="shrink-0 text-xs font-semibold text-green-700 bg-green-50 px-2 py-1 rounded-full">
+                      ₹{student.ctc} LPA
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
           ) : (
             <p className="text-sm text-[#64748B] text-center py-6">
-              No student details available. Backend update may be pending.
+              No student details available.
             </p>
           )}
         </div>
