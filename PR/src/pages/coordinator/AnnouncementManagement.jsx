@@ -256,6 +256,7 @@ function LiveDateTimeBar() {
 
 export default function AnnouncementManagementPage() {
   const [announcements, setAnnouncements] = useState([]);
+  const [typeFilter, setTypeFilter] = useState("All");
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -455,36 +456,81 @@ export default function AnnouncementManagementPage() {
         rel="stylesheet"
       />
 
-      {/* ── Header ── */}
-      <div className="bg-white border-b border-slate-100 px-8 py-4 sticky top-0 z-20">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div>
-            <h1
-              className="text-[18px] font-extrabold tracking-tight"
-              style={{ color: "#0f172a" }}
+      {/* ── Hero ── */}
+      <div className="px-4 pt-4">
+        <div
+          className="max-w-4xl mx-auto rounded-3xl overflow-hidden relative"
+          style={{
+            background:
+              "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
+          }}
+        >
+          <div
+            className="absolute top-0 right-0 w-64 h-64 rounded-full pointer-events-none"
+            style={{
+              background: "rgba(255,255,255,0.08)",
+              transform: "translate(30%,-40%)",
+            }}
+          />
+          <div className="relative z-10 px-7 py-6 flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest mb-1.5">
+                Placement Portal
+              </p>
+              <h1
+                className="text-2xl font-bold text-white"
+                style={{ fontFamily: "Space Grotesk, sans-serif" }}
+              >
+                Announcement Board
+              </h1>
+              <p className="text-white/60 text-xs mt-1">
+                Post drives, alerts, and updates for students
+              </p>
+            </div>
+            <button
+              onClick={openCreate}
+              className="flex items-center gap-2 bg-white text-[#1D4ED8] text-[13px] font-bold px-4 py-2.5 rounded-xl hover:bg-blue-50 transition-colors shadow-lg shrink-0"
             >
-              Announcement Board
-            </h1>
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              New Announcement
+            </button>
           </div>
-          <button
-            onClick={openCreate}
-            className="flex items-center gap-2 bg-slate-900 hover:bg-slate-700 text-white text-[13px] font-semibold px-4 py-2.5 rounded-xl transition-colors"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2.5}
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            New Announcement
-          </button>
+
+          {/* Type-wise counts — derived from existing `announcements` state, no extra fetch */}
+          <div className="relative z-10 grid grid-cols-3 gap-3 px-7 pb-6">
+            {["Urgent", "Important", "General"].map((type) => {
+              const count = announcements.filter((a) => a.type === type).length;
+              return (
+                <div
+                  key={type}
+                  className="rounded-xl px-4 py-3 border border-white/10"
+                  style={{ background: "rgba(255,255,255,0.1)" }}
+                >
+                  <p className="text-white/55 text-[10px] font-semibold uppercase tracking-wider mb-1">
+                    {type}
+                  </p>
+                  <p
+                    className="text-white text-xl font-bold leading-none"
+                    style={{ fontFamily: "Space Grotesk, sans-serif" }}
+                  >
+                    {count}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -505,7 +551,27 @@ export default function AnnouncementManagementPage() {
 
       {/* ── Live date/time bar, ticks every second so it rolls to the next day on its own ── */}
       <LiveDateTimeBar />
+      {/* ── Type filter tabs ── */}
+      <div className="max-w-4xl mx-auto px-8 pb-4">
+        <div className="flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-1 w-fit">
+          {["All", "Urgent", "Important", "General"].map((t) => (
+            <button
+              key={t}
+              onClick={() => setTypeFilter(t)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                typeFilter === t
+                  ? "bg-slate-900 text-white"
+                  : "text-slate-500 hover:text-slate-900"
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
 
+      {/* ── Card Feed ── */}
+      <div className="max-w-4xl mx-auto px-8 pb-7 space-y-3"></div>
       {/* ── Card Feed ── */}
       <div className="max-w-4xl mx-auto px-8 pb-7 space-y-3">
         {loading && announcements.length === 0 && (
@@ -519,95 +585,106 @@ export default function AnnouncementManagementPage() {
             No announcements yet. Create one!
           </div>
         )}
+        {!loading &&
+          announcements.length > 0 &&
+          announcements.filter(
+            (a) => typeFilter === "All" || a.type === typeFilter,
+          ).length === 0 && (
+            <div className="text-center py-24 text-slate-400 text-sm">
+              No {typeFilter.toLowerCase()} announcements right now.
+            </div>
+          )}
 
-        {announcements.map((ann) => {
-          const id = getAnnId(ann);
-          const tc = TYPE_CONFIG[ann.type] || TYPE_CONFIG.General;
-          const isDeleting = deletingId === id;
-          return (
-            <div
-              key={id ?? `${ann.title}-${ann.date}-${ann.time}`}
-              className={`group bg-white rounded-2xl border border-slate-100 border-l-4 ${tc.border} shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${isDeleting ? "opacity-40" : ""}`}
-            >
-              <div className="flex items-stretch gap-0 px-5 py-4">
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-1.5 mb-2">
-                    <span
-                      className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${tc.badge}`}
-                    >
-                      {tc.icon} {ann.type || "General"}
-                    </span>
-                    <span className="text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                      {targetLabel(ann.target)}
-                    </span>
-                    {ann.room && (
-                      <span className="text-[11px] font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
-                        📍 {ann.room}
+        {announcements
+          .filter((ann) => typeFilter === "All" || ann.type === typeFilter)
+          .map((ann) => {
+            const id = getAnnId(ann);
+            const tc = TYPE_CONFIG[ann.type] || TYPE_CONFIG.General;
+            const isDeleting = deletingId === id;
+            return (
+              <div
+                key={id ?? `${ann.title}-${ann.date}-${ann.time}`}
+                className={`group bg-white rounded-2xl border border-slate-100 border-l-4 ${tc.border} shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${isDeleting ? "opacity-40" : ""}`}
+              >
+                <div className="flex items-stretch gap-0 px-5 py-4">
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                      <span
+                        className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${tc.badge}`}
+                      >
+                        {tc.icon} {ann.type || "General"}
                       </span>
-                    )}
-                    {/* Date/time badge — always visible now (previously only
+                      <span className="text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                        {targetLabel(ann.target)}
+                      </span>
+                      {ann.room && (
+                        <span className="text-[11px] font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+                          📍 {ann.room}
+                        </span>
+                      )}
+                      {/* Date/time badge — always visible now (previously only
                         shown on mobile, since there used to be a separate
                         date-stamp column on desktop; that column was removed
                         so this is now the only place date/time is shown). */}
-                    <span className="text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                      {formatDayDate(ann.date)}
-                      {ann.time ? ` · ${ann.time}` : ""}
-                    </span>
+                      <span className="text-[11px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                        {formatDayDate(ann.date)}
+                        {ann.time ? ` · ${ann.time}` : ""}
+                      </span>
+                    </div>
+                    <h3 className="text-[14.5px] font-bold text-slate-900 leading-snug">
+                      {ann.title || "(untitled announcement)"}
+                    </h3>
+                    {ann.description && (
+                      <p className="text-[13px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                        {ann.description}
+                      </p>
+                    )}
                   </div>
-                  <h3 className="text-[14.5px] font-bold text-slate-900 leading-snug">
-                    {ann.title || "(untitled announcement)"}
-                  </h3>
-                  {ann.description && (
-                    <p className="text-[13px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
-                      {ann.description}
-                    </p>
-                  )}
-                </div>
 
-                {/* Action buttons — appear on hover */}
-                <div className="flex flex-col justify-center gap-2 ml-4 opacity-0 group-hover:opacity-100 transition-opacity duration-150 shrink-0">
-                  <button
-                    onClick={() => openEdit(ann)}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-500 transition-colors"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2.2}
-                      viewBox="0 0 24 24"
+                  {/* Action buttons — appear on hover */}
+                  <div className="flex flex-col justify-center gap-2 ml-4 opacity-0 group-hover:opacity-100 transition-opacity duration-150 shrink-0">
+                    <button
+                      onClick={() => openEdit(ann)}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-500 transition-colors"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"
-                      />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => setDeleteConfirm(id)}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 hover:bg-red-100 text-red-400 transition-colors"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2.2}
-                      viewBox="0 0 24 24"
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={2.2}
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setDeleteConfirm(id)}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 hover:bg-red-100 text-red-400 transition-colors"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                      />
-                    </svg>
-                  </button>
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={2.2}
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                        />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
       </div>
 
       {/* ── Modal ── */}
