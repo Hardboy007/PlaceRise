@@ -1,7 +1,7 @@
 const Student = require("../models/Student");
 const Application = require("../models/Application");
 const JobPosting = require("../models/JobPosting");
-const Company = require("../models/Company");
+const Company = require("../models/company");
 const ExcelJS = require("exceljs");
 
 const getAnalytics = async (req, res) => {
