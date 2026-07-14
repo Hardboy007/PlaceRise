@@ -188,34 +188,202 @@ const exportAnalyticsExcel = async (req, res) => {
       "userId",
       "erpId",
     );
+    const placed = students.filter(
+      (s) => s.placementStatus === "Placed",
+    ).length;
+    const notPlaced = students.length - placed;
+    const placementPct =
+      students.length > 0
+        ? ((placed / students.length) * 100).toFixed(1) + "%"
+        : "0%";
+
     const applications = await Application.find({
       studentId: { $in: students.map((s) => s._id) },
     })
-      .populate("studentId", "name")
+      .populate("studentId", "name course school batch cgpa")
       .populate({
         path: "jobId",
         populate: { path: "companyId", select: "name" },
       });
 
+    const selectedApps = applications.filter((a) => a.status === "Selected");
+
+    // School wise stats
+    const schoolMap = {};
+    students.forEach((s) => {
+      if (!s.school) return;
+      if (!schoolMap[s.school])
+        schoolMap[s.school] = { total: 0, placed: 0, ctcs: [] };
+      schoolMap[s.school].total++;
+      if (s.placementStatus === "Placed") schoolMap[s.school].placed++;
+    });
+    selectedApps.forEach((a) => {
+      const school = a.studentId?.school;
+      if (school && schoolMap[school] && a.jobId?.ctc) {
+        schoolMap[school].ctcs.push(a.jobId.ctc);
+      }
+    });
+
+    // Company wise stats
+    const companyMap = {};
+    applications.forEach((a) => {
+      const name = a.jobId?.companyId?.name;
+      if (!name) return;
+      if (!companyMap[name]) companyMap[name] = { offers: 0, ctcs: [] };
+      if (a.status === "Selected") {
+        companyMap[name].offers++;
+        if (a.jobId?.ctc) companyMap[name].ctcs.push(a.jobId.ctc);
+      }
+    });
+
     const workbook = new ExcelJS.Workbook();
+    workbook.creator = "PlaceRise";
+    workbook.created = new Date();
 
+    // ── Sheet 1 — Summary ──
     const summarySheet = workbook.addWorksheet("Summary");
-    const placed = students.filter(
-      (s) => s.placementStatus === "Placed",
-    ).length;
-    summarySheet.addRow(["Metric", "Value"]);
-    summarySheet.addRow(["Total Students", students.length]);
-    summarySheet.addRow(["Placed", placed]);
-    summarySheet.addRow(["Not Placed", students.length - placed]);
-    summarySheet.addRow([
-      "Placement %",
-      students.length > 0
-        ? ((placed / students.length) * 100).toFixed(1) + "%"
-        : "0%",
-    ]);
+    summarySheet.columns = [{ width: 30 }, { width: 20 }];
 
+    const addHeader = (sheet, title) => {
+      const row = sheet.addRow([title]);
+      row.font = { bold: true, size: 13, color: { argb: "FFFFFFFF" } };
+      row.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FF1D4ED8" },
+      };
+      row.height = 22;
+      sheet.addRow([]);
+    };
+
+    const addTableHeader = (sheet, headers) => {
+      const row = sheet.addRow(headers);
+      row.font = { bold: true, color: { argb: "FFFFFFFF" } };
+      row.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FF3B82F6" },
+      };
+      row.height = 18;
+    };
+
+    addHeader(summarySheet, "PlaceRise — Placement Analytics Summary");
+
+    const filterInfo = [
+      batch ? `Batch: ${batch}` : "Batch: All",
+      school ? `School: ${school}` : "School: All",
+      `Generated: ${new Date().toLocaleDateString("en-IN")}`,
+    ].join("   |   ");
+    const filterRow = summarySheet.addRow([filterInfo]);
+    filterRow.font = { italic: true, color: { argb: "FF64748B" } };
+    summarySheet.addRow([]);
+
+    // Overall stats table
+    addTableHeader(summarySheet, ["Metric", "Value"]);
+    [
+      ["Total Students", students.length],
+      ["Students Placed", placed],
+      ["Students Not Placed", notPlaced],
+      ["Placement Rate", placementPct],
+      [
+        "Total Drives",
+        new Set(applications.map((a) => a.jobId?._id?.toString())).size,
+      ],
+      [
+        "Total Companies",
+        new Set(
+          applications.map((a) => a.jobId?.companyId?.name).filter(Boolean),
+        ).size,
+      ],
+      [
+        "Average CTC (LPA)",
+        selectedApps.length > 0
+          ? (
+              selectedApps.reduce((s, a) => s + (a.jobId?.ctc || 0), 0) /
+              selectedApps.length
+            ).toFixed(2)
+          : "N/A",
+      ],
+      [
+        "Highest CTC (LPA)",
+        selectedApps.length > 0
+          ? Math.max(...selectedApps.map((a) => a.jobId?.ctc || 0))
+          : "N/A",
+      ],
+    ].forEach(([metric, value]) => {
+      const row = summarySheet.addRow([metric, value]);
+      row.getCell(1).font = { bold: true };
+    });
+
+    summarySheet.addRow([]);
+    summarySheet.addRow([]);
+
+    // School wise table
+    addTableHeader(summarySheet, [
+      "School",
+      "Total Students",
+      "Placed",
+      "Placement %",
+      "Avg CTC (LPA)",
+      "Highest CTC (LPA)",
+    ]);
+    Object.entries(schoolMap).forEach(([schoolName, data]) => {
+      const pct =
+        data.total > 0
+          ? ((data.placed / data.total) * 100).toFixed(1) + "%"
+          : "0%";
+      const avgCtc =
+        data.ctcs.length > 0
+          ? (data.ctcs.reduce((a, b) => a + b, 0) / data.ctcs.length).toFixed(2)
+          : "N/A";
+      const highCtc = data.ctcs.length > 0 ? Math.max(...data.ctcs) : "N/A";
+      summarySheet.addRow([
+        schoolName,
+        data.total,
+        data.placed,
+        pct,
+        avgCtc,
+        highCtc,
+      ]);
+    });
+
+    summarySheet.columns = [
+      { width: 35 },
+      { width: 18 },
+      { width: 12 },
+      { width: 15 },
+      { width: 16 },
+      { width: 18 },
+    ];
+
+    // ── Sheet 2 — Company Data ──
+    const companySheet = workbook.addWorksheet("Company Data");
+    addHeader(companySheet, "Company-wise Placement Data");
+    addTableHeader(companySheet, [
+      "Company",
+      "Total Offers",
+      "Avg CTC (LPA)",
+      "Highest CTC (LPA)",
+    ]);
+    Object.entries(companyMap).forEach(([name, data]) => {
+      const avgCtc =
+        data.ctcs.length > 0
+          ? (data.ctcs.reduce((a, b) => a + b, 0) / data.ctcs.length).toFixed(2)
+          : "N/A";
+      const highCtc = data.ctcs.length > 0 ? Math.max(...data.ctcs) : "N/A";
+      companySheet.addRow([name, data.offers, avgCtc, highCtc]);
+    });
+    companySheet.columns = [
+      { width: 30 },
+      { width: 15 },
+      { width: 16 },
+      { width: 18 },
+    ];
+
+    // ── Sheet 3 — Student Details ──
     const studentSheet = workbook.addWorksheet("Student Details");
-    studentSheet.addRow([
+    addHeader(studentSheet, "Student-wise Placement Details");
+    addTableHeader(studentSheet, [
       "Name",
       "ERP ID",
       "Course",
@@ -225,7 +393,7 @@ const exportAnalyticsExcel = async (req, res) => {
       "Placement Status",
     ]);
     students.forEach((s) => {
-      studentSheet.addRow([
+      const row = studentSheet.addRow([
         s.name,
         s.userId?.erpId || "",
         s.course,
@@ -234,24 +402,79 @@ const exportAnalyticsExcel = async (req, res) => {
         s.cgpa,
         s.placementStatus,
       ]);
+      if (s.placementStatus === "Placed") {
+        row.getCell(7).font = { color: { argb: "FF16A34A" }, bold: true };
+      }
     });
+    studentSheet.columns = [
+      { width: 25 },
+      { width: 15 },
+      { width: 25 },
+      { width: 30 },
+      { width: 10 },
+      { width: 8 },
+      { width: 16 },
+    ];
 
-    const companySheet = workbook.addWorksheet("Company Data");
-    companySheet.addRow(["Company", "Role", "Student Name", "Status"]);
+    // ── Sheet 4 — Applications ──
+    const appSheet = workbook.addWorksheet("Applications");
+    addHeader(appSheet, "Application Details");
+    addTableHeader(appSheet, [
+      "Student Name",
+      "ERP ID",
+      "Course",
+      "Company",
+      "Role",
+      "CTC (LPA)",
+      "Status",
+    ]);
     applications.forEach((a) => {
-      companySheet.addRow([
+      const row = appSheet.addRow([
+        a.studentId?.name || "",
+        a.studentId?.userId?.erpId || "",
+        a.studentId?.course || "",
         a.jobId?.companyId?.name || "",
         a.jobId?.role || "",
-        a.studentId?.name || "",
+        a.jobId?.ctc || "",
         a.status,
       ]);
+      const statusColors = {
+        Selected: "FF16A34A",
+        Shortlisted: "FFF59E0B",
+        Rejected: "FFEF4444",
+        Applied: "FF3B82F6",
+      };
+      if (statusColors[a.status]) {
+        row.getCell(7).font = {
+          color: { argb: statusColors[a.status] },
+          bold: true,
+        };
+      }
     });
+    appSheet.columns = [
+      { width: 25 },
+      { width: 15 },
+      { width: 25 },
+      { width: 20 },
+      { width: 20 },
+      { width: 12 },
+      { width: 12 },
+    ];
+
+    // Dynamic filename
+    const label = [
+      batch ? `Batch_${batch}` : "All_Batches",
+      school ? school.replace(/\s+/g, "_") : "All_Schools",
+    ].join("_");
 
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     );
-    res.setHeader("Content-Disposition", "attachment; filename=analytics.xlsx");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=PlaceRise_Analytics_${label}_${new Date().getFullYear()}.xlsx`,
+    );
     await workbook.xlsx.write(res);
     res.end();
   } catch (error) {
