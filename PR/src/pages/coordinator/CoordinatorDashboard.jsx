@@ -424,7 +424,7 @@ export default function CoordinatorDashboard() {
               label: "Add Company",
               icon: Plus,
               color: "bg-[#1E293B] text-white hover:bg-primary",
-              route: "/coordinator/companies",
+              route: "/coordinator/jobs/all",
             },
             {
               label: "Post Announcement",
