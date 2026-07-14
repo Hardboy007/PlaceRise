@@ -121,22 +121,28 @@ const getAnalytics = async (req, res) => {
     const totalSelected = selectedStageApps.length;
 
     // Company selections (with student details)
-    const companySelections = {};
+    const companyStudentMap = {};
+
     applications
       .filter((a) => a.status === "Selected")
       .forEach((a) => {
         const name = a.jobId?.companyId?.name || "Unknown";
-        if (!companySelections[name]) {
-          companySelections[name] = { count: 0, students: [] };
+
+        if (!companyStudentMap[name]) {
+          companyStudentMap[name] = [];
         }
-        companySelections[name].count += 1;
-        companySelections[name].students.push(studentInfo(a));
+
+        companyStudentMap[name].push({
+          ...studentInfo(a),
+          ctc: a.jobId?.ctc || 0,
+        });
       });
-    const companyData = Object.entries(companySelections)
-      .map(([name, data]) => ({
+
+    const companyData = Object.entries(companyStudentMap)
+      .map(([name, studs]) => ({
         name,
-        Selected: data.count,
-        students: data.students,
+        Selected: studs.length,
+        students: studs,
       }))
       .sort((a, b) => b.Selected - a.Selected);
 
