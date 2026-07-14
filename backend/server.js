@@ -2,14 +2,12 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./config/db");
-const nocRoutes = require("./routes/noc");
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 app.use(cors());
-app.use("/api/noc", nocRoutes);
 
 const authRoutes = require("./routes/auth");
 const studentRoutes = require("./routes/student");
@@ -21,6 +19,7 @@ const coordinatorRoutes = require("./routes/coordinator");
 const attendanceRoutes = require("./routes/attendance");
 const notificationRoutes = require("./routes/notification");
 const analyticsRoutes = require("./routes/analytics");
+const nocRoutes = require("./routes/noc");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/students", studentRoutes);
@@ -32,6 +31,7 @@ app.use("/api/jobs", jobRoutes);
 app.use("/api/coordinators", coordinatorRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/noc", nocRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "PlaceRise Backend Running" });
