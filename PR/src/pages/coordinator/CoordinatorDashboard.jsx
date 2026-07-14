@@ -114,6 +114,10 @@ export default function CoordinatorDashboard() {
     : 0;
 
   const today = now;
+  const highestCTC = liveJobs.reduce(
+    (max, j) => (j.ctc > max ? j.ctc : max),
+    0,
+  );
 
   // FIXED: only jobs with a real (non-deleted) company are ever considered
   // "live" anywhere below. A deleted company leaves companyId null/undefined
@@ -230,9 +234,20 @@ export default function CoordinatorDashboard() {
           </span>
         </div>
       </div>
-
+      {recentJobPostings.length > 0 && (
+        <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-xl px-4 py-2.5 mb-6 text-sm text-blue-800">
+          <span>💡</span>
+          <span>
+            <span className="font-semibold">
+              {recentJobPostings[0].company}
+            </span>{" "}
+            posted the most recent opening —{" "}
+            <span className="font-semibold">{recentJobPostings[0].role}</span>
+          </span>
+        </div>
+      )}
       {/* Stats Strip */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {[
           {
             label: "Total Students",
@@ -258,6 +273,14 @@ export default function CoordinatorDashboard() {
             bg: "bg-amber-50",
             iconColor: "text-[#F59E0B]",
           },
+          {
+            label: "Highest Package",
+            value: highestCTC > 0 ? `₹${highestCTC} LPA` : "—",
+            icon: TrendingUp,
+            color: "border-t-[#8B5CF6]",
+            bg: "bg-purple-50",
+            iconColor: "text-[#8B5CF6]",
+          },
         ].map((stat) => (
           <div
             key={stat.label}
@@ -277,6 +300,14 @@ export default function CoordinatorDashboard() {
             <p className="text-xs uppercase tracking-widest text-text-muted mt-1">
               {stat.label}
             </p>
+            {stat.label === "Placed Students" && (
+              <div className="w-full h-1.5 rounded-full bg-background mt-2.5 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-success transition-all duration-700"
+                  style={{ width: `${placementPercent}%` }}
+                />
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -433,7 +464,7 @@ export default function CoordinatorDashboard() {
             <button
               key={action.label}
               onClick={() => navigate(action.route)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${action.color}`}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:-translate-y-0.5 hover:shadow-md ${action.color}`}
             >
               <action.icon size={15} />
               {action.label}
