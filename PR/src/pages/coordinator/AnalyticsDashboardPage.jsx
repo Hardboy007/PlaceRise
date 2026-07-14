@@ -24,6 +24,19 @@ const COLORS = {
   shortlisted: "#F59E0B",
 };
 
+// Company-wise bars ke liye — ek hi blue ki jagah alag-alag vibrant colors
+// taaki chart "flat" na lage, cycle through hoga jitni bhi companies ho
+const COMPANY_PALETTE = [
+  "#6366F1", // indigo
+  "#EC4899", // pink
+  "#F59E0B", // amber
+  "#10B981", // emerald
+  "#3B82F6", // blue
+  "#8B5CF6", // violet
+  "#EF4444", // red
+  "#14B8A6", // teal
+];
+
 // ---- Small reusable count-up hook (no extra dependency needed) ----
 const useCountUp = (target, duration = 800) => {
   const [value, setValue] = useState(0);
@@ -321,14 +334,16 @@ const AnalyticsDashboardPage = () => {
           label: "Total Students",
           value: analytics.summary.totalStudents,
           icon: icons.students,
-          accent: "border-blue-500",
+          gradient: "from-blue-500 to-indigo-500",
+          glow: "shadow-blue-200",
         },
         {
           key: "placed",
           label: "Placed",
           value: analytics.summary.placed,
           icon: icons.placed,
-          accent: "border-green-500",
+          gradient: "from-emerald-500 to-green-500",
+          glow: "shadow-green-200",
         },
         {
           key: "placementPercent",
@@ -336,7 +351,8 @@ const AnalyticsDashboardPage = () => {
           value: analytics.summary.placementPercent,
           suffix: "%",
           icon: icons.percent,
-          accent: "border-purple-500",
+          gradient: "from-purple-500 to-fuchsia-500",
+          glow: "shadow-purple-200",
         },
         {
           key: "highestCTC",
@@ -345,7 +361,8 @@ const AnalyticsDashboardPage = () => {
           prefix: RUPEE,
           suffix: " LPA",
           icon: icons.ctcHigh,
-          accent: "border-amber-500",
+          gradient: "from-amber-500 to-orange-500",
+          glow: "shadow-amber-200",
         },
         {
           key: "avgCTC",
@@ -354,14 +371,16 @@ const AnalyticsDashboardPage = () => {
           prefix: RUPEE,
           suffix: " LPA",
           icon: icons.ctcAvg,
-          accent: "border-orange-500",
+          gradient: "from-orange-500 to-red-500",
+          glow: "shadow-orange-200",
         },
         {
           key: "totalCompanies",
           label: "Total Companies",
           value: analytics.summary.totalCompanies,
           icon: icons.company,
-          accent: "border-teal-500",
+          gradient: "from-teal-500 to-cyan-500",
+          glow: "shadow-teal-200",
         },
       ]
     : [];
@@ -374,19 +393,19 @@ const AnalyticsDashboardPage = () => {
           name: "Applied",
           Count: analytics.funnel.totalApplied,
           students: analytics.funnel.appliedStudents || [],
-          fill: COLORS.applied,
+          fill: "#6366F1",
         },
         {
           name: "Shortlisted",
           Count: analytics.funnel.totalShortlisted,
           students: analytics.funnel.shortlistedStudents || [],
-          fill: COLORS.shortlisted,
+          fill: "#F59E0B",
         },
         {
           name: "Selected",
           Count: analytics.funnel.totalSelected,
           students: analytics.funnel.selectedStudents || [],
-          fill: COLORS.placed,
+          fill: "#10B981",
         },
       ]
     : [];
@@ -583,8 +602,7 @@ const AnalyticsDashboardPage = () => {
                         />
                         <Bar
                           dataKey="Selected"
-                          fill={COLORS.selected}
-                          radius={[4, 4, 0, 0]}
+                          radius={[8, 8, 0, 0]}
                           cursor="pointer"
                           onClick={(data) =>
                             setDrilldown({
@@ -593,7 +611,16 @@ const AnalyticsDashboardPage = () => {
                               students: data.students,
                             })
                           }
-                        />
+                        >
+                          {analytics.companyData.map((entry, index) => (
+                            <Cell
+                              key={entry.name}
+                              fill={
+                                COMPANY_PALETTE[index % COMPANY_PALETTE.length]
+                              }
+                            />
+                          ))}
+                        </Bar>
                       </BarChart>
                     </ResponsiveContainer>
                   </>
@@ -630,6 +657,26 @@ const AnalyticsDashboardPage = () => {
                     </p>
                     <ResponsiveContainer width="100%" height={280}>
                       <BarChart data={analytics.ctcDistribution}>
+                        <defs>
+                          <linearGradient
+                            id="ctcGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="0%"
+                              stopColor="#8B5CF6"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="100%"
+                              stopColor="#3B82F6"
+                              stopOpacity={0.8}
+                            />
+                          </linearGradient>
+                        </defs>
                         <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                         <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
                         <Tooltip
@@ -638,8 +685,8 @@ const AnalyticsDashboardPage = () => {
                         />
                         <Bar
                           dataKey="Students"
-                          fill={COLORS.selected}
-                          radius={[4, 4, 0, 0]}
+                          fill="url(#ctcGradient)"
+                          radius={[8, 8, 0, 0]}
                           cursor="pointer"
                           onClick={(data) =>
                             setDrilldown({
@@ -698,7 +745,7 @@ const AnalyticsDashboardPage = () => {
                         />
                         <Bar
                           dataKey="Count"
-                          radius={[0, 4, 4, 0]}
+                          radius={[0, 8, 8, 0]}
                           cursor="pointer"
                           onClick={(data) =>
                             setDrilldown({
@@ -739,13 +786,20 @@ const SummaryCard = ({ card }) => {
   const animatedValue = useCountUp(card.value);
   return (
     <div
-      className={`bg-white rounded-xl border border-[#E2E8F0] border-l-4 ${card.accent} p-4 hover:shadow-md transition-shadow`}
+      className={`bg-white rounded-2xl border border-[#E2E8F0] p-4 hover:shadow-xl ${card.glow} hover:-translate-y-1 transition-all duration-300`}
     >
-      <div className="flex items-center justify-between mb-2">
-        <p className="text-xs text-text-muted">{card.label}</p>
-        <span className="text-[#94A3B8]">{card.icon}</span>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs font-medium text-text-muted">{card.label}</p>
+        <span
+          className={`w-9 h-9 rounded-xl bg-linear-to-br ${card.gradient} text-white flex items-center justify-center shadow-md`}
+        >
+          {card.icon}
+        </span>
       </div>
-      <p className="text-xl font-bold text-[#1E293B]">
+      <p
+        className="text-2xl font-bold text-[#1E293B]"
+        style={{ fontFamily: "Space Grotesk, sans-serif" }}
+      >
         {card.prefix || ""}
         {animatedValue}
         {card.suffix || ""}
