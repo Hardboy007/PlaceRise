@@ -65,20 +65,34 @@ const ROWS_PER_PAGE = 10;
 // ---------- Small helper components ----------
 
 const STATUS_META = {
-  Pending: { dot: "bg-amber-500", bg: "bg-amber-50", text: "text-amber-700", ring: "ring-amber-600/20" },
-  Approved: { dot: "bg-emerald-500", bg: "bg-emerald-50", text: "text-emerald-700", ring: "ring-emerald-600/20" },
-  Rejected: { dot: "bg-rose-500", bg: "bg-rose-50", text: "text-rose-700", ring: "ring-rose-600/20" },
+  Pending: {
+    dot: "bg-amber-500",
+    bg: "bg-amber-50",
+    text: "text-amber-700",
+    ring: "ring-amber-600/20",
+  },
+  Approved: {
+    dot: "bg-emerald-500",
+    bg: "bg-emerald-50",
+    text: "text-emerald-700",
+    ring: "ring-emerald-600/20",
+  },
+  Rejected: {
+    dot: "bg-rose-500",
+    bg: "bg-rose-50",
+    text: "text-rose-700",
+    ring: "ring-rose-600/20",
+  },
 };
 
 function StatusBadge({ status, createdAt }) {
   const age = status === "Pending" ? daysAgo(createdAt) : null;
-  const meta =
-    STATUS_META[status] || {
-      dot: "bg-gray-400",
-      bg: "bg-gray-50",
-      text: "text-gray-600",
-      ring: "ring-gray-400/20",
-    };
+  const meta = STATUS_META[status] || {
+    dot: "bg-gray-400",
+    bg: "bg-gray-50",
+    text: "text-gray-600",
+    ring: "ring-gray-400/20",
+  };
   return (
     <span className="inline-flex items-center gap-1.5">
       <span
@@ -116,7 +130,7 @@ function StatPill({ icon: Icon, label, value, tone = "white" }) {
     rose: "bg-rose-400",
   };
   return (
-    <div className="relative flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl pl-5 pr-4 py-3 min-w-[150px] overflow-hidden">
+    <div className="relative flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl pl-5 pr-4 py-3 min-w-37.5 overflow-hidden">
       <span
         className={`absolute inset-y-0 left-0 w-1 ${TONE_STYLES[tone]}`}
         aria-hidden="true"
@@ -278,7 +292,10 @@ function ViewModal({ open, request, onClose }) {
           </div>
           <div>
             <p className="text-xs text-gray-400 mb-0.5">Status</p>
-            <StatusBadge status={request.status} createdAt={request.createdAt} />
+            <StatusBadge
+              status={request.status}
+              createdAt={request.createdAt}
+            />
           </div>
         </div>
 
@@ -325,7 +342,14 @@ function ViewModal({ open, request, onClose }) {
 // Confirm modal for Approve action — now shows the full purpose text so
 // the coordinator actually reads what they're approving, instead of
 // deciding based on just the student's name and request type.
-function ApproveModal({ open, request, onCancel, onConfirm, loading, errorMessage }) {
+function ApproveModal({
+  open,
+  request,
+  onCancel,
+  onConfirm,
+  loading,
+  errorMessage,
+}) {
   if (!open) return null;
   const isReapprove = request?.status === "Rejected";
   return (
@@ -382,7 +406,14 @@ function ApproveModal({ open, request, onCancel, onConfirm, loading, errorMessag
 
 // Reason input modal for Reject action — same fix, full purpose shown
 // before the coordinator writes a rejection reason.
-function RejectModal({ open, request, onCancel, onSubmit, loading, errorMessage }) {
+function RejectModal({
+  open,
+  request,
+  onCancel,
+  onSubmit,
+  loading,
+  errorMessage,
+}) {
   const [reason, setReason] = useState("");
 
   useEffect(() => {
@@ -713,7 +744,9 @@ export default function NOCManagementPage() {
         {/* Faint corner glow — subtle texture instead of a flat fill */}
         <div
           className="pointer-events-none absolute -top-24 -right-24 w-72 h-72 rounded-full opacity-20 blur-3xl"
-          style={{ background: "radial-gradient(circle, #FFFFFF, transparent 70%)" }}
+          style={{
+            background: "radial-gradient(circle, #FFFFFF, transparent 70%)",
+          }}
           aria-hidden="true"
         />
         <h1 className="relative text-2xl font-bold text-white tracking-tight">
@@ -878,7 +911,9 @@ export default function NOCManagementPage() {
                   <th className="px-4 py-3 font-medium">Type</th>
                   <th className="px-4 py-3 font-medium">Purpose</th>
                   <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium text-center">Document</th>
+                  <th className="px-4 py-3 font-medium text-center">
+                    Document
+                  </th>
                   <th className="px-4 py-3 font-medium text-center">Actions</th>
                 </tr>
               </thead>
@@ -919,7 +954,10 @@ export default function NOCManagementPage() {
                   </tr>
                 ) : (
                   paginatedRequests.map((req) => (
-                    <tr key={req._id} className="hover:bg-blue-50/40 transition-colors">
+                    <tr
+                      key={req._id}
+                      className="hover:bg-blue-50/40 transition-colors"
+                    >
                       <td className="px-4 py-3 font-medium text-gray-800">
                         {req.studentName}
                       </td>
@@ -946,7 +984,10 @@ export default function NOCManagementPage() {
                         />
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <DocumentCell request={req} onDownload={handleDownload} />
+                        <DocumentCell
+                          request={req}
+                          onDownload={handleDownload}
+                        />
                       </td>
                       <td className="px-4 py-3">
                         <ActionsCell
@@ -975,7 +1016,10 @@ export default function NOCManagementPage() {
                 Showing{" "}
                 <span className="font-semibold text-gray-700">
                   {(currentPage - 1) * ROWS_PER_PAGE + 1}–
-                  {Math.min(currentPage * ROWS_PER_PAGE, filteredRequests.length)}
+                  {Math.min(
+                    currentPage * ROWS_PER_PAGE,
+                    filteredRequests.length,
+                  )}
                 </span>{" "}
                 of {filteredRequests.length}
               </span>
