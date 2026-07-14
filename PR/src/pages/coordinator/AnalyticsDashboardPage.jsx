@@ -134,28 +134,20 @@ const icons = {
     </svg>
   ),
   ctcHigh: (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      className="w-5 h-5"
+    <span
+      className="text-base font-bold leading-none"
+      style={{ fontFamily: "system-ui, sans-serif" }}
     >
-      <path d="M6 3h12M6 8h12M6 3v10c0 3 3 5 6 8l6-8" />
-      <path d="M6 3l9 10" />
-    </svg>
+      ₹
+    </span>
   ),
   ctcAvg: (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      className="w-5 h-5"
+    <span
+      className="text-base font-bold leading-none"
+      style={{ fontFamily: "system-ui, sans-serif" }}
     >
-      <path d="M6 3h12M6 8h12M6 3v10c0 3 3 5 6 8l6-8" />
-      <path d="M6 3l9 10" />
-    </svg>
+      ₹
+    </span>
   ),
   company: (
     <svg
