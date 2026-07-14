@@ -114,29 +114,16 @@ export default function CoordinatorDashboard() {
     : 0;
 
   const today = now;
-  const highestCTC = liveJobs.reduce(
-    (max, j) => (j.ctc > max ? j.ctc : max),
-    0,
-  );
 
   // FIXED: only jobs with a real (non-deleted) company are ever considered
   // "live" anywhere below. A deleted company leaves companyId null/undefined
   // on the job doc.
   const liveJobs = jobs.filter((j) => j.companyId && j.companyId.name);
+  const highestCTC = liveJobs.reduce(
+    (max, j) => (j.ctc > max ? j.ctc : max),
+    0,
+  );
 
-  // FIXED: a job is only actually "closed" once its lastDate has passed —
-  // JobPosting.status just defaults to "Active" and is never flipped in the
-  // backend, so it can't be trusted. No lastDate set = treated as still open.
-  //
-  // FIXED (contradiction bug): lastDate is stored at midnight (00:00:00).
-  // The old check compared `lastDate >= now` using the exact time — so on
-  // the deadline day itself, as soon as it passed midnight (e.g. by
-  // evening), lastDate (00:00 today) became "earlier than" now and the job
-  // flipped to "Closed" here — while upcomingDeadlines below (which works
-  // in whole days via daysLeft) still correctly showed it as "Today". Same
-  // job, two different verdicts. Now compares against the END of the
-  // deadline day (23:59:59.999), so a job stays "Active" for its entire
-  // last day, matching the day-based daysLeft logic.
   const isJobOpen = (job) => {
     if (!job.lastDate) return true;
     const last = new Date(job.lastDate);
