@@ -15,6 +15,7 @@ import {
   QrCode,
   Bell,
   X,
+  TrendingUp,
 } from "lucide-react";
 
 const navLinks = [
@@ -34,6 +35,7 @@ const navLinks = [
   { to: "/coordinator/profile", label: "Profile & Settings", icon: User },
   { to: "/coordinator/noc", label: "NOC / LOR", icon: FileText },
   { to: "/coordinator/attendance", label: "Attendance", icon: QrCode },
+  { to: '/coordinator/analytics', label: 'Analytics', icon: TrendingUp },
 ];
 
 function CoordinatorLayout() {
