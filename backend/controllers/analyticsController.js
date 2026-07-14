@@ -17,10 +17,16 @@ const getAnalytics = async (req, res) => {
 
     const applications = await Application.find({
       studentId: { $in: studentIds },
-    }).populate({
-      path: "jobId",
-      populate: { path: "companyId", select: "name" },
-    });
+    })
+      .populate({
+        path: "studentId",
+        select: "name course",
+        populate: { path: "userId", select: "erpId" },
+      })
+      .populate({
+        path: "jobId",
+        populate: { path: "companyId", select: "name" },
+      });
 
     const placedStudents = students.filter(
       (s) => s.placementStatus === "Placed",
@@ -40,7 +46,9 @@ const getAnalytics = async (req, res) => {
       "name",
     );
     const uniqueCompanies = new Set(
-      jobs.map((j) => j.companyId?._id?.toString()),
+      jobs
+        .map((j) => j.companyId?._id?.toString())
+        .filter(Boolean),
     ).size;
 
     // Branch-wise
@@ -80,16 +88,28 @@ const getAnalytics = async (req, res) => {
       (a) => a.status === "Selected",
     ).length;
 
-    // Company selections
+    // Company selections (with student details)
     const companySelections = {};
     applications
       .filter((a) => a.status === "Selected")
       .forEach((a) => {
         const name = a.jobId?.companyId?.name || "Unknown";
-        companySelections[name] = (companySelections[name] || 0) + 1;
+        if (!companySelections[name]) {
+          companySelections[name] = { count: 0, students: [] };
+        }
+        companySelections[name].count += 1;
+        companySelections[name].students.push({
+          name: a.studentId?.name || "Unknown Student",
+          erpId: a.studentId?.userId?.erpId || "N/A",
+          course: a.studentId?.course || "N/A",
+        });
       });
     const companyData = Object.entries(companySelections)
-      .map(([name, count]) => ({ name, Selected: count }))
+      .map(([name, data]) => ({
+        name,
+        Selected: data.count,
+        students: data.students,
+      }))
       .sort((a, b) => b.Selected - a.Selected);
 
     res.json({
@@ -130,7 +150,7 @@ const exportAnalyticsExcel = async (req, res) => {
     const applications = await Application.find({
       studentId: { $in: students.map((s) => s._id) },
     })
-      .populate("studentId", "name") 
+      .populate("studentId", "name")
       .populate({
         path: "jobId",
         populate: { path: "companyId", select: "name" },

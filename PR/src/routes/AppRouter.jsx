@@ -23,6 +23,7 @@ import AttendancePage from "../pages/coordinator/AttendancePage";
 import DocumentRequestPage from "../pages/student/DocumentRequestPage";
 import ScanAttendancePage from "../pages/student/ScanAttendancePage";
 import RecruiterCRMPage from "../pages/coordinator/RecruiterCRMPage";
+import AnalyticsDashboardPage from "../pages/coordinator/AnalyticsDashboardPage";
 
 function AppRouter() {
   return (
@@ -84,6 +85,7 @@ function AppRouter() {
           <Route path="profile" element={<CoordinatorProfile />} />
           <Route path="noc" element={<NOCManagementPage />} />
           <Route path="attendance" element={<AttendancePage />} />
+          <Route path="analytics" element={<AnalyticsDashboardPage />} />
         </Route>
         <Route path="*" element={<div>404 - Page Not Found</div>} />
       </Routes>
