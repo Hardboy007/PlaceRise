@@ -496,7 +496,6 @@ export default function PlacementDashboard() {
       setAnnouncementsError("");
       setJobsError("");
 
-      
       const [annRes, jobsRes, appsRes, studentRes] = await Promise.allSettled([
         api.get("/announcements"),
         api.get("/companies/jobs"),
@@ -551,7 +550,9 @@ export default function PlacementDashboard() {
 
   useEffect(() => {
     fetchAll();
-    const interval = setInterval(fetchAll, POLL_INTERVAL_MS);
+    const interval = setInterval(() => {
+      if (!document.hidden) fetchAll();
+    }, POLL_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [fetchAll]);
 

@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import { Outlet, NavLink, useNavigate, Link, useLocation } from "react-router-dom";
+import {
+  Outlet,
+  NavLink,
+  useNavigate,
+  Link,
+  useLocation,
+} from "react-router-dom";
 import { api } from "../utils/api";
 import {
   LayoutDashboard,
@@ -35,7 +41,7 @@ const navLinks = [
   { to: "/coordinator/profile", label: "Profile & Settings", icon: User },
   { to: "/coordinator/noc", label: "NOC / LOR", icon: FileText },
   { to: "/coordinator/attendance", label: "Attendance", icon: QrCode },
-  { to: '/coordinator/analytics', label: 'Analytics', icon: LineChart },
+  { to: "/coordinator/analytics", label: "Analytics", icon: LineChart },
 ];
 
 function CoordinatorLayout() {
@@ -64,7 +70,9 @@ function CoordinatorLayout() {
       setUnreadCount(data.count || 0);
     };
     fetchCount();
-    const interval = setInterval(fetchCount, 30000);
+    const interval = setInterval(() => {
+      if (!document.hidden) fetchCount();
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 
