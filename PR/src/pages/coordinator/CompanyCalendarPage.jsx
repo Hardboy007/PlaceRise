@@ -477,6 +477,7 @@ export default function CompanyCalendarPage() {
   const [dayPopup, setDayPopup] = useState(null);
   const [detailJob, setDetailJob] = useState(null);
   const [filter, setFilter] = useState("upcoming");
+  const [search, setSearch] = useState("");
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -567,7 +568,10 @@ export default function CompanyCalendarPage() {
 
   if (loading)
     return (
-      <div className="text-center py-20 text-gray-400">Loading calendar...</div>
+      <div className="flex flex-col items-center justify-center py-24 gap-3">
+        <div className="w-8 h-8 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin" />
+        <p className="text-sm text-gray-400">Loading calendar...</p>
+      </div>
     );
 
   return (
@@ -756,6 +760,12 @@ export default function CompanyCalendarPage() {
             <p className="text-[11px] text-gray-400 mt-1">
               {upcomingCount} deadline{upcomingCount !== 1 ? "s" : ""} remaining
             </p>
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search company or role..."
+              className="w-full mt-2.5 px-2.5 py-1.5 text-[11px] border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:border-blue-400 placeholder:text-gray-400"
+            />
           </div>
           <div className="flex-1 overflow-y-auto divide-y divide-gray-100">
             {sortedJobs.length === 0 ? (
@@ -771,6 +781,14 @@ export default function CompanyCalendarPage() {
                       ? j.parsedDate < todayMid
                       : j.parsedDate >= todayMid,
                 )
+                .filter((j) => {
+                  const q = search.toLowerCase().trim();
+                  if (!q) return true;
+                  return (
+                    (j.companyId?.name || "").toLowerCase().includes(q) ||
+                    (j.role || "").toLowerCase().includes(q)
+                  );
+                })
                 .map((j) => {
                   const diff = daysUntil(j.parsedDate, todayMid);
                   const dateStr = `${j.parsedDate.getDate()} ${SHORT[j.parsedDate.getMonth()]}`;
@@ -782,7 +800,12 @@ export default function CompanyCalendarPage() {
                         setCurMonth(j.parsedDate.getMonth());
                         setDetailJob(j);
                       }}
-                      className="px-4 py-3 flex items-start gap-3 hover:bg-gray-50 transition-colors cursor-pointer group"
+                      className={`px-4 py-3 flex items-start gap-3 hover:bg-gray-50 transition-colors cursor-pointer group ${
+                        j._id ===
+                        sortedJobs.find((x) => x.parsedDate >= todayMid)?._id
+                          ? "border-l-2 border-blue-500 bg-blue-50/30"
+                          : ""
+                      }`}
                     >
                       <CompanyAvatar company={j.companyId?.name} size="sm" />
                       <div className="flex-1 min-w-0">
