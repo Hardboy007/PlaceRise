@@ -43,7 +43,15 @@ const getMyRequests = async (req, res) => {
 const getAllRequests = async (req, res) => {
   try {
     const requests = await NOCRequest.find()
-      .populate("studentId", "name course school branch")
+      .populate({
+        path: "studentId",
+        select: "name course school branch userId",
+        // erpId doesn't live on Student directly — it's on the linked
+        // User doc, so it needs its own nested populate here too
+        // (updateRequestStatus already did this correctly, this one
+        // was missing it, which is why erpId was showing blank in the table).
+        populate: { path: "userId", select: "erpId" },
+      })
       .sort({ createdAt: -1 });
 
     // Frontend expects flattened fields (studentName, course, requestType)
@@ -52,6 +60,7 @@ const getAllRequests = async (req, res) => {
       _id: r._id,
       studentId: r.studentId?._id,
       studentName: r.studentId?.name || "Unknown",
+      erpId: r.studentId?.userId?.erpId || "",
       course: r.studentId?.course || "",
       school: r.studentId?.school || "",
       branch: r.studentId?.branch || "",

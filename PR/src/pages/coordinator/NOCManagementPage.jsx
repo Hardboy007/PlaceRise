@@ -10,6 +10,10 @@ import {
   ClipboardList,
   Clock,
   GraduationCap,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  RotateCcw,
 } from "lucide-react";
 import { api } from "../../utils/api";
 import universityStructure from "../../data/universityStructure";
@@ -35,64 +39,325 @@ const shortSchoolName = (school) => {
   return match ? match[1] : school;
 };
 
-// ---------- Small helper components ----------
-
-const STATUS_STYLES = {
-  Pending: "bg-amber-100 text-amber-700 border border-amber-300",
-  Approved: "bg-green-100 text-green-700 border border-green-300",
-  Rejected: "bg-red-100 text-red-700 border border-red-300",
+// How many days ago a request was submitted — used to flag stale
+// Pending requests so the coordinator doesn't lose track of older ones.
+const daysAgo = (dateStr) => {
+  if (!dateStr) return null;
+  const diffMs = Date.now() - new Date(dateStr).getTime();
+  return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
 };
 
-function StatusBadge({ status }) {
+// Pull a readable message out of whatever shape the API error has
+// (axios-style err.response.data.message, a plain Error, or a string)
+// so the coordinator sees *why* an action failed instead of a generic line.
+const getErrorMessage = (err, fallback) => {
   return (
-    <span
-      className={`px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
-        STATUS_STYLES[status] ||
-        "bg-gray-100 text-gray-700 border border-gray-300"
-      }`}
-    >
-      {status}
+    err?.response?.data?.message ||
+    err?.data?.message ||
+    err?.message ||
+    (typeof err === "string" ? err : null) ||
+    fallback
+  );
+};
+
+const ROWS_PER_PAGE = 10;
+
+// ---------- Small helper components ----------
+
+const STATUS_META = {
+  Pending: { dot: "bg-amber-500", bg: "bg-amber-50", text: "text-amber-700", ring: "ring-amber-600/20" },
+  Approved: { dot: "bg-emerald-500", bg: "bg-emerald-50", text: "text-emerald-700", ring: "ring-emerald-600/20" },
+  Rejected: { dot: "bg-rose-500", bg: "bg-rose-50", text: "text-rose-700", ring: "ring-rose-600/20" },
+};
+
+function StatusBadge({ status, createdAt }) {
+  const age = status === "Pending" ? daysAgo(createdAt) : null;
+  const meta =
+    STATUS_META[status] || {
+      dot: "bg-gray-400",
+      bg: "bg-gray-50",
+      text: "text-gray-600",
+      ring: "ring-gray-400/20",
+    };
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span
+        className={`inline-flex items-center gap-1.5 pl-2 pr-2.5 py-1 rounded-full ring-1 ring-inset text-xs font-semibold whitespace-nowrap ${meta.bg} ${meta.text} ${meta.ring}`}
+      >
+        <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
+        {status}
+      </span>
+      {/* Flag Pending requests that have been sitting for 3+ days */}
+      {age !== null && age >= 3 && (
+        <span
+          className="text-[10px] font-semibold text-rose-600"
+          title={`Submitted ${age} days ago`}
+        >
+          {age}d
+        </span>
+      )}
     </span>
   );
 }
 
 function TypeBadge({ type }) {
   return (
-    <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-300 whitespace-nowrap">
+    <span className="px-2.5 py-1 rounded-full ring-1 ring-inset ring-blue-600/20 text-xs font-semibold tracking-wide bg-blue-50 text-blue-700 whitespace-nowrap">
       {type}
     </span>
   );
 }
 
-function StatPill({ icon: Icon, label, value }) {
+function StatPill({ icon: Icon, label, value, tone = "white" }) {
+  const TONE_STYLES = {
+    white: "bg-white/15",
+    amber: "bg-amber-400",
+    emerald: "bg-emerald-400",
+    rose: "bg-rose-400",
+  };
   return (
-    <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-3 min-w-[140px]">
-      <div className="p-2 rounded-lg bg-white/15">
+    <div className="relative flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl pl-5 pr-4 py-3 min-w-[150px] overflow-hidden">
+      <span
+        className={`absolute inset-y-0 left-0 w-1 ${TONE_STYLES[tone]}`}
+        aria-hidden="true"
+      />
+      <div className={`p-2 rounded-lg ${TONE_STYLES[tone]} shadow-inner`}>
         <Icon size={18} className="text-white" />
       </div>
       <div>
-        <div className="text-xl font-bold text-white leading-none">{value}</div>
-        <div className="text-xs text-white/70 mt-1">{label}</div>
+        <div className="text-xl font-bold text-white leading-none tracking-tight">
+          {value}
+        </div>
+        <div className="text-xs text-white/70 mt-1 font-medium">{label}</div>
       </div>
     </div>
   );
 }
 
-// Confirm modal for Approve action
-function ApproveModal({ open, request, onCancel, onConfirm, loading }) {
-  if (!open) return null;
+// ---------- Document cell ----------
+// PDF download used to live inside Actions, which meant Approved rows had
+// 2 buttons while Rejected rows had 1 — uneven row heights/widths made the
+// whole column look messy. Pulling it into its own column fixes that.
+function DocumentCell({ request, onDownload }) {
+  if (request.status !== "Approved") {
+    return <span className="text-gray-300 text-xs">—</span>;
+  }
+  return (
+    <button
+      onClick={() => onDownload(request)}
+      disabled={!request.pdfUrl}
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 shadow-sm shadow-blue-600/25 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+    >
+      <Download size={14} />
+      PDF
+    </button>
+  );
+}
+
+// ---------- Actions cell ----------
+// Redesigned so every action is a labeled pill, not a bare icon.
+// A lone green tick on a Rejected row used to be ambiguous (approve? undo?
+// something else?) — now it always reads "Re-approve" in text. Each status
+// renders exactly one consistent row of buttons (2 for Pending, 1 for
+// Approved/Rejected) so the column doesn't zig-zag between rows.
+function ActionsCell({ request, onApprove, onReject }) {
+  const { status } = request;
+
+  return (
+    <div className="flex items-center justify-center gap-2">
+      {status === "Pending" && (
+        <>
+          <button
+            onClick={() => onApprove(request)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 shadow-sm shadow-emerald-600/25 transition-all"
+          >
+            <CheckCircle2 size={14} />
+            Approve
+          </button>
+          <button
+            onClick={() => onReject(request)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 active:scale-95 ring-1 ring-inset ring-rose-200 transition-all"
+          >
+            <XCircle size={14} />
+            Reject
+          </button>
+        </>
+      )}
+
+      {status === "Approved" && (
+        <button
+          onClick={() => onReject(request)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-rose-600 bg-rose-50 hover:bg-rose-100 active:scale-95 ring-1 ring-inset ring-rose-200 transition-all"
+          title="Revoke this approval"
+        >
+          <RotateCcw size={13} />
+          Revoke
+        </button>
+      )}
+
+      {status === "Rejected" && (
+        <button
+          onClick={() => onApprove(request)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 shadow-sm shadow-emerald-600/25 transition-all"
+          title="Approve this request even though it was rejected before"
+        >
+          <RotateCcw size={14} />
+          Re-approve
+        </button>
+      )}
+    </div>
+  );
+}
+
+// View full request details — lets the coordinator read the complete
+// purpose text (and everything else) for ANY request, any time, not just
+// while approving/rejecting. Fixes the truncated-purpose-with-only-a-
+// hover-tooltip problem in the table.
+function ViewModal({ open, request, onClose }) {
+  if (!open || !request) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+      <div className="bg-white rounded-2xl shadow-2xl shadow-gray-900/10 ring-1 ring-gray-100 w-full max-w-lg p-6">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">
+              Request Details
+            </h3>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Submitted{" "}
+              {request.createdAt
+                ? new Date(request.createdAt).toLocaleDateString("en-IN", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })
+                : "—"}
+            </p>
+            {(request.status === "Approved" || request.status === "Rejected") &&
+              request.updatedAt && (
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {request.status === "Approved" ? "Approved" : "Rejected"}{" "}
+                  {new Date(request.updatedAt).toLocaleDateString("en-IN", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </p>
+              )}
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div>
+            <p className="text-xs text-gray-400 mb-0.5">Student</p>
+            <p className="text-sm font-medium text-gray-800">
+              {request.studentName}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-400 mb-0.5">ERP ID</p>
+            <p className="text-sm font-medium text-gray-800">
+              {request.erpId || "—"}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-400 mb-0.5">Course</p>
+            <p className="text-sm font-medium text-gray-800">
+              {request.course || "—"}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-400 mb-0.5">Type</p>
+            <TypeBadge type={request.requestType} />
+          </div>
+          <div>
+            <p className="text-xs text-gray-400 mb-0.5">Status</p>
+            <StatusBadge status={request.status} createdAt={request.createdAt} />
+          </div>
+        </div>
+
+        <div className="mb-2">
+          <p className="text-xs text-gray-400 mb-1">Purpose</p>
+          <p className="text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg p-3 leading-relaxed whitespace-pre-wrap">
+            {request.purpose || "—"}
+          </p>
+        </div>
+
+        {request.status === "Rejected" && request.rejectionReason && (
+          <div className="mb-2">
+            <p className="text-xs text-gray-400 mb-1">Rejection Reason</p>
+            <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3 leading-relaxed whitespace-pre-wrap">
+              {request.rejectionReason}
+            </p>
+          </div>
+        )}
+
+        {request.status === "Approved" && request.pdfUrl && (
+          <a
+            href={request.pdfUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 mt-2 text-sm font-medium text-blue-600 hover:underline"
+          >
+            <Download size={14} /> Download PDF
+          </a>
+        )}
+
+        <div className="flex justify-end mt-5">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Confirm modal for Approve action — now shows the full purpose text so
+// the coordinator actually reads what they're approving, instead of
+// deciding based on just the student's name and request type.
+function ApproveModal({ open, request, onCancel, onConfirm, loading, errorMessage }) {
+  if (!open) return null;
+  const isReapprove = request?.status === "Rejected";
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+      <div className="bg-white rounded-2xl shadow-2xl shadow-gray-900/10 ring-1 ring-gray-100 w-full max-w-md p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Approve Request?
+          {isReapprove ? "Re-approve Request?" : "Approve Request?"}
         </h3>
-        <p className="text-sm text-gray-600 mb-5">
-          You're about to approve{" "}
+        <p className="text-sm text-gray-600 mb-3">
+          You're about to {isReapprove ? "re-approve" : "approve"}{" "}
           <span className="font-medium">{request?.studentName}</span>'s{" "}
           <span className="font-medium">{request?.requestType}</span> request.
-          The status will update immediately after you confirm.
+          {isReapprove
+            ? " This request was previously rejected — approving it will generate a fresh document."
+            : " The status will update immediately after you confirm."}
         </p>
+
+        <div className="mb-5">
+          <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">
+            Purpose
+          </p>
+          <p className="text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg p-3 leading-relaxed whitespace-pre-wrap max-h-40 overflow-y-auto">
+            {request?.purpose || "—"}
+          </p>
+        </div>
+
+        {errorMessage && (
+          <div className="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm border border-red-200">
+            {errorMessage}
+          </div>
+        )}
+
         <div className="flex justify-end gap-3">
           <button
             onClick={onCancel}
@@ -115,8 +380,9 @@ function ApproveModal({ open, request, onCancel, onConfirm, loading }) {
   );
 }
 
-// Reason input modal for Reject action
-function RejectModal({ open, request, onCancel, onSubmit, loading }) {
+// Reason input modal for Reject action — same fix, full purpose shown
+// before the coordinator writes a rejection reason.
+function RejectModal({ open, request, onCancel, onSubmit, loading, errorMessage }) {
   const [reason, setReason] = useState("");
 
   useEffect(() => {
@@ -125,14 +391,15 @@ function RejectModal({ open, request, onCancel, onSubmit, loading }) {
 
   if (!open) return null;
 
+  const isRevoke = request?.status === "Approved";
   const canSubmit = reason.trim().length > 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+      <div className="bg-white rounded-2xl shadow-2xl shadow-gray-900/10 ring-1 ring-gray-100 w-full max-w-md p-6">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-lg font-semibold text-gray-900">
-            Reject Request
+            {isRevoke ? "Revoke Approval" : "Reject Request"}
           </h3>
           <button
             onClick={onCancel}
@@ -144,7 +411,23 @@ function RejectModal({ open, request, onCancel, onSubmit, loading }) {
         <p className="text-sm text-gray-600 mb-3">
           <span className="font-medium">{request?.studentName}</span>'s{" "}
           <span className="font-medium">{request?.requestType}</span> request.
-          Please provide a reason for rejecting this request.
+          {isRevoke &&
+            " This request was previously approved — revoking will invalidate the generated document."}
+        </p>
+
+        <div className="mb-4">
+          <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">
+            Purpose
+          </p>
+          <p className="text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg p-3 leading-relaxed whitespace-pre-wrap max-h-40 overflow-y-auto">
+            {request?.purpose || "—"}
+          </p>
+        </div>
+
+        <p className="text-sm text-gray-600 mb-2">
+          {isRevoke
+            ? "Please provide a reason for revoking this approval."
+            : "Please provide a reason for rejecting this request."}
         </p>
         <textarea
           value={reason}
@@ -153,6 +436,13 @@ function RejectModal({ open, request, onCancel, onSubmit, loading }) {
           placeholder="Type rejection reason..."
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 resize-none"
         />
+
+        {errorMessage && (
+          <div className="mt-3 p-3 rounded-lg bg-red-50 text-red-700 text-sm border border-red-200">
+            {errorMessage}
+          </div>
+        )}
+
         <div className="flex justify-end gap-3 mt-5">
           <button
             onClick={onCancel}
@@ -186,11 +476,15 @@ export default function NOCManagementPage() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [schoolFilter, setSchoolFilter] = useState("All"); // school pill selection
   const [courseFilter, setCourseFilter] = useState("All"); // specific course dropdown
+  const [searchQuery, setSearchQuery] = useState(""); // student name / ERP ID search
+  const [currentPage, setCurrentPage] = useState(1);
 
   // modal state
   const [approveTarget, setApproveTarget] = useState(null); // request object
   const [rejectTarget, setRejectTarget] = useState(null); // request object
+  const [viewTarget, setViewTarget] = useState(null); // request object being viewed in full
   const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState(""); // surfaced inside the modal, not a generic alert
 
   const fetchRequests = async (isInitialLoad = false) => {
     try {
@@ -282,24 +576,52 @@ export default function NOCManagementPage() {
       .sort((a, b) => a.school.localeCompare(b.school));
   }, [requests, schoolFilter]);
 
-  const filteredRequests = requests.filter((req) => {
-    // Type/Status pill filter (existing)
-    const matchesTypeStatus =
-      activeFilter === "All"
-        ? true
-        : activeFilter === "NOC" || activeFilter === "LOR"
-          ? req.requestType === activeFilter
-          : req.status === activeFilter;
+  const filteredRequests = useMemo(() => {
+    return requests.filter((req) => {
+      // Type/Status pill filter (existing)
+      const matchesTypeStatus =
+        activeFilter === "All"
+          ? true
+          : activeFilter === "NOC" || activeFilter === "LOR"
+            ? req.requestType === activeFilter
+            : req.status === activeFilter;
 
-    // School pill filter
-    const reqSchool = COURSE_TO_SCHOOL[req.course] || "Other";
-    const matchesSchool = schoolFilter === "All" || reqSchool === schoolFilter;
+      // School pill filter
+      const reqSchool = COURSE_TO_SCHOOL[req.course] || "Other";
+      const matchesSchool =
+        schoolFilter === "All" || reqSchool === schoolFilter;
 
-    // Specific course dropdown filter
-    const matchesCourse = courseFilter === "All" || req.course === courseFilter;
+      // Specific course dropdown filter
+      const matchesCourse =
+        courseFilter === "All" || req.course === courseFilter;
 
-    return matchesTypeStatus && matchesSchool && matchesCourse;
-  });
+      // Student name OR ERP ID search (case-insensitive, trimmed)
+      const query = searchQuery.trim().toLowerCase();
+      const matchesSearch =
+        query === "" ||
+        (req.studentName || "").toLowerCase().includes(query) ||
+        (req.erpId || "").toString().toLowerCase().includes(query);
+
+      return (
+        matchesTypeStatus && matchesSchool && matchesCourse && matchesSearch
+      );
+    });
+  }, [requests, activeFilter, schoolFilter, courseFilter, searchQuery]);
+
+  // Reset to page 1 whenever filters/search change the result set, so the
+  // coordinator doesn't get stuck on an empty page after narrowing down.
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilter, schoolFilter, courseFilter, searchQuery]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredRequests.length / ROWS_PER_PAGE),
+  );
+  const paginatedRequests = filteredRequests.slice(
+    (currentPage - 1) * ROWS_PER_PAGE,
+    currentPage * ROWS_PER_PAGE,
+  );
 
   const handleSchoolFilterChange = (school) => {
     setSchoolFilter(school);
@@ -311,6 +633,7 @@ export default function NOCManagementPage() {
     if (!approveTarget) return;
     try {
       setActionLoading(true);
+      setActionError("");
       await api.put(`/noc/${approveTarget._id}/status`, { status: "Approved" });
       setRequests((prev) =>
         prev.map((r) =>
@@ -318,9 +641,20 @@ export default function NOCManagementPage() {
         ),
       );
       setApproveTarget(null);
+      // Re-fetch so the coordinator's own list picks up the freshly
+      // generated pdfUrl right away (backend generates it synchronously
+      // during the approve call, but the local optimistic update above
+      // doesn't include it).
+      fetchRequests(false);
     } catch (err) {
       console.error("Approve failed:", err);
-      alert("Failed to approve. Please try again.");
+      // Show the real reason (e.g. "PDF template missing", "Unauthorized",
+      // a validation message) inside the modal instead of a blind
+      // "Failed to approve" alert — that's the only way to actually
+      // diagnose why it's failing.
+      setActionError(
+        getErrorMessage(err, "Failed to approve. Please try again."),
+      );
     } finally {
       setActionLoading(false);
     }
@@ -331,6 +665,7 @@ export default function NOCManagementPage() {
     if (!rejectTarget) return;
     try {
       setActionLoading(true);
+      setActionError("");
       await api.put(`/noc/${rejectTarget._id}/status`, {
         status: "Rejected",
         rejectionReason: reason,
@@ -345,7 +680,9 @@ export default function NOCManagementPage() {
       setRejectTarget(null);
     } catch (err) {
       console.error("Reject failed:", err);
-      alert("Failed to reject. Please try again.");
+      setActionError(
+        getErrorMessage(err, "Failed to reject. Please try again."),
+      );
     } finally {
       setActionLoading(false);
     }
@@ -367,31 +704,51 @@ export default function NOCManagementPage() {
     <div className="max-w-7xl mx-auto">
       {/* Gradient Hero */}
       <div
-        className="rounded-2xl px-6 py-8 mb-6 shadow-lg"
+        className="relative overflow-hidden rounded-2xl px-6 py-8 mb-6 shadow-lg shadow-blue-900/10"
         style={{
           background:
-            "linear-gradient(135deg, #3B82F6 0%, #60A5FA 60%, #818CF8 100%)",
+            "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #4F46E5 100%)",
         }}
       >
-        <h1 className="text-2xl font-bold text-white">NOC / LOR Requests</h1>
-        <p className="text-sm text-white/80 mt-1 mb-5">
+        {/* Faint corner glow — subtle texture instead of a flat fill */}
+        <div
+          className="pointer-events-none absolute -top-24 -right-24 w-72 h-72 rounded-full opacity-20 blur-3xl"
+          style={{ background: "radial-gradient(circle, #FFFFFF, transparent 70%)" }}
+          aria-hidden="true"
+        />
+        <h1 className="relative text-2xl font-bold text-white tracking-tight">
+          NOC / LOR Requests
+        </h1>
+        <p className="relative text-sm text-white/75 mt-1 mb-5">
           Review and approve or reject students' NOC and LOR requests here.
         </p>
 
         {/* Stat strip */}
-        <div className="flex flex-wrap gap-3">
+        <div className="relative flex flex-wrap gap-3">
           <StatPill
             icon={ClipboardList}
             label="Total Requests"
             value={stats.total}
+            tone="white"
           />
-          <StatPill icon={Clock} label="Pending" value={stats.pending} />
+          <StatPill
+            icon={Clock}
+            label="Pending"
+            value={stats.pending}
+            tone="amber"
+          />
           <StatPill
             icon={CheckCircle2}
             label="Approved"
             value={stats.approved}
+            tone="emerald"
           />
-          <StatPill icon={XCircle} label="Rejected" value={stats.rejected} />
+          <StatPill
+            icon={XCircle}
+            label="Rejected"
+            value={stats.rejected}
+            tone="rose"
+          />
         </div>
       </div>
 
@@ -399,17 +756,17 @@ export default function NOCManagementPage() {
         {/* School-wise breakdown */}
         {schoolBreakdown.length > 0 && (
           <div className="mb-4">
-            <div className="flex items-center gap-1.5 text-xs font-medium text-gray-500 mb-2">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
               <GraduationCap size={14} />
               Requests by School
             </div>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => handleSchoolFilterChange("All")}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   schoolFilter === "All"
-                    ? "bg-gray-900 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    ? "bg-slate-900 text-white shadow-sm"
+                    : "bg-white text-gray-600 ring-1 ring-inset ring-gray-200 hover:ring-gray-300 hover:text-gray-900"
                 }`}
               >
                 All Schools ({stats.total})
@@ -419,10 +776,10 @@ export default function NOCManagementPage() {
                   key={school}
                   onClick={() => handleSchoolFilterChange(school)}
                   title={school}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                     schoolFilter === school
-                      ? "bg-gray-900 text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      ? "bg-slate-900 text-white shadow-sm"
+                      : "bg-white text-gray-600 ring-1 ring-inset ring-gray-200 hover:ring-gray-300 hover:text-gray-900"
                   }`}
                 >
                   {shortSchoolName(school)} ({count})
@@ -439,33 +796,67 @@ export default function NOCManagementPage() {
             <button
               key={f}
               onClick={() => setActiveFilter(f)}
-              className={`px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              className={`px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all ${
                 activeFilter === f
-                  ? "bg-[#3B82F6] text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  ? "bg-blue-600 text-white shadow-sm shadow-blue-600/25"
+                  : "bg-white text-gray-600 ring-1 ring-inset ring-gray-200 hover:ring-gray-300 hover:text-gray-900"
               }`}
             >
               {f}
             </button>
           ))}
 
-          {/* Course dropdown, grouped by school */}
-          <select
-            value={courseFilter}
-            onChange={(e) => setCourseFilter(e.target.value)}
-            className="ml-auto px-3 py-1.5 rounded-lg text-sm border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          >
-            <option value="All">All Courses</option>
-            {groupedCourseOptions.map(({ school, courses }) => (
-              <optgroup key={school} label={shortSchoolName(school)}>
-                {courses.map(({ course, count }) => (
-                  <option key={course} value={course}>
-                    {course} ({count})
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
+          {/* Search by student name or ERP ID */}
+          <div className="relative ml-auto">
+            <Search
+              size={15}
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+            />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search name or ERP ID..."
+              className="pl-8 pr-7 py-1.5 rounded-lg text-sm bg-white text-gray-700 ring-1 ring-inset ring-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow w-56"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                title="Clear search"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          {/* Course dropdown, grouped by school — reads as a refinement
+              step after the school pills above, not a duplicate filter */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-medium text-gray-400 hidden sm:inline">
+              Course:
+            </span>
+            <select
+              value={courseFilter}
+              onChange={(e) => setCourseFilter(e.target.value)}
+              className="px-3 py-1.5 rounded-lg text-sm bg-gray-50 text-gray-600 ring-1 ring-inset ring-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+            >
+              <option value="All">
+                {schoolFilter === "All"
+                  ? "All Courses"
+                  : `All ${shortSchoolName(schoolFilter)} Courses`}
+              </option>
+              {groupedCourseOptions.map(({ school, courses }) => (
+                <optgroup key={school} label={shortSchoolName(school)}>
+                  {courses.map(({ course, count }) => (
+                    <option key={course} value={course}>
+                      {course} ({count})
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Error state */}
@@ -476,25 +867,26 @@ export default function NOCManagementPage() {
         )}
 
         {/* Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm shadow-gray-200/60 ring-1 ring-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200 text-left text-gray-500 text-xs uppercase tracking-wide">
+                <tr className="bg-slate-50/80 border-b border-gray-200 text-left text-gray-500 text-[11px] font-semibold uppercase tracking-wider">
                   <th className="px-4 py-3 font-medium">Student</th>
+                  <th className="px-4 py-3 font-medium">ERP ID</th>
                   <th className="px-4 py-3 font-medium">Course</th>
                   <th className="px-4 py-3 font-medium">Type</th>
                   <th className="px-4 py-3 font-medium">Purpose</th>
-                  <th className="px-4 py-3 font-medium">Date</th>
                   <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium text-right">Actions</th>
+                  <th className="px-4 py-3 font-medium text-center">Document</th>
+                  <th className="px-4 py-3 font-medium text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {loading ? (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="px-4 py-10 text-center text-gray-400"
                     >
                       <Loader2
@@ -507,7 +899,7 @@ export default function NOCManagementPage() {
                 ) : filteredRequests.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="px-4 py-10 text-center text-gray-400"
                     >
                       <FileText
@@ -515,70 +907,59 @@ export default function NOCManagementPage() {
                         className="inline-block mb-2 opacity-50"
                       />
                       <div>No requests found.</div>
+                      {(activeFilter !== "All" ||
+                        schoolFilter !== "All" ||
+                        courseFilter !== "All" ||
+                        searchQuery) && (
+                        <div className="text-xs mt-1">
+                          Try adjusting your filters or search.
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ) : (
-                  filteredRequests.map((req) => (
-                    <tr key={req._id} className="hover:bg-gray-50">
+                  paginatedRequests.map((req) => (
+                    <tr key={req._id} className="hover:bg-blue-50/40 transition-colors">
                       <td className="px-4 py-3 font-medium text-gray-800">
                         {req.studentName}
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
+                        {req.erpId || "—"}
                       </td>
                       <td className="px-4 py-3 text-gray-600">{req.course}</td>
                       <td className="px-4 py-3">
                         <TypeBadge type={req.requestType} />
                       </td>
-                      <td
-                        className="px-4 py-3 text-gray-600 max-w-xs truncate"
-                        title={req.purpose}
-                      >
-                        {req.purpose}
-                      </td>
-                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
-                        {req.createdAt
-                          ? new Date(req.createdAt).toLocaleDateString(
-                              "en-IN",
-                              {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                              },
-                            )
-                          : "-"}
+                      <td className="px-4 py-3 text-gray-600 max-w-xs">
+                        <button
+                          onClick={() => setViewTarget(req)}
+                          className="truncate block w-full text-left hover:text-blue-600 hover:underline"
+                          title="Click to read full purpose"
+                        >
+                          {req.purpose}
+                        </button>
                       </td>
                       <td className="px-4 py-3">
-                        <StatusBadge status={req.status} />
+                        <StatusBadge
+                          status={req.status}
+                          createdAt={req.createdAt}
+                        />
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <DocumentCell request={req} onDownload={handleDownload} />
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center justify-end gap-2">
-                          {req.status === "Pending" && (
-                            <>
-                              <button
-                                onClick={() => setApproveTarget(req)}
-                                className="p-1.5 rounded-lg text-green-600 hover:bg-green-50"
-                                title="Approve"
-                              >
-                                <CheckCircle2 size={18} />
-                              </button>
-                              <button
-                                onClick={() => setRejectTarget(req)}
-                                className="p-1.5 rounded-lg text-red-600 hover:bg-red-50"
-                                title="Reject"
-                              >
-                                <XCircle size={18} />
-                              </button>
-                            </>
-                          )}
-                          {req.status === "Approved" && (
-                            <button
-                              onClick={() => handleDownload(req)}
-                              disabled={!req.pdfUrl}
-                              className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1"
-                              title="Download PDF"
-                            >
-                              <Download size={18} />
-                            </button>
-                          )}
-                        </div>
+                        <ActionsCell
+                          request={req}
+                          onApprove={(r) => {
+                            setActionError("");
+                            setApproveTarget(r);
+                          }}
+                          onReject={(r) => {
+                            setActionError("");
+                            setRejectTarget(r);
+                          }}
+                        />
                       </td>
                     </tr>
                   ))
@@ -586,21 +967,71 @@ export default function NOCManagementPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination footer */}
+          {!loading && filteredRequests.length > ROWS_PER_PAGE && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-slate-50/50 text-sm text-gray-500">
+              <span>
+                Showing{" "}
+                <span className="font-semibold text-gray-700">
+                  {(currentPage - 1) * ROWS_PER_PAGE + 1}–
+                  {Math.min(currentPage * ROWS_PER_PAGE, filteredRequests.length)}
+                </span>{" "}
+                of {filteredRequests.length}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-1.5 rounded-lg bg-white ring-1 ring-inset ring-gray-200 text-gray-500 hover:text-gray-900 hover:ring-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span className="px-2.5 py-1 rounded-md bg-white ring-1 ring-inset ring-gray-200 text-gray-700 font-semibold text-xs">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="p-1.5 rounded-lg bg-white ring-1 ring-inset ring-gray-200 text-gray-500 hover:text-gray-900 hover:ring-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Modals */}
+        <ViewModal
+          open={!!viewTarget}
+          request={viewTarget}
+          onClose={() => setViewTarget(null)}
+        />
         <ApproveModal
           open={!!approveTarget}
           request={approveTarget}
           loading={actionLoading}
-          onCancel={() => !actionLoading && setApproveTarget(null)}
+          errorMessage={actionError}
+          onCancel={() => {
+            if (actionLoading) return;
+            setApproveTarget(null);
+            setActionError("");
+          }}
           onConfirm={handleApproveConfirm}
         />
         <RejectModal
           open={!!rejectTarget}
           request={rejectTarget}
           loading={actionLoading}
-          onCancel={() => !actionLoading && setRejectTarget(null)}
+          errorMessage={actionError}
+          onCancel={() => {
+            if (actionLoading) return;
+            setRejectTarget(null);
+            setActionError("");
+          }}
           onSubmit={handleRejectSubmit}
         />
       </div>
