@@ -250,10 +250,19 @@ const AnalyticsDashboardPage = () => {
       if (!res.ok) throw new Error("Export failed");
 
       const blob = await res.blob();
+
+      const contentDisposition = res.headers.get("Content-Disposition");
+      let filename = "analytics.xlsx";
+
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (match) filename = match[1];
+      }
+
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "analytics.xlsx";
+      a.download = filename;
       a.click();
       window.URL.revokeObjectURL(url);
       showToast("Excel file downloaded successfully");
