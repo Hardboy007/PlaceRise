@@ -213,8 +213,8 @@ const DocumentRequestPage = () => {
                 className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-text-main placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition resize-none"
               />
               <p className="text-[11px] text-slate-400 mt-1.5">
-                Be specific — the company/university name and program help
-                your coordinator approve this faster.
+                Be specific — the company/university name and program help your
+                coordinator approve this faster.
               </p>
             </div>
 
@@ -331,8 +331,8 @@ const DocumentRequestPage = () => {
                             {/* Explicit next step so a rejected request
                                 doesn't feel like a dead end */}
                             <p className="text-slate-400 text-[11px]">
-                              You can submit a new request above with an
-                              updated purpose.
+                              You can submit a new request above with an updated
+                              purpose.
                             </p>
                           </div>
                         )}
