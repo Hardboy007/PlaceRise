@@ -57,7 +57,7 @@ const CustomTooltip = ({ active, payload, label, valueLabel = "Selected" }) => {
   return (
     <div className="bg-white rounded-lg shadow-lg border border-[#E2E8F0] px-3 py-2">
       <p className="text-xs font-semibold text-[#1E293B]">{label}</p>
-      <p className="text-xs text-[#3B82F6]">
+      <p className="text-xs text-primary">
         {valueLabel}: <span className="font-semibold">{payload[0].value}</span>
       </p>
     </div>
@@ -75,7 +75,7 @@ const SkeletonCard = () => (
 const SkeletonChart = () => (
   <div className="bg-white rounded-xl border border-[#E2E8F0] p-4 animate-pulse">
     <div className="h-4 w-40 bg-[#E2E8F0] rounded mb-4"></div>
-    <div className="h-[260px] w-full bg-[#F1F5F9] rounded"></div>
+    <div className="h-65 w-full bg-background rounded"></div>
   </div>
 );
 
@@ -435,7 +435,7 @@ const AnalyticsDashboardPage = () => {
               onChange={(e) =>
                 setFilters({ ...filters, school: e.target.value })
               }
-              className="px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm max-w-[220px]"
+              className="px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm max-w-55"
             >
               <option value="">All Schools</option>
               {schoolOptions.map((s) => (
@@ -469,7 +469,7 @@ const AnalyticsDashboardPage = () => {
 
             <button
               onClick={handleReset}
-              className="px-4 py-2 bg-[#F1F5F9] text-[#334155] rounded-lg text-sm font-medium hover:bg-[#E2E8F0]"
+              className="px-4 py-2 bg-background text-[#334155] rounded-lg text-sm font-medium hover:bg-[#E2E8F0]"
             >
               Reset
             </button>
@@ -497,7 +497,7 @@ const AnalyticsDashboardPage = () => {
           {/* ---- Applied Filter Chips ---- */}
           {activeFilterChips.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-[#E2E8F0]">
-              <span className="text-xs text-[#64748B]">Showing:</span>
+              <span className="text-xs text-text-muted">Showing:</span>
               {activeFilterChips.map((chip) => (
                 <span
                   key={chip.key}
@@ -531,7 +531,7 @@ const AnalyticsDashboardPage = () => {
           </>
         ) : !analytics ? (
           <div className="text-center py-20 bg-white rounded-xl border border-[#E2E8F0]">
-            <p className="text-[#64748B]">No data available</p>
+            <p className="text-text-muted">No data available</p>
           </div>
         ) : (
           <>
@@ -672,7 +672,11 @@ const AnalyticsDashboardPage = () => {
                     </p>
                     <ResponsiveContainer width="100%" height={260}>
                       <BarChart data={funnelRows} layout="vertical">
-                        <XAxis type="number" tick={{ fontSize: 12 }} allowDecimals={false} />
+                        <XAxis
+                          type="number"
+                          tick={{ fontSize: 12 }}
+                          allowDecimals={false}
+                        />
                         <YAxis
                           type="category"
                           dataKey="name"
@@ -713,7 +717,10 @@ const AnalyticsDashboardPage = () => {
 
       {/* ---- Generalized drill-down modal — shared by Company-wise,
           CTC Distribution, and Application Funnel clicks ---- */}
-      <DrilldownModal drilldown={drilldown} onClose={() => setDrilldown(null)} />
+      <DrilldownModal
+        drilldown={drilldown}
+        onClose={() => setDrilldown(null)}
+      />
     </div>
   );
 };
@@ -726,7 +733,7 @@ const SummaryCard = ({ card }) => {
       className={`bg-white rounded-xl border border-[#E2E8F0] border-l-4 ${card.accent} p-4 hover:shadow-md transition-shadow`}
     >
       <div className="flex items-center justify-between mb-2">
-        <p className="text-xs text-[#64748B]">{card.label}</p>
+        <p className="text-xs text-text-muted">{card.label}</p>
         <span className="text-[#94A3B8]">{card.icon}</span>
       </div>
       <p className="text-xl font-bold text-[#1E293B]">
@@ -741,7 +748,7 @@ const SummaryCard = ({ card }) => {
 // ---- Reusable empty state ----
 const EmptyState = ({ message }) => (
   <div className="flex flex-col items-center justify-center py-12 text-center">
-    <p className="text-sm text-[#64748B]">{message}</p>
+    <p className="text-sm text-text-muted">{message}</p>
     <p className="text-xs text-[#94A3B8] mt-1">
       Try changing the filters and search again.
     </p>
@@ -769,7 +776,7 @@ const DrilldownModal = ({ drilldown, onClose }) => {
             <h3 className="text-sm font-semibold text-[#1E293B]">
               {drilldown.title}
             </h3>
-            <p className="text-xs text-[#64748B]">{drilldown.subtitle}</p>
+            <p className="text-xs text-text-muted">{drilldown.subtitle}</p>
           </div>
           <button
             onClick={onClose}
@@ -784,7 +791,7 @@ const DrilldownModal = ({ drilldown, onClose }) => {
               {drilldown.students.map((student, i) => (
                 <li
                   key={i}
-                  className="flex items-center gap-3 py-2 border-b border-[#F1F5F9] last:border-0"
+                  className="flex items-center gap-3 py-2 border-b border-background last:border-0"
                 >
                   <span className="w-7 h-7 shrink-0 rounded-full bg-blue-50 text-blue-600 text-xs font-medium flex items-center justify-center">
                     {i + 1}
@@ -793,7 +800,7 @@ const DrilldownModal = ({ drilldown, onClose }) => {
                     <p className="text-sm font-medium text-[#334155] truncate">
                       {student.name}
                     </p>
-                    <p className="text-xs text-[#64748B]">
+                    <p className="text-xs text-text-muted">
                       ERP: {student.erpId} · {student.course}
                       {student.company ? ` · ${student.company}` : ""}
                     </p>
@@ -807,7 +814,7 @@ const DrilldownModal = ({ drilldown, onClose }) => {
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-[#64748B] text-center py-6">
+            <p className="text-sm text-text-muted text-center py-6">
               No student details available.
             </p>
           )}
