@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import {
   Lock,
   Bell,
@@ -7,6 +7,7 @@ import {
   Save,
   Key,
   Check,
+  X,
   Mail,
   ClipboardList,
   Briefcase,
@@ -45,23 +46,49 @@ const notificationOptions = [
   },
 ];
 
-const toggleColors = {
-  blue: "bg-[#3B82F6]",
-  green: "bg-[#22C55E]",
-  amber: "bg-[#F59E0B]",
+const colorTokens = {
+  blue: {
+    solid: "bg-[#3B82F6]",
+    ring: "ring-blue-100",
+    grad: "from-blue-50 to-blue-100/40",
+    text: "text-[#3B82F6]",
+    glow: "shadow-blue-200/60",
+  },
+  green: {
+    solid: "bg-[#22C55E]",
+    ring: "ring-green-100",
+    grad: "from-green-50 to-green-100/40",
+    text: "text-[#22C55E]",
+    glow: "shadow-green-200/60",
+  },
+  amber: {
+    solid: "bg-[#F59E0B]",
+    ring: "ring-amber-100",
+    grad: "from-amber-50 to-amber-100/40",
+    text: "text-[#F59E0B]",
+    glow: "shadow-amber-200/60",
+  },
 };
 
 function Toggle({ active, onToggle, color = "blue" }) {
+  const c = colorTokens[color];
   return (
     <button
       onClick={onToggle}
-      className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-200 focus:outline-none
-        ${active ? toggleColors[color] : "bg-[#CBD5E1]"}`}
+      aria-pressed={active}
+      className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#3B82F6]
+        ${active ? `${c.solid} shadow-md ${c.glow}` : "bg-[#CBD5E1]"}`}
     >
       <span
-        className={`inline-block h-4 w-4 rounded-full bg-white shadow-md transition-transform duration-200
+        className={`flex items-center justify-center h-4 w-4 rounded-full bg-white shadow-md transition-transform duration-300 ease-out
         ${active ? "translate-x-6" : "translate-x-1"}`}
-      />
+      >
+        {active ? (
+          <Check size={9} strokeWidth={3.5} className={c.text} />
+        ) : (
+          <X size={9} strokeWidth={3.5} className="text-[#94A3B8]" />
+        )}
+      </span>
     </button>
   );
 }
@@ -181,7 +208,7 @@ function ChangePasswordModal({ onClose, onSave }) {
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-[#F1F5F9]">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/40 ring-1 ring-blue-100 flex items-center justify-center">
               <Lock size={16} className="text-[#3B82F6]" />
             </div>
             <div>
@@ -319,6 +346,17 @@ export default function StudentSettingsPage() {
   const [activeTab, setActiveTab] = useState("security");
   const [profileCompletion, setProfileCompletion] = useState(0);
 
+  // Sliding pill indicator for the tab switcher
+  const tabRefs = useRef({});
+  const [indicator, setIndicator] = useState({ left: 0, width: 0 });
+
+  useLayoutEffect(() => {
+    const el = tabRefs.current[activeTab];
+    if (el) {
+      setIndicator({ left: el.offsetLeft, width: el.offsetWidth });
+    }
+  }, [activeTab, loading]);
+
   useEffect(() => {
     const fetchSettings = async () => {
       try {
@@ -358,6 +396,7 @@ export default function StudentSettingsPage() {
   const activeNotifs = notificationOptions.filter(
     ({ key }) => toggles[key],
   ).length;
+  const totalNotifs = notificationOptions.length;
 
   const handleSave = async () => {
     if (activeTab === "notifications") {
@@ -382,48 +421,75 @@ export default function StudentSettingsPage() {
   };
 
   if (loading) {
-    return <div className="text-center py-20 text-[#64748B]">Loading...</div>;
+    return (
+      <div className="max-w-3xl mx-auto py-24 flex flex-col items-center gap-3">
+        <div className="w-8 h-8 rounded-full border-2 border-[#E2E8F0] border-t-[#3B82F6] animate-spin" />
+        <p className="text-sm text-[#94A3B8]">Loading your settings…</p>
+      </div>
+    );
   }
 
   return (
     <div
-      className="max-w-3xl mx-auto"
+      className="max-w-3xl mx-auto pb-28"
       style={{ fontFamily: "Inter, sans-serif" }}
     >
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1
-            className="text-xl font-bold text-[#1E293B]"
-            style={{ fontFamily: "Space Grotesk, sans-serif" }}
-          >
-            Account Settings
-          </h1>
-          <p className="text-sm text-[#64748B] mt-1">
-            Manage your security and notification preferences
-          </p>
-        </div>
+      {/* Hero Header */}
+      <div
+        className="relative overflow-hidden rounded-3xl mb-6 px-6 py-7 sm:px-8 sm:py-8 shadow-lg shadow-blue-900/10"
+        style={{
+          background:
+            "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
+        }}
+      >
+        {/* Decorative ambient glows — restrained, not busy */}
+        <div className="pointer-events-none absolute -top-12 -right-8 w-48 h-48 rounded-full bg-white/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-16 -left-10 w-56 h-56 rounded-full bg-white/10 blur-3xl" />
 
-        {/* Tab Switcher */}
-        <div className="flex items-center bg-white border border-[#E2E8F0] rounded-xl p-1 shadow-sm">
-          {[
-            { id: "security", icon: <Lock size={13} />, label: "Security" },
-            {
-              id: "notifications",
-              icon: <Bell size={13} />,
-              label: "Notifications",
-            },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200
-                ${activeTab === tab.id ? "bg-[#1E293B] text-white shadow-sm" : "text-[#64748B] hover:text-[#1E293B]"}`}
-            >
-              {tab.icon}
-              {tab.label}
-            </button>
-          ))}
+        <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur-sm ring-1 ring-white/25 flex items-center justify-center">
+              <Shield size={20} className="text-white" strokeWidth={1.8} />
+            </div>
+            <div>
+              <h1
+                className="text-xl font-bold text-white tracking-tight"
+                style={{ fontFamily: "Space Grotesk, sans-serif" }}
+              >
+                Account Settings
+              </h1>
+              <p className="text-sm text-blue-100 mt-0.5">
+                Manage your security and notification preferences
+              </p>
+            </div>
+          </div>
+
+          {/* Tab Switcher — glass pill on gradient */}
+          <div className="relative flex items-center bg-white/15 backdrop-blur-sm ring-1 ring-white/25 rounded-xl p-1">
+            <div
+              className="absolute top-1 bottom-1 rounded-lg bg-white shadow-sm transition-all duration-300 ease-out"
+              style={{ left: indicator.left, width: indicator.width }}
+            />
+            {[
+              { id: "security", icon: <Lock size={13} />, label: "Security" },
+              {
+                id: "notifications",
+                icon: <Bell size={13} />,
+                label: "Notifications",
+              },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                ref={(el) => (tabRefs.current[tab.id] = el)}
+                onClick={() => setActiveTab(tab.id)}
+                className={`relative z-10 flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors duration-200
+                  ${activeTab === tab.id ? "text-[#1D4ED8]" : "text-white/85 hover:text-white"}`}
+              >
+                {tab.icon}
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -434,55 +500,58 @@ export default function StudentSettingsPage() {
             icon: <Shield size={18} className="text-[#3B82F6]" />,
             label: "Password",
             value: "Protected",
-            bg: "bg-blue-50",
-            bar: "bg-[#3B82F6]",
+            color: "blue",
             width: "100%",
           },
           {
             icon: <User size={18} className="text-[#22C55E]" />,
             label: "Profile",
             value: `${profileCompletion}%`,
-            bg: "bg-green-50",
-            bar: "bg-[#22C55E]",
+            color: "green",
             width: `${profileCompletion}%`,
           },
           {
             icon: <Bell size={18} className="text-[#F59E0B]" />,
             label: "Notifications",
-            value: `${activeNotifs}/6 Active`,
-            bg: "bg-amber-50",
-            bar: "bg-[#F59E0B]",
-            width: `${Math.round((activeNotifs / 6) * 100)}%`,
+            value: `${activeNotifs}/${totalNotifs} Active`,
+            color: "amber",
+            width: `${Math.round((activeNotifs / totalNotifs) * 100)}%`,
           },
-        ].map((stat) => (
-          <div
-            key={stat.label}
-            className="bg-white rounded-2xl border border-[#E2E8F0] p-4 shadow-sm relative overflow-hidden"
-          >
+        ].map((stat) => {
+          const c = colorTokens[stat.color];
+          return (
             <div
-              className={`w-8 h-8 rounded-lg ${stat.bg} flex items-center justify-center mb-3`}
+              key={stat.label}
+              className="group bg-white rounded-2xl border border-[#E2E8F0] p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative overflow-hidden"
             >
-              {stat.icon}
-            </div>
-            <p className="text-sm font-bold text-[#1E293B]">{stat.value}</p>
-            <p className="text-xs uppercase tracking-widest text-[#64748B] mt-0.5">
-              {stat.label}
-            </p>
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#F1F5F9]">
               <div
-                className={`h-full ${stat.bar} transition-all duration-500`}
-                style={{ width: stat.width }}
-              />
+                className={`w-9 h-9 rounded-xl bg-gradient-to-br ${c.grad} ring-1 ${c.ring} flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-105`}
+              >
+                {stat.icon}
+              </div>
+              <p className="text-sm font-bold text-[#1E293B]">{stat.value}</p>
+              <p className="text-xs uppercase tracking-widest text-[#64748B] mt-0.5">
+                {stat.label}
+              </p>
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#F1F5F9]">
+                <div
+                  className={`h-full ${c.solid} transition-all duration-500`}
+                  style={{ width: stat.width }}
+                />
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Security Tab */}
       {activeTab === "security" && (
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm">
+        <div
+          className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm"
+          style={{ animation: "fadeSlideUp 0.25s ease-out" }}
+        >
           <div className="flex items-center gap-3 px-6 pt-6 pb-4 border-b border-[#F1F5F9]">
-            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100/40 ring-1 ring-blue-100 flex items-center justify-center">
               <Lock size={15} className="text-[#3B82F6]" />
             </div>
             <div>
@@ -497,7 +566,7 @@ export default function StudentSettingsPage() {
           <div className="p-6">
             <div className="flex items-center justify-between bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-5 py-4">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-green-50 to-green-100/40 ring-1 ring-green-100 flex items-center justify-center">
                   <Shield size={16} className="text-[#22C55E]" />
                 </div>
                 <div>
@@ -511,7 +580,7 @@ export default function StudentSettingsPage() {
               </div>
               <button
                 onClick={() => setShowPassModal(true)}
-                className="flex items-center gap-2 bg-[#1E293B] hover:bg-[#3B82F6] text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors"
+                className="flex items-center gap-2 bg-[#1E293B] hover:bg-[#3B82F6] text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all"
               >
                 <Key size={13} /> Change Password
               </button>
@@ -522,10 +591,13 @@ export default function StudentSettingsPage() {
 
       {/* Notifications Tab */}
       {activeTab === "notifications" && (
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm">
+        <div
+          className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm"
+          style={{ animation: "fadeSlideUp 0.25s ease-out" }}
+        >
           <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-[#F1F5F9]">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-50 to-amber-100/40 ring-1 ring-amber-100 flex items-center justify-center">
                 <Bell size={15} className="text-[#F59E0B]" />
               </div>
               <div>
@@ -542,68 +614,71 @@ export default function StudentSettingsPage() {
             </span>
           </div>
           <div className="divide-y divide-[#F1F5F9]">
-            {notificationOptions.map(({ key, icon, label, desc, color }) => (
-              <div
-                key={key}
-                className="flex items-center justify-between px-6 py-4 hover:bg-[#F8FAFC] transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <div
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0
-                    ${
-                      toggles[key]
-                        ? color === "blue"
-                          ? "bg-blue-50 border border-blue-100"
-                          : color === "green"
-                            ? "bg-green-50 border border-green-100"
-                            : "bg-amber-50 border border-amber-100"
-                        : "bg-[#F1F5F9] border border-[#E2E8F0]"
-                    }`}
-                  >
-                    {icon}
-                  </div>
-                  <div>
-                    <p
-                      className={`text-sm font-semibold ${toggles[key] ? "text-[#1E293B]" : "text-[#94A3B8]"}`}
+            {notificationOptions.map(({ key, icon, label, desc, color }) => {
+              const c = colorTokens[color];
+              return (
+                <div
+                  key={key}
+                  className="flex items-center justify-between px-6 py-4 hover:bg-[#F8FAFC] transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300
+                      ${
+                        toggles[key]
+                          ? `bg-gradient-to-br ${c.grad} ring-1 ${c.ring} ${c.text}`
+                          : "bg-[#F1F5F9] border border-[#E2E8F0] text-[#94A3B8]"
+                      }`}
                     >
-                      {label}
-                    </p>
-                    <p className="text-xs text-[#64748B] mt-0.5">{desc}</p>
+                      {icon}
+                    </div>
+                    <div>
+                      <p
+                        className={`text-sm font-semibold transition-colors ${toggles[key] ? "text-[#1E293B]" : "text-[#94A3B8]"}`}
+                      >
+                        {label}
+                      </p>
+                      <p className="text-xs text-[#64748B] mt-0.5">{desc}</p>
+                    </div>
                   </div>
+                  <Toggle
+                    active={toggles[key]}
+                    onToggle={() => handleToggle(key)}
+                    color={color}
+                  />
                 </div>
-                <Toggle
-                  active={toggles[key]}
-                  onToggle={() => handleToggle(key)}
-                  color={color}
-                />
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
 
-      {/* Save Button */}
-      <div className="flex items-center justify-between bg-white border border-[#E2E8F0] rounded-2xl px-6 py-4 shadow-sm mt-5">
-        <div className="flex items-center gap-2">
-          {saved && (
-            <span className="flex items-center gap-1.5 text-xs font-semibold text-[#22C55E]">
-              <Check size={13} /> Changes Saved
-            </span>
-          )}
-          {!saved && (
-            <p className="text-xs text-[#64748B]">
-              {activeTab === "security"
-                ? "Password changes apply immediately."
-                : "Toggle changes are saved instantly."}
-            </p>
-          )}
+      {/* Save Bar — sticky, glass-blur */}
+      <div className="fixed bottom-0 left-0 right-0 z-20 bg-white/80 backdrop-blur-md border-t border-[#E2E8F0]">
+        <div className="max-w-3xl mx-auto flex items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-2 min-h-[18px]">
+            {saved ? (
+              <span
+                className="flex items-center gap-1.5 text-xs font-semibold text-[#22C55E]"
+                style={{ animation: "fadeSlideUp 0.2s ease-out" }}
+              >
+                <Check size={13} /> Changes Saved
+              </span>
+            ) : (
+              <p className="text-xs text-[#64748B]">
+                {activeTab === "security"
+                  ? "Password changes apply immediately."
+                  : "Toggle changes are saved instantly."}
+              </p>
+            )}
+          </div>
+          <button
+            onClick={handleSave}
+            className="flex items-center gap-2 bg-[#1E293B] hover:bg-[#3B82F6] text-white text-sm font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all"
+          >
+            <Save size={14} /> Save Changes
+          </button>
         </div>
-        <button
-          onClick={handleSave}
-          className="flex items-center gap-2 bg-[#1E293B] hover:bg-[#3B82F6] text-white text-sm font-semibold px-6 py-2.5 rounded-xl shadow-md transition-colors"
-        >
-          <Save size={14} /> Save Changes
-        </button>
       </div>
 
       {/* Modal */}
@@ -613,6 +688,8 @@ export default function StudentSettingsPage() {
           onSave={handlePasswordSave}
         />
       )}
+
+      <style>{`@keyframes fadeSlideUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }`}</style>
     </div>
   );
 }

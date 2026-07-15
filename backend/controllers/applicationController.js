@@ -105,7 +105,6 @@ const getMyApplications = async (req, res) => {
 };
 
 // Coordinator ek JD ki saari applications dekhe
-// Coordinator ek JD ki saari applications dekhe
 const getJobApplications = async (req, res) => {
   try {
     const { jobId } = req.params;
@@ -229,7 +228,7 @@ const updateApplicationStatus = async (req, res) => {
 
           const notifMessage = `Your application for ${role} at ${companyName} has been ${status}.`;
 
-          // In-app notification
+          // In-app notification — hamesha jaati hai, preference se independent
           await Notification.create({
             userId: student.userId._id,
             type: "STATUS_CHANGED",
@@ -238,6 +237,15 @@ const updateApplicationStatus = async (req, res) => {
             link: "/student/applications",
             isRead: false,
           });
+
+          // Email — sirf agar emailNotifications master switch ON hai
+          // AUR applicationUpdates preference bhi ON hai
+          if (
+            student.notificationPreferences?.emailNotifications === false ||
+            student.notificationPreferences?.applicationUpdates === false
+          ) {
+            return;
+          }
 
           // Email
           const bgColor =

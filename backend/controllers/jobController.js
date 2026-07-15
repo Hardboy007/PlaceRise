@@ -46,7 +46,7 @@ const createJob = async (req, res) => {
           ? new Date(job.lastDate).toLocaleDateString("en-IN")
           : "N/A";
 
-        // In-app notifications
+        // In-app notifications — sabko jaati hain, preference se independent
         const notifs = eligibleStudents.map((s) => ({
           userId: s.userId._id,
           type: "JD_POSTED",
@@ -59,8 +59,15 @@ const createJob = async (req, res) => {
           await Notification.insertMany(notifs);
         }
 
-        // Gmail notifications
-        for (const student of eligibleStudents) {
+        // Gmail notifications — sirf unko jinka emailNotifications master
+        // switch ON hai AUR jobAlerts preference bhi ON hai
+        const emailEligibleStudents = eligibleStudents.filter(
+          (s) =>
+            s.notificationPreferences?.emailNotifications !== false &&
+            s.notificationPreferences?.jobAlerts === true,
+        );
+
+        for (const student of emailEligibleStudents) {
           const email = student.userId?.email;
           if (!email) continue;
           await sendEmail({
