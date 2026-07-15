@@ -16,6 +16,9 @@ import {
   Star,
   AlertTriangle,
   Download,
+  X,
+  AlertCircle,
+  FileText,
 } from "lucide-react";
 
 export default function CompanyDetailPage() {
