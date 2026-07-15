@@ -2,7 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./config/db");
-const { scheduleWeeklyDigest } = require("./jobs/weeklyDigest");
+const { scheduleWeeklyDigest, sendWeeklyDigest } = require('./jobs/weeklyDigest')
 
 dotenv.config();
 
