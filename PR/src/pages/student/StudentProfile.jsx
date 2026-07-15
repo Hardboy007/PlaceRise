@@ -637,20 +637,44 @@ export default function StudentProfilePage() {
       {!editing && (
         <div className="mt-5 flex items-center justify-between px-5 py-3 rounded-2xl border border-[#E2E8F0] bg-white shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
-              <span className="text-sm">🎯</span>
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{
+                backgroundColor:
+                  student.placementStatus === "Placed" ? "#F0FDF4" : "#FFFBEB",
+              }}
+            >
+              <span className="text-sm">
+                {student.placementStatus === "Placed" ? "🎉" : "🎯"}
+              </span>
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-[#64748B]">
                 Placement Status
               </p>
-              <p className="text-sm font-bold text-[#1E293B]">
-                {student.placementStatus}
-              </p>
+              {student.placementStatus === "Placed" &&
+              student.selectedCompanies?.length > 0 ? (
+                <p className="text-sm font-bold text-[#15803D]">
+                  Selected in:{" "}
+                  {student.selectedCompanies
+                    .map((c) => c?.companyId?.name || c?.role || "—")
+                    .join(", ")}
+                </p>
+              ) : (
+                <p className="text-sm font-bold text-[#1E293B]">
+                  {student.placementStatus || "Not Placed"}
+                </p>
+              )}
             </div>
           </div>
-          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-[#F59E0B] border border-amber-200">
-            Pending
+          <span
+            className={`px-3 py-1 rounded-full text-xs font-semibold border ${
+              student.placementStatus === "Placed"
+                ? "bg-green-50 text-green-700 border-green-200"
+                : "bg-amber-50 text-[#F59E0B] border-amber-200"
+            }`}
+          >
+            {student.placementStatus === "Placed" ? "Placed ✓" : "Pending"}
           </span>
         </div>
       )}
