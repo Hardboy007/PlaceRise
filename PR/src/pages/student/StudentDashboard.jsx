@@ -711,9 +711,24 @@ export default function PlacementDashboard() {
 
   const closingSoonJobs = eligibleJobs.filter((j) => {
     if (!j.lastDate) return false;
-    const days = Math.ceil((new Date(j.lastDate) - new Date()) / 86400000);
+
+    const deadline = new Date(j.lastDate);
+    deadline.setHours(23, 59, 59, 999);
+
+    const days = Math.ceil((deadline - new Date()) / 86400000);
+
     return days >= 0 && days <= 2;
   });
+
+  const nearestClosingDays = closingSoonJobs.length
+    ? Math.min(
+        ...closingSoonJobs.map((j) => {
+          const deadline = new Date(j.lastDate);
+          deadline.setHours(23, 59, 59, 999);
+          return Math.ceil((deadline - new Date()) / 86400000);
+        }),
+      )
+    : 0;
 
   const latestFourJobs = eligibleJobs.slice(0, 4);
 
@@ -868,7 +883,11 @@ export default function PlacementDashboard() {
                 {closingSoonJobs.length === 1
                   ? "opening closes"
                   : "openings close"}{" "}
-                in 2 days
+                {nearestClosingDays === 0
+                  ? "today"
+                  : nearestClosingDays === 1
+                    ? "tomorrow"
+                    : `in ${nearestClosingDays} days`}
               </span>{" "}
               —{" "}
               {closingSoonJobs
