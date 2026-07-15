@@ -337,9 +337,7 @@ export default function StudentSettingsPage() {
     emailNotifications: true,
     applicationUpdates: true,
     jobAlerts: false,
-    profileViews: true,
     weeklyDigest: false,
-    smsNotifications: false,
   });
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
