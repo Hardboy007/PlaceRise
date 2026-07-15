@@ -152,7 +152,9 @@ export default function CompanyDetailPage() {
 
   // Company info — JobPosting mein companyId populate hua hai
   const companyInfo = company.companyId || {};
-  const isExpired = new Date(company.lastDate) < new Date();
+  const deadline = new Date(company.lastDate);
+  deadline.setHours(23, 59, 59, 999);
+  const isExpired = deadline < new Date();
 
   const daysLeft = () => {
     const today = new Date();

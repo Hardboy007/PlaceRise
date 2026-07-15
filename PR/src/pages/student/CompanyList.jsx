@@ -229,9 +229,12 @@ function BranchChips({ branches }) {
 }
 
 function CompanyCard({ company, onViewDetails, isSaved, onToggleSave }) {
-  const days = Math.ceil(
-    (new Date(company.lastDate) - new Date()) / (1000 * 60 * 60 * 24),
-  );
+  const deadline = new Date(company.lastDate);
+  deadline.setHours(23, 59, 59, 999);
+
+  const isExpired = deadline < new Date();
+
+  const days = Math.ceil((deadline - new Date()) / (1000 * 60 * 60 * 24));
   const urgency =
     days <= 3
       ? "text-[#EF4444] bg-red-50 border-red-200"

@@ -23,7 +23,11 @@ const createApplication = async (req, res) => {
     if (!job) {
       return res.status(404).json({ message: "Job not found" });
     }
-    if (new Date(job.lastDate) < new Date()) {
+
+    const deadline = new Date(job.lastDate);
+    deadline.setHours(23, 59, 59, 999);
+
+    if (deadline < new Date()) {
       return res
         .status(400)
         .json({ message: "Application deadline has passed" });
@@ -34,7 +38,6 @@ const createApplication = async (req, res) => {
       !job.eligibleBranches.includes("All") &&
       job.eligibleBranches.length > 0
     ) {
-      const student = await Student.findOne({ userId });
       if (!student) {
         return res.status(404).json({ message: "Student not found" });
       }
