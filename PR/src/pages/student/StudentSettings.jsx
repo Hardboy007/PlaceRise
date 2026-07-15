@@ -355,7 +355,9 @@ export default function StudentSettingsPage() {
 
   const handleToggle = (key) =>
     setToggles((prev) => ({ ...prev, [key]: !prev[key] }));
-  const activeNotifs = notificationOptions.filter(({ key }) => toggles[key]).length;
+  const activeNotifs = notificationOptions.filter(
+    ({ key }) => toggles[key],
+  ).length;
 
   const handleSave = async () => {
     if (activeTab === "notifications") {
