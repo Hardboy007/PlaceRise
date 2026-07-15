@@ -180,9 +180,8 @@ function CompanyCard({ job, index }) {
           </div>
         </div>
         {(() => {
-          const daysLeft = job.lastDate
-            ? Math.ceil((new Date(job.lastDate) - new Date()) / 86400000)
-            : null;
+          const daysLeft = job.lastDate ? getDaysLeft(job.lastDate) : null;
+
           const urgent = daysLeft !== null && daysLeft <= 3;
           return (
             <span
@@ -693,12 +692,11 @@ export default function PlacementDashboard() {
   // in the DB (coordinator may not always flip status to Closed manually).
   const getDaysLeft = (lastDate) => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
     const deadline = new Date(lastDate);
-    deadline.setHours(0, 0, 0, 0);
+    deadline.setHours(23, 59, 59, 999);
 
-    return Math.round((deadline - today) / 86400000);
+    return Math.ceil((deadline - today) / 86400000);
   };
   const eligibleJobs = jobs
     .filter(isCompanyStillActive)
@@ -720,6 +718,7 @@ export default function PlacementDashboard() {
 
   const closingSoonJobs = eligibleJobs.filter((j) => {
     if (!j.lastDate) return false;
+
     const days = getDaysLeft(j.lastDate);
     return days >= 0 && days <= 2;
   });
