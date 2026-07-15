@@ -1,4 +1,4 @@
-const ExcelJS = require('exceljs')
+const ExcelJS = require("exceljs");
 const Application = require("../models/Application");
 const Student = require("../models/Student");
 const JobPosting = require("../models/JobPosting");
@@ -396,7 +396,8 @@ const exportJobApplications = async (req, res) => {
       }
     });
 
-    const filename = `${companyName}_${role}_Applications.xlsx`.replace(
+    const year = new Date().getFullYear();
+    const filename = `${companyName}_${role}_${year}_Applications.xlsx`.replace(
       /\s+/g,
       "_",
     );

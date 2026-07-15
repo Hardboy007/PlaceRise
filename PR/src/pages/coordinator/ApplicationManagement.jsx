@@ -573,7 +573,7 @@ function AppliedTab({ selectedJobId, readOnly }) {
       alert("Export failed");
     }
   };
-  
+
   const counts = useMemo(
     () => ({
       total: applications.length,
@@ -678,9 +678,16 @@ function AppliedTab({ selectedJobId, readOnly }) {
         </span>
         <button
           onClick={handleExport}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#E2E8F0] text-xs font-semibold text-[#64748B] hover:border-[#3B82F6] hover:text-[#3B82F6] transition-all"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all border"
+          style={{
+            background: "linear-gradient(135deg, #1D4ED8, #3B82F6)",
+            color: "white",
+            borderColor: "transparent",
+            boxShadow: "0 2px 8px rgba(59,130,246,0.3)",
+          }}
         >
-          <Download size={13} /> Export Excel
+          <Download size={13} />
+          Ready to Share with Company? — Download Excel
         </button>
       </div>
 
