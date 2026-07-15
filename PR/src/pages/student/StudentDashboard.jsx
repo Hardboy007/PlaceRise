@@ -914,51 +914,6 @@ export default function PlacementDashboard() {
             )}
           </div>
 
-          {!applicationsLoading && appliedCount > 0 && (
-            <button
-              onClick={() => navigate("/student/applications")}
-              style={{ backgroundColor: C.white, borderColor: C.border }}
-              className="w-full rounded-2xl border p-4 mb-4 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer text-left"
-            >
-              <p
-                style={{ color: C.textMuted }}
-                className="text-xs font-medium mb-3"
-              >
-                Application Status
-              </p>
-              <div className="flex items-center gap-2">
-                {[
-                  {
-                    label: "Applied",
-                    count: applications.filter((a) => a.status === "Applied")
-                      .length,
-                    color: C.primary,
-                  },
-                  {
-                    label: "Shortlisted",
-                    count: applications.filter(
-                      (a) => a.status === "Shortlisted",
-                    ).length,
-                    color: C.warning,
-                  },
-                  { label: "Selected", count: selectedCount, color: C.success },
-                ].map((s) => (
-                  <div key={s.label} className="flex-1 text-center">
-                    <p style={{ color: s.color }} className="text-lg font-bold">
-                      {s.count}
-                    </p>
-                    <p
-                      style={{ color: C.textMuted }}
-                      className="text-[10px] font-medium"
-                    >
-                      {s.label}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </button>
-          )}
-
           {/* Announcements — live, polled every 6s, filtered to student's school */}
           <div>
             <div className="flex items-center justify-between mb-4">
