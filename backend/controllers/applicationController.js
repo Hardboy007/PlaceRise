@@ -5,6 +5,7 @@ const JobPosting = require("../models/JobPosting");
 const Notification = require("../models/Notification");
 const User = require("../models/User");
 const { sendEmail } = require("../config/email");
+const logActivity = require("../utils/logActivity");
 
 // Student apply kare
 const createApplication = async (req, res) => {
@@ -201,7 +202,7 @@ const updateApplicationStatus = async (req, res) => {
       }
     }
 
-    // Notification + Email — sirf meaningful statuses pe
+    // Notification + Email + Activity log — sirf meaningful statuses pe
     if (["Shortlisted", "Selected", "Rejected"].includes(status)) {
       setImmediate(async () => {
         try {
@@ -227,6 +228,14 @@ const updateApplicationStatus = async (req, res) => {
                 : `❌ Application Update — ${companyName}`;
 
           const notifMessage = `Your application for ${role} at ${companyName} has been ${status}.`;
+
+          // Activity log — coordinator ke "Recent Activity" feed ke liye
+          await logActivity(
+            req.user?.id,
+            `${status} ${student.name || "a student"} for ${role} at ${companyName}`,
+            "application",
+            application._id,
+          );
 
           // In-app notification — hamesha jaati hai, preference se independent
           await Notification.create({

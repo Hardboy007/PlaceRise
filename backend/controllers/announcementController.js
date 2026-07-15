@@ -1,6 +1,7 @@
 const Announcement = require("../models/Announcement");
 const Notification = require("../models/Notification");
 const User = require("../models/User");
+const logActivity = require("../utils/logActivity");
 
 // GET /api/announcements
 // Students ko sirf 'Published' announcements dikhani hain
@@ -31,6 +32,14 @@ const createAnnouncement = async (req, res) => {
       // req.user coordinator ke auth middleware se aata hai
       ...(req.user?.id ? { createdBy: req.user.id } : {}),
     });
+
+    // Activity log — coordinator ke "Recent Activity" feed ke liye
+    await logActivity(
+      req.user?.id,
+      `Posted an announcement — ${announcement.title}`,
+      "announcement",
+      announcement._id,
+    );
 
     // Saare students ko in-app notification bhejo
     const studentUsers = await User.find({ role: "student" });

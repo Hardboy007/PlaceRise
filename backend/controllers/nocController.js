@@ -7,6 +7,7 @@ const Coordinator = require("../models/Coordinator");
 const Notification = require("../models/Notification");
 const User = require("../models/User");
 const { sendEmail } = require("../config/email");
+const logActivity = require("../utils/logActivity");
 
 // Student request bheje
 const createRequest = async (req, res) => {
@@ -225,7 +226,7 @@ const updateRequestStatus = async (req, res) => {
     }
 
     await request.save();
-    // Background mein notification + email
+    // Background mein notification + email + activity log
     setImmediate(async () => {
       try {
         const studentUser = request.studentId?.userId
@@ -235,6 +236,14 @@ const updateRequestStatus = async (req, res) => {
           : null;
 
         if (studentUser && ["Approved", "Rejected"].includes(status)) {
+          // Activity log — coordinator ke "Recent Activity" feed ke liye
+          await logActivity(
+            req.user?.id,
+            `${status} ${request.type} request for ${request.studentId?.name || "a student"}`,
+            "noc",
+            request._id,
+          );
+
           await Notification.create({
             userId: studentUser._id,
             type: "NOC_STATUS",

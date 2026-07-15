@@ -1,7 +1,7 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const Coordinator = require("../models/Coordinator");
-const Announcement = require("../models/Announcement");
+const Activity = require("../models/Activity");
 
 // POST /api/coordinators
 const createCoordinator = async (req, res) => {
@@ -140,6 +140,13 @@ const timeAgo = (date) => {
 };
 
 // GET /api/coordinators/me/activity
+// FIXED: pehle ye sirf Announcements se activity banata tha, isliye job
+// post karna, students ko select/shortlist/reject karna, NOC/LOR
+// approve-reject karna, attendance drive banana — in sabme se koi bhi
+// "Recent Activity" me kabhi nahi dikhta tha. Ab ek central Activity
+// collection se sab kuch aa raha hai — har controller
+// (job/application/noc/attendance/announcement) apna kaam khatam hone
+// par logActivity() se yahan ek entry daal deta hai.
 const getRecentActivity = async (req, res) => {
   try {
     const coordinator = await Coordinator.findOne({ userId: req.user.id });
@@ -147,17 +154,12 @@ const getRecentActivity = async (req, res) => {
       return res.status(404).json({ message: "Coordinator profile not found" });
     }
 
-    const announcements = await Announcement.find({
-      createdBy: coordinator._id,
-    })
+    const activities = await Activity.find({ userId: req.user.id })
       .sort({ createdAt: -1 })
-      .limit(5);
+      .limit(3);
 
-    const activity = announcements.map((a) => ({
-      action:
-        a.status === "Published"
-          ? `Posted announcement — ${a.title}`
-          : `Saved draft announcement — ${a.title}`,
+    const activity = activities.map((a) => ({
+      action: a.action,
       time: timeAgo(a.createdAt),
     }));
 

@@ -7,6 +7,7 @@ const JobPosting = require("../models/JobPosting");
 const PDFDocument = require("pdfkit");
 const { cloudinary } = require("../config/cloudinary");
 const { Readable } = require("stream");
+const logActivity = require("../utils/logActivity");
 
 // Session start karo — agar iss job ka session pehle se active hai,
 // naya create mat karo, purana hi return karo (idempotent, race-safe)
@@ -29,6 +30,17 @@ const startSession = async (req, res) => {
       token,
       coordinatorId: coordinator._id,
     });
+
+    // Activity log — sirf naya session bane tab hi (existing return pe nahi,
+    // warna har baar page kholne par duplicate entry ban jaati)
+    const job = await JobPosting.findById(jobId);
+    await logActivity(
+      req.user.id,
+      `Started an attendance drive — ${job?.role || "a drive"}`,
+      "attendance",
+      session._id,
+    );
+
     res.status(201).json(session);
   } catch (error) {
     res.status(500).json({ message: error.message });

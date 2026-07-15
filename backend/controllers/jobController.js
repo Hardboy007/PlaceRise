@@ -3,6 +3,7 @@ const Notification = require("../models/Notification");
 const Student = require("../models/Student");
 const Company = require("../models/company");
 const { sendEmail } = require("../config/email");
+const logActivity = require("../utils/logActivity");
 
 // GET /api/jobs
 // Returns all active job postings, newest first, with company name populated.
@@ -45,6 +46,16 @@ const createJob = async (req, res) => {
         const lastDate = job.lastDate
           ? new Date(job.lastDate).toLocaleDateString("en-IN")
           : "N/A";
+
+        // Activity log — coordinator ke "Recent Activity" feed ke liye.
+        // Company yahan pehle se hi fetch ho chuki hai isliye extra query
+        // nahi lagi, seedha reuse kar liya.
+        await logActivity(
+          req.user?.id,
+          `Posted a new job — ${job.role} at ${companyName}`,
+          "job",
+          job._id,
+        );
 
         // In-app notifications — sabko jaati hain, preference se independent
         const notifs = eligibleStudents.map((s) => ({
