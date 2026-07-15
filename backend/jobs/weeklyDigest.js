@@ -29,6 +29,8 @@ const sendWeeklyDigest = async () => {
     for (const student of students) {
       const email = student.userId?.email;
       if (!email) continue;
+      // Weekly digest preference check
+      if (student.notificationPreferences?.weeklyDigest === false) continue;
 
       // Student ki is hafte ki applications
       const myApplications = await Application.find({
