@@ -1,49 +1,47 @@
 import { useState, useEffect } from "react";
-import { Lock, Bell, Shield, User, Save, Key, Check } from "lucide-react";
+import {
+  Lock,
+  Bell,
+  Shield,
+  User,
+  Save,
+  Key,
+  Check,
+  Mail,
+  ClipboardList,
+  Briefcase,
+  ChartNoAxesCombined,
+} from "lucide-react";
 import { api } from "../../utils/api";
 
 const notificationOptions = [
   {
     key: "emailNotifications",
-    icon: "📧",
+    icon: <Mail size={17} strokeWidth={1.8} />,
     label: "Email Notifications",
     desc: "All updates delivered to your inbox",
     color: "blue",
   },
   {
     key: "applicationUpdates",
-    icon: "📋",
+    icon: <ClipboardList size={17} strokeWidth={1.8} />,
     label: "Application Updates",
     desc: "Status changes on your job applications",
     color: "green",
   },
   {
     key: "jobAlerts",
-    icon: "💼",
+    icon: <Briefcase size={17} strokeWidth={1.8} />,
     label: "Job Alerts",
     desc: "New postings matching your profile",
     color: "amber",
   },
   {
-    key: "profileViews",
-    icon: "👁",
-    label: "Profile Views",
-    desc: "When a recruiter views your profile",
-    color: "blue",
-  },
-  {
     key: "weeklyDigest",
-    icon: "📊",
+    icon: <ChartNoAxesCombined size={17} strokeWidth={1.8} />,
     label: "Weekly Digest",
     desc: "A weekly summary of your activity",
     color: "green",
-  },
-  {
-    key: "smsNotifications",
-    icon: "📱",
-    label: "SMS Notifications",
-    desc: "Critical alerts sent to your phone",
-    color: "amber",
   },
 ];
 
@@ -357,7 +355,7 @@ export default function StudentSettingsPage() {
 
   const handleToggle = (key) =>
     setToggles((prev) => ({ ...prev, [key]: !prev[key] }));
-  const activeNotifs = Object.values(toggles).filter(Boolean).length;
+  const activeNotifs = notificationOptions.filter(({ key }) => toggles[key]).length;
 
   const handleSave = async () => {
     if (activeTab === "notifications") {
