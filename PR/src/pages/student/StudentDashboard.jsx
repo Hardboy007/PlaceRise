@@ -182,7 +182,7 @@ function CompanyCard({ job, index }) {
         {(() => {
           const daysLeft = job.lastDate ? getDaysLeft(job.lastDate) : null;
 
-          const urgent = daysLeft !== null && daysLeft <= 3;
+          const urgent = daysLeft !== null && daysLeft >= 0 && daysLeft <= 3;
           return (
             <span
               style={
@@ -401,7 +401,14 @@ function isStillOpen(job) {
   );
   return endOfDeadlineDay >= new Date();
 }
+const getDaysLeft = (lastDate) => {
+  const today = new Date();
 
+  const deadline = new Date(lastDate);
+  deadline.setHours(23, 59, 59, 999);
+
+  return Math.ceil((deadline - today) / 86400000);
+};
 const POLL_INTERVAL_MS = 6000; // matches the polling interval used on StudentApplication
 // Rotating, time-of-day-aware greeting — mirrors "Claude-style" personality
 // touches. Picks a random line from the matching time bucket each time the
@@ -690,14 +697,6 @@ export default function PlacementDashboard() {
   // application deadline (lastDate) hasn't passed yet — a job posting past
   // its lastDate shouldn't count as "open" even if status is still Active
   // in the DB (coordinator may not always flip status to Closed manually).
-  const getDaysLeft = (lastDate) => {
-    const today = new Date();
-
-    const deadline = new Date(lastDate);
-    deadline.setHours(23, 59, 59, 999);
-
-    return Math.ceil((deadline - today) / 86400000);
-  };
   const eligibleJobs = jobs
     .filter(isCompanyStillActive)
     .filter((j) => isJobForStudent(j, student))
