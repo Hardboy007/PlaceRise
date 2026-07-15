@@ -568,7 +568,7 @@ function AppliedTab({ selectedJobId, readOnly }) {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Applications_${selectedJobId}.xlsx`;
+      a.download = ''
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (err) {
@@ -722,7 +722,7 @@ function AppliedTab({ selectedJobId, readOnly }) {
           ) : (
             <>
               <Download size={13} />
-              ready to Share with Company? — Download Excel
+              Ready to share with Company? — Download Excel
             </>
           )}
         </button>
