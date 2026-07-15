@@ -546,7 +546,13 @@ export default function PlacementDashboard() {
 
   const [applications, setApplications] = useState([]);
   const [applicationsLoading, setApplicationsLoading] = useState(true);
-  const [greeting] = useState(() => pickGreeting());
+  const [greeting] = useState(() => {
+    const cached = sessionStorage.getItem("placerise_greeting");
+    if (cached) return cached;
+    const fresh = pickGreeting();
+    sessionStorage.setItem("placerise_greeting", fresh);
+    return fresh;
+  });
 
   const student = JSON.parse(localStorage.getItem("student") || "{}");
   const currentYear = new Date().getFullYear();
@@ -685,9 +691,9 @@ export default function PlacementDashboard() {
         <div
           style={{
             background:
-              "linear-gradient(135deg, #4F8EF7 0%, #7DAAFA 50%, #A7C4FB 100%)",
+              "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
           }}
-          className="rounded-3xl p-8 mb-6 relative overflow-hidden"
+          className="relative overflow-hidden rounded-3xl mb-6 px-6 py-7 sm:px-8 sm:py-8 shadow-lg shadow-blue-900/10"
         >
           {/* Subtle dot-grid pattern — professional, low-opacity texture */}
           <div
