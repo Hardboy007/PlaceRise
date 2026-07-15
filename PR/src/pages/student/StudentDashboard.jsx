@@ -722,11 +722,8 @@ export default function PlacementDashboard() {
               Placement Season {currentYear}
             </span>
             <h1 className="text-4xl font-bold text-white mb-1">
-              Hey {student.name},
+              {greeting}, {student.name}
             </h1>
-            <p className="text-white/90 text-base font-medium mb-1">
-              {greeting}
-            </p>
             <p className="text-white/70 text-sm mb-3">{todayLabel}</p>
             <p className="text-white/90 text-lg mb-6">
               <span className="font-semibold">
