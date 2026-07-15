@@ -25,6 +25,11 @@ const applicationSchema = new mongoose.Schema(
       default: "Applied",
     },
 
+    resumeUrl: {
+      type: String,
+      default: "",
+    },
+
     round: {
       type: Number,
       default: 0,

@@ -27,6 +27,9 @@ export default function CompanyDetailPage() {
   const [existingStatus, setExistingStatus] = useState(null); // FIXED: tracks Shortlisted/Selected/Rejected too
   const [applyLoading, setApplyLoading] = useState(false);
   const [isEligible, setIsEligible] = useState(true); // default true
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const [resumeConfirmed, setResumeConfirmed] = useState(false);
+  const [studentProfile, setStudentProfile] = useState(null);
 
   // FIXED: goes back to whichever page the student actually came from
   // (StudentApplication, CompanyList, etc.) instead of always jumping to
@@ -48,6 +51,7 @@ export default function CompanyDetailPage() {
           api.get("/students/me"),
         ]);
         setCompany(data);
+        setStudentProfile(studentData);
 
         // Eligibility check
         if (
@@ -82,7 +86,12 @@ export default function CompanyDetailPage() {
     fetchJob();
   }, [companyId]);
 
-  const handleApply = async () => {
+  const handleApply = () => {
+    setResumeConfirmed(false);
+    setShowApplyModal(true);
+  };
+
+  const submitApplication = async () => {
     setApplyLoading(true);
     try {
       const res = await api.post("/applications", { jobId: company._id });
@@ -90,6 +99,7 @@ export default function CompanyDetailPage() {
         alert(res.message);
       } else {
         setApplied(true);
+        setShowApplyModal(false);
       }
     } catch (err) {
       alert("Something went wrong");
@@ -556,6 +566,132 @@ export default function CompanyDetailPage() {
           </>
         )}
       </button>
+
+      {showApplyModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+          onClick={(e) =>
+            e.target === e.currentTarget && setShowApplyModal(false)
+          }
+        >
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-base font-bold text-[#1E293B]">
+                Confirm Application
+              </h2>
+              <button
+                onClick={() => setShowApplyModal(false)}
+                className="w-7 h-7 rounded-lg bg-[#F1F5F9] flex items-center justify-center hover:bg-[#E2E8F0] transition-colors"
+              >
+                <X size={14} className="text-[#64748B]" />
+              </button>
+            </div>
+
+            {/* Job Info */}
+            <div className="bg-[#F8FAFC] rounded-xl p-4 border border-[#E2E8F0] mb-4">
+              <p className="text-xs text-[#64748B] mb-1">Applying for</p>
+              <p className="text-sm font-bold text-[#1E293B]">
+                {company?.role}
+              </p>
+              <p className="text-xs text-[#64748B] mt-0.5">
+                {company?.companyId?.name} · ₹{company?.ctc} LPA
+              </p>
+            </div>
+
+            {/* Resume Section */}
+            {studentProfile?.resume ? (
+              <div className="border border-[#E2E8F0] rounded-xl p-4 mb-4">
+                <p className="text-xs font-semibold text-[#64748B] uppercase tracking-widest mb-3">
+                  Your Resume
+                </p>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+                    <FileText size={18} className="text-[#3B82F6]" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-[#1E293B]">
+                      Resume uploaded
+                    </p>
+                    <a
+                      href={studentProfile.resume}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-[#3B82F6] hover:underline"
+                    >
+                      View Resume →
+                    </a>
+                  </div>
+                </div>
+
+                {/* Checkbox */}
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={resumeConfirmed}
+                    onChange={(e) => setResumeConfirmed(e.target.checked)}
+                    className="w-4 h-4 rounded accent-blue-500"
+                  />
+                  <span className="text-sm text-[#1E293B]">
+                    My resume is up to date
+                  </span>
+                </label>
+              </div>
+            ) : (
+              <div className="border border-red-200 bg-red-50 rounded-xl p-4 mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertCircle size={16} className="text-red-500" />
+                  <p className="text-sm font-semibold text-red-600">
+                    No resume uploaded
+                  </p>
+                </div>
+                <p className="text-xs text-red-500 mb-3">
+                  Please upload your resume before applying.
+                </p>
+                <button
+                  onClick={() => {
+                    setShowApplyModal(false);
+                    navigate("/student/profile");
+                  }}
+                  className="text-xs font-semibold text-[#3B82F6] hover:underline"
+                >
+                  Go to Profile →
+                </button>
+              </div>
+            )}
+
+            {/* Buttons */}
+            <div className="flex gap-3 mt-2">
+              <button
+                onClick={() => setShowApplyModal(false)}
+                className="flex-1 py-2.5 rounded-xl border border-[#E2E8F0] text-sm font-medium text-[#64748B] hover:bg-[#F8FAFC] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitApplication}
+                disabled={
+                  !studentProfile?.resume || !resumeConfirmed || applyLoading
+                }
+                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2
+            ${
+              !studentProfile?.resume || !resumeConfirmed || applyLoading
+                ? "bg-[#CBD5E1] text-white cursor-not-allowed"
+                : "bg-[#3B82F6] text-white hover:bg-[#2563EB]"
+            }`}
+              >
+                {applyLoading ? (
+                  "Applying..."
+                ) : (
+                  <>
+                    <Send size={14} /> Confirm & Apply
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

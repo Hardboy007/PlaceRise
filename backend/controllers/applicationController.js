@@ -71,6 +71,7 @@ const createApplication = async (req, res) => {
       studentId: student._id,
       jobId,
       status: "Applied",
+      resumeUrl: student.resume || "",
     });
 
     res.status(201).json(application);
