@@ -442,6 +442,27 @@ const PLACEMENT_LINES = [
   "What's your next career move?",
 ];
 
+const DAILY_TIPS = [
+  "Tailor your resume for each company — recruiters spot generic ones instantly.",
+  "Research the company before your interview — ask questions that show it.",
+  "Keep your LinkedIn updated, recruiters check it before shortlisting.",
+  "Mock interviews reduce nerves more than any amount of reading.",
+  "Follow up politely after interviews — it shows genuine interest.",
+  "A clean, one-page resume beats a cluttered two-pager.",
+  "Learn to explain your projects or work in 60 seconds — recruiters are busy.",
+  "Apply broadly early on, then narrow down as offers come in.",
+  "Dress and speak the way the role expects — first impressions matter.",
+  "Ask thoughtful questions at the end of every interview.",
+  "Confidence comes from preparation — know your own resume inside out.",
+  "Small talk before an interview counts too — be genuinely present.",
+  "Don't undersell your internships or projects — quantify your impact.",
+  "Punctuality signals reliability — always join interviews a few minutes early.",
+];
+
+function pickDailyTip() {
+  return DAILY_TIPS[Math.floor(Math.random() * DAILY_TIPS.length)];
+}
+
 function getTimeBucket(date) {
   const h = date.getHours();
   if (h >= 5 && h < 12) return "morning";
@@ -551,6 +572,13 @@ export default function PlacementDashboard() {
     if (cached) return cached;
     const fresh = pickGreeting();
     sessionStorage.setItem("placerise_greeting", fresh);
+    return fresh;
+  });
+  const [dailyTip] = useState(() => {
+    const cached = sessionStorage.getItem("placerise_tip");
+    if (cached) return cached;
+    const fresh = pickDailyTip();
+    sessionStorage.setItem("placerise_tip", fresh);
     return fresh;
   });
 
@@ -668,6 +696,25 @@ export default function PlacementDashboard() {
     .filter((j) => isJobForStudent(j, student))
     .filter(isStillOpen)
     .sort((a, b) => jobSortDate(b) - jobSortDate(a));
+
+  const trendingSkills = (() => {
+    const counts = {};
+    eligibleJobs.forEach((j) => {
+      (j.skills || []).forEach((s) => {
+        counts[s] = (counts[s] || 0) + 1;
+      });
+    });
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+  })();
+
+  const closingSoonJobs = eligibleJobs.filter((j) => {
+    if (!j.lastDate) return false;
+    const days = Math.ceil((new Date(j.lastDate) - new Date()) / 86400000);
+    return days >= 0 && days <= 2;
+  });
+
   const latestFourJobs = eligibleJobs.slice(0, 4);
 
   // "X companies are open" counts each eligible, still-open job posting —
@@ -808,6 +855,40 @@ export default function PlacementDashboard() {
           <div className="absolute top-0 right-48 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2" />
           <div className="absolute bottom-0 left-64 w-24 h-24 bg-white/5 rounded-full translate-y-1/2" />
         </div>
+
+        {closingSoonJobs.length > 0 && (
+          <div
+            style={{ backgroundColor: "#FEF2F2", borderColor: "#FECACA" }}
+            className="border rounded-2xl px-5 py-3 mb-6 flex items-center gap-3"
+          >
+            <span className="text-xl shrink-0">⏰</span>
+            <p style={{ color: "#991B1B" }} className="text-sm flex-1">
+              <span className="font-bold">
+                {closingSoonJobs.length}{" "}
+                {closingSoonJobs.length === 1
+                  ? "opening closes"
+                  : "openings close"}{" "}
+                in 2 days
+              </span>{" "}
+              —{" "}
+              {closingSoonJobs
+                .slice(0, 2)
+                .map((j) => j.companyId?.name)
+                .filter(Boolean)
+                .join(", ")}
+              {closingSoonJobs.length > 2
+                ? ` +${closingSoonJobs.length - 2} more`
+                : ""}
+            </p>
+            <button
+              onClick={() => navigate("/student/companies")}
+              style={{ color: "#DC2626" }}
+              className="text-xs font-bold shrink-0 hover:underline"
+            >
+              View →
+            </button>
+          </div>
+        )}
 
         {/* Stats Row — Interviews box removed, values now come from real data */}
         <div className="grid grid-cols-3 gap-4 mb-8">
@@ -975,6 +1056,41 @@ export default function PlacementDashboard() {
                 ))}
               </div>
             )}
+
+            {trendingSkills.length > 0 && (
+              <div
+                style={{ backgroundColor: C.white, borderColor: C.border }}
+                className="rounded-2xl border p-5 mt-4 shadow-sm"
+              >
+                <p
+                  style={{ color: C.textMuted }}
+                  className="text-xs font-medium mb-3"
+                >
+                  🔥 Trending Skills — most in-demand right now
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {trendingSkills.map(([skill, count]) => (
+                    <span
+                      key={skill}
+                      style={{
+                        backgroundColor: "#EFF6FF",
+                        color: C.primary,
+                        borderColor: "#BFDBFE",
+                      }}
+                      className="text-xs font-semibold px-3 py-1.5 rounded-full border flex items-center gap-1.5"
+                    >
+                      {skill}
+                      <span
+                        style={{ color: C.textMuted }}
+                        className="font-normal"
+                      >
+                        · {count}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Announcements — live, polled every 6s, filtered to student's school */}
@@ -1060,6 +1176,26 @@ export default function PlacementDashboard() {
                   View all {visibleAnnouncements.length} announcements
                 </button>
               )}
+            </div>
+            <div
+              style={{ backgroundColor: "#FFFBEB", borderColor: "#FDE68A" }}
+              className="border rounded-2xl p-4 mb-4 flex items-start gap-2.5"
+            >
+              <span className="text-lg shrink-0">💡</span>
+              <div>
+                <p
+                  style={{ color: "#92400E" }}
+                  className="text-xs font-bold mb-0.5"
+                >
+                  Tip of the day
+                </p>
+                <p
+                  style={{ color: "#B45309" }}
+                  className="text-xs leading-relaxed"
+                >
+                  {dailyTip}
+                </p>
+              </div>
             </div>
 
             {/* Need Help */}
