@@ -661,11 +661,11 @@ export default function PlacementDashboard() {
               </span>{" "}
               are open for you right now
             </p>
-            <div className="flex gap-3">
+            <div className="flex gap-3 flex-wrap">
               <button
                 onClick={() => navigate("/student/companies")}
                 style={{ backgroundColor: C.white, color: C.primary }}
-                className="font-semibold cursor-pointer px-6 py-2.5 rounded-full text-sm flex items-center gap-2 hover:opacity-90 transition-opacity"
+                className="font-semibold cursor-pointer px-6 py-2.5 rounded-full text-sm flex items-center gap-2 hover:opacity-90 transition-opacity whitespace-nowrap"
               >
                 Browse Companies
                 <svg
@@ -682,46 +682,33 @@ export default function PlacementDashboard() {
                   />
                 </svg>
               </button>
-              {!applicationsLoading && selectedCount > 0 && (
-                <button
-                  onClick={() => navigate("/student/applications")}
-                  className="w-full mb-6 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
-                  style={{
-                    background: "linear-gradient(135deg, #DCFCE7, #F0FDF4)",
-                    border: "1px solid #BBF7D0",
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">🎉</span>
-                    <div className="text-left">
-                      <p
-                        style={{ color: "#15803D" }}
-                        className="text-sm font-bold"
-                      >
-                        You're selected in {selectedCount}{" "}
-                        {selectedCount === 1 ? "company" : "companies"}!
-                      </p>
-                      <p style={{ color: "#16A34A" }} className="text-xs">
-                        Tap to view your application status
-                      </p>
-                    </div>
-                  </div>
-                  <svg
-                    className="w-5 h-5 shrink-0"
-                    fill="none"
-                    stroke="#15803D"
-                    strokeWidth={2.5}
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </button>
-              )}
+              <button
+                onClick={() => navigate("/student/applications")}
+                className="bg-white/20 cursor-pointer border border-white/40 text-white font-semibold px-6 py-2.5 rounded-full text-sm hover:bg-white/30 transition-colors whitespace-nowrap"
+              >
+                My Applications
+              </button>
             </div>
+
+            {!applicationsLoading && selectedCount > 0 && (
+              <button
+                onClick={() => navigate("/student/applications")}
+                className="mt-4 flex items-center gap-2.5 bg-white/15 hover:bg-white/25 border border-white/25 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors cursor-pointer w-fit"
+              >
+                <svg
+                  className="w-4 h-4 shrink-0"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg>
+                <span>
+                  You're selected in{" "}
+                  <span className="font-bold">{selectedCount}</span>{" "}
+                  {selectedCount === 1 ? "company" : "companies"}
+                </span>
+              </button>
+            )}
           </div>
 
           <div className="absolute right-8 top-1/2 -translate-y-1/2">
