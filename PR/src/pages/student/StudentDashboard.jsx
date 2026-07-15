@@ -157,7 +157,7 @@ function CompanyCard({ job, index }) {
   return (
     <div
       style={{ backgroundColor: C.white, borderColor: C.border }}
-      className="rounded-2xl p-5 shadow-sm border hover:shadow-md transition-shadow duration-200"
+      className="rounded-2xl p-5 shadow-sm border hover:shadow-lg hover:-translate-y-1 transition-all duration-200"
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
@@ -236,11 +236,11 @@ function CompanyCard({ job, index }) {
         <button
           onClick={() => navigate(`/student/companies/${jobId}`)}
           style={{ backgroundColor: C.primary }}
-          className="hover:opacity-90 text-white cursor-pointer px-5 py-2.5 rounded-full text-sm font-medium flex items-center gap-1.5 transition-opacity duration-150"
+          className="hover:opacity-90 text-white cursor-pointer px-5 py-2.5 rounded-full text-sm font-medium flex items-center gap-1.5 transition-all duration-200 group"
         >
           View Details
           <svg
-            className="w-4 h-4"
+            className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1"
             fill="none"
             stroke="currentColor"
             strokeWidth={2.5}
@@ -682,12 +682,45 @@ export default function PlacementDashboard() {
                   />
                 </svg>
               </button>
-              <button
-                onClick={() => navigate("/student/applications")}
-                className="bg-white/20 cursor-pointer border border-white/40 text-white font-semibold px-6 py-2.5 rounded-full text-sm hover:bg-white/30 transition-colors"
-              >
-                My Applications
-              </button>
+              {!applicationsLoading && selectedCount > 0 && (
+                <button
+                  onClick={() => navigate("/student/applications")}
+                  className="w-full mb-6 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
+                  style={{
+                    background: "linear-gradient(135deg, #DCFCE7, #F0FDF4)",
+                    border: "1px solid #BBF7D0",
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🎉</span>
+                    <div className="text-left">
+                      <p
+                        style={{ color: "#15803D" }}
+                        className="text-sm font-bold"
+                      >
+                        You're selected in {selectedCount}{" "}
+                        {selectedCount === 1 ? "company" : "companies"}!
+                      </p>
+                      <p style={{ color: "#16A34A" }} className="text-xs">
+                        Tap to view your application status
+                      </p>
+                    </div>
+                  </div>
+                  <svg
+                    className="w-5 h-5 shrink-0"
+                    fill="none"
+                    stroke="#15803D"
+                    strokeWidth={2.5}
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
 
@@ -826,38 +859,6 @@ export default function PlacementDashboard() {
           </div>
         </div>
 
-        {!applicationsLoading && appliedCount > 0 && (
-          <div
-            style={{ backgroundColor: C.white, borderColor: C.border }}
-            className="rounded-2xl border p-4 mb-6 flex items-center gap-4"
-          >
-            <p
-              style={{ color: C.textMuted }}
-              className="text-xs font-medium shrink-0"
-            >
-              Your journey
-            </p>
-            <div
-              className="flex-1 h-2 rounded-full overflow-hidden flex"
-              style={{ backgroundColor: C.background }}
-            >
-              <div
-                style={{
-                  width: `${(selectedCount / appliedCount) * 100}%`,
-                  backgroundColor: C.success,
-                }}
-                className="h-full transition-all duration-700"
-              />
-            </div>
-            <p
-              style={{ color: C.textMuted }}
-              className="text-xs font-medium shrink-0"
-            >
-              {selectedCount} of {appliedCount} selected
-            </p>
-          </div>
-        )}
-
         {/* Bottom Grid */}
         <div className="grid grid-cols-3 gap-6">
           {/* Eligible Companies — latest 4 for this student's school */}
@@ -912,6 +913,51 @@ export default function PlacementDashboard() {
               </div>
             )}
           </div>
+
+          {!applicationsLoading && appliedCount > 0 && (
+            <button
+              onClick={() => navigate("/student/applications")}
+              style={{ backgroundColor: C.white, borderColor: C.border }}
+              className="w-full rounded-2xl border p-4 mb-4 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer text-left"
+            >
+              <p
+                style={{ color: C.textMuted }}
+                className="text-xs font-medium mb-3"
+              >
+                Application Status
+              </p>
+              <div className="flex items-center gap-2">
+                {[
+                  {
+                    label: "Applied",
+                    count: applications.filter((a) => a.status === "Applied")
+                      .length,
+                    color: C.primary,
+                  },
+                  {
+                    label: "Shortlisted",
+                    count: applications.filter(
+                      (a) => a.status === "Shortlisted",
+                    ).length,
+                    color: C.warning,
+                  },
+                  { label: "Selected", count: selectedCount, color: C.success },
+                ].map((s) => (
+                  <div key={s.label} className="flex-1 text-center">
+                    <p style={{ color: s.color }} className="text-lg font-bold">
+                      {s.count}
+                    </p>
+                    <p
+                      style={{ color: C.textMuted }}
+                      className="text-[10px] font-medium"
+                    >
+                      {s.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </button>
+          )}
 
           {/* Announcements — live, polled every 6s, filtered to student's school */}
           <div>
