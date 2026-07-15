@@ -388,9 +388,6 @@ function jobSortDate(job) {
   return d && !isNaN(d) ? d.getTime() : 0;
 }
 
-// A job posting past its lastDate (application deadline) shouldn't count
-// as "open" even if status is still Active in the DB — coordinators don't
-// always manually flip status to Closed once the deadline passes.
 function isStillOpen(job) {
   if (!job.lastDate) return true; // no deadline set => treat as open
   const deadline = new Date(job.lastDate);
@@ -407,10 +404,60 @@ function isStillOpen(job) {
 }
 
 const POLL_INTERVAL_MS = 6000; // matches the polling interval used on StudentApplication
+// Rotating, time-of-day-aware greeting — mirrors "Claude-style" personality
+// touches. Picks a random line from the matching time bucket each time the
+// dashboard mounts, occasionally swapping in a placement-specific line for
+// variety. Memoized so it doesn't change on every re-render/poll tick.
+const GREETINGS = {
+  morning: [
+    "Early start? Nice.",
+    "Ready to make progress?",
+    "Fresh day, fresh opportunities.",
+  ],
+  afternoon: [
+    "Back at it?",
+    "Making the most of the day?",
+    "What's next on the agenda?",
+  ],
+  evening: [
+    "Wrapping up with one more win?",
+    "Evening grind?",
+    "Let's end the day on a productive note.",
+  ],
+  lateNight: [
+    "Night owl?",
+    "Burning the midnight oil?",
+    "Late-night hustle?",
+    "Still chasing that dream offer?",
+    "One last task before calling it a day?",
+  ],
+};
 
-// One rendered announcement row — pulled out so the compact preview list
-// and the "View All" history modal render identically instead of drifting
-// out of sync if one gets tweaked later.
+const PLACEMENT_LINES = [
+  "Which company are we aiming for today?",
+  "Another step toward your placement.",
+  "Ready to land your next opportunity?",
+  "Let's move closer to your dream company.",
+  "Opportunities are waiting.",
+  "What's your next career move?",
+];
+
+function getTimeBucket(date) {
+  const h = date.getHours();
+  if (h >= 5 && h < 12) return "morning";
+  if (h >= 12 && h < 17) return "afternoon";
+  if (h >= 17 && h < 21) return "evening";
+  return "lateNight";
+}
+
+function pickGreeting() {
+  const bucket = getTimeBucket(new Date());
+  // ~35% chance to show a placement-specific line instead of the
+  // time-bucket one, for variety without losing the time-of-day feel.
+  const pool = Math.random() < 0.35 ? PLACEMENT_LINES : GREETINGS[bucket];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 function AnnouncementItem({ a, isLast }) {
   const isNew =
     a.createdAt &&
@@ -499,6 +546,7 @@ export default function PlacementDashboard() {
 
   const [applications, setApplications] = useState([]);
   const [applicationsLoading, setApplicationsLoading] = useState(true);
+  const [greeting] = useState(() => pickGreeting());
 
   const student = JSON.parse(localStorage.getItem("student") || "{}");
   const currentYear = new Date().getFullYear();
@@ -636,10 +684,32 @@ export default function PlacementDashboard() {
         {/* Hero Banner */}
         <div
           style={{
-            background: `linear-gradient(135deg, ${C.primary} 0%, ${C.accent} 60%, #818CF8 100%)`,
+            background:
+              "linear-gradient(135deg, #4F8EF7 0%, #7DAAFA 50%, #A7C4FB 100%)",
           }}
           className="rounded-3xl p-8 mb-6 relative overflow-hidden"
         >
+          {/* Subtle dot-grid pattern — professional, low-opacity texture */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle, rgba(255,255,255,0.35) 1px, transparent 1px)",
+              backgroundSize: "22px 22px",
+              opacity: 0.35,
+            }}
+          />
+          {/* Soft diagonal line accent, bottom-right */}
+          <svg
+            className="absolute bottom-0 right-0 w-72 h-72 pointer-events-none opacity-[0.08]"
+            viewBox="0 0 200 200"
+            fill="none"
+          >
+            <path d="M0 150 L200 0" stroke="white" strokeWidth="1" />
+            <path d="M0 170 L200 20" stroke="white" strokeWidth="1" />
+            <path d="M0 190 L200 40" stroke="white" strokeWidth="1" />
+            <path d="M0 130 L180 0" stroke="white" strokeWidth="1" />
+          </svg>
           <div className="relative z-10">
             <span className="inline-flex items-center gap-1.5 bg-white/20 text-white text-xs font-medium px-3 py-1.5 rounded-full mb-4">
               <svg
@@ -654,7 +724,10 @@ export default function PlacementDashboard() {
             <h1 className="text-4xl font-bold text-white mb-1">
               Hey {student.name},
             </h1>
-            <p className="text-white/80 text-sm mb-3">{todayLabel}</p>
+            <p className="text-white/90 text-base font-medium mb-1">
+              {greeting}
+            </p>
+            <p className="text-white/70 text-sm mb-3">{todayLabel}</p>
             <p className="text-white/90 text-lg mb-6">
               <span className="font-semibold">
                 {eligibleJobs.length} companies
