@@ -523,6 +523,7 @@ function AppliedTab({ selectedJobId, readOnly }) {
   const [filterStatus, setFilterStatus] = useState("All");
   const [loading, setLoading] = useState(true);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     if (!selectedJobId) return;
@@ -1041,7 +1042,6 @@ export default function ApplicationsManagementPage() {
   const [driveFilter, setDriveFilter] = useState("Active"); // Active | Closed | All
   const [loading, setLoading] = useState(true);
   const [finalizing, setFinalizing] = useState(false);
-  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
