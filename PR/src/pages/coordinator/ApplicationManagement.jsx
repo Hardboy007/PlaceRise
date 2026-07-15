@@ -564,11 +564,20 @@ function AppliedTab({ selectedJobId, readOnly }) {
         },
       );
       if (!response.ok) throw new Error("Export failed");
+
+      // Backend se filename lo Content-Disposition header se
+      const disposition = response.headers.get("Content-Disposition");
+      let filename = "Applications.xlsx";
+      if (disposition) {
+        const match = disposition.match(/filename=(.+)/);
+        if (match) filename = match[1];
+      }
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = ''
+      a.download = filename; // backend wala filename use karo
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (err) {
