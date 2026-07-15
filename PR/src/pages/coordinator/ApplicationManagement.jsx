@@ -553,6 +553,7 @@ function AppliedTab({ selectedJobId, readOnly }) {
   };
 
   const handleExport = async () => {
+    setExporting(true);
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
@@ -571,6 +572,8 @@ function AppliedTab({ selectedJobId, readOnly }) {
       window.URL.revokeObjectURL(url);
     } catch (err) {
       alert("Export failed");
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -678,16 +681,49 @@ function AppliedTab({ selectedJobId, readOnly }) {
         </span>
         <button
           onClick={handleExport}
+          disabled={exporting}
           className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all border"
           style={{
-            background: "linear-gradient(135deg, #1D4ED8, #3B82F6)",
+            background: exporting
+              ? "#94A3B8"
+              : "linear-gradient(135deg, #1D4ED8, #3B82F6)",
             color: "white",
             borderColor: "transparent",
-            boxShadow: "0 2px 8px rgba(59,130,246,0.3)",
+            boxShadow: exporting ? "none" : "0 2px 8px rgba(59,130,246,0.3)",
+            cursor: exporting ? "not-allowed" : "pointer",
           }}
         >
-          <Download size={13} />
-          Ready to Share with Company? — Download Excel
+          {exporting ? (
+            <>
+              <svg
+                className="animate-spin"
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="white"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="white"
+                  d="M4 12a8 8 0 018-8v8z"
+                />
+              </svg>
+              Preparing Excel...
+            </>
+          ) : (
+            <>
+              <Download size={13} />
+              ready to Share with Company? — Download Excel
+            </>
+          )}
         </button>
       </div>
 
@@ -1005,6 +1041,7 @@ export default function ApplicationsManagementPage() {
   const [driveFilter, setDriveFilter] = useState("Active"); // Active | Closed | All
   const [loading, setLoading] = useState(true);
   const [finalizing, setFinalizing] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
