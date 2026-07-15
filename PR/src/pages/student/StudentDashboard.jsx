@@ -179,16 +179,32 @@ function CompanyCard({ job, index }) {
             </p>
           </div>
         </div>
-        <span
-          style={{
-            color: C.success,
-            borderColor: "#BBF7D0",
-            backgroundColor: "#F0FDF4",
-          }}
-          className="text-xs font-medium border px-2.5 py-1 rounded-full"
-        >
-          Eligible
-        </span>
+        {(() => {
+          const daysLeft = job.lastDate
+            ? Math.ceil((new Date(job.lastDate) - new Date()) / 86400000)
+            : null;
+          const urgent = daysLeft !== null && daysLeft <= 3;
+          return (
+            <span
+              style={
+                urgent
+                  ? {
+                      color: C.danger,
+                      borderColor: "#FECACA",
+                      backgroundColor: "#FEF2F2",
+                    }
+                  : {
+                      color: C.success,
+                      borderColor: "#BBF7D0",
+                      backgroundColor: "#F0FDF4",
+                    }
+              }
+              className="text-xs font-medium border px-2.5 py-1 rounded-full whitespace-nowrap"
+            >
+              {urgent ? `${daysLeft}d left` : "Eligible"}
+            </span>
+          );
+        })()}
       </div>
 
       <div
@@ -396,6 +412,9 @@ const POLL_INTERVAL_MS = 6000; // matches the polling interval used on StudentAp
 // and the "View All" history modal render identically instead of drifting
 // out of sync if one gets tweaked later.
 function AnnouncementItem({ a, isLast }) {
+  const isNew =
+    a.createdAt &&
+    Date.now() - new Date(a.createdAt).getTime() < 24 * 60 * 60 * 1000;
   const tc = ANN_TYPE_CONFIG[a.type] || ANN_TYPE_CONFIG.General;
   return (
     <div
@@ -415,6 +434,11 @@ function AnnouncementItem({ a, isLast }) {
           >
             {a.type || "General"}
           </span>
+          {isNew && (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-600 text-white animate-pulse">
+              New
+            </span>
+          )}
           <span
             style={{
               color: C.textMuted,
@@ -693,7 +717,7 @@ export default function PlacementDashboard() {
         <div className="grid grid-cols-3 gap-4 mb-8">
           <div
             style={{ backgroundColor: C.white, borderColor: C.border }}
-            className="rounded-2xl px-5 py-4 shadow-sm border flex items-center gap-4"
+            className="rounded-2xl px-5 py-4 shadow-sm border-l-4 flex items-center gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
           >
             <div
               style={{ backgroundColor: "#DCFCE7" }}
@@ -726,7 +750,7 @@ export default function PlacementDashboard() {
 
           <div
             style={{ backgroundColor: C.white, borderColor: C.border }}
-            className="rounded-2xl px-5 py-4 shadow-sm border flex items-center gap-4"
+            className="rounded-2xl px-5 py-4 shadow-sm border-l-4 flex items-center gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
           >
             <div
               style={{ backgroundColor: "#DBEAFE" }}
@@ -759,7 +783,7 @@ export default function PlacementDashboard() {
 
           <div
             style={{ backgroundColor: C.white, borderColor: C.border }}
-            className="rounded-2xl px-5 py-4 shadow-sm border flex items-center gap-4"
+            className="rounded-2xl px-5 py-4 shadow-sm border-l-4 flex items-center gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
           >
             <div
               style={{ backgroundColor: "#EDE9FE" }}
@@ -785,14 +809,54 @@ export default function PlacementDashboard() {
               </p>
               {/* NOTE: no dedicated endpoint for this was specified — using
                   student.profileScore if backend provides it, else a dash. */}
-              <p style={{ color: C.textMain }} className="text-2xl font-bold">
-                {student.profileScore != null
-                  ? `${student.profileScore}%`
-                  : "—"}
-              </p>
+              {student.profileScore != null ? (
+                <p style={{ color: C.textMain }} className="text-2xl font-bold">
+                  {student.profileScore}%
+                </p>
+              ) : (
+                <button
+                  onClick={() => navigate("/student/profile")}
+                  style={{ color: "#8B5CF6" }}
+                  className="text-xs font-semibold hover:underline"
+                >
+                  Complete profile →
+                </button>
+              )}
             </div>
           </div>
         </div>
+
+        {!applicationsLoading && appliedCount > 0 && (
+          <div
+            style={{ backgroundColor: C.white, borderColor: C.border }}
+            className="rounded-2xl border p-4 mb-6 flex items-center gap-4"
+          >
+            <p
+              style={{ color: C.textMuted }}
+              className="text-xs font-medium shrink-0"
+            >
+              Your journey
+            </p>
+            <div
+              className="flex-1 h-2 rounded-full overflow-hidden flex"
+              style={{ backgroundColor: C.background }}
+            >
+              <div
+                style={{
+                  width: `${(selectedCount / appliedCount) * 100}%`,
+                  backgroundColor: C.success,
+                }}
+                className="h-full transition-all duration-700"
+              />
+            </div>
+            <p
+              style={{ color: C.textMuted }}
+              className="text-xs font-medium shrink-0"
+            >
+              {selectedCount} of {appliedCount} selected
+            </p>
+          </div>
+        )}
 
         {/* Bottom Grid */}
         <div className="grid grid-cols-3 gap-6">
