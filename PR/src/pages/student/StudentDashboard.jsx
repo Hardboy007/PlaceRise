@@ -200,7 +200,9 @@ function CompanyCard({ job, index }) {
               }
               className="text-xs font-medium border px-2.5 py-1 rounded-full whitespace-nowrap"
             >
-              {urgent ? `${daysLeft}d left` : "Eligible"}
+              {urgent
+                ? `${daysLeft === 0 ? "Today" : `${daysLeft}d left`}`
+                : "Eligible"}
             </span>
           );
         })()}
@@ -402,12 +404,13 @@ function isStillOpen(job) {
   return endOfDeadlineDay >= new Date();
 }
 const getDaysLeft = (lastDate) => {
-  const today = new Date();
-
+  const now = new Date();
   const deadline = new Date(lastDate);
+  // Last date ka end of day — 23:59:59
   deadline.setHours(23, 59, 59, 999);
-
-  return Math.ceil((deadline - today) / 86400000);
+  const diff = deadline - now;
+  if (diff < 0) return -1; // expired
+  return Math.floor(diff / 86400000); // floor, ceil nahi
 };
 const POLL_INTERVAL_MS = 6000; // matches the polling interval used on StudentApplication
 // Rotating, time-of-day-aware greeting — mirrors "Claude-style" personality
