@@ -1,3 +1,4 @@
+const ExcelJS = require('exceljs')
 const Application = require("../models/Application");
 const Student = require("../models/Student");
 const JobPosting = require("../models/JobPosting");
@@ -296,9 +297,125 @@ const updateApplicationStatus = async (req, res) => {
   }
 };
 
+const exportJobApplications = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+
+    const applications = await Application.find({ jobId })
+      .populate({
+        path: "studentId",
+        populate: { path: "userId", select: "erpId email" },
+      })
+      .populate({
+        path: "jobId",
+        populate: { path: "companyId", select: "name" },
+      });
+
+    const job = await JobPosting.findById(jobId).populate("companyId", "name");
+    const companyName = job?.companyId?.name || "Company";
+    const role = job?.role || "Role";
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Applications");
+
+    // Header styling
+    const headerRow = sheet.addRow([
+      "Name",
+      "ERP ID",
+      "Email",
+      "Course",
+      "School",
+      "Batch",
+      "CGPA",
+      "Backlogs",
+      "Status",
+      "Applied Date",
+      "Resume Link",
+    ]);
+    headerRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    headerRow.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF1D4ED8" },
+    };
+    headerRow.height = 18;
+
+    sheet.columns = [
+      { width: 25 },
+      { width: 15 },
+      { width: 30 },
+      { width: 25 },
+      { width: 30 },
+      { width: 10 },
+      { width: 8 },
+      { width: 10 },
+      { width: 14 },
+      { width: 15 },
+      { width: 50 },
+    ];
+
+    applications.forEach((a) => {
+      const student = a.studentId;
+      const row = sheet.addRow([
+        student?.name || "—",
+        student?.userId?.erpId || "—",
+        student?.email || "—",
+        student?.course || "—",
+        student?.school || "—",
+        student?.batch || "—",
+        student?.cgpa || "—",
+        student?.backlogs ?? 0,
+        a.status,
+        a.appliedDate
+          ? new Date(a.appliedDate).toLocaleDateString("en-IN")
+          : "—",
+        a.resumeUrl || "—",
+      ]);
+
+      // Resume link clickable banao
+      if (a.resumeUrl) {
+        row.getCell(11).value = {
+          text: "View Resume",
+          hyperlink: a.resumeUrl,
+        };
+        row.getCell(11).font = { color: { argb: "FF3B82F6" }, underline: true };
+      }
+
+      // Status color
+      const statusColors = {
+        Selected: "FF16A34A",
+        Shortlisted: "FFF59E0B",
+        Rejected: "FFEF4444",
+        Applied: "FF3B82F6",
+      };
+      if (statusColors[a.status]) {
+        row.getCell(9).font = {
+          color: { argb: statusColors[a.status] },
+          bold: true,
+        };
+      }
+    });
+
+    const filename = `${companyName}_${role}_Applications.xlsx`.replace(
+      /\s+/g,
+      "_",
+    );
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
+    res.setHeader("Content-Disposition", `attachment; filename=${filename}`);
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createApplication,
   getMyApplications,
   getJobApplications,
   updateApplicationStatus,
+  exportJobApplications,
 };

@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   RotateCcw,
   X,
+  Download,
 } from "lucide-react";
 import { api } from "../../utils/api";
 
@@ -551,6 +552,28 @@ function AppliedTab({ selectedJobId, readOnly }) {
     );
   };
 
+  const handleExport = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/applications/job/${selectedJobId}/export`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      if (!response.ok) throw new Error("Export failed");
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Applications_${selectedJobId}.xlsx`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Export failed");
+    }
+  };
+  
   const counts = useMemo(
     () => ({
       total: applications.length,
@@ -653,6 +676,12 @@ function AppliedTab({ selectedJobId, readOnly }) {
           <strong style={{ color: "#0F172A" }}>{filtered.length}</strong> of{" "}
           {counts.total}
         </span>
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#E2E8F0] text-xs font-semibold text-[#64748B] hover:border-[#3B82F6] hover:text-[#3B82F6] transition-all"
+        >
+          <Download size={13} /> Export Excel
+        </button>
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
