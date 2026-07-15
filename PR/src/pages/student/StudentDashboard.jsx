@@ -410,9 +410,9 @@ const POLL_INTERVAL_MS = 6000; // matches the polling interval used on StudentAp
 // variety. Memoized so it doesn't change on every re-render/poll tick.
 const GREETINGS = {
   morning: [
-    "Early start? Nice.",
+    "Early start? Nice",
     "Ready to make progress?",
-    "Fresh day, fresh opportunities.",
+    "Fresh day, fresh opportunities",
   ],
   afternoon: [
     "Back at it?",
@@ -422,7 +422,7 @@ const GREETINGS = {
   evening: [
     "Wrapping up with one more win?",
     "Evening grind?",
-    "Let's end the day on a productive note.",
+    "Let's end the day on a productive note",
   ],
   lateNight: [
     "Night owl?",
@@ -435,10 +435,10 @@ const GREETINGS = {
 
 const PLACEMENT_LINES = [
   "Which company are we aiming for today?",
-  "Another step toward your placement.",
+  "Another step toward your placement",
   "Ready to land your next opportunity?",
-  "Let's move closer to your dream company.",
-  "Opportunities are waiting.",
+  "Let's move closer to your dream company",
+  "Opportunities are waiting",
   "What's your next career move?",
 ];
 
@@ -721,7 +721,7 @@ export default function PlacementDashboard() {
               </svg>
               Placement Season {currentYear}
             </span>
-            <h1 className="text-4xl font-bold text-white mb-1">
+            <h1 className="text-3xl font-bold text-white mb-1">
               {greeting}, {student.name}
             </h1>
             <p className="text-white/70 text-sm mb-3">{todayLabel}</p>
