@@ -691,6 +691,15 @@ export default function PlacementDashboard() {
   // application deadline (lastDate) hasn't passed yet — a job posting past
   // its lastDate shouldn't count as "open" even if status is still Active
   // in the DB (coordinator may not always flip status to Closed manually).
+  const getDaysLeft = (lastDate) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const deadline = new Date(lastDate);
+    deadline.setHours(0, 0, 0, 0);
+
+    return Math.round((deadline - today) / 86400000);
+  };
   const eligibleJobs = jobs
     .filter(isCompanyStillActive)
     .filter((j) => isJobForStudent(j, student))
@@ -711,23 +720,12 @@ export default function PlacementDashboard() {
 
   const closingSoonJobs = eligibleJobs.filter((j) => {
     if (!j.lastDate) return false;
-
-    const deadline = new Date(j.lastDate);
-    deadline.setHours(23, 59, 59, 999);
-
-    const days = Math.ceil((deadline - new Date()) / 86400000);
-
+    const days = getDaysLeft(j.lastDate);
     return days >= 0 && days <= 2;
   });
 
   const nearestClosingDays = closingSoonJobs.length
-    ? Math.min(
-        ...closingSoonJobs.map((j) => {
-          const deadline = new Date(j.lastDate);
-          deadline.setHours(23, 59, 59, 999);
-          return Math.ceil((deadline - new Date()) / 86400000);
-        }),
-      )
+    ? Math.min(...closingSoonJobs.map((j) => getDaysLeft(j.lastDate)))
     : 0;
 
   const latestFourJobs = eligibleJobs.slice(0, 4);
