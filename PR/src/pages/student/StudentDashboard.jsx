@@ -196,6 +196,16 @@ function CompanyCard({ job, index }) {
           const daysLeft = job.lastDate ? getDaysLeft(job.lastDate) : null;
 
           const urgent = daysLeft !== null && daysLeft >= 0 && daysLeft <= 3;
+          // FIXED: the badge now counts today inclusively. `daysLeft` from
+          // getDaysLeft is the raw exclusive gap (0 = deadline is today) —
+          // that raw value still drives the urgent/not-urgent classification
+          // above so the color threshold doesn't shift. `displayDays` adds 1
+          // whenever daysLeft is positive, so the number actually shown
+          // matches how people count inclusively (e.g. today=16,
+          // deadline=19 => raw gap 3 => shown as "4d left", since
+          // 16,17,18,19 is 4 days).
+          const displayDays =
+            daysLeft !== null && daysLeft > 0 ? daysLeft + 1 : daysLeft;
           return (
             <span
               style={
@@ -214,7 +224,7 @@ function CompanyCard({ job, index }) {
               className="text-xs font-medium border px-2.5 py-1 rounded-full whitespace-nowrap"
             >
               {urgent
-                ? `${daysLeft === 0 ? "Today" : `${daysLeft}d left`}`
+                ? `${daysLeft === 0 ? "Today" : `${displayDays}d left`}`
                 : "Eligible"}
             </span>
           );
