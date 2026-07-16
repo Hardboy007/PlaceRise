@@ -772,8 +772,14 @@ export default function CompanyManagementPage() {
       setCompanyErrors(errs);
       return;
     }
-    const newCompany = await api.post("/companies", companyForm);
-    setCreatedCompanyId(newCompany._id);
+    if (createdCompanyId) {
+      // Edit mode — update existing
+      await api.put(`/companies/${createdCompanyId}`, companyForm);
+    } else {
+      // Add mode — create new
+      const newCompany = await api.post("/companies", companyForm);
+      setCreatedCompanyId(newCompany._id);
+    }
     setAddStep(2);
   };
 
@@ -835,7 +841,22 @@ export default function CompanyManagementPage() {
     setJdErrors({});
     setShowJDModal(true);
   };
-
+  const openEditCompany = (company) => {
+    setCompanyForm({
+      name: company.name || "",
+      about: company.about || "",
+      industry: company.industry || "",
+      location: company.location || "",
+      website: company.website || "",
+      establishedYear: company.establishedYear || "",
+    });
+    setCompanyErrors({});
+    setCreatedCompanyId(company._id);
+    setAddStep(1);
+    setAddJDForm(emptyJD);
+    setAddJDErrors({});
+    setShowCompanyModal(true);
+  };
   const submitJD = async () => {
     const errs = validateJD(jdForm);
     if (Object.keys(errs).length) {
@@ -1138,6 +1159,12 @@ export default function CompanyManagementPage() {
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E2E8F0] text-xs font-medium text-[#64748B] hover:border-[#8B5CF6] hover:text-[#8B5CF6] transition-all"
                     >
                       <Eye size={12} /> View
+                    </button>
+                    <button
+                      onClick={() => openEditCompany(company)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0] text-xs font-semibold hover:bg-[#E2E8F0] transition-colors"
+                    >
+                      <Pencil size={12} /> Edit Company Info
                     </button>
                     {job ? (
                       <button
@@ -1460,7 +1487,11 @@ export default function CompanyManagementPage() {
                     className="text-sm font-bold text-[#1E293B]"
                     style={{ fontFamily: "Space Grotesk, sans-serif" }}
                   >
-                    {addStep === 1 ? "Add New Company" : "Post Job Description"}
+                    {addStep === 1
+                      ? createdCompanyId
+                        ? "Edit Company"
+                        : "Add New Company"
+                      : "Post Job Description"}
                   </h2>
                   <p className="text-xs text-[#94A3B8] mt-0.5">
                     Step {addStep} of 2 —{" "}
