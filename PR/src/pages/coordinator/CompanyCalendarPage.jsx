@@ -212,7 +212,11 @@ function JobDetailModal({ job, onClose }) {
             <X size={16} />
           </button>
           <div className="flex items-center gap-3">
-            <CompanyLogo name={companyName} website={job.companyId?.website} size={48} />
+            <CompanyLogo
+              name={companyName}
+              website={job.companyId?.website}
+              size={48}
+            />
             <div>
               <p className="text-white font-semibold text-base leading-tight tracking-tight">
                 {companyName}
@@ -337,7 +341,9 @@ function JobDetailModal({ job, onClose }) {
                     Application deadline
                   </p>
                   <p className="text-[12px] text-red-800 font-semibold">
-                    {deadlineDate ? deadlineDate.toLocaleDateString("en-GB") : "—"}
+                    {deadlineDate
+                      ? deadlineDate.toLocaleDateString("en-GB")
+                      : "—"}
                   </p>
                 </div>
               </div>
@@ -452,7 +458,10 @@ function DayPopupModal({
               className="bg-gray-50 border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 hover:shadow-sm rounded-xl p-3 text-left transition-all duration-150 group"
             >
               <div className="flex items-center gap-2.5 mb-2.5">
-                <CompanyAvatar company={j.companyId?.name} website={j.companyId?.website} />
+                <CompanyAvatar
+                  company={j.companyId?.name}
+                  website={j.companyId?.website}
+                />
                 <div className="flex-1 min-w-0">
                   <p className="text-[13px] font-semibold text-gray-900">
                     {j.companyId?.name || "Unknown"}
@@ -622,11 +631,17 @@ export default function CompanyCalendarPage() {
       >
         <div
           className="absolute top-0 right-0 w-72 h-72 rounded-full pointer-events-none"
-          style={{ background: "rgba(255,255,255,0.08)", transform: "translate(35%,-45%)" }}
+          style={{
+            background: "rgba(255,255,255,0.08)",
+            transform: "translate(35%,-45%)",
+          }}
         />
         <div
           className="absolute bottom-0 left-0 w-52 h-52 rounded-full pointer-events-none"
-          style={{ background: "rgba(255,255,255,0.06)", transform: "translate(-30%,40%)" }}
+          style={{
+            background: "rgba(255,255,255,0.06)",
+            transform: "translate(-30%,40%)",
+          }}
         />
 
         <div className="relative z-10 flex items-start justify-between gap-4 mb-6">
@@ -870,7 +885,11 @@ export default function CompanyCalendarPage() {
                           : ""
                       }`}
                     >
-                      <CompanyAvatar company={j.companyId?.name} website={j.companyId?.website} size="sm" />
+                      <CompanyAvatar
+                        company={j.companyId?.name}
+                        website={j.companyId?.website}
+                        size="sm"
+                      />
                       <div className="flex-1 min-w-0">
                         <p className="text-[12px] font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
                           {j.companyId?.name || "—"}

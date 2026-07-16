@@ -118,7 +118,11 @@ export default function CoordinatorDashboard() {
   // FIXED: local midnight version of "today", used for whole-day deadline
   // comparisons below so the days-left count doesn't drift depending on
   // what time of day it currently is (see upcomingDeadlines).
-  const todayMid = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const todayMid = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  );
 
   // FIXED: only jobs with a real (non-deleted) company are ever considered
   // "live" anywhere below. A deleted company leaves companyId null/undefined
