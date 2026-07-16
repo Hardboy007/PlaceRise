@@ -11,7 +11,7 @@ const logActivity = require("../utils/logActivity");
 const getJobs = async (req, res) => {
   try {
     const jobs = await JobPosting.find({ status: "Active" })
-      .populate("companyId", "name")
+      .populate("companyId", "name website")
       .sort({ createdAt: -1 });
     res.json(jobs);
   } catch (error) {
