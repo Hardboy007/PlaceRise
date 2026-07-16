@@ -57,6 +57,20 @@ const deleteCompany = async (req, res) => {
   }
 };
 
+// UPDATE COMPANY
+const updateCompany = async (req, res) => {
+  try {
+    const company = await Company.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    if (!company) return res.status(404).json({ message: "Company not found" });
+    res.json(company);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // GET ALL JOBS
 const getAllJobs = async (req, res) => {
   try {
@@ -112,5 +126,6 @@ module.exports = {
   getAllJobs,
   getJobById,
   deleteCompany,
+  updateCompany,
   uploadJobPDF,
 };
