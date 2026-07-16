@@ -1641,12 +1641,35 @@ export default function CompanyManagementPage() {
                   >
                     Cancel
                   </button>
-                  <button
-                    onClick={goToStep2}
-                    className="px-4 py-2 rounded-xl bg-[#3B82F6] text-white text-sm font-semibold hover:bg-[#2563EB] transition-colors flex items-center gap-2"
-                  >
-                    Next: Add JD <ChevronRight size={14} />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {createdCompanyId && (
+                      <button
+                        onClick={async () => {
+                          const errs = validateCompany();
+                          if (Object.keys(errs).length) {
+                            setCompanyErrors(errs);
+                            return;
+                          }
+                          await api.put(
+                            `/companies/${createdCompanyId}`,
+                            companyForm,
+                          );
+                          await fetchData();
+                          setShowCompanyModal(false);
+                        }}
+                        className="px-4 py-2 rounded-xl border border-[#E2E8F0] text-sm font-medium text-[#64748B] hover:bg-[#F8FAFC] transition-colors"
+                      >
+                        Save Company Info
+                      </button>
+                    )}
+                    <button
+                      onClick={goToStep2}
+                      className="px-4 py-2 rounded-xl bg-[#3B82F6] text-white text-sm font-semibold hover:bg-[#2563EB] transition-colors flex items-center gap-2"
+                    >
+                      {createdCompanyId ? "Next: Edit JD" : "Next: Add JD"}{" "}
+                      <ChevronRight size={14} />
+                    </button>
+                  </div>
                 </>
               )}
               {addStep === 2 && (
