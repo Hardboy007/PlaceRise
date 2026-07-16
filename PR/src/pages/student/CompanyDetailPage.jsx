@@ -63,10 +63,19 @@ export default function CompanyDetailPage() {
           !data.eligibleBranches.includes("All") &&
           data.eligibleBranches.length > 0
         ) {
-          const eligible =
+          const branchOk =
+            !data.eligibleBranches?.length ||
+            data.eligibleBranches.includes("All") ||
             data.eligibleBranches.includes(studentData.course) ||
             data.eligibleBranches.includes(studentData.branch);
-          setIsEligible(eligible);
+
+          const cgpaOk =
+            !data.minCgpa || (studentData?.cgpa ?? 0) >= data.minCgpa;
+
+          const backlogOk =
+            (studentData?.backlogs ?? 0) <= (data.maxBacklogs ?? 99);
+
+          setIsEligible(branchOk && cgpaOk && backlogOk);
         }
 
         // Already applied check

@@ -38,10 +38,6 @@ const createApplication = async (req, res) => {
       !job.eligibleBranches.includes("All") &&
       job.eligibleBranches.length > 0
     ) {
-      if (!student) {
-        return res.status(404).json({ message: "Student not found" });
-      }
-
       const isEligible =
         job.eligibleBranches.includes(student.course) ||
         job.eligibleBranches.includes(student.branch);
@@ -51,6 +47,21 @@ const createApplication = async (req, res) => {
           .status(403)
           .json({ message: "You are not eligible for this job" });
       }
+    }
+    // CGPA check
+    if (job.minCgpa && job.minCgpa > 0) {
+      if ((student.cgpa ?? 0) < job.minCgpa) {
+        return res
+          .status(403)
+          .json({ message: `Minimum CGPA required: ${job.minCgpa}` });
+      }
+    }
+
+    // Backlogs check
+    if ((student.backlogs ?? 0) > (job.maxBacklogs ?? 99)) {
+      return res
+        .status(403)
+        .json({ message: `Maximum ${job.maxBacklogs} backlog(s) allowed` });
     }
     // Already applied check karo
     const alreadyApplied = await Application.findOne({
