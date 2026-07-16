@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../utils/api";
+import CompanyLogo from "../../components/common/CompanyLogo";
 
 // All courses from universityStructure — these match DB eligibleBranches values
 const ALL_COURSES = universityStructure.flatMap((school) =>
@@ -246,9 +247,11 @@ function CompanyCard({ company, onViewDetails, isSaved, onToggleSave }) {
     <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 flex flex-col hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#F1F5F9] border border-[#E2E8F0] flex items-center justify-center shrink-0">
-            <Building2 size={18} className="text-[#3B82F6]" />
-          </div>
+          <CompanyLogo
+            name={company.companyId?.name}
+            website={company.companyId?.website}
+            size={40}
+          />
           <div>
             <h3
               className="text-sm font-bold text-[#1E293B]"

@@ -20,6 +20,7 @@ import {
   AlertCircle,
   FileText,
 } from "lucide-react";
+import CompanyLogo from "../../components/common/CompanyLogo";
 
 export default function CompanyDetailPage() {
   const { companyId } = useParams();
@@ -209,8 +210,12 @@ export default function CompanyDetailPage() {
         />
         <div className="relative z-10 p-7">
           <div className="flex items-start gap-4 mb-5">
-            <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center flex-shrink-0 shadow-md">
-              <Building2 size={24} className="text-[#3B82F6]" />
+            <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center flex-shrink-0 shadow-md p-1.5">
+              <CompanyLogo
+                name={companyInfo.name}
+                website={companyInfo.website}
+                size={44}
+              />
             </div>
             <div className="flex-1">
               <h1

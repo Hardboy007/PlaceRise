@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../utils/api";
+import CompanyLogo from "../../components/common/CompanyLogo";
 
 // ── Design Tokens ─────────────────────────────────────────────
 const C = {
@@ -449,21 +450,11 @@ export default function StudentApplication() {
                     navigate(`/student/companies/${app.jobId._id}`)
                   }
                 >
-                  <div
-                    style={{
-                      backgroundColor: "#F1F5F9",
-                      border: `1px solid ${C.border}`,
-                      borderRadius: "12px",
-                      width: "40px",
-                      height: "40px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <BuildingIcon />
-                  </div>
+                  <CompanyLogo
+                    name={app.jobId.companyId.name}
+                    website={app.jobId.companyId.website}
+                    size={40}
+                  />
                   <span className="font-bold text-[15px] text-[#0F172A] group-hover:text-[#1D4ED8] group-hover:underline transition-colors">
                     {app.jobId.companyId.name}
                   </span>
