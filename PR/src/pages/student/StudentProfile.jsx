@@ -10,7 +10,7 @@ import {
   X,
   Plus,
 } from "lucide-react";
-
+import { getCurrentYear } from "../../utils/courseDuration";
 function Field({ label, name, value, editing, form, onChange, type = "text" }) {
   return (
     <div className="flex flex-col gap-1 mb-4 last:mb-0">
@@ -285,7 +285,7 @@ export default function StudentProfilePage() {
           {
             label: "Current Year",
             value: student.batch
-              ? `Year ${new Date().getFullYear() - parseInt(student.batch) + 4}`
+              ? `Year ${getCurrentYear(student.batch, student.course)}`
               : "—",
             color: "border-t-[#F59E0B]",
             bg: "bg-amber-50",
@@ -410,7 +410,7 @@ export default function StudentProfilePage() {
             name="year"
             value={
               student.batch
-                ? `Year ${new Date().getFullYear() - parseInt(student.batch) + 4}`
+                ? `Year ${getCurrentYear(student.batch, student.course)}`
                 : "—"
             }
             {...fieldProps}
