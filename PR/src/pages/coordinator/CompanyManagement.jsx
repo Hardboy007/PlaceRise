@@ -25,6 +25,7 @@ import {
   GraduationCap,
   ChevronDown,
 } from "lucide-react";
+import CompanyLogo from "../../components/common/CompanyLogo";
 
 // ─────────────────────────────────────────────────────────────
 //  CONSTANTS
@@ -1070,9 +1071,11 @@ export default function CompanyManagementPage() {
                 className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-primary p-5 shadow-sm hover:shadow-md transition-all"
               >
                 <div className="flex items-start gap-4">
-                  <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
-                    <Building2 size={20} className="text-primary" />
-                  </div>
+                  <CompanyLogo
+                    name={company.name}
+                    website={company.website}
+                    size={44}
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <h3
