@@ -230,12 +230,32 @@ function BranchChips({ branches }) {
 }
 
 function CompanyCard({ company, onViewDetails, isSaved, onToggleSave }) {
-  const deadline = new Date(company.lastDate);
-  deadline.setHours(23, 59, 59, 999);
+  // FIXED: days-left now counts today inclusively instead of the raw
+  // exclusive gap. Previously this compared a precise "end of deadline
+  // day" timestamp (23:59:59) against the exact current moment, which
+  // gave an off-by-one feel — a deadline 3 calendar days away (e.g.
+  // today=16, deadline=19) showed "3d left" instead of the "4 days"
+  // people get when they count today too (16,17,18,19).
+  //
+  // Both dates are normalized to local midnight first so the comparison
+  // is a clean whole-day difference, independent of what time it
+  // currently is. `diff` is that raw exclusive gap (0 = deadline is
+  // today, negative = already past — used to decide "Expired"/"Today"
+  // and to keep the urgency color bands consistent with before). `days`
+  // is what's actually shown to the user: diff+1 whenever diff is
+  // positive, so today is counted along with the remaining days.
+  const now = new Date();
+  const todayMid = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const deadlineRaw = new Date(company.lastDate);
+  const deadlineMid = new Date(
+    deadlineRaw.getFullYear(),
+    deadlineRaw.getMonth(),
+    deadlineRaw.getDate(),
+  );
+  const diff = Math.round((deadlineMid - todayMid) / 86400000);
+  const isExpired = diff < 0;
+  const days = diff > 0 ? diff + 1 : diff;
 
-  const isExpired = deadline < new Date();
-
-  const days = Math.ceil((deadline - new Date()) / (1000 * 60 * 60 * 24));
   const urgency =
     days <= 3
       ? "text-[#EF4444] bg-red-50 border-red-200"
@@ -285,7 +305,7 @@ function CompanyCard({ company, onViewDetails, isSaved, onToggleSave }) {
           <span
             className={`text-xs font-semibold px-2 py-1 rounded-lg border ${urgency}`}
           >
-            {days > 0 ? `${days}d left` : "Expired"}
+            {isExpired ? "Expired" : diff === 0 ? "Today" : `${days}d left`}
           </span>
         </div>
       </div>

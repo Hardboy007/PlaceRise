@@ -97,7 +97,17 @@ function toDeadlineDate(rawDate) {
 
 function DaysBadge({ diff }) {
   const base =
-    "text-[10px] px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap flex-shrink-0 border";
+    "text-[10px] px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap flex-shrink-0 border tabular-nums";
+  // FIXED: the label now counts today inclusively. `diff` (from daysUntil)
+  // is the raw exclusive gap between today and the deadline (0 = deadline
+  // is today, negative = already past). Previously the badge showed that
+  // raw gap directly, so a deadline 3 calendar days away (e.g. today=16,
+  // deadline=19) read "3d left" — off by one from what people actually
+  // count when they include today ("16,17,18,19 = 4 days"). displayDays
+  // adds 1 whenever diff is positive so the shown number matches that
+  // inclusive counting, while diff itself still drives the color bands so
+  // urgency (red/amber/green) doesn't shift.
+  const displayDays = diff > 0 ? diff + 1 : diff;
   if (diff < 0)
     return (
       <span className={`${base} bg-gray-50 text-gray-400 border-gray-200`}>
@@ -113,20 +123,20 @@ function DaysBadge({ diff }) {
   if (diff <= 3)
     return (
       <span className={`${base} bg-red-50 text-red-700 border-red-200`}>
-        {diff}d left
+        {displayDays}d left
       </span>
     );
   if (diff <= 7)
     return (
       <span className={`${base} bg-amber-50 text-amber-700 border-amber-200`}>
-        {diff}d left
+        {displayDays}d left
       </span>
     );
   return (
     <span
       className={`${base} bg-emerald-50 text-emerald-700 border-emerald-100`}
     >
-      {diff}d left
+      {displayDays}d left
     </span>
   );
 }
@@ -164,12 +174,31 @@ function JobDetailModal({ job, onClose }) {
       style={{ background: "rgba(0,0,0,0.45)" }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden border border-gray-100 flex flex-col max-h-[90vh]">
+      <div
+        className="bg-white rounded-2xl w-full max-w-lg overflow-hidden border border-gray-100 shadow-2xl flex flex-col max-h-[90vh] animate-[modalIn_0.18s_ease-out]"
+        style={{ animationFillMode: "backwards" }}
+      >
+        {/*
+          FIXED: header + tabs were missing `shrink-0`. The outer wrapper is
+          a flex-column capped at max-h-[90vh] — when the Overview tab's
+          content (long about-text, tech stack, grid boxes, deadline card)
+          pushed total height past that cap, flexbox tried to shrink EVERY
+          child to fit, including this header. Because the header also has
+          `overflow-hidden` (for the decorative circle), the browser treats
+          its flex "minimum size" as 0 instead of its real content height —
+          so it was allowed to shrink below the badges row, clipping/
+          overlapping them into the tabs bar right below. The Process tab
+          has far less content, never hit the cap, so it never shrank and
+          looked fine. `shrink-0` on both header and tabs bar means only the
+          actual scrollable content area (which already has flex-1 +
+          overflow-y-auto, built to absorb overflow) gives up space.
+        */}
         <div
-          className="px-6 pt-6 pb-5 relative overflow-hidden"
+          className="px-6 pt-6 pb-5 relative overflow-hidden shrink-0"
           style={{
             background:
-              "linear-gradient(135deg, #3B82F6 0%, #60A5FA 60%, #818CF8 100%)",
+              "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
+            boxShadow: "inset 0 -20px 40px -20px rgba(0,0,0,0.15)",
           }}
         >
           <div
@@ -185,7 +214,7 @@ function JobDetailModal({ job, onClose }) {
           <div className="flex items-center gap-3">
             <CompanyLogo name={companyName} website={job.companyId?.website} size={48} />
             <div>
-              <p className="text-white font-semibold text-base leading-tight">
+              <p className="text-white font-semibold text-base leading-tight tracking-tight">
                 {companyName}
               </p>
               <p className="text-white/75 text-[12px] mt-0.5">{job.role}</p>
@@ -200,7 +229,7 @@ function JobDetailModal({ job, onClose }) {
             ].map(({ icon: Icon, label }) => (
               <span
                 key={label}
-                className="text-[11px] px-2.5 py-1 rounded-lg bg-white/20 text-white border border-white/25 flex items-center gap-1.5"
+                className="text-[11px] px-2.5 py-1 rounded-lg bg-white/20 text-white border border-white/25 inline-flex items-center gap-1.5 whitespace-nowrap"
               >
                 <Icon size={11} /> {label}
               </span>
@@ -208,7 +237,7 @@ function JobDetailModal({ job, onClose }) {
           </div>
         </div>
 
-        <div className="flex border-b border-gray-100 px-4">
+        <div className="flex border-b border-gray-100 px-4 shrink-0">
           {["overview", "process", "perks"].map((t) => (
             <button
               key={t}
@@ -308,7 +337,7 @@ function JobDetailModal({ job, onClose }) {
                     Application deadline
                   </p>
                   <p className="text-[12px] text-red-800 font-semibold">
-                    {deadlineDate ? deadlineDate.toLocaleDateString() : "—"}
+                    {deadlineDate ? deadlineDate.toLocaleDateString("en-GB") : "—"}
                   </p>
                 </div>
               </div>
@@ -389,13 +418,16 @@ function DayPopupModal({
       className="fixed inset-0 bg-black/40 z-50 flex items-start justify-center pt-20"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="bg-white rounded-2xl border border-gray-100 w-90 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-2xl w-90 overflow-hidden animate-[modalIn_0.18s_ease-out]">
         <div
           className="px-5 py-4 border-b border-gray-100 flex items-start justify-between"
-          style={{ background: "linear-gradient(135deg,#3B82F6,#818CF8)" }}
+          style={{
+            background:
+              "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
+          }}
         >
           <div>
-            <p className="text-[14px] font-semibold text-white">
+            <p className="text-[14px] font-semibold text-white tracking-tight">
               {selectedDay} {MONTHS[selectedMonth]} {selectedYear}
             </p>
             <p className="text-[11px] text-white/70 mt-0.5">
@@ -417,7 +449,7 @@ function DayPopupModal({
                 onClose();
                 onSelectJob(j);
               }}
-              className="bg-gray-50 border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 rounded-xl p-3 text-left transition-all group"
+              className="bg-gray-50 border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 hover:shadow-sm rounded-xl p-3 text-left transition-all duration-150 group"
             >
               <div className="flex items-center gap-2.5 mb-2.5">
                 <CompanyAvatar company={j.companyId?.name} website={j.companyId?.website} />
@@ -555,39 +587,65 @@ export default function CompanyCalendarPage() {
 
   if (loading)
     return (
-      <div className="flex flex-col items-center justify-center py-24 gap-3">
-        <div className="w-8 h-8 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin" />
-        <p className="text-sm text-gray-400">Loading calendar...</p>
+      <div className="p-4 space-y-4 animate-pulse">
+        <div
+          className="h-44 rounded-2xl mx-0"
+          style={{
+            background:
+              "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
+            opacity: 0.25,
+          }}
+        />
+        <div className="flex gap-4">
+          <div className="flex-1 h-96 bg-gray-100 rounded-2xl" />
+          <div className="w-67 h-96 bg-gray-100 rounded-2xl shrink-0" />
+        </div>
       </div>
     );
 
   return (
     <div className="flex flex-col h-full">
+      <style>{`
+        @keyframes modalIn {
+          from { opacity: 0; transform: scale(0.97) translateY(4px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+      `}</style>
+
       <div
-        className="relative overflow-hidden px-6 pt-6 pb-0 mx-4 mt-4 rounded-2xl"
+        className="relative overflow-hidden rounded-2xl mx-4 mt-4 p-6"
         style={{
           background:
-            "linear-gradient(135deg, #3B82F6 0%, #60A5FA 60%, #818CF8 100%)",
+            "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
+          boxShadow: "inset 0 -20px 40px -20px rgba(0,0,0,0.15)",
         }}
       >
-        <div className="absolute -top-10 -right-10 w-52 h-52 rounded-full bg-white/[0.07]" />
-        <div className="absolute top-15 right-20 w-28 h-28 rounded-full bg-white/5" />
-        <div className="absolute bottom-0 left-7.5 w-44 h-44 rounded-full bg-white/4" />
+        <div
+          className="absolute top-0 right-0 w-72 h-72 rounded-full pointer-events-none"
+          style={{ background: "rgba(255,255,255,0.08)", transform: "translate(35%,-45%)" }}
+        />
+        <div
+          className="absolute bottom-0 left-0 w-52 h-52 rounded-full pointer-events-none"
+          style={{ background: "rgba(255,255,255,0.06)", transform: "translate(-30%,40%)" }}
+        />
 
         <div className="relative z-10 flex items-start justify-between gap-4 mb-6">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center border border-white/25">
-                <CalendarDays size={16} className="text-white" />
+            <div className="flex items-center gap-2 mb-1.5">
+              <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center">
+                <CalendarDays size={13} className="text-white" />
               </div>
-              <span className="text-[11px] text-white/70 font-medium tracking-widest uppercase">
-                Placement tracker
+              <span className="text-white/60 text-[10px] font-bold uppercase tracking-widest">
+                Placement Tracker
               </span>
             </div>
-            <h1 className="text-[26px] font-semibold text-white leading-tight tracking-tight">
-              Placement calendar
+            <h1
+              className="text-2xl font-bold text-white tracking-tight"
+              style={{ fontFamily: "Space Grotesk, sans-serif" }}
+            >
+              Placement Calendar
             </h1>
-            <p className="text-[12px] text-white/60 mt-1 flex items-center gap-1.5">
+            <p className="text-white/55 text-xs mt-1 flex items-center gap-1.5">
               <Clock size={12} /> {todayLabel}
             </p>
           </div>
@@ -596,31 +654,44 @@ export default function CompanyCalendarPage() {
               setCurYear(today.getFullYear());
               setCurMonth(today.getMonth());
             }}
-            className="flex items-center gap-1.5 bg-white border border-white/30 text-blue-600 rounded-xl px-4 py-2 text-[12px] font-medium hover:bg-blue-50 transition-colors shrink-0"
+            className="flex items-center gap-1.5 bg-white text-[#1D4ED8] rounded-xl px-4 py-2.5 text-sm font-bold hover:bg-blue-50 transition-colors shadow-lg shrink-0 mt-1"
           >
-            <Calendar size={13} /> Today
+            <Calendar size={14} /> Today
           </button>
         </div>
 
         <div className="relative z-10 grid grid-cols-3 gap-3">
           {[
             { icon: Building2, label: "Active JDs", val: jobs.length },
-            { icon: Bell, label: "Deadlines ahead", val: upcomingCount },
-            { icon: CalendarDays, label: "This month", val: thisMonthCount },
-          ].map(({ icon: Icon, label, val }) => (
+            {
+              icon: Bell,
+              label: "Deadlines Ahead",
+              val: upcomingCount,
+              highlight: upcomingCount > 0,
+            },
+            { icon: CalendarDays, label: "This Month", val: thisMonthCount },
+          ].map(({ icon: Icon, label, val, highlight }) => (
             <div
               key={label}
-              className="bg-white/15 border border-white/25 rounded-t-2xl px-4 pt-4 pb-5 flex items-center gap-3 backdrop-blur-sm"
+              className="rounded-xl px-4 py-3 border border-white/10"
+              style={{
+                background: highlight
+                  ? "rgba(239,68,68,0.20)"
+                  : "rgba(255,255,255,0.12)",
+              }}
             >
-              <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center border border-white/20 shrink-0">
-                <Icon size={17} className="text-white" />
+              <div className="flex items-center gap-1.5 mb-1">
+                <Icon size={12} className="text-white/60" />
+                <span className="text-white/55 text-[10px] font-semibold uppercase tracking-wider">
+                  {label}
+                </span>
               </div>
-              <div>
-                <div className="text-[24px] font-semibold text-white leading-none">
-                  {val}
-                </div>
-                <div className="text-[11px] text-white/65 mt-1">{label}</div>
-              </div>
+              <p
+                className="text-white text-2xl font-bold leading-none tabular-nums"
+                style={{ fontFamily: "Space Grotesk, sans-serif" }}
+              >
+                {val}
+              </p>
             </div>
           ))}
         </div>
@@ -628,9 +699,9 @@ export default function CompanyCalendarPage() {
 
       <div className="flex flex-1 mx-4 mb-4">
         <div className="flex-1 flex flex-col overflow-auto pt-4 pr-4">
-          <div className="bg-white border border-gray-200 rounded-2xl p-5 flex-1">
+          <div className="bg-white border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_-8px_rgba(29,78,216,0.10)] rounded-2xl p-5 flex-1">
             <div className="flex items-center justify-between mb-5">
-              <span className="text-[15px] font-semibold text-gray-900">
+              <span className="text-[15px] font-semibold text-gray-900 tracking-tight">
                 {MONTHS[curMonth]} {curYear}
               </span>
               <div className="flex gap-1.5">
@@ -679,10 +750,14 @@ export default function CompanyCalendarPage() {
                       onClick={() =>
                         dayJobs.length && setDayPopup({ day, jobs: dayJobs })
                       }
-                      className={`min-h-17 p-2 transition-all ${dayJobs.length ? "cursor-pointer hover:bg-gray-50" : "cursor-default"} ${isToday ? "bg-blue-50" : ""}`}
+                      className={`min-h-17 p-2 transition-all duration-200 ${
+                        dayJobs.length
+                          ? "cursor-pointer hover:bg-blue-50/50 hover:-translate-y-0.5 hover:shadow-sm hover:z-10 relative rounded-lg"
+                          : "cursor-default"
+                      } ${isToday ? "bg-blue-50 ring-1 ring-inset ring-blue-300 rounded-lg" : ""}`}
                     >
                       <span
-                        className={`text-[12px] block mb-1.5 leading-none font-medium ${isToday ? "text-blue-600" : "text-gray-400"}`}
+                        className={`text-[12px] block mb-1.5 leading-none font-medium tabular-nums ${isToday ? "text-blue-600" : "text-gray-400"}`}
                       >
                         {day}
                       </span>
@@ -691,8 +766,9 @@ export default function CompanyCalendarPage() {
                           {dayJobs.slice(0, 2).map((j, i) => (
                             <div
                               key={i}
-                              className={`text-[9px] font-semibold px-1.5 py-0.75 rounded-md border truncate leading-none ${calendarChipClasses(cellDate)}`}
+                              className={`text-[9px] font-semibold px-1.5 py-0.75 rounded-md border truncate leading-none flex items-center gap-1 ${calendarChipClasses(cellDate)}`}
                             >
+                              <span className="w-1 h-1 rounded-full bg-current shrink-0" />
                               {j.companyId?.name || "—"}
                             </div>
                           ))}
@@ -726,10 +802,10 @@ export default function CompanyCalendarPage() {
           </div>
         </div>
 
-        <div className="w-67 border border-gray-200 bg-white rounded-2xl flex flex-col shrink-0 mt-4 overflow-hidden">
+        <div className="w-67 border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_-8px_rgba(29,78,216,0.10)] bg-white rounded-2xl flex flex-col shrink-0 mt-4 overflow-hidden">
           <div className="px-4 py-3.5 border-b border-gray-100">
             <div className="flex items-center justify-between">
-              <p className="text-[13px] font-semibold text-gray-900">
+              <p className="text-[13px] font-semibold text-gray-900 tracking-tight">
                 Deadlines
               </p>
               <div className="flex items-center bg-gray-100 rounded-lg p-0.5">
@@ -744,7 +820,7 @@ export default function CompanyCalendarPage() {
                 ))}
               </div>
             </div>
-            <p className="text-[11px] text-gray-400 mt-1">
+            <p className="text-[11px] text-gray-400 mt-1 tabular-nums">
               {upcomingCount} deadline{upcomingCount !== 1 ? "s" : ""} remaining
             </p>
             <input
@@ -787,7 +863,7 @@ export default function CompanyCalendarPage() {
                         setCurMonth(j.parsedDate.getMonth());
                         setDetailJob(j);
                       }}
-                      className={`px-4 py-3 flex items-start gap-3 hover:bg-gray-50 transition-colors cursor-pointer group ${
+                      className={`px-4 py-3 flex items-start gap-3 hover:bg-gray-50 hover:shadow-sm transition-all duration-150 cursor-pointer group ${
                         j._id ===
                         sortedJobs.find((x) => x.parsedDate >= todayMid)?._id
                           ? "border-l-2 border-blue-500 bg-blue-50/30"
@@ -802,7 +878,7 @@ export default function CompanyCalendarPage() {
                         <p className="text-[11px] text-gray-500 truncate mt-0.5">
                           {j.role}
                         </p>
-                        <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
+                        <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1 tabular-nums">
                           <Calendar size={9} /> {dateStr} · ₹{j.ctc} LPA
                         </p>
                       </div>

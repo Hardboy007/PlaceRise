@@ -115,6 +115,10 @@ export default function CoordinatorDashboard() {
     : 0;
 
   const today = now;
+  // FIXED: local midnight version of "today", used for whole-day deadline
+  // comparisons below so the days-left count doesn't drift depending on
+  // what time of day it currently is (see upcomingDeadlines).
+  const todayMid = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
   // FIXED: only jobs with a real (non-deleted) company are ever considered
   // "live" anywhere below. A deleted company leaves companyId null/undefined
@@ -143,16 +147,30 @@ export default function CoordinatorDashboard() {
   // FIXED: "Active Jobs" stat card removed per request — dropped from the
   // stats strip below entirely.
 
+  // FIXED: days-left now counts today inclusively instead of the raw
+  // exclusive gap between "now" (with its current hour/minute) and the
+  // deadline. Both dates are normalized to local midnight first, so `diff`
+  // is a clean whole-day gap (0 = deadline is today, negative = already
+  // past) independent of what time it currently is — this is also what's
+  // used for the "next 7 days" filter/sort so the window itself doesn't
+  // shift. `daysLeft` is what's shown in the UI: diff+1 whenever diff is
+  // positive, so today is counted along with the remaining days (e.g.
+  // today=16, deadline=19 => diff=3 => daysLeft=4, matching how people
+  // count "16,17,18,19").
   const upcomingDeadlines = liveJobs
     .map((c) => {
-      const last = new Date(c.lastDate);
-      const diff = Math.ceil((last - today) / (1000 * 60 * 60 * 24));
-      return { ...c, daysLeft: diff };
+      const lastRaw = new Date(c.lastDate);
+      const lastMid = new Date(
+        lastRaw.getFullYear(),
+        lastRaw.getMonth(),
+        lastRaw.getDate(),
+      );
+      const diff = Math.round((lastMid - todayMid) / 86400000);
+      const daysLeft = diff > 0 ? diff + 1 : diff;
+      return { ...c, diff, daysLeft };
     })
-    .filter(
-      (c) => !Number.isNaN(c.daysLeft) && c.daysLeft >= 0 && c.daysLeft <= 7,
-    )
-    .sort((a, b) => a.daysLeft - b.daysLeft);
+    .filter((c) => !Number.isNaN(c.diff) && c.diff >= 0 && c.diff <= 7)
+    .sort((a, b) => a.diff - b.diff);
 
   // FIXED: "Recent Job Postings" was sorting by createdAt (so an edited old
   // posting never bubbled up) and included deleted-company jobs. Now sorts
@@ -340,12 +358,12 @@ export default function CoordinatorDashboard() {
                   <span
                     className={`text-xs font-bold px-2.5 py-1 rounded-full border
                     ${
-                      c.daysLeft <= 3
+                      c.diff <= 3
                         ? "text-danger bg-red-50 border-red-200"
                         : "text-warning bg-amber-50 border-amber-200"
                     }`}
                   >
-                    {c.daysLeft === 0 ? "Today" : `${c.daysLeft}d left`}
+                    {c.diff === 0 ? "Today" : `${c.daysLeft}d left`}
                   </span>
                 </div>
               ))
