@@ -366,7 +366,7 @@ export default function CoordinatorDashboard() {
               </h3>
             </div>
             <button
-              onClick={() => navigate("/coordinator/companies")}
+              onClick={() => navigate("/coordinator/jobs/all")}
               className="text-xs text-primary font-semibold hover:underline"
             >
               View Companies
