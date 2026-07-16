@@ -18,6 +18,7 @@ import {
   CheckCircle,
   Download,
 } from "lucide-react";
+import CompanyLogo from "../../components/common/CompanyLogo";
 
 const STATUS_CONFIG = {
   Visited: {
@@ -583,9 +584,7 @@ export default function RecruiterCRMPage() {
             >
               {/* Company */}
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-background border border-[#E2E8F0] flex items-center justify-center shrink-0">
-                  <Building2 size={16} className="text-primary" />
-                </div>
+                <CompanyLogo name={poc.companyName} website={poc.website} size={36} />
                 <div>
                   <p className="text-sm font-bold text-[#1E293B]">
                     {poc.companyName}

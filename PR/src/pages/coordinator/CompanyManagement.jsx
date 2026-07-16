@@ -1230,9 +1230,11 @@ export default function CompanyManagementPage() {
             <div className="p-5 flex flex-col gap-5">
               <div>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
-                    <Building2 size={22} className="text-[#3B82F6]" />
-                  </div>
+                  <CompanyLogo
+                    name={viewingCompany.company.name}
+                    website={viewingCompany.company.website}
+                    size={48}
+                  />
                   <div>
                     <h3
                       className="text-base font-bold text-[#1E293B]"

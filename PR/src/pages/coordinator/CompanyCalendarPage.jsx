@@ -20,6 +20,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { api } from "../../utils/api";
+import CompanyLogo from "../../components/common/CompanyLogo";
 
 const MONTHS = [
   "January",
@@ -130,21 +131,9 @@ function DaysBadge({ diff }) {
   );
 }
 
-function CompanyAvatar({ company, size = "md" }) {
-  const { bg, text } = getAvatarColors();
-  const sz =
-    size === "sm"
-      ? "w-7 h-7 text-[10px]"
-      : size === "lg"
-        ? "w-11 h-11 text-[13px]"
-        : "w-8 h-8 text-[11px]";
-  return (
-    <div
-      className={`${sz} ${bg} ${text} rounded-xl flex items-center justify-center font-semibold shrink-0`}
-    >
-      {initials(company)}
-    </div>
-  );
+function CompanyAvatar({ company, website, size = "md" }) {
+  const px = size === "sm" ? 28 : size === "lg" ? 44 : 32;
+  return <CompanyLogo name={company} website={website} size={px} />;
 }
 
 function JobTypeBadge({ type }) {
@@ -194,9 +183,7 @@ function JobDetailModal({ job, onClose }) {
             <X size={16} />
           </button>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white font-semibold text-sm border border-white/30">
-              {initials(companyName)}
-            </div>
+            <CompanyLogo name={companyName} website={job.companyId?.website} size={48} />
             <div>
               <p className="text-white font-semibold text-base leading-tight">
                 {companyName}
@@ -433,7 +420,7 @@ function DayPopupModal({
               className="bg-gray-50 border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 rounded-xl p-3 text-left transition-all group"
             >
               <div className="flex items-center gap-2.5 mb-2.5">
-                <CompanyAvatar company={j.companyId?.name} />
+                <CompanyAvatar company={j.companyId?.name} website={j.companyId?.website} />
                 <div className="flex-1 min-w-0">
                   <p className="text-[13px] font-semibold text-gray-900">
                     {j.companyId?.name || "Unknown"}
@@ -807,7 +794,7 @@ export default function CompanyCalendarPage() {
                           : ""
                       }`}
                     >
-                      <CompanyAvatar company={j.companyId?.name} size="sm" />
+                      <CompanyAvatar company={j.companyId?.name} website={j.companyId?.website} size="sm" />
                       <div className="flex-1 min-w-0">
                         <p className="text-[12px] font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
                           {j.companyId?.name || "—"}

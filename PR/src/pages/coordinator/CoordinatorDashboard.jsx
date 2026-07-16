@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api } from "../../utils/api";
+import CompanyLogo from "../../components/common/CompanyLogo";
 
 // Greeting
 // FIXED: was using new Date().getHours() with a plain hour<12/hour<17 check,
@@ -165,6 +166,7 @@ export default function CoordinatorDashboard() {
     .map((job) => ({
       id: job._id,
       company: job.companyId?.name || "Unknown",
+      website: job.companyId?.website,
       role: job.role,
       status: isJobOpen(job) ? "Active" : "Closed",
     }));
@@ -384,9 +386,11 @@ export default function CoordinatorDashboard() {
                   className="flex items-center justify-between p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold shrink-0">
-                      {job.company.charAt(0)}
-                    </div>
+                    <CompanyLogo
+                      name={job.company}
+                      website={job.website}
+                      size={32}
+                    />
                     <div>
                       <p className="text-sm font-semibold text-[#1E293B]">
                         {job.company}
