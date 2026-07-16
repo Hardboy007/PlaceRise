@@ -244,7 +244,7 @@ function CompanyCard({ company, onViewDetails, isSaved, onToggleSave }) {
         : "text-[#22C55E] bg-green-50 border-green-200";
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 flex flex-col hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
+    <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 flex flex-col hover:shadow-xl hover:shadow-blue-100 hover:-translate-y-1.5 hover:border-blue-200 transition-all duration-300 group">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
           <CompanyLogo
@@ -265,7 +265,7 @@ function CompanyCard({ company, onViewDetails, isSaved, onToggleSave }) {
         <div className="flex items-center gap-2 shrink-0 ml-2">
           <button
             onClick={onToggleSave}
-            className={`p-1.5 rounded-lg border transition-all ${
+            className={`p-1.5 rounded-lg border transition-all duration-200 hover:scale-110 active:scale-95 ${
               isSaved
                 ? "bg-[#EFF6FF] border-[#3B82F6] text-[#3B82F6]"
                 : "bg-white border-[#E2E8F0] text-[#94A3B8] hover:border-[#3B82F6] hover:text-[#3B82F6]"
@@ -293,10 +293,9 @@ function CompanyCard({ company, onViewDetails, isSaved, onToggleSave }) {
       <div className="h-px bg-[#F1F5F9] mb-3" />
 
       <div className="flex flex-col gap-2.5 flex-1">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 bg-green-50 border border-green-100 rounded-lg px-2.5 py-1.5 w-fit">
           <TrendingUp size={13} className="text-[#22C55E] shrink-0" />
-          <span className="text-xs text-[#64748B]">CTC:</span>
-          <span className="text-xs font-bold text-[#22C55E]">
+          <span className="text-sm font-bold text-[#15803D]">
             ₹{company.ctc} LPA
           </span>
         </div>
@@ -324,9 +323,13 @@ function CompanyCard({ company, onViewDetails, isSaved, onToggleSave }) {
 
       <button
         onClick={() => onViewDetails(company._id)}
-        className="mt-4 w-full py-2.5 rounded-xl text-sm font-semibold text-white bg-[#1E293B] hover:bg-[#3B82F6] transition-colors flex items-center justify-center gap-2 group-hover:bg-[#3B82F6]"
+        className="mt-4 w-full h-12 rounded-[14px] cursor-pointer text-base font-semibold text-white bg-[#2563EB] hover:bg-[#1D4ED8] shadow-[0_4px_12px_rgba(37,99,235,0.25)] hover:shadow-[0_6px_18px_rgba(37,99,235,0.35)] hover:-translate-y-0.5 transition-all duration-[250ms] flex items-center justify-center gap-2"
       >
-        View Details <ChevronRight size={14} />
+        View Details
+        <ChevronRight
+          size={16}
+          className="text-white transition-transform duration-200 group-hover:translate-x-1"
+        />
       </button>
     </div>
   );
@@ -407,8 +410,9 @@ export default function CompanyListPage() {
 
   if (loading)
     return (
-      <div className="flex items-center justify-center py-20 text-[#64748B] text-sm">
-        Loading companies...
+      <div className="flex flex-col items-center justify-center py-24 gap-3">
+        <div className="w-8 h-8 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin" />
+        <p className="text-sm text-[#64748B]">Loading companies...</p>
       </div>
     );
 
@@ -422,14 +426,30 @@ export default function CompanyListPage() {
         className="relative rounded-3xl overflow-hidden mb-6 border border-white/10"
         style={{
           background:
-            "linear-gradient(135deg, #3B82F6 0%, #60A5FA 60%, #818CF8 100%)",
+            "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 45%, #818CF8 100%)",
         }}
       >
         <div
+          className="absolute top-0 right-0 w-80 h-80 rounded-full pointer-events-none"
+          style={{
+            background: "rgba(255,255,255,0.08)",
+            transform: "translate(30%,-40%)",
+          }}
+        />
+        <div
+          className="absolute bottom-0 left-0 w-56 h-56 rounded-full pointer-events-none"
+          style={{
+            background: "rgba(255,255,255,0.06)",
+            transform: "translate(-30%,40%)",
+          }}
+        />
+        <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: `radial-gradient(circle at 20% 50%, rgba(59,130,246,0.2) 0%, transparent 50%),
-                       radial-gradient(circle at 80% 20%, rgba(34,197,94,0.1) 0%, transparent 40%)`,
+            backgroundImage:
+              "radial-gradient(circle, rgba(255,255,255,0.25) 1px, transparent 1px)",
+            backgroundSize: "24px 24px",
+            opacity: 0.3,
           }}
         />
         <div className="relative z-10 p-8">
@@ -453,7 +473,7 @@ export default function CompanyListPage() {
             ].map((stat) => (
               <div
                 key={stat.label}
-                className="bg-white/10 backdrop-blur rounded-2xl p-4 border border-white/10"
+                className="bg-white/10 backdrop-blur rounded-2xl p-4 border border-white/10 hover:bg-white/15 hover:-translate-y-0.5 transition-all duration-200"
               >
                 <p
                   className="text-xl font-bold text-white"
@@ -476,10 +496,10 @@ export default function CompanyListPage() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
               activeTab === tab.id
-                ? "bg-[#1E293B] text-white"
-                : "bg-white border border-[#E2E8F0] text-[#64748B] hover:border-[#3B82F6]"
+                ? "bg-[#1E293B] text-white shadow-md scale-[1.02]"
+                : "bg-white border border-[#E2E8F0] text-[#64748B] hover:border-[#3B82F6] hover:-translate-y-0.5"
             }`}
           >
             {tab.label}
@@ -528,12 +548,14 @@ export default function CompanyListPage() {
       {/* Cards */}
       {filteredCompanies.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <Building2 size={40} className="text-[#CBD5E1] mb-4" />
-          <p className="text-sm font-medium text-[#64748B]">
+          <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mb-4">
+            <Building2 size={28} className="text-[#3B82F6]" />
+          </div>
+          <p className="text-sm font-semibold text-[#1E293B]">
             No companies found
           </p>
           <p className="text-xs text-[#94A3B8] mt-1">
-            Try changing your filters
+            Try changing your filters or search term
           </p>
         </div>
       ) : (
