@@ -138,6 +138,7 @@ function formatCtc(ctc) {
 }
 
 function CompanyCard({ job, index }) {
+  const [logoError, setLogoError] = useState(false);
   const navigate = useNavigate();
   const color = companyColorPool[index % companyColorPool.length];
   const name = job.companyId?.name || "Company";
@@ -153,6 +154,9 @@ function CompanyCard({ job, index }) {
     : "—";
   const jobId = job._id;
   const initial = name.charAt(0).toUpperCase();
+  const logoUrl = job.companyId?.website
+    ? `https://www.google.com/s2/favicons?domain=${job.companyId.website}&sz=64`
+    : null;
 
   return (
     <div
@@ -161,12 +165,21 @@ function CompanyCard({ job, index }) {
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
-          <div
-            style={{ backgroundColor: color }}
-            className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg shrink-0"
-          >
-            {initial}
-          </div>
+          {logoUrl && !logoError ? (
+            <img
+              src={logoUrl}
+              alt={name}
+              onError={() => setLogoError(true)}
+              className="w-12 h-12 rounded-xl object-contain bg-white border border-[#E2E8F0] p-2 shrink-0"
+            />
+          ) : (
+            <div
+              style={{ backgroundColor: color }}
+              className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg shrink-0"
+            >
+              {initial}
+            </div>
+          )}
           <div>
             <h3
               style={{ color: C.textMain }}
