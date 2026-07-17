@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 
 // Icons - inline SVG
@@ -322,15 +322,20 @@ function RoleSelectionPage() {
 
         {/* Nav Links */}
         <nav className="hidden md:flex items-center gap-8">
-          {["About", "Companies", "Support"].map((link) => (
-            <a
-              key={link}
-              href="#"
-              className="text-white/70 hover:text-white text-sm transition-colors"
-            >
-              {link}
-            </a>
-          ))}
+          <Link
+            to="/about"
+            className="text-white/70 hover:text-white text-sm transition-colors"
+          >
+            About
+          </Link>
+
+          <span className="text-white/70 hover:text-white text-sm transition-colors cursor-pointer">
+            Companies
+          </span>
+
+          <span className="text-white/70 hover:text-white text-sm transition-colors cursor-pointer">
+            Support
+          </span>
         </nav>
 
         {/* Status Pill */}
