@@ -14,18 +14,6 @@ import { api } from "../../utils/api";
 import CompanyLogo from "../../components/common/CompanyLogo";
 
 // Greeting
-// FIXED: was using new Date().getHours() with a plain hour<12/hour<17 check,
-// which called "6 PM" onward "Good Evening" forever and never said anything
-// for late night — so at, say, 9 PM it still fell through to "Good Evening"
-// but nothing matched past 22:xx or before 4 AM, silently defaulting to
-// whatever the last branch was. Rewritten to the requested precise ranges,
-// using total minutes so the 4:30 PM / 10 PM boundaries are exact, and takes
-// the live "now" value passed in instead of grabbing a fresh Date itself, so
-// it stays in sync with the ticking clock in the component below.
-// 4:00–11:59  -> Good Morning
-// 12:00–16:30 -> Good Afternoon
-// 16:31–22:00 -> Good Evening
-// 22:01–3:59  -> Good Moon
 const getGreeting = (date) => {
   const totalMinutes = date.getHours() * 60 + date.getMinutes();
   if (totalMinutes >= 4 * 60 && totalMinutes <= 11 * 60 + 59) {
@@ -49,13 +37,6 @@ const formatDate = (date) => {
   });
 };
 
-// FIXED: coordinator.name is rendered exactly as stored in the DB. Whoever
-// last saved the profile via the edit form could type any casing —
-// "Rajesh kumar", "rajesh KUMAR" etc — and that's what showed up here,
-// looking "random" across visits. The backend now normalizes casing on
-// every save going forward, but that doesn't fix names already saved with
-// bad casing, so this display-only helper title-cases whatever comes back
-// from the API before rendering, regardless of what's actually in the DB.
 const toDisplayName = (name = "") =>
   name
     .trim()
@@ -72,12 +53,6 @@ export default function CoordinatorDashboard() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // FIXED: getGreeting() and "today" were only ever computed once per
-  // render (page load / navigate), so if the page stayed open across
-  // 12:00 PM or 5:00 PM the "Good Morning"/"Good Afternoon"/"Good Evening"
-  // text and date would silently go stale. now/greeting are tracked in
-  // state and refreshed every minute so they update live while the tab
-  // stays open, without needing a full reload.
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -115,18 +90,12 @@ export default function CoordinatorDashboard() {
     : 0;
 
   const today = now;
-  // FIXED: local midnight version of "today", used for whole-day deadline
-  // comparisons below so the days-left count doesn't drift depending on
-  // what time of day it currently is (see upcomingDeadlines).
   const todayMid = new Date(
     today.getFullYear(),
     today.getMonth(),
     today.getDate(),
   );
 
-  // FIXED: only jobs with a real (non-deleted) company are ever considered
-  // "live" anywhere below. A deleted company leaves companyId null/undefined
-  // on the job doc.
   const liveJobs = jobs.filter((j) => j.companyId && j.companyId.name);
   const highestCTC = liveJobs.reduce(
     (max, j) => (j.ctc > max ? j.ctc : max),
@@ -140,27 +109,16 @@ export default function CoordinatorDashboard() {
     return last >= today;
   };
 
-  // FIXED: "Active Companies" was counting every distinct company with any
-  // job posting ever, including deleted companies and companies whose only
-  // postings have already closed. Now counts distinct companies that have
-  // at least one still-open posting.
   const activeCompanies = Array.from(
     new Set(liveJobs.filter(isJobOpen).map((j) => j.companyId.name)),
   ).length;
 
-  // FIXED: "Active Jobs" stat card removed per request — dropped from the
-  // stats strip below entirely.
-
-  // FIXED: days-left now counts today inclusively instead of the raw
-  // exclusive gap between "now" (with its current hour/minute) and the
-  // deadline. Both dates are normalized to local midnight first, so `diff`
-  // is a clean whole-day gap (0 = deadline is today, negative = already
-  // past) independent of what time it currently is — this is also what's
-  // used for the "next 7 days" filter/sort so the window itself doesn't
-  // shift. `daysLeft` is what's shown in the UI: diff+1 whenever diff is
-  // positive, so today is counted along with the remaining days (e.g.
-  // today=16, deadline=19 => diff=3 => daysLeft=4, matching how people
-  // count "16,17,18,19").
+  // Days-left counting starts from TOMORROW, not today. Both dates are
+  // normalized to local midnight first, so `diff` is a clean whole-day gap
+  // (0 = deadline is today, negative = already past), independent of what
+  // time it currently is. Same `diff` also drives the "next 7 days" window
+  // below. When diff is 0, the UI shows "Today · Last day" instead of a
+  // days-left number.
   const upcomingDeadlines = liveJobs
     .map((c) => {
       const lastRaw = new Date(c.lastDate);
@@ -170,8 +128,7 @@ export default function CoordinatorDashboard() {
         lastRaw.getDate(),
       );
       const diff = Math.round((lastMid - todayMid) / 86400000);
-      const daysLeft = diff > 0 ? diff + 1 : diff;
-      return { ...c, diff, daysLeft };
+      return { ...c, diff };
     })
     .filter((c) => !Number.isNaN(c.diff) && c.diff >= 0 && c.diff <= 7)
     .sort((a, b) => a.diff - b.diff);
@@ -221,11 +178,6 @@ export default function CoordinatorDashboard() {
                          radial-gradient(circle at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 40%)`,
           }}
         />
-        {/* FIXED: this content block used to live INSIDE the decorative
-            pointer-events-none overlay div above, with no flex/padding
-            layout at all — so the greeting text rendered unstyled and
-            unclickable. Moved out as its own positioned, padded sibling,
-            matching the hero pattern used on the profile page. */}
         <div className="relative z-10 p-8 flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-white/70 mb-1">
@@ -367,7 +319,7 @@ export default function CoordinatorDashboard() {
                         : "text-warning bg-amber-50 border-amber-200"
                     }`}
                   >
-                    {c.diff === 0 ? "Today" : `${c.daysLeft}d left`}
+                    {c.diff === 0 ? "Today · Last day" : `${c.diff}d left`}
                   </span>
                 </div>
               ))

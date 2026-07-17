@@ -230,20 +230,12 @@ function BranchChips({ branches }) {
 }
 
 function CompanyCard({ company, onViewDetails, isSaved, onToggleSave }) {
-  // FIXED: days-left now counts today inclusively instead of the raw
-  // exclusive gap. Previously this compared a precise "end of deadline
-  // day" timestamp (23:59:59) against the exact current moment, which
-  // gave an off-by-one feel — a deadline 3 calendar days away (e.g.
-  // today=16, deadline=19) showed "3d left" instead of the "4 days"
-  // people get when they count today too (16,17,18,19).
-  //
-  // Both dates are normalized to local midnight first so the comparison
-  // is a clean whole-day difference, independent of what time it
-  // currently is. `diff` is that raw exclusive gap (0 = deadline is
-  // today, negative = already past — used to decide "Expired"/"Today"
-  // and to keep the urgency color bands consistent with before). `days`
-  // is what's actually shown to the user: diff+1 whenever diff is
-  // positive, so today is counted along with the remaining days.
+  // Days-left counting starts from TOMORROW, not today. Both dates are
+  // normalized to local midnight first so the comparison is a clean
+  // whole-day difference, independent of what time it currently is.
+  // `diff` is the exclusive gap (0 = deadline is today, negative =
+  // already past). When diff is 0 we show "Today · Last day" instead of
+  // a plain days-left number, so it's unambiguous this is the final day.
   const now = new Date();
   const todayMid = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const deadlineRaw = new Date(company.lastDate);
@@ -254,12 +246,11 @@ function CompanyCard({ company, onViewDetails, isSaved, onToggleSave }) {
   );
   const diff = Math.round((deadlineMid - todayMid) / 86400000);
   const isExpired = diff < 0;
-  const days = diff > 0 ? diff + 1 : diff;
 
   const urgency =
-    days <= 3
+    diff <= 3
       ? "text-[#EF4444] bg-red-50 border-red-200"
-      : days <= 7
+      : diff <= 7
         ? "text-[#F59E0B] bg-amber-50 border-amber-200"
         : "text-[#22C55E] bg-green-50 border-green-200";
 
@@ -305,7 +296,11 @@ function CompanyCard({ company, onViewDetails, isSaved, onToggleSave }) {
           <span
             className={`text-xs font-semibold px-2 py-1 rounded-lg border ${urgency}`}
           >
-            {isExpired ? "Expired" : diff === 0 ? "Today" : `${days}d left`}
+            {isExpired
+              ? "Expired"
+              : diff === 0
+                ? "Today · Last day"
+                : `${diff}d left`}
           </span>
         </div>
       </div>

@@ -95,19 +95,14 @@ function toDeadlineDate(rawDate) {
   return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
 }
 
+// Days-left counting starts from TOMORROW, not today — "diff" (from
+// daysUntil) is the exclusive gap between today and the deadline (0 =
+// deadline is today, negative = already past). If today is the deadline
+// day, we show "Today · Last day" instead of a plain "Today" badge so
+// it's unambiguous that this is the final day to apply.
 function DaysBadge({ diff }) {
   const base =
     "text-[10px] px-2.5 py-0.5 rounded-full font-medium whitespace-nowrap flex-shrink-0 border tabular-nums";
-  // FIXED: the label now counts today inclusively. `diff` (from daysUntil)
-  // is the raw exclusive gap between today and the deadline (0 = deadline
-  // is today, negative = already past). Previously the badge showed that
-  // raw gap directly, so a deadline 3 calendar days away (e.g. today=16,
-  // deadline=19) read "3d left" — off by one from what people actually
-  // count when they include today ("16,17,18,19 = 4 days"). displayDays
-  // adds 1 whenever diff is positive so the shown number matches that
-  // inclusive counting, while diff itself still drives the color bands so
-  // urgency (red/amber/green) doesn't shift.
-  const displayDays = diff > 0 ? diff + 1 : diff;
   if (diff < 0)
     return (
       <span className={`${base} bg-gray-50 text-gray-400 border-gray-200`}>
@@ -117,26 +112,26 @@ function DaysBadge({ diff }) {
   if (diff === 0)
     return (
       <span className={`${base} bg-red-50 text-red-700 border-red-200`}>
-        Today
+        Today · Last day
       </span>
     );
   if (diff <= 3)
     return (
       <span className={`${base} bg-red-50 text-red-700 border-red-200`}>
-        {displayDays}d left
+        {diff}d left
       </span>
     );
   if (diff <= 7)
     return (
       <span className={`${base} bg-amber-50 text-amber-700 border-amber-200`}>
-        {displayDays}d left
+        {diff}d left
       </span>
     );
   return (
     <span
       className={`${base} bg-emerald-50 text-emerald-700 border-emerald-100`}
     >
-      {displayDays}d left
+      {diff}d left
     </span>
   );
 }
