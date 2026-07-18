@@ -300,7 +300,7 @@ function RoleSelectionPage() {
             height: "500px",
             opacity: 0.4,
             objectFit: "cover",
-            clipPath: "polygon(0% 0%, 100% 0%, 100% 67%, 0% 96.3%)",
+            clipPath: "polygon(0% 0%, 100% 0%, 100% 67%, 0% 93%)",
           }}
         />
         {/* Mesh Glow */}
