@@ -42,6 +42,7 @@ const TEAM = [
     role: "Product Lead · Founding Engineer",
     quote: "Believes products earn trust through details nobody notices.",
     photo: "/images/hard.png",
+    linkedin: "https://www.linkedin.com/in/hardik-srivastava033/",
   },
   {
     number: "02",
@@ -49,6 +50,7 @@ const TEAM = [
     role: "Backend Engineer · Infrastructure",
     quote: "Makes complexity disappear behind reliable systems.",
     photo: "/images/ayyan.jpg",
+    linkedin: "https://www.linkedin.com/in/ayyan-ahmad-5a58a628a/",
   },
   {
     number: "03",
@@ -56,6 +58,7 @@ const TEAM = [
     role: "Frontend Engineer · User Experience",
     quote: "Turns operational chaos into interfaces people enjoy using.",
     photo: "/images/him.jpg",
+    linkedin: "https://www.linkedin.com/in/himanshu-tiwari-a33373287/",
   },
   {
     number: "04",
@@ -64,6 +67,7 @@ const TEAM = [
     quote:
       "Connects ideas, features, and documentation into one seamless experience.",
     photo: "/images/rath.jpg",
+    linkedin: "https://www.linkedin.com/in/harsh-rathore-772124294/",
   },
 ];
 
@@ -71,6 +75,56 @@ function getInitials(name) {
   const parts = name.split(" ").filter(Boolean);
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+function LinkedinIcon({ size = 16, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+      <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.03-1.85-3.03-1.85 0-2.14 1.45-2.14 2.94v5.66H9.34V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.38-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45z" />
+    </svg>
+  );
+}
+function ContactCTA({ email = "team@placerise.com" }) {
+  const [copied, setCopied] = useState(false);
+  const [hovered, setHovered] = useState(false);
+
+  const handleClick = async () => {
+    try {
+      await navigator.clipboard.writeText(email);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      // clipboard blocked — fall back to mailto
+      window.location.href = `mailto:${email}`;
+    }
+  };
+
+  return (
+    <span className="relative inline-block">
+      <button
+        onClick={handleClick}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{ color: D.accent, fontWeight: 600 }}
+        className="pr-focusable underline underline-offset-2 hover:opacity-80 transition-opacity cursor-pointer bg-transparent border-none p-0"
+      >
+        get in touch
+      </button>
+      {(hovered || copied) && (
+        <span
+          style={{
+            backgroundColor: D.bgPanel,
+            border: `1px solid ${D.border}`,
+            color: copied ? D.accent : D.textMuted,
+            fontSize: "12px",
+            whiteSpace: "nowrap",
+          }}
+          className="absolute left-1/2 -translate-x-1/2 -top-9 px-3 py-1.5 rounded-md pointer-events-none"
+        >
+          {copied ? "Copied to clipboard ✓" : email}
+        </span>
+      )}
+    </span>
+  );
 }
 
 // ─── Scroll-reveal primitive ───────────────────────────────────
@@ -185,17 +239,31 @@ function AboutPage() {
 
   // Which chapter is centered in the viewport right now.
   useEffect(() => {
+    const ratios = new Map();
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const idx = Number(entry.target.dataset.chapterIndex);
-            setActiveChapter(idx);
+          const idx = Number(entry.target.dataset.chapterIndex);
+          ratios.set(idx, entry.isIntersecting ? entry.intersectionRatio : 0);
+        });
+
+        // Jo section sabse zyada visible hai, wahi active chapter hai.
+        let bestIdx = 0;
+        let bestRatio = -1;
+        ratios.forEach((ratio, idx) => {
+          if (ratio > bestRatio) {
+            bestRatio = ratio;
+            bestIdx = idx;
           }
         });
+        if (bestRatio > 0) {
+          setActiveChapter(bestIdx);
+        }
       },
-      { threshold: 0.5 },
+      { threshold: [0, 0.25, 0.5, 0.75, 1] },
     );
+
     chapterRefs.current.forEach((node) => observer.observe(node));
     return () => observer.disconnect();
   }, []);
@@ -213,6 +281,19 @@ function AboutPage() {
     if (node)
       node.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth" });
   };
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "ArrowDown" || e.key === "PageDown") {
+        e.preventDefault();
+        scrollToChapter(Math.min(activeChapter + 1, CHAPTERS.length - 1));
+      } else if (e.key === "ArrowUp" || e.key === "PageUp") {
+        e.preventDefault();
+        scrollToChapter(Math.max(activeChapter - 1, 0));
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeChapter, reducedMotion]);
 
   return (
     <div
@@ -282,6 +363,29 @@ function AboutPage() {
                 backgroundColor: i === activeChapter ? D.accent : D.border,
                 boxShadow:
                   i === activeChapter ? `0 0 0 4px ${D.accentSoft}` : "none",
+                transition: "all 0.3s ease",
+              }}
+              className="rounded-full block"
+            />
+          </button>
+        ))}
+      </div>
+      {/* ── Mobile chapter dots (bottom, horizontal) ── */}
+      <div className="flex md:hidden gap-3 fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
+        {CHAPTERS.map((c, i) => (
+          <button
+            key={c.key}
+            onClick={() => scrollToChapter(i)}
+            aria-label={`Go to chapter ${c.number}, ${c.label}`}
+            className="pr-focusable p-1"
+          >
+            <span
+              style={{
+                width: i === activeChapter ? 8 : 5,
+                height: i === activeChapter ? 8 : 5,
+                backgroundColor: i === activeChapter ? D.accent : D.border,
+                boxShadow:
+                  i === activeChapter ? `0 0 0 3px ${D.accentSoft}` : "none",
                 transition: "all 0.3s ease",
               }}
               className="rounded-full block"
@@ -604,18 +708,34 @@ function AboutPage() {
                       >
                         “{member.quote}”
                       </p>
+                      {(member.linkedin ) && (
+                        <div className="flex items-center gap-3 mt-6">
+                          {member.linkedin && (
+                            <a
+                              href={member.linkedin}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label={`${member.name} on LinkedIn`}
+                              style={{
+                                color: D.textMuted,
+                                border: `1px solid ${D.border}`,
+                              }}
+                              className="pr-focusable w-9 h-9 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
+                            >
+                              <LinkedinIcon size={16} color="#0A66C2"/>
+                            </a>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </Reveal>
               ))}
             </div>
             {/* ── Chapter 04 — The Builders (existing grid stays as-is) ── */}
-            <div className="grid grid-cols-1 gap-8">
-              {/* ...4 student cards, unchanged... */}
-            </div>
 
             {/* ── Mentor card — separate section, not competing with the 4 ── */}
-            <Reveal reducedMotion={reducedMotion} delay={0.25 * TEAM.length}>
+            <Reveal reducedMotion={reducedMotion} delay={0.16 * TEAM.length}>
               <div className="mt-10">
                 <div className="flex items-center gap-4 mb-6">
                   <div
@@ -659,10 +779,10 @@ function AboutPage() {
                       color: D.accent,
                       overflow: "hidden",
                     }}
-                    className="w-35 h-35 rounded-full flex items-center justify-center font-semibold text-3xl mb-0 flex-shrink-0 relative z-10"
+                    className="w-37 h-37 rounded-full flex items-center justify-center font-semibold text-3xl mb-0 flex-shrink-0 relative z-10"
                   >
                     <img
-                      src="images/mukesh.png"
+                      src="/images/mukesh.png"
                       alt="Mukesh Kumar"
                       className="w-full h-full object-cover"
                     />
@@ -750,10 +870,7 @@ function AboutPage() {
               <p style={{ color: D.text, fontSize: "16px" }} className="mb-10">
                 We're currently looking to hire developers and other talented
                 folks to join us —{" "}
-                <span style={{ color: D.accent, fontWeight: 600 }}>
-                  get in touch
-                </span>
-                .
+                <ContactCTA email="placerise.notifications@gmail.com" />.
               </p>
             </Reveal>
             <Reveal reducedMotion={reducedMotion} delay={0.45}>
