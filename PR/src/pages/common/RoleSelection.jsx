@@ -333,9 +333,12 @@ function RoleSelectionPage() {
             Companies
           </span>
 
-          <span className="text-white/70 hover:text-white text-sm transition-colors cursor-pointer">
+          <Link
+            to="/support"
+            className="text-white/70 hover:text-white text-sm transition-colors"
+          >
             Support
-          </span>
+          </Link>
         </nav>
 
         {/* Status Pill */}
@@ -536,7 +539,7 @@ function RoleSelectionPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-[#64748B] hover:text-[#1E293B]"
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-text-muted hover:text-[#1E293B]"
                     aria-label={
                       showPassword ? "Hide password" : "Show password"
                     }
