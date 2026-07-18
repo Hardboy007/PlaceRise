@@ -26,7 +26,7 @@ import RecruiterCRMPage from "../pages/coordinator/RecruiterCRMPage";
 import AnalyticsDashboardPage from "../pages/coordinator/AnalyticsDashboardPage";
 import AboutPage from "../pages/common/About";
 import SupportPage from "../pages/common/SupportPage";
-
+import PrivacyPolicyPage from "../pages/common/PrivacyPage";
 
 
 function AppRouter() {
@@ -49,6 +49,7 @@ function AppRouter() {
         <Route path="/attendance" element={<ScanAttendancePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/support" element={<SupportPage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
         {/* Student Routes - Layout ke andar */}
         <Route
           path="/student"

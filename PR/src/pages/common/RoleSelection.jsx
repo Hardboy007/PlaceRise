@@ -278,171 +278,426 @@ function RoleSelectionPage() {
       className="min-h-screen bg-background relative overflow-hidden"
       style={{ fontFamily: "Inter, sans-serif" }}
     >
-      {/* Background - Diagonal Navy Panel */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
-          clipPath: "polygon(0 0, 100% 0, 100% 38%, 0 78%)",
-        }}
-      />
-
-      {/* Mesh Glow */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-60"
-        style={{
-          background: `
+      <div className="relative">
+        {/* Background - Diagonal Navy Panel */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
+            clipPath: "polygon(0 0, 100% 0, 100% 60%, 0 100%)",
+          }}
+        />
+        {/* Building ab yahi andar hai — isi clip-path se cut hogi */}
+        <img
+          src="/images/building 2.png"
+          alt=""
+          className="absolute"
+          style={{
+            top: "240px",
+            right: "0px",
+            width: "500px",
+            height: "500px",
+            opacity: 0.4,
+            objectFit: "cover",
+            clipPath: "polygon(0% 0%, 100% 0%, 100% 67%, 0% 96.3%)",
+          }}
+        />
+        {/* Mesh Glow */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-60"
+          style={{
+            background: `
             radial-gradient(at 20% 30%, rgba(59,130,246,0.15), transparent 50%),
             radial-gradient(at 80% 70%, rgba(96,165,250,0.1), transparent 50%)
           `,
-        }}
-      />
-
-      {/* Floating Orbs */}
-      <div className="absolute top-10 right-20 w-64 h-64 rounded-full bg-blue-500/20 blur-3xl animate-float-slow pointer-events-none" />
-      <div className="absolute bottom-20 left-10 w-48 h-48 rounded-full bg-blue-400/20 blur-3xl animate-float-slow-delayed pointer-events-none" />
-
-      {/* Navbar */}
-      <header className="relative z-10 px-6 py-6 md:px-12 flex items-center justify-between">
-        {/* Logo */}
-        <div className="flex items-center gap-3">
-          <div className="relative w-10 h-10 rounded-2xl bg-primary flex items-center justify-center shadow-[0_20px_60px_-15px_rgba(59,130,246,0.4)]">
-            <SparklesIcon />
-            <div className="absolute inset-0 rounded-2xl border-2 border-primary animate-pulse-ring" />
-          </div>
-          <span
-            className="text-xl font-bold"
-            style={{ fontFamily: "Space Grotesk, sans-serif" }}
-          >
-            <span className="text-white">Place</span>
-            <span className="text-accent">Rise</span>
-          </span>
-        </div>
-
-        {/* Nav Links */}
-        <nav className="hidden md:flex items-center gap-8">
-          <Link
-            to="/about"
-            className="text-white/70 hover:text-white text-sm transition-colors"
-          >
-            About
-          </Link>
-
-          <span className="text-white/70 hover:text-white text-sm transition-colors cursor-pointer">
-            Companies
-          </span>
-
-          <Link
-            to="/support"
-            className="text-white/70 hover:text-white text-sm transition-colors"
-          >
-            Support
-          </Link>
-        </nav>
-
-        {/* Status Pill */}
-        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur border border-white/20">
-          <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-white/80 text-xs font-medium">
-            Season 2026 live
-          </span>
-        </div>
-      </header>
-
-      {/* Hero */}
-      <section className="relative z-10 text-center px-6 pt-10 md:pt-16 max-w-5xl mx-auto animate-slide-up">
-        {/* Eyebrow */}
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur border border-white/20 mb-6">
-          <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-          <span className="text-white/80 text-sm">
-            Powering placements at DBUU
-          </span>
-        </div>
-
-        {/* H1 */}
-        <h1
-          className="text-5xl md:text-7xl font-bold text-white mb-4 leading-none"
-          style={{
-            fontFamily: "Space Grotesk, sans-serif",
-            letterSpacing: "-0.03em",
           }}
-        >
-          Your placement journey,{" "}
-          <span className="italic text-accent inline-block">
-            simplified.
-            {/* SVG Underline */}
-            <svg
-              viewBox="0 0 200 12"
-              className="w-full mt-1"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M2 8 Q 50 2, 100 6 T 198 4"
-                stroke="#60A5FA"
-                strokeWidth="3"
-                strokeLinecap="round"
-                fill="none"
-              />
-            </svg>
-          </span>
-        </h1>
-        <p
-          className="text-white/70 text-lg max-w-xl mx-auto mt-4"
-          style={{ animationDelay: "200ms" }}
-        >
-          One platform for students and placement teams to connect, collaborate,
-          and close every drive.
-        </p>
-      </section>
+        />
 
-      {/* Role Cards */}
-      <section className="relative z-10 max-w-4xl mx-auto px-6 mt-16">
-        <div className="grid md:grid-cols-2 gap-8 relative">
-          {/* Student Card */}
-          <div>
-            <RoleCard
-              number="01"
-              icon={<GraduationIcon />}
-              label="I'm a Student"
-              description="Browse drives, apply in clicks, and track every stage of your journey."
-              tags={["Live Drives", "Application Tracker", "Announcements"]}
-              variant="dark"
-              onSelect={() => handleRoleSelect("student")}
-            />
-          </div>
-
-          {/* OR Badge */}
-          <div
-            className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10
-            w-16 h-16 rounded-full bg-white items-center justify-center
-            shadow-[0_10px_40px_-10px_rgba(15,23,42,0.15)]"
-          >
-            <div className="absolute inset-0 rounded-full border-2 border-dashed border-primary animate-pulse-ring" />
+        {/* Floating Orbs */}
+        <div className="absolute top-10 right-20 w-64 h-64 rounded-full bg-blue-500/20 blur-3xl animate-float-slow pointer-events-none" />
+        <div className="absolute bottom-20 left-10 w-48 h-48 rounded-full bg-blue-400/20 blur-3xl animate-float-slow-delayed pointer-events-none" />
+        {/* Navbar */}
+        <header className="relative z-10 px-6 py-6 md:px-12 flex items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <div className="relative w-10 h-10 rounded-2xl bg-primary flex items-center justify-center shadow-[0_20px_60px_-15px_rgba(59,130,246,0.4)]">
+              <SparklesIcon />
+              <div className="absolute inset-0 rounded-2xl border-2 border-primary animate-pulse-ring" />
+            </div>
             <span
-              className="text-sm font-bold tracking-widest text-[#1E293B]"
+              className="text-xl font-bold"
               style={{ fontFamily: "Space Grotesk, sans-serif" }}
             >
-              OR
+              <span className="text-white">Place</span>
+              <span className="text-accent">Rise</span>
             </span>
           </div>
 
-          {/* Coordinator Card */}
-          <div className="md:mt-32">
-            <RoleCard
-              number="02"
-              icon={<BriefcaseIcon />}
-              label="Placement Team"
-              description="Manage drives, shortlist students, and coordinate with recruiters effortlessly."
-              tags={["Drive Manager", "Analytics", "Student Database"]}
-              variant="light"
-              onSelect={() => handleRoleSelect("coordinator")}
+          {/* Nav Links */}
+          <nav className="hidden md:flex items-center gap-8">
+            <Link
+              to="/about"
+              className="text-white/70 hover:text-white text-[18px] transition-colors"
+            >
+              About
+            </Link>
+
+            <Link
+              to="/support"
+              className="text-white/70 hover:text-white text-[18px] transition-colors"
+            >
+              Support
+            </Link>
+          </nav>
+
+          {/* Status Pill */}
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur border border-white/20">
+            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+            <span className="text-white/80 text-xs font-medium">
+              Season 2026 live
+            </span>
+          </div>
+        </header>
+
+        {/* Hero */}
+        <section className="relative z-10 text-center px-6 pt-10 md:pt-16 max-w-5xl mx-auto animate-slide-up">
+          {/* Eyebrow */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur border border-white/20 mb-6">
+            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            <span className="text-white/80 text-sm">
+              Powering placements at DBUU
+            </span>
+          </div>
+
+          {/* H1 */}
+          <h1
+            className="text-5xl md:text-7xl font-bold text-white mb-4 leading-none"
+            style={{
+              fontFamily: "Space Grotesk, sans-serif",
+              letterSpacing: "-0.03em",
+            }}
+          >
+            Your placement journey,{" "}
+            <span className="italic text-accent inline-block">
+              simplified.
+              {/* SVG Underline */}
+              <svg
+                viewBox="0 0 200 12"
+                className="w-full mt-1"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M2 8 Q 50 2, 100 6 T 198 4"
+                  stroke="#60A5FA"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+              </svg>
+            </span>
+          </h1>
+          <p
+            className="text-white/70 text-lg max-w-xl mx-auto mt-4"
+            style={{ animationDelay: "200ms" }}
+          >
+            One platform for students and placement teams to connect,
+            collaborate, and close every drive.
+          </p>
+        </section>
+
+        {/* Role Cards */}
+        <section className="relative z-10 max-w-4xl mx-auto px-6 mt-16">
+          <div className="grid md:grid-cols-2 gap-8 relative">
+            {/* Student Card */}
+            <div>
+              <RoleCard
+                number="01"
+                icon={<GraduationIcon />}
+                label="I'm a Student"
+                description="Browse drives, apply in clicks, and track every stage of your journey."
+                tags={["Live Drives", "Application Tracker", "Announcements"]}
+                variant="dark"
+                onSelect={() => handleRoleSelect("student")}
+              />
+            </div>
+
+            {/* OR Badge */}
+            <div
+              className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10
+            w-16 h-16 rounded-full bg-white items-center justify-center
+            shadow-[0_10px_40px_-10px_rgba(15,23,42,0.15)]"
+            >
+              <div className="absolute inset-0 rounded-full border-2 border-dashed border-primary animate-pulse-ring" />
+              <span
+                className="text-sm font-bold tracking-widest text-[#1E293B]"
+                style={{ fontFamily: "Space Grotesk, sans-serif" }}
+              >
+                OR
+              </span>
+            </div>
+
+            {/* Coordinator Card */}
+            <div className="md:mt-32">
+              <RoleCard
+                number="02"
+                icon={<BriefcaseIcon />}
+                label="Placement Team"
+                description="Manage drives, shortlist students, and coordinate with recruiters effortlessly."
+                tags={["Drive Manager", "Analytics", "Student Database"]}
+                variant="light"
+                onSelect={() => handleRoleSelect("coordinator")}
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+      {/* Background texture for the white section — city skyline, very faint */}
+      <div
+        className="absolute pointer-events-none overflow-hidden"
+        style={{ top: "950px", left: 0, right: 0, height: "1000px" }}
+      >
+        {/* Blueprint grid — halka texture, optional rakh sakte ho */}
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `
+        linear-gradient(rgba(15,23,42,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(15,23,42,0.04) 1px, transparent 1px)
+      `,
+            backgroundSize: "48px 48px",
+          }}
+        />
+
+        {/* City skyline — full width, sitting at the bottom, fading upward */}
+        <img
+          src="/images/building 3.png"
+          alt=""
+          className="absolute bottom-0 left-0 right-0"
+          style={{
+            width: "100%",
+            height: "auto",
+            opacity: 0.1,
+            filter: "grayscale(100%)",
+            mixBlendMode: "multiply",
+            WebkitMaskImage:
+              "linear-gradient(to top, black 40%, transparent 100%)",
+            maskImage: "linear-gradient(to top, black 40%, transparent 100%)",
+          }}
+        />
+      </div>
+      {/* Feature Highlights — bento grid */}
+      <section className="relative z-10 max-w-5xl mx-auto px-6 mt-24 mb-4">
+        <div className="text-center mb-12">
+          <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-2">
+            Why PlaceRise
+          </p>
+          <h2
+            className="text-3xl md:text-4xl font-bold text-[#1E293B]"
+            style={{ fontFamily: "Space Grotesk, sans-serif" }}
+          >
+            Everything placement season needs
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 lg:grid-rows-2 gap-5">
+          {/* Featured card — big, dark, spans 2x2 */}
+          <div
+            className="sm:col-span-2 lg:col-span-2 lg:row-span-2 relative overflow-hidden rounded-3xl p-8 text-white
+        -rotate-1 hover:rotate-0 hover:-translate-y-1 transition-all duration-500
+        shadow-[0_25px_50px_-12px_rgba(15,23,42,0.5)] hover:shadow-[0_20px_60px_-15px_rgba(59,130,246,0.4)]"
+            style={{
+              backgroundImage: `linear-gradient(180deg, #0F172A 0%, #0F172A 45%, rgba(15,23,42,0.75) 75%, rgba(15,23,42,0.35) 100%), url("/images/building.png")`,
+              backgroundSize: "auto 140%",
+              backgroundPosition: "center bottom",
+              backgroundRepeat: "no-repeat",
+            }}
+          >
+            <span
+              className="absolute top-2 right-4 font-bold select-none pointer-events-none text-white"
+              style={{
+                fontSize: "9rem",
+                lineHeight: 1,
+                opacity: 0.06,
+                fontFamily: "Space Grotesk, sans-serif",
+              }}
+            >
+              01
+            </span>
+            <div className="absolute -bottom-10 -right-10 w-56 h-56 rounded-full bg-blue-500/30 blur-2xl" />
+            {/* Building — bottom-right corner, full image visible */}
+            <img
+              src="/images/building.png"
+              alt=""
+              className="absolute pointer-events-none"
+              style={{
+                bottom: "80px",
+                right: "0px",
+                width: "60%",
+                height: "auto",
+                opacity: 0.45,
+                mixBlendMode: "lighten",
+              }}
             />
+            <div className="relative flex flex-col h-full justify-between min-h-55 lg:min-h-80">
+              <div>
+                <div className="flex items-center gap-2 mb-6">
+                  <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 00-4-5.65V5a2 2 0 10-4 0v.35A6 6 0 006 11v3.2a2 2 0 01-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                      />
+                    </svg>
+                  </div>
+                  <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs text-white/80">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                    Live
+                  </span>
+                </div>
+                <h3
+                  className="text-2xl font-bold mb-3"
+                  style={{ fontFamily: "Space Grotesk, sans-serif" }}
+                >
+                  Real-time Announcements
+                </h3>
+                <p className="text-white/70 text-sm leading-relaxed max-w-sm">
+                  Every update from your placement cell reaches you the moment
+                  it's posted — no missed forwards, no buried messages.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Application Tracking — wide */}
+          <div className="lg:col-span-2 bg-white rounded-2xl border border-[#CBD5E1] p-6 hover:-translate-y-1 hover:shadow-[0_10px_40px_-10px_rgba(15,23,42,0.15)] transition-all duration-300 relative overflow-hidden">
+            <span
+              className="absolute top-1 right-3 font-bold select-none pointer-events-none text-[#1E293B]"
+              style={{
+                fontSize: "5rem",
+                lineHeight: 1,
+                opacity: 0.05,
+                fontFamily: "Space Grotesk, sans-serif",
+              }}
+            >
+              02
+            </span>
+            <div className="relative">
+              <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-5">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  viewBox="0 0 24 24"
+                >
+                  <rect x="4" y="4" width="16" height="18" rx="2" />
+                  <path strokeLinecap="round" d="M8 9h8M8 13h8M8 17h5" />
+                </svg>
+              </div>
+              <h3
+                className="text-[#1E293B] font-bold text-base mb-2"
+                style={{ fontFamily: "Space Grotesk, sans-serif" }}
+              >
+                Application Tracking
+              </h3>
+              <p className="text-text-muted text-sm leading-relaxed">
+                Track every application from applied to selected, in one place,
+                without chasing anyone for updates.
+              </p>
+            </div>
+          </div>
+
+          {/* Eligibility Matching — small */}
+          <div className="bg-white rounded-2xl border border-[#CBD5E1] p-6 hover:-translate-y-1 hover:shadow-[0_10px_40px_-10px_rgba(15,23,42,0.15)] transition-all duration-300 relative overflow-hidden">
+            <span
+              className="absolute top-1 right-2 font-bold select-none pointer-events-none text-[#1E293B]"
+              style={{
+                fontSize: "4rem",
+                lineHeight: 1,
+                opacity: 0.05,
+                fontFamily: "Space Grotesk, sans-serif",
+              }}
+            >
+              03
+            </span>
+            <div className="relative">
+              <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-5">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  viewBox="0 0 24 24"
+                >
+                  <circle cx="12" cy="12" r="9" />
+                  <circle cx="12" cy="12" r="5" />
+                  <circle cx="12" cy="12" r="1" fill="currentColor" />
+                </svg>
+              </div>
+              <h3
+                className="text-[#1E293B] font-bold text-base mb-2"
+                style={{ fontFamily: "Space Grotesk, sans-serif" }}
+              >
+                Eligibility Matching
+              </h3>
+              <p className="text-text-muted text-sm leading-relaxed">
+                See only what applies to your school and course.
+              </p>
+            </div>
+          </div>
+
+          {/* Coordinator Dashboard — small */}
+          <div className="bg-white rounded-2xl border border-[#CBD5E1] p-6 hover:-translate-y-1 hover:shadow-[0_10px_40px_-10px_rgba(15,23,42,0.15)] transition-all duration-300 relative overflow-hidden">
+            <span
+              className="absolute top-1 right-2 font-bold select-none pointer-events-none text-[#1E293B]"
+              style={{
+                fontSize: "4rem",
+                lineHeight: 1,
+                opacity: 0.05,
+                fontFamily: "Space Grotesk, sans-serif",
+              }}
+            >
+              04
+            </span>
+            <div className="relative">
+              <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-5">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3 3v18h18M8 17V10m5 7V6m5 11v-4"
+                  />
+                </svg>
+              </div>
+              <h3
+                className="text-[#1E293B] font-bold text-base mb-2"
+                style={{ fontFamily: "Space Grotesk, sans-serif" }}
+              >
+                Coordinator Dashboard
+              </h3>
+              <p className="text-text-muted text-sm leading-relaxed">
+                Manage drives, shortlist candidates, message the batch — one
+                screen.
+              </p>
+            </div>
           </div>
         </div>
       </section>
-
       {/* Footer */}
       <footer className="relative z-10 max-w-4xl mx-auto px-6 py-8 mt-4 mb-4">
         <div className="bg-white/70 backdrop-blur rounded-3xl border border-[#CBD5E1] px-8 py-5 flex flex-col md:flex-row items-center justify-between gap-4">
@@ -466,13 +721,16 @@ function RoleSelectionPage() {
 
           {/* Right - Links */}
           <div className="flex items-center gap-6">
-            {["Privacy Policy", "Contact", "Help"].map((link) => (
+            {[
+              { label: "Privacy Policy", href: "/privacy" },
+              { label: "Support", href: "/support" },
+            ].map(({ label, href }) => (
               <a
-                key={link}
-                href="#"
+                key={label}
+                href={href}
                 className="text-xs text-text-muted hover:text-[#1E293B] transition-colors"
               >
-                {link}
+                {label}
               </a>
             ))}
             <span className="text-xs text-text-muted">© 2026 PlaceRise</span>

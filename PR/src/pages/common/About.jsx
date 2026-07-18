@@ -49,7 +49,7 @@ const TEAM = [
     name: "Ayyan Ahmad",
     role: "Backend Engineer · Infrastructure",
     quote: "Makes complexity disappear behind reliable systems.",
-    photo: "/images/ayyan.jpg",
+    photo: "/images/ayyan.png",
     linkedin: "https://www.linkedin.com/in/ayyan-ahmad-5a58a628a/",
   },
   {
@@ -779,7 +779,7 @@ function AboutPage() {
                       color: D.accent,
                       overflow: "hidden",
                     }}
-                    className="w-37 h-37 rounded-full flex items-center justify-center font-semibold text-3xl mb-0 flex-shrink-0 relative z-10"
+                    className="w-37 h-37 rounded-full flex items-center justify-center font-semibold text-3xl mb-0 shrink-0 relative z-10"
                   >
                     <img
                       src="/images/mukesh.png"
