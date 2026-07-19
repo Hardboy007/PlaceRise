@@ -55,43 +55,13 @@ const bottomTabs = [
 
 // "More" sheet mein baaki saare links — har ek ko alag accent color
 const moreLinks = [
-  {
-    to: "/coordinator/students",
-    label: "Students",
-    icon: Users,
-    color: "blue",
-  },
-  {
-    to: "/coordinator/recruiter-crm",
-    label: "Recruiter CRM",
-    icon: Building2,
-    color: "purple",
-  },
-  {
-    to: "/coordinator/applications",
-    label: "Applications",
-    icon: FileCheck,
-    color: "green",
-  },
-  {
-    to: "/coordinator/announcements",
-    label: "Announcements",
-    icon: Megaphone,
-    color: "amber",
-  },
+  { to: "/coordinator/students", label: "Students", icon: Users, color: "blue" },
+  { to: "/coordinator/recruiter-crm", label: "Recruiter CRM", icon: Building2, color: "purple" },
+  { to: "/coordinator/applications", label: "Applications", icon: FileCheck, color: "green" },
+  { to: "/coordinator/announcements", label: "Announcements", icon: Megaphone, color: "amber" },
   { to: "/coordinator/noc", label: "NOC / LOR", icon: FileText, color: "pink" },
-  {
-    to: "/coordinator/attendance",
-    label: "Attendance",
-    icon: QrCode,
-    color: "teal",
-  },
-  {
-    to: "/coordinator/analytics",
-    label: "Analytics",
-    icon: LineChart,
-    color: "orange",
-  },
+  { to: "/coordinator/attendance", label: "Attendance", icon: QrCode, color: "teal" },
+  { to: "/coordinator/analytics", label: "Analytics", icon: LineChart, color: "orange" },
 ];
 
 const moreColorMap = {
@@ -203,7 +173,7 @@ function CoordinatorLayout() {
             </button>
             {/* Notification Dropdown */}
             {showNotifs && (
-              <div className="absolute right-0 top-11 w-[calc(100vw-1.5rem)] max-w-80 sm:w-80 bg-white rounded-2xl shadow-xl border border-[#E2E8F0] z-50 overflow-hidden">
+              <div className="fixed left-3 right-3 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-11 sm:w-80 max-w-full bg-white rounded-2xl shadow-xl border border-[#E2E8F0] z-50 overflow-hidden">
                 <div className="px-4 py-3 border-b border-[#F1F5F9] flex items-center justify-between">
                   <p className="text-sm font-bold text-[#1E293B]">
                     Notifications
@@ -445,7 +415,7 @@ function CoordinatorLayout() {
                 <X size={18} />
               </button>
             </div>
-            <div className="p-3 grid grid-cols-2 gap-2">
+            <div className="p-3 flex flex-wrap gap-2">
               {moreLinks.map(({ to, label, icon: Icon, color }) => {
                 const c = moreColorMap[color];
                 return (
@@ -454,7 +424,7 @@ function CoordinatorLayout() {
                     to={to}
                     onClick={() => setShowMore(false)}
                     className={({ isActive }) =>
-                      `flex flex-col items-start gap-1.5 p-2.5 rounded-xl border transition-all duration-150 ${
+                      `flex flex-col items-center justify-center gap-1.5 w-[100px] h-[84px] p-2 rounded-xl border shrink-0 transition-all duration-150 ${
                         isActive
                           ? "border-primary bg-primary/5"
                           : "border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-background"
@@ -462,11 +432,11 @@ function CoordinatorLayout() {
                     }
                   >
                     <div
-                      className={`w-7 h-7 rounded-lg ${c.bg} flex items-center justify-center`}
+                      className={`w-7 h-7 rounded-lg ${c.bg} flex items-center justify-center shrink-0`}
                     >
                       <Icon size={14} className={c.text} />
                     </div>
-                    <p className="text-xs font-semibold text-[#1E293B] leading-tight">
+                    <p className="text-[11px] font-semibold text-[#1E293B] leading-tight text-center">
                       {label}
                     </p>
                   </NavLink>

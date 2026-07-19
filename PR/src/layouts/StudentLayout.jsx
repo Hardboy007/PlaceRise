@@ -1,11 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Outlet,
-  NavLink,
-  useNavigate,
-  Link,
-  useLocation,
-} from "react-router-dom";
+import { Outlet, NavLink, useNavigate, Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Building2,
@@ -43,18 +37,8 @@ const bottomTabs = [
 
 // "More" sheet mein baaki links — har ek ko alag accent color
 const moreLinks = [
-  {
-    to: "/student/documents",
-    label: "My Documents",
-    icon: FileText,
-    color: "blue",
-  },
-  {
-    to: "/student/settings",
-    label: "Settings",
-    icon: Settings,
-    color: "purple",
-  },
+  { to: "/student/documents", label: "My Documents", icon: FileText, color: "blue" },
+  { to: "/student/settings", label: "Settings", icon: Settings, color: "purple" },
 ];
 
 const moreColorMap = {
@@ -142,10 +126,7 @@ function StudentLayout() {
         px-3 sm:px-6 flex items-center justify-between gap-2"
       >
         {/* Logo */}
-        <Link
-          to="/"
-          className="flex items-center gap-2 sm:gap-2.5 min-w-0 shrink-0"
-        >
+        <Link to="/" className="flex items-center gap-2 sm:gap-2.5 min-w-0 shrink-0">
           <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-[0_4px_12px_rgba(59,130,246,0.4)] shrink-0">
             <Sparkles size={14} className="text-white" />
           </div>
@@ -174,7 +155,7 @@ function StudentLayout() {
               )}
             </button>
             {showNotifs && (
-              <div className="absolute right-0 top-11 w-[calc(100vw-1.5rem)] max-w-80 sm:w-80 bg-white rounded-2xl shadow-xl border border-[#E2E8F0] z-50 overflow-hidden">
+              <div className="fixed left-3 right-3 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-11 sm:w-80 max-w-full bg-white rounded-2xl shadow-xl border border-[#E2E8F0] z-50 overflow-hidden">
                 <div className="px-4 py-3 border-b border-[#F1F5F9] flex items-center justify-between">
                   <p className="text-sm font-bold text-[#1E293B]">
                     Notifications
@@ -223,11 +204,11 @@ function StudentLayout() {
             <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold shrink-0">
               {initials}
             </div>
-            <div className="block min-w-0 max-w-[130px] sm:max-w-[160px] md:max-w-[220px]">
+            <div className="block min-w-0 max-w-[130px] sm:max-w-[180px] md:max-w-[320px]">
               <p className="text-xs sm:text-sm font-semibold text-[#1E293B] leading-tight truncate">
                 {student.name || "Student"}
               </p>
-              <p className="text-[10px] sm:text-xs text-text-muted mt-0.5 truncate">
+              <p className="text-[10px] sm:text-xs text-text-muted mt-0.5 truncate whitespace-nowrap">
                 {student.branch || ""}
                 {student.branch && student.erpId ? " · " : ""}
                 {student.erpId || ""}
