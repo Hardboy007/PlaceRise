@@ -139,15 +139,15 @@ function StudentOnboardingPage() {
 
   return (
     <div
-      className="min-h-screen bg-background flex flex-col items-center justify-center px-4 py-12 relative overflow-hidden"
+      className="min-h-screen bg-background flex flex-col items-center justify-center px-4 py-8 sm:py-12 relative overflow-hidden"
       style={{ fontFamily: "Inter, sans-serif" }}
     >
       {/* Background Orbs */}
-      <div className="absolute top-10 right-10 w-72 h-72 rounded-full bg-blue-400/10 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 left-10 w-56 h-56 rounded-full bg-blue-300/10 blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 left-1/4 w-40 h-40 rounded-full bg-indigo-400/10 blur-2xl pointer-events-none" />
+      <div className="absolute top-4 right-0 w-40 h-40 sm:top-10 sm:right-10 sm:w-72 sm:h-72 rounded-full bg-blue-400/10 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-4 left-0 w-36 h-36 sm:bottom-10 sm:left-10 sm:w-56 sm:h-56 rounded-full bg-blue-300/10 blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/4 w-24 h-24 sm:w-40 sm:h-40 rounded-full bg-indigo-400/10 blur-2xl pointer-events-none" />
       {/* Logo */}
-      <div className="mb-8 text-center">
+      <div className="mb-6 sm:mb-8 text-center">
         <span
           className="text-2xl font-bold"
           style={{ fontFamily: "Space Grotesk, sans-serif" }}
@@ -161,16 +161,16 @@ function StudentOnboardingPage() {
       </div>
 
       {/* Card */}
-      <div className="w-full max-w-2xl bg-white rounded-3xl shadow-[0_10px_40px_-10px_rgba(15,23,42,0.15)] border border-[#CBD5E1] overflow-hidden">
+      <div className="w-full max-w-2xl bg-white rounded-2xl sm:rounded-3xl shadow-[0_10px_40px_-10px_rgba(15,23,42,0.15)] border border-[#CBD5E1] overflow-hidden">
         {/* Top Color Strip */}
         <div className="h-1.5 w-full bg-linear-to-r from-[#1E293B] via-primary to-accent" />
         {/* Progress Header */}
-        <div className="px-8 pt-8 pb-6 border-b border-background">
+        <div className="px-4 pt-5 pb-4 sm:px-8 sm:pt-8 sm:pb-6 border-b border-background">
           <div className="flex items-center justify-between relative">
             {/* Line behind steps */}
-            <div className="absolute left-0 right-0 top-5 h-0.5 bg-[#E2E8F0] z-0" />
+            <div className="absolute left-0 right-0 top-4 sm:top-5 h-0.5 bg-[#E2E8F0] z-0" />
             <div
-              className="absolute left-0 top-5 h-0.5 bg-primary z-0 transition-all duration-500"
+              className="absolute left-0 top-4 sm:top-5 h-0.5 bg-primary z-0 transition-all duration-500"
               style={{ width: `${((currentStep - 1) / 2) * 100}%` }}
             />
 
@@ -178,9 +178,12 @@ function StudentOnboardingPage() {
               const isCompleted = currentStep > id;
               const isActive = currentStep === id;
               return (
-                <div key={id} className="flex flex-col items-center gap-2 z-10">
+                <div
+                  key={id}
+                  className="flex flex-col items-center gap-1.5 sm:gap-2 z-10"
+                >
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300
+                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-300
                     ${isCompleted ? "bg-primary" : isActive ? "bg-primary" : "bg-[#E2E8F0]"}
                   `}
                   >
@@ -194,7 +197,7 @@ function StudentOnboardingPage() {
                     )}
                   </div>
                   <span
-                    className={`text-xs font-medium ${isActive || isCompleted ? "text-[#1E293B]" : "text-[#94A3B8]"}`}
+                    className={`text-[10px] sm:text-xs font-medium text-center whitespace-nowrap ${isActive || isCompleted ? "text-[#1E293B]" : "text-[#94A3B8]"}`}
                   >
                     {label}
                   </span>
@@ -205,13 +208,13 @@ function StudentOnboardingPage() {
         </div>
 
         {/* Form Content */}
-        <div className="px-8 py-6">
+        <div className="px-4 py-5 sm:px-8 sm:py-6">
           {/* Step 1 - Personal */}
           {currentStep === 1 && (
             <div className="flex flex-col gap-4">
               <div>
                 <h2
-                  className="text-xl font-bold text-[#1E293B]"
+                  className="text-lg sm:text-xl font-bold text-[#1E293B]"
                   style={{ fontFamily: "Space Grotesk, sans-serif" }}
                 >
                   Personal Details
@@ -221,8 +224,8 @@ function StudentOnboardingPage() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
                     Full Name
                   </label>
@@ -274,7 +277,7 @@ function StudentOnboardingPage() {
                     <option value="Other">Other</option>
                   </select>
                 </div>
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
                     Address
                   </label>
@@ -319,7 +322,7 @@ function StudentOnboardingPage() {
             <div className="flex flex-col gap-4">
               <div>
                 <h2
-                  className="text-xl font-bold text-[#1E293B]"
+                  className="text-lg sm:text-xl font-bold text-[#1E293B]"
                   style={{ fontFamily: "Space Grotesk, sans-serif" }}
                 >
                   Academic Details
@@ -329,9 +332,9 @@ function StudentOnboardingPage() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* School */}
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
                     School
                   </label>
@@ -358,7 +361,7 @@ function StudentOnboardingPage() {
                 </div>
 
                 {/* Department */}
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
                     Department
                   </label>
@@ -388,7 +391,7 @@ function StudentOnboardingPage() {
                 </div>
 
                 {/* Course */}
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
                     Course
                   </label>
@@ -498,7 +501,7 @@ function StudentOnboardingPage() {
             <div className="flex flex-col gap-4">
               <div>
                 <h2
-                  className="text-xl font-bold text-[#1E293B]"
+                  className="text-lg sm:text-xl font-bold text-[#1E293B]"
                   style={{ fontFamily: "Space Grotesk, sans-serif" }}
                 >
                   Skills & Resume
@@ -546,7 +549,7 @@ function StudentOnboardingPage() {
                     Resume
                   </label>
                   <label
-                    className={`flex flex-col items-center justify-center w-full h-36 rounded-2xl border-2 border-dashed cursor-pointer transition-all
+                    className={`flex flex-col items-center justify-center w-full h-32 sm:h-36 rounded-2xl border-2 border-dashed cursor-pointer transition-all
                     ${resumeFile ? "border-primary bg-[#EFF6FF]" : "border-[#CBD5E1] bg-[#F8FAFC] hover:border-primary hover:bg-[#EFF6FF]"}
                   `}
                   >
@@ -561,7 +564,7 @@ function StudentOnboardingPage() {
                         <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
                           <Check size={18} className="text-white" />
                         </div>
-                        <p className="text-sm font-medium text-primary">
+                        <p className="max-w-[90%] text-sm font-medium text-primary truncate">
                           {resumeFile.name}
                         </p>
                         <p className="text-xs text-text-muted">
@@ -589,11 +592,11 @@ function StudentOnboardingPage() {
         </div>
 
         {/* Footer Buttons */}
-        <div className="px-8 pb-8 flex items-center justify-between">
+        <div className="px-4 pb-5 sm:px-8 sm:pb-8 flex items-center justify-between gap-2">
           <button
             onClick={handleBack}
             disabled={currentStep === 1}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all
+            className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2.5 rounded-xl text-sm font-medium transition-all
               ${
                 currentStep === 1
                   ? "text-[#CBD5E1] cursor-not-allowed"
@@ -619,7 +622,7 @@ function StudentOnboardingPage() {
             <button
               onClick={handleNext}
               disabled={!isCurrentStepValid()}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-medium transition-colors shadow-[0_4px_12px_rgba(59,130,246,0.3)]
+              className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2.5 rounded-xl text-white text-sm font-medium transition-colors shadow-[0_4px_12px_rgba(59,130,246,0.3)]
       ${isCurrentStepValid() ? "bg-primary hover:bg-blue-600" : "bg-[#CBD5E1] cursor-not-allowed"}`}
             >
               Next
@@ -629,7 +632,7 @@ function StudentOnboardingPage() {
             <button
               onClick={handleSubmit}
               disabled={!isCurrentStepValid()}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-medium transition-colors shadow-[0_4px_12px_rgba(59,130,246,0.3)]
+              className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2.5 rounded-xl text-white text-sm font-medium transition-colors shadow-[0_4px_12px_rgba(59,130,246,0.3)]
       ${isCurrentStepValid() ? "bg-primary hover:bg-blue-600" : "bg-[#CBD5E1] cursor-not-allowed"}`}
             >
               Complete Setup
