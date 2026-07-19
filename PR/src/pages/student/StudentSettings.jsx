@@ -429,7 +429,7 @@ export default function StudentSettingsPage() {
 
   return (
     <div
-      className="max-w-3xl mx-auto px-4 md:px-0 pb-28"
+      className="max-w-3xl mx-auto px-4 md:px-0 pb-36 sm:pb-28"
       style={{ fontFamily: "Inter, sans-serif" }}
     >
       {/* Hero Header */}
@@ -653,8 +653,10 @@ export default function StudentSettingsPage() {
         </div>
       )}
 
-      {/* Save Bar — sticky, glass-blur */}
-      <div className="fixed bottom-0 left-0 right-0 z-20 bg-white/80 backdrop-blur-md border-t border-[#E2E8F0]">
+      {/* Save Bar — sticky, glass-blur. Sits above the mobile bottom navbar
+          (bottom-16) on small screens; snaps back to the page edge on sm+
+          where there's usually no fixed bottom nav. */}
+      <div className="fixed bottom-16 sm:bottom-0 left-0 right-0 z-20 bg-white/80 backdrop-blur-md border-t border-[#E2E8F0]">
         <div className="max-w-3xl mx-auto flex items-center justify-between gap-3 px-4 md:px-0 py-3 sm:py-4">
           <div className="flex items-center gap-2 min-h-[18px] min-w-0">
             {saved ? (

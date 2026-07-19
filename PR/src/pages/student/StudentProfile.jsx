@@ -9,8 +9,13 @@ import {
   Check,
   X,
   Plus,
+  Target,
+  CalendarDays,
+  TrendingUp,
+  PartyPopper,
 } from "lucide-react";
 import { getCurrentYear } from "../../utils/courseDuration";
+
 function Field({ label, name, value, editing, form, onChange, type = "text" }) {
   return (
     <div className="flex flex-col gap-1 mb-4 last:mb-0">
@@ -112,7 +117,6 @@ export default function StudentProfilePage() {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Size check — 5MB max
     if (file.size > 5 * 1024 * 1024) {
       alert("File size must be less than 5MB");
       return;
@@ -181,7 +185,6 @@ export default function StudentProfilePage() {
             "linear-gradient(135deg, #3B82F6 0%, #60A5FA 60%, #818CF8 100%)",
         }}
       >
-        {/* Background Effects */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -191,7 +194,6 @@ export default function StudentProfilePage() {
         />
 
         <div className="relative z-10 p-5 sm:p-8 flex flex-wrap items-start sm:items-center gap-4 sm:gap-6">
-          {/* Avatar */}
           <div
             className="w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center text-white text-3xl font-bold flex-shrink-0"
             style={{
@@ -207,7 +209,6 @@ export default function StudentProfilePage() {
             </div>
           </div>
 
-          {/* Info */}
           <div className="flex-1 min-w-0">
             <h1
               className="text-xl sm:text-2xl font-bold text-white mb-1 truncate"
@@ -231,7 +232,6 @@ export default function StudentProfilePage() {
             </div>
           </div>
 
-          {/* Actions */}
           <div className="flex flex-col gap-2 w-full sm:w-auto shrink-0">
             {editing ? (
               <>
@@ -257,8 +257,8 @@ export default function StudentProfilePage() {
               </button>
             )}
             {saved && (
-              <span className="text-xs font-semibold text-green-400 text-center">
-                ✓ Saved
+              <span className="flex items-center justify-center gap-1 text-xs font-semibold text-green-400">
+                <Check size={12} /> Saved
               </span>
             )}
           </div>
@@ -273,14 +273,16 @@ export default function StudentProfilePage() {
             value: student.cgpa,
             color: "border-t-primary",
             bg: "bg-blue-50",
-            icon: "🎯",
+            icon: Target,
+            iconColor: "text-primary",
           },
           {
             label: "Skills Listed",
             value: skills.length,
             color: "border-t-[#22C55E]",
             bg: "bg-green-50",
-            icon: "⚡",
+            icon: Zap,
+            iconColor: "text-[#22C55E]",
           },
           {
             label: "Current Year",
@@ -289,36 +291,41 @@ export default function StudentProfilePage() {
               : "—",
             color: "border-t-[#F59E0B]",
             bg: "bg-amber-50",
-            icon: "📅",
+            icon: CalendarDays,
+            iconColor: "text-[#F59E0B]",
           },
           {
             label: "Performance",
             value: cgpaPercent + "%",
             color: "border-t-[#EF4444]",
             bg: "bg-red-50",
-            icon: "📊",
+            icon: TrendingUp,
+            iconColor: "text-[#EF4444]",
           },
-        ].map((stat) => (
-          <div
-            key={stat.label}
-            className={`bg-white rounded-2xl border border-[#E2E8F0] border-t-2 ${stat.color} p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow`}
-          >
+        ].map((stat) => {
+          const StatIcon = stat.icon;
+          return (
             <div
-              className={`w-8 h-8 rounded-lg ${stat.bg} flex items-center justify-center text-base mb-3`}
+              key={stat.label}
+              className={`bg-white rounded-2xl border border-[#E2E8F0] border-t-2 ${stat.color} p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow`}
             >
-              {stat.icon}
+              <div
+                className={`w-8 h-8 rounded-lg ${stat.bg} flex items-center justify-center mb-3`}
+              >
+                <StatIcon size={16} className={stat.iconColor} />
+              </div>
+              <p
+                className="text-lg sm:text-xl font-bold text-[#1E293B]"
+                style={{ fontFamily: "Space Grotesk, sans-serif" }}
+              >
+                {stat.value}
+              </p>
+              <p className="text-[10px] sm:text-xs uppercase tracking-wide sm:tracking-widest text-[#64748B] mt-1">
+                {stat.label}
+              </p>
             </div>
-            <p
-              className="text-lg sm:text-xl font-bold text-[#1E293B]"
-              style={{ fontFamily: "Space Grotesk, sans-serif" }}
-            >
-              {stat.value}
-            </p>
-            <p className="text-[10px] sm:text-xs uppercase tracking-wide sm:tracking-widest text-[#64748B] mt-1">
-              {stat.label}
-            </p>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Personal + Academic */}
@@ -467,7 +474,7 @@ export default function StudentProfilePage() {
         </SectionCard>
       </div>
 
-      {/*About Section*/}
+      {/* About Section */}
       <div className="mt-5 mb-5">
         <SectionCard
           icon={User}
@@ -475,7 +482,6 @@ export default function StudentProfilePage() {
           iconBg="bg-blue-50 text-primary"
           borderColor="border-l-primary"
         >
-          {/* About */}
           <div className="mb-4">
             <span className="text-xs font-semibold uppercase tracking-widest text-[#64748B] block mb-1.5">
               About
@@ -494,7 +500,6 @@ export default function StudentProfilePage() {
             )}
           </div>
 
-          {/* LinkedIn */}
           <div>
             <span className="text-xs font-semibold uppercase tracking-widest text-[#64748B] block mb-1.5">
               LinkedIn URL
@@ -633,6 +638,7 @@ export default function StudentProfilePage() {
           />
         </SectionCard>
       </div>
+
       {/* Placement Status */}
       {!editing && (
         <div className="mt-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 sm:px-5 py-3 rounded-2xl border border-[#E2E8F0] bg-white shadow-sm">
@@ -644,9 +650,11 @@ export default function StudentProfilePage() {
                   student.placementStatus === "Placed" ? "#F0FDF4" : "#FFFBEB",
               }}
             >
-              <span className="text-sm">
-                {student.placementStatus === "Placed" ? "🎉" : "🎯"}
-              </span>
+              {student.placementStatus === "Placed" ? (
+                <PartyPopper size={16} className="text-[#22C55E]" />
+              ) : (
+                <Target size={16} className="text-[#F59E0B]" />
+              )}
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-[#64748B]">
@@ -668,13 +676,19 @@ export default function StudentProfilePage() {
             </div>
           </div>
           <span
-            className={`self-end sm:self-auto px-3 py-1 rounded-full text-xs font-semibold border ${
+            className={`self-end sm:self-auto flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${
               student.placementStatus === "Placed"
                 ? "bg-green-50 text-green-700 border-green-200"
                 : "bg-amber-50 text-[#F59E0B] border-amber-200"
             }`}
           >
-            {student.placementStatus === "Placed" ? "Placed ✓" : "Pending"}
+            {student.placementStatus === "Placed" ? (
+              <>
+                <Check size={12} /> Placed
+              </>
+            ) : (
+              "Pending"
+            )}
           </span>
         </div>
       )}
