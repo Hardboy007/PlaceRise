@@ -329,9 +329,12 @@ const generateResume = async (req, res) => {
         if (!entries || entries.length === 0) return;
         sectionHeader(label);
         entries.forEach((e, idx) => {
-          doc.font(fontBold).fontSize(10.5).fillColor("#1E293B");
           const titleY = doc.y;
-          doc.text(e.title || "—", 50, titleY, { continued: false });
+
+          doc.font(fontBold).fontSize(10.5).fillColor("#1E293B");
+          doc.text(e.title || "—", 50, titleY, { width: pageWidth - 250 });
+          const afterTitleY = doc.y;
+
           if (e.period) {
             doc
               .font(font)
@@ -342,19 +345,28 @@ const generateResume = async (req, res) => {
                 align: "right",
               });
           }
+
+          // ── Zaroori fix: cursor ko wapas left margin pe reset karo, aur
+          // y ko title + period dono me se jo neeche ho wahan set karo ──
+          doc.x = 50;
+          doc.y = Math.max(afterTitleY, doc.y);
+
           if (e.subtitle) {
             doc
               .font(font)
               .fontSize(9.5)
               .fillColor("#64748B")
-              .text(e.subtitle, { lineGap: 2 });
+              .text(e.subtitle, 50, doc.y, {
+                width: pageWidth - 100,
+                lineGap: 2,
+              });
           }
           if (e.desc) {
             doc
               .font(font)
               .fontSize(9.5)
               .fillColor("#1E293B")
-              .text(e.desc, { lineGap: 2 });
+              .text(e.desc, 50, doc.y, { width: pageWidth - 100, lineGap: 2 });
           }
           if (idx < entries.length - 1) doc.moveDown(0.5);
         });
