@@ -585,8 +585,21 @@ const AnalyticsDashboardPage = () => {
                       Click a bar to see student names
                     </p>
                     <ResponsiveContainer width="100%" height={280}>
-                      <BarChart data={analytics.companyData}>
-                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                      <BarChart
+                        data={analytics.companyData}
+                        margin={{ bottom: 10, left: 5, right: 5 }}
+                      >
+                        <XAxis
+                          dataKey="name"
+                          tick={{ fontSize: 10 }}
+                          interval={0}
+                          angle={-35}
+                          textAnchor="end"
+                          height={55}
+                          tickFormatter={(name) =>
+                            name.length > 10 ? `${name.slice(0, 10)}…` : name
+                          }
+                        />
                         <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
                         <Tooltip
                           content={<CustomTooltip valueLabel="Selected" />}
@@ -648,7 +661,10 @@ const AnalyticsDashboardPage = () => {
                       Click a bar to see student names
                     </p>
                     <ResponsiveContainer width="100%" height={280}>
-                      <BarChart data={analytics.ctcDistribution}>
+                      <BarChart
+                        data={analytics.ctcDistribution}
+                        margin={{ bottom: 10, left: 5, right: 5 }}
+                      >
                         <defs>
                           <linearGradient
                             id="ctcGradient"
@@ -669,7 +685,17 @@ const AnalyticsDashboardPage = () => {
                             />
                           </linearGradient>
                         </defs>
-                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                        <XAxis
+                          dataKey="name"
+                          tick={{ fontSize: 10 }}
+                          interval={0}
+                          angle={-35}
+                          textAnchor="end"
+                          height={55}
+                          tickFormatter={(name) =>
+                            name.length > 10 ? `${name.slice(0, 10)}…` : name
+                          }
+                        />
                         <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
                         <Tooltip
                           content={<CustomTooltip valueLabel="Students" />}

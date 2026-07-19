@@ -21,13 +21,13 @@ export function PlacementDonut({ summary }) {
   const COLORS = ["#22C55E", "#EF4444"];
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <PieChart>
+      <PieChart margin={{ top: 20, right: 30, bottom: 20, left: 30 }}>
         <Pie
           data={data}
           cx="50%"
           cy="50%"
-          innerRadius={70}
-          outerRadius={110}
+          innerRadius={60}
+          outerRadius={90}
           dataKey="value"
           label
         >
