@@ -161,33 +161,36 @@ function CompanyCard({ job, index }) {
   return (
     <div
       style={{ backgroundColor: C.white, borderColor: C.border }}
-      className="rounded-2xl p-5 shadow-sm border hover:shadow-lg hover:-translate-y-1 transition-all duration-200"
+      className="rounded-xl sm:rounded-2xl p-3 sm:p-5 shadow-sm border hover:shadow-lg hover:-translate-y-1 transition-all duration-200"
     >
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3">
+      <div className="flex items-start justify-between mb-3 gap-2 flex-wrap">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
           {logoUrl && !logoError ? (
             <img
               src={logoUrl}
               alt={name}
               onError={() => setLogoError(true)}
-              className="w-12 h-12 rounded-xl object-contain bg-white border border-[#E2E8F0] p-2 shrink-0"
+              className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl object-contain bg-white border border-[#E2E8F0] p-1 sm:p-2 shrink-0"
             />
           ) : (
             <div
               style={{ backgroundColor: color }}
-              className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg shrink-0"
+              className="w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center text-white font-bold text-sm sm:text-lg shrink-0"
             >
               {initial}
             </div>
           )}
-          <div>
+          <div className="min-w-0">
             <h3
               style={{ color: C.textMain }}
-              className="font-semibold text-base leading-tight"
+              className="font-semibold text-sm sm:text-base leading-tight truncate"
             >
               {name}
             </h3>
-            <p style={{ color: C.textMuted }} className="text-sm">
+            <p
+              style={{ color: C.textMuted }}
+              className="text-xs sm:text-sm truncate"
+            >
               {role}
             </p>
           </div>
@@ -215,7 +218,7 @@ function CompanyCard({ job, index }) {
                       backgroundColor: "#F0FDF4",
                     }
               }
-              className="text-xs font-medium border px-2.5 py-1 rounded-full whitespace-nowrap"
+              className="text-xs font-medium border px-2.5 py-1 rounded-full whitespace-nowrap shrink-0"
             >
               {urgent
                 ? daysLeft === 0
@@ -229,7 +232,7 @@ function CompanyCard({ job, index }) {
 
       <div
         style={{ color: C.textMuted }}
-        className="flex items-center gap-4 text-sm mb-4"
+        className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm mb-4"
       >
         <span>
           <LocationIcon />
@@ -243,20 +246,23 @@ function CompanyCard({ job, index }) {
 
       <div
         style={{ borderColor: C.background }}
-        className="flex items-center justify-between pt-3 border-t"
+        className="flex flex-col xs:flex-row xs:items-center justify-between gap-2 pt-3 border-t"
       >
         <div>
           <p style={{ color: C.textMuted }} className="text-xs mb-0.5">
             Package
           </p>
-          <p style={{ color: C.textMain }} className="font-bold text-base">
+          <p
+            style={{ color: C.textMain }}
+            className="font-bold text-sm sm:text-base"
+          >
             {ctcLabel}
           </p>
         </div>
         <button
           onClick={() => navigate(`/student/companies/${jobId}`)}
           style={{ backgroundColor: C.primary }}
-          className="hover:opacity-90 text-white cursor-pointer px-5 py-2.5 rounded-full text-sm font-medium flex items-center gap-1.5 transition-all duration-200 group"
+          className="hover:opacity-90 text-white cursor-pointer px-3 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium flex items-center justify-center gap-1 sm:gap-1.5 transition-all duration-200 group whitespace-nowrap w-full xs:w-auto"
         >
           View Details
           <svg
@@ -766,14 +772,14 @@ export default function PlacementDashboard() {
       style={{ backgroundColor: C.background }}
       className="min-h-screen font-sans"
     >
-      <main className="p-8 max-w-7xl mx-auto">
+      <main className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto">
         {/* Hero Banner */}
         <div
           style={{
             background:
               "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
           }}
-          className="relative overflow-hidden rounded-3xl mb-6 px-6 py-7 sm:px-8 sm:py-8 shadow-lg shadow-blue-900/10"
+          className="relative overflow-hidden rounded-2xl sm:rounded-3xl mb-6 px-4 py-6 sm:px-6 sm:py-7 md:px-8 md:py-8 shadow-lg shadow-blue-900/10"
         >
           {/* Subtle dot-grid pattern — professional, low-opacity texture */}
           <div
@@ -797,7 +803,7 @@ export default function PlacementDashboard() {
             <path d="M0 130 L180 0" stroke="white" strokeWidth="1" />
           </svg>
           <div className="relative z-10">
-            <span className="inline-flex items-center gap-1.5 bg-white/20 text-white text-xs font-medium px-3 py-1.5 rounded-full mb-4">
+            <span className="inline-flex items-center gap-1.5 bg-white/20 text-white text-[10px] sm:text-xs font-medium px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full mb-3 sm:mb-4">
               <svg
                 className="w-3.5 h-3.5"
                 fill="currentColor"
@@ -807,21 +813,21 @@ export default function PlacementDashboard() {
               </svg>
               Placement Season {currentYear}
             </span>
-            <h1 className="text-3xl font-bold text-white mb-1">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-1">
               {greeting}, {student.name}
             </h1>
             <p className="text-white/70 text-sm mb-3">{todayLabel}</p>
-            <p className="text-white/90 text-lg mb-6">
+            <p className="text-white/90 text-sm sm:text-base md:text-lg mb-6">
               <span className="font-semibold">
                 {eligibleJobs.length} companies
               </span>{" "}
               are open for you right now
             </p>
-            <div className="flex gap-3 flex-wrap">
+            <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={() => navigate("/student/companies")}
                 style={{ backgroundColor: C.white, color: C.primary }}
-                className="font-semibold cursor-pointer px-6 py-2.5 rounded-full text-sm flex items-center gap-2 hover:opacity-90 transition-opacity whitespace-nowrap"
+                className="font-semibold cursor-pointer px-6 py-2.5 rounded-full text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity whitespace-nowrap w-full sm:w-auto"
               >
                 Browse Companies
                 <svg
@@ -840,7 +846,7 @@ export default function PlacementDashboard() {
               </button>
               <button
                 onClick={() => navigate("/student/applications")}
-                className="bg-white/20 cursor-pointer border border-white/40 text-white font-semibold px-6 py-2.5 rounded-full text-sm hover:bg-white/30 transition-colors whitespace-nowrap"
+                className="bg-white/20 cursor-pointer border border-white/40 text-white font-semibold px-6 py-2.5 rounded-full text-sm hover:bg-white/30 transition-colors whitespace-nowrap w-full sm:w-auto"
               >
                 My Applications
               </button>
@@ -867,7 +873,7 @@ export default function PlacementDashboard() {
             )}
           </div>
 
-          <div className="absolute right-8 top-1/2 -translate-y-1/2">
+          <div className="absolute right-8 top-1/2 -translate-y-1/2 hidden md:block">
             <div className="w-28 h-28 bg-white/10 rounded-2xl flex items-center justify-center">
               <svg
                 className="w-14 h-14 text-white/70"
@@ -892,10 +898,13 @@ export default function PlacementDashboard() {
         {closingSoonJobs.length > 0 && (
           <div
             style={{ backgroundColor: "#FEF2F2", borderColor: "#FECACA" }}
-            className="border rounded-2xl px-5 py-3 mb-6 flex items-center gap-3"
+            className="border rounded-2xl px-4 py-3 sm:px-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3"
           >
             <span className="text-xl shrink-0">⏰</span>
-            <p style={{ color: "#991B1B" }} className="text-sm flex-1">
+            <p
+              style={{ color: "#991B1B" }}
+              className="text-xs sm:text-sm flex-1"
+            >
               <span className="font-bold">
                 {closingSoonJobs.length}{" "}
                 {closingSoonJobs.length === 1
@@ -928,17 +937,17 @@ export default function PlacementDashboard() {
         )}
 
         {/* Stats Row — Interviews box removed, values now come from real data */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-4 mb-6 sm:mb-8">
           <div
             style={{ backgroundColor: C.white, borderColor: C.border }}
-            className="rounded-2xl px-5 py-4 shadow-sm border-l-4 flex items-center gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+            className="rounded-xl sm:rounded-2xl px-3 py-3 sm:px-5 sm:py-4 shadow-sm border-l-4 flex items-center gap-2.5 sm:gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
           >
             <div
               style={{ backgroundColor: "#DCFCE7" }}
-              className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+              className="w-8 h-8 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0"
             >
               <svg
-                className="w-6 h-6"
+                className="w-4 h-4 sm:w-6 sm:h-6"
                 fill="none"
                 stroke={C.success}
                 strokeWidth={2.5}
@@ -953,10 +962,16 @@ export default function PlacementDashboard() {
               </svg>
             </div>
             <div>
-              <p style={{ color: C.textMuted }} className="text-xs font-medium">
+              <p
+                style={{ color: C.textMuted }}
+                className="text-[10px] sm:text-xs font-medium truncate"
+              >
                 Selected
               </p>
-              <p style={{ color: C.textMain }} className="text-2xl font-bold">
+              <p
+                style={{ color: C.textMain }}
+                className="text-base sm:text-2xl font-bold"
+              >
                 {applicationsLoading ? "—" : selectedCount}
               </p>
             </div>
@@ -964,14 +979,14 @@ export default function PlacementDashboard() {
 
           <div
             style={{ backgroundColor: C.white, borderColor: C.border }}
-            className="rounded-2xl px-5 py-4 shadow-sm border-l-4 flex items-center gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+            className="rounded-xl sm:rounded-2xl px-3 py-3 sm:px-5 sm:py-4 shadow-sm border-l-4 flex items-center gap-2.5 sm:gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
           >
             <div
               style={{ backgroundColor: "#DBEAFE" }}
-              className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+              className="w-8 h-8 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0"
             >
               <svg
-                className="w-6 h-6"
+                className="w-4 h-4 sm:w-6 sm:h-6"
                 fill="none"
                 stroke={C.primary}
                 strokeWidth={2}
@@ -986,10 +1001,16 @@ export default function PlacementDashboard() {
               </svg>
             </div>
             <div>
-              <p style={{ color: C.textMuted }} className="text-xs font-medium">
+              <p
+                style={{ color: C.textMuted }}
+                className="text-[10px] sm:text-xs font-medium truncate"
+              >
                 Applied
               </p>
-              <p style={{ color: C.textMain }} className="text-2xl font-bold">
+              <p
+                style={{ color: C.textMain }}
+                className="text-base sm:text-2xl font-bold"
+              >
                 {applicationsLoading ? "—" : appliedCount}
               </p>
             </div>
@@ -997,14 +1018,14 @@ export default function PlacementDashboard() {
 
           <div
             style={{ backgroundColor: C.white, borderColor: C.border }}
-            className="rounded-2xl px-5 py-4 shadow-sm border-l-4 flex items-center gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+            className="rounded-xl sm:rounded-2xl px-3 py-3 sm:px-5 sm:py-4 shadow-sm border-l-4 flex items-center gap-2.5 sm:gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
           >
             <div
               style={{ backgroundColor: "#EDE9FE" }}
-              className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+              className="w-8 h-8 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0"
             >
               <svg
-                className="w-6 h-6"
+                className="w-4 h-4 sm:w-6 sm:h-6"
                 fill="none"
                 stroke="#8B5CF6"
                 strokeWidth={2}
@@ -1018,22 +1039,28 @@ export default function PlacementDashboard() {
               </svg>
             </div>
             <div>
-              <p style={{ color: C.textMuted }} className="text-xs font-medium">
+              <p
+                style={{ color: C.textMuted }}
+                className="text-[10px] sm:text-xs font-medium truncate"
+              >
                 Profile Score
               </p>
               {/* NOTE: no dedicated endpoint for this was specified — using
                   student.profileScore if backend provides it, else a dash. */}
               {student.profileScore != null ? (
-                <p style={{ color: C.textMain }} className="text-2xl font-bold">
+                <p
+                  style={{ color: C.textMain }}
+                  className="text-base sm:text-2xl font-bold"
+                >
                   {student.profileScore}%
                 </p>
               ) : (
                 <button
                   onClick={() => navigate("/student/profile")}
                   style={{ color: "#8B5CF6" }}
-                  className="text-xs font-semibold hover:underline"
+                  className="text-[10px] sm:text-xs font-semibold hover:underline"
                 >
-                  Complete profile →
+                  Complete →
                 </button>
               )}
             </div>
@@ -1041,9 +1068,9 @@ export default function PlacementDashboard() {
         </div>
 
         {/* Bottom Grid */}
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
           {/* Eligible Companies — latest 4 for this student's school */}
-          <div className="col-span-2">
+          <div className="md:col-span-2">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 style={{ color: C.textMain }} className="text-xl font-bold">
@@ -1087,7 +1114,7 @@ export default function PlacementDashboard() {
               </p>
             )}
             {!jobsLoading && !jobsError && latestFourJobs.length > 0 && (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {latestFourJobs.map((job, idx) => (
                   <CompanyCard key={job._id} job={job} index={idx} />
                 ))}

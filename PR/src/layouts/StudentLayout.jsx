@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import { Outlet, NavLink, useNavigate, Link, useLocation } from "react-router-dom";
+import {
+  Outlet,
+  NavLink,
+  useNavigate,
+  Link,
+  useLocation,
+} from "react-router-dom";
 import {
   LayoutDashboard,
   Building2,
@@ -37,8 +43,18 @@ const bottomTabs = [
 
 // "More" sheet mein baaki links — har ek ko alag accent color
 const moreLinks = [
-  { to: "/student/documents", label: "My Documents", icon: FileText, color: "blue" },
-  { to: "/student/settings", label: "Settings", icon: Settings, color: "purple" },
+  {
+    to: "/student/documents",
+    label: "My Documents",
+    icon: FileText,
+    color: "blue",
+  },
+  {
+    to: "/student/settings",
+    label: "Settings",
+    icon: Settings,
+    color: "purple",
+  },
 ];
 
 const moreColorMap = {
@@ -126,7 +142,10 @@ function StudentLayout() {
         px-3 sm:px-6 flex items-center justify-between gap-2"
       >
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 sm:gap-2.5 min-w-0 shrink-0">
+        <Link
+          to="/"
+          className="flex items-center gap-2 sm:gap-2.5 min-w-0 shrink-0"
+        >
           <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-[0_4px_12px_rgba(59,130,246,0.4)] shrink-0">
             <Sparkles size={14} className="text-white" />
           </div>
