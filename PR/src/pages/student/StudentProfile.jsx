@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { api } from "../../utils/api";
+import ResumeBuilder from "../../components/student/ResumeBuilder";
 import {
   User,
   GraduationCap,
@@ -13,6 +14,7 @@ import {
   CalendarDays,
   TrendingUp,
   PartyPopper,
+  Sparkles,
 } from "lucide-react";
 import { getCurrentYear } from "../../utils/courseDuration";
 
@@ -76,6 +78,7 @@ export default function StudentProfilePage() {
   const [newSkill, setNewSkill] = useState("");
   const [saved, setSaved] = useState(false);
   const resumeInputRef = useRef(null);
+  const [showResumeBuilder, setShowResumeBuilder] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -614,19 +617,28 @@ export default function StudentProfilePage() {
               )}
             </div>
           ) : (
-            <div
-              onClick={() => editing && resumeInputRef.current.click()}
-              className={`flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed transition-all
-                ${editing ? "border-primary bg-blue-50/50 cursor-pointer hover:bg-blue-50" : "border-[#CBD5E1]"}`}
-            >
-              <FileText
-                size={28}
-                className={editing ? "text-primary" : "text-[#94A3B8]"}
-              />
+            <div className="flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed border-[#CBD5E1]">
+              <FileText size={28} className="text-[#94A3B8]" />
               <p className="text-sm font-medium text-[#1E293B] mt-2">
-                {editing ? "Click to upload resume" : "No resume uploaded yet"}
+                No resume uploaded yet
               </p>
-              <p className="text-xs text-[#64748B] mt-1">PDF only · Max 5MB</p>
+              <p className="text-xs text-[#64748B] mt-1 mb-4">
+                Have a resume ready, or want us to build one for you?
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <button
+                  onClick={() => resumeInputRef.current.click()}
+                  className="px-4 py-2 rounded-xl bg-[#3B82F6] text-white text-sm font-semibold hover:bg-[#2563EB] transition-colors"
+                >
+                  Upload My Resume
+                </button>
+                <button
+                  onClick={() => setShowResumeBuilder(true)}
+                  className="px-4 py-2 rounded-xl bg-white text-[#3B82F6] border border-[#3B82F6] text-sm font-semibold hover:bg-blue-50 transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <Sparkles size={14} /> Build My Resume
+                </button>
+              </div>
             </div>
           )}
           <input
@@ -691,6 +703,18 @@ export default function StudentProfilePage() {
             )}
           </span>
         </div>
+      )}
+
+      {showResumeBuilder && (
+        <ResumeBuilder
+          student={student}
+          onClose={() => setShowResumeBuilder(false)}
+          onGenerated={(resumeUrl) => {
+            setStudent({ ...student, resume: resumeUrl });
+            setShowResumeBuilder(false);
+            alert("Resume generated and saved successfully!");
+          }}
+        />
       )}
     </div>
   );

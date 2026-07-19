@@ -9,6 +9,7 @@ const {
   onboardStudent,
   updateNotificationPreferences,
   uploadResume,
+  generateResume,
   bulkImportStudents,
   exportStudentsExcel,
   saveJob,
@@ -33,6 +34,7 @@ router.put("/me", protect, updateStudent);
 router.put("/me/onboard", protect, onboardStudent);
 router.put("/me/notifications", protect, updateNotificationPreferences);
 router.post("/me/resume", protect, upload.single("file"), uploadResume);
+router.post('/me/generate-resume', protect, generateResume)
 router.post("/save-job/:jobId", protect, saveJob);
 router.delete("/save-job/:jobId", protect, unsaveJob);
 router.get("/saved-jobs", protect, getSavedJobs);

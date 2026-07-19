@@ -7,6 +7,8 @@ const ExcelJS = require("exceljs");
 const User = require("../models/User");
 const universityStructure = require("../data/universityStructure");
 const { cloudinary } = require("../config/cloudinary");
+const PDFDocument = require("pdfkit");
+const { Readable } = require("stream");
 
 const findSchoolAndDept = (course) => {
   for (const s of universityStructure) {
@@ -216,6 +218,187 @@ const uploadResume = async (req, res) => {
   }
 };
 
+//=================== GENERATE RESUME (Build-in-app) =================
+const generateResume = async (req, res) => {
+  try {
+    const {
+      name,
+      email,
+      phone,
+      city,
+      linkedinUrl,
+      about,
+      college,
+      branch,
+      cgpa,
+      skills = [],
+      experience = [],
+      projects = [],
+      template = "modern",
+    } = req.body;
+
+    if (!name || !email) {
+      return res.status(400).json({ message: "Name and email are required" });
+    }
+
+    const ACCENTS = {
+      minimal: "#1E293B",
+      modern: "#3B82F6",
+      classic: "#334155",
+    };
+    const accent = ACCENTS[template] || ACCENTS.modern;
+    const font = template === "classic" ? "Times-Roman" : "Helvetica";
+    const fontBold = template === "classic" ? "Times-Bold" : "Helvetica-Bold";
+
+    const doc = new PDFDocument({ margin: 50 });
+    const buffers = [];
+    doc.on("data", (chunk) => buffers.push(chunk));
+
+    await new Promise((resolve) => {
+      doc.on("end", resolve);
+
+      const pageWidth = doc.page.width;
+
+      if (template === "modern") {
+        // Colored header band, drawn before margin content
+        doc.rect(0, 0, pageWidth, 100).fill(accent);
+        doc.fillColor("#FFFFFF").font(fontBold).fontSize(22);
+        doc.text(name, 50, 35);
+        doc.font(font).fontSize(10);
+        const contactLine = [email, phone, city]
+          .filter(Boolean)
+          .join("   |   ");
+        doc.text(contactLine, 50, 62);
+        if (linkedinUrl) doc.text(linkedinUrl, 50, 78);
+        doc.fillColor("#1E293B");
+        doc.y = 120;
+      } else {
+        doc.fillColor(accent).font(fontBold).fontSize(20);
+        doc.text(name, { align: "left" });
+        doc.font(font).fontSize(10).fillColor("#475569");
+        const contactLine = [email, phone, city]
+          .filter(Boolean)
+          .join("   |   ");
+        doc.text(contactLine);
+        if (linkedinUrl) {
+          doc.fillColor(accent).text(linkedinUrl);
+        }
+        doc.moveDown(0.3);
+        doc
+          .moveTo(50, doc.y)
+          .lineTo(pageWidth - 50, doc.y)
+          .strokeColor(accent)
+          .lineWidth(1)
+          .stroke();
+        doc.moveDown(0.8);
+        doc.fillColor("#1E293B");
+      }
+
+      const sectionHeader = (title) => {
+        doc.moveDown(0.8);
+        doc.font(fontBold).fontSize(12).fillColor(accent);
+        doc.text(title.toUpperCase());
+        doc
+          .moveTo(50, doc.y + 2)
+          .lineTo(pageWidth - 50, doc.y + 2)
+          .strokeColor(accent)
+          .lineWidth(0.5)
+          .stroke();
+        doc.moveDown(0.6);
+        doc.fillColor("#1E293B").font(font).fontSize(10);
+      };
+
+      if (about) {
+        sectionHeader("Summary");
+        doc.font(font).fontSize(10).text(about, { lineGap: 3 });
+      }
+
+      sectionHeader("Education");
+      doc
+        .font(fontBold)
+        .fontSize(10.5)
+        .text(college || "—");
+      doc
+        .font(font)
+        .fontSize(10)
+        .fillColor("#475569")
+        .text(`${branch || "—"}   |   CGPA: ${cgpa || "—"}`);
+      doc.fillColor("#1E293B");
+
+      const renderEntries = (label, entries) => {
+        if (!entries || entries.length === 0) return;
+        sectionHeader(label);
+        entries.forEach((e, idx) => {
+          doc.font(fontBold).fontSize(10.5).fillColor("#1E293B");
+          const titleY = doc.y;
+          doc.text(e.title || "—", 50, titleY, { continued: false });
+          if (e.period) {
+            doc
+              .font(font)
+              .fontSize(9)
+              .fillColor("#64748B")
+              .text(e.period, pageWidth - 200, titleY, {
+                width: 150,
+                align: "right",
+              });
+          }
+          if (e.subtitle) {
+            doc
+              .font(font)
+              .fontSize(9.5)
+              .fillColor("#64748B")
+              .text(e.subtitle, { lineGap: 2 });
+          }
+          if (e.desc) {
+            doc
+              .font(font)
+              .fontSize(9.5)
+              .fillColor("#1E293B")
+              .text(e.desc, { lineGap: 2 });
+          }
+          if (idx < entries.length - 1) doc.moveDown(0.5);
+        });
+      };
+
+      renderEntries("Experience", experience);
+      renderEntries("Projects", projects);
+
+      if (skills.length > 0) {
+        sectionHeader("Skills");
+        doc.font(font).fontSize(10).fillColor("#1E293B");
+        doc.text(skills.join("   •   "), { lineGap: 3 });
+      }
+
+      doc.end();
+    });
+
+    const buffer = Buffer.concat(buffers);
+
+    const uploadResult = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          folder: "placerise/resumes",
+          resource_type: "raw",
+          format: "pdf",
+          public_id: `resume_${name.replace(/[^a-zA-Z0-9_-]/g, "_")}_${Date.now()}`,
+        },
+        (error, result) => (error ? reject(error) : resolve(result)),
+      );
+      Readable.from(buffer).pipe(stream);
+    });
+
+    const student = await Student.findOneAndUpdate(
+      { userId: req.user.id },
+      { resume: uploadResult.secure_url },
+      { new: true },
+    );
+
+    res.json({ resumeUrl: uploadResult.secure_url, student });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // ================== BULK IMPORT ==================
 const bulkImportStudents = async (req, res) => {
   try {
@@ -397,6 +580,7 @@ module.exports = {
   onboardStudent,
   updateNotificationPreferences,
   uploadResume,
+  generateResume,
   bulkImportStudents,
   exportStudentsExcel,
   saveJob,
