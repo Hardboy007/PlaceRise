@@ -243,7 +243,7 @@ function Field({ label, name, icon: Icon, editing, value, onChange }) {
           className="w-full min-w-0 px-3 py-2 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] bg-[#F8FAFC] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
         />
       ) : (
-        <span className="text-sm font-medium text-[#1E293B] break-words">
+        <span className="text-sm font-medium text-[#1E293B] wrap-break-word">
           {value || "—"}
         </span>
       )}
@@ -451,16 +451,16 @@ export default function CoordinatorProfile() {
 
           <div className="flex-1 min-w-0 w-full flex flex-col items-center sm:items-start">
             <h1
-              className="text-xl sm:text-2xl font-bold text-white mb-1 break-words px-2 sm:px-0"
+              className="text-xl sm:text-2xl font-bold text-white mb-1 wrap-break-word px-2 sm:px-0"
               style={{ fontFamily: "Space Grotesk, sans-serif" }}
             >
               {displayData.name}
             </h1>
-            <p className="text-sm text-white/70 mb-3 break-words px-2 sm:px-0">
+            <p className="text-sm text-white/70 mb-3 wrap-break-word px-2 sm:px-0">
               {displayData.designation} · {displayData.department}
             </p>
             <div className="flex flex-wrap justify-center sm:justify-start gap-2 max-w-full">
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30 max-w-full break-words">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30 max-w-full wrap-break-word">
                 {displayData.college}
               </span>
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30 whitespace-nowrap">
@@ -733,7 +733,7 @@ export default function CoordinatorProfile() {
         <div className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 sm:px-5 py-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center shrink-0">
                 <Shield size={16} className="text-success" />
               </div>
               <div>
@@ -814,12 +814,12 @@ export default function CoordinatorProfile() {
           )}
         </div>
       </div>
-      
+
       {/* Notifications */}
       <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-6 pt-6 pb-4 border-b border-background">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
               <Bell size={15} className="text-warning" />
             </div>
             <div>

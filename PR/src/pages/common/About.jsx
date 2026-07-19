@@ -708,7 +708,7 @@ function AboutPage() {
                       >
                         “{member.quote}”
                       </p>
-                      {(member.linkedin ) && (
+                      {member.linkedin && (
                         <div className="flex items-center gap-3 mt-6">
                           {member.linkedin && (
                             <a
@@ -722,7 +722,7 @@ function AboutPage() {
                               }}
                               className="pr-focusable w-9 h-9 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
                             >
-                              <LinkedinIcon size={16} color="#0A66C2"/>
+                              <LinkedinIcon size={16} color="#0A66C2" />
                             </a>
                           )}
                         </div>

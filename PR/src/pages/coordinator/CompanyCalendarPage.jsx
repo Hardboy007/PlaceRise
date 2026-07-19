@@ -216,7 +216,9 @@ function JobDetailModal({ job, onClose }) {
               <p className="text-white font-semibold text-base leading-tight tracking-tight truncate">
                 {companyName}
               </p>
-              <p className="text-white/75 text-[12px] mt-0.5 truncate">{job.role}</p>
+              <p className="text-white/75 text-[12px] mt-0.5 truncate">
+                {job.role}
+              </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2 mt-4">
@@ -322,7 +324,7 @@ function JobDetailModal({ job, onClose }) {
                         {label}
                       </span>
                     </div>
-                    <p className="text-[12px] text-gray-700 font-medium break-words">
+                    <p className="text-[12px] text-gray-700 font-medium wrap-break-word">
                       {val}
                     </p>
                   </div>

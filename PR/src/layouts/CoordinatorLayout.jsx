@@ -103,7 +103,10 @@ function CoordinatorLayout() {
     >
       {/* ── Navbar ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-white/80 backdrop-blur border-b border-[#CBD5E1] px-3 sm:px-6 flex items-center justify-between gap-2">
-        <Link to="/" className="flex items-center gap-2 sm:gap-2.5 min-w-0 shrink-0">
+        <Link
+          to="/"
+          className="flex items-center gap-2 sm:gap-2.5 min-w-0 shrink-0"
+        >
           <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-[0_4px_12px_rgba(59,130,246,0.4)] shrink-0">
             <Sparkles size={14} className="text-white" />
           </div>

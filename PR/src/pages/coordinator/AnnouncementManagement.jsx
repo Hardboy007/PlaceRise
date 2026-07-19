@@ -1049,7 +1049,7 @@ function TargetAudience({ targetAll, targetSelections, onChange }) {
                       onChange={() => toggleSchool(s)}
                     />
                     <span
-                      className="flex-1 cursor-pointer min-w-0 break-words"
+                      className="flex-1 cursor-pointer min-w-0 wrap-break-word"
                       onClick={() => toggleSchool(s)}
                     >
                       {s.school}
