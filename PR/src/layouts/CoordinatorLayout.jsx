@@ -55,13 +55,43 @@ const bottomTabs = [
 
 // "More" sheet mein baaki saare links — har ek ko alag accent color
 const moreLinks = [
-  { to: "/coordinator/students", label: "Students", icon: Users, color: "blue" },
-  { to: "/coordinator/recruiter-crm", label: "Recruiter CRM", icon: Building2, color: "purple" },
-  { to: "/coordinator/applications", label: "Applications", icon: FileCheck, color: "green" },
-  { to: "/coordinator/announcements", label: "Announcements", icon: Megaphone, color: "amber" },
+  {
+    to: "/coordinator/students",
+    label: "Students",
+    icon: Users,
+    color: "blue",
+  },
+  {
+    to: "/coordinator/recruiter-crm",
+    label: "Recruiter CRM",
+    icon: Building2,
+    color: "purple",
+  },
+  {
+    to: "/coordinator/applications",
+    label: "Applications",
+    icon: FileCheck,
+    color: "green",
+  },
+  {
+    to: "/coordinator/announcements",
+    label: "Announcements",
+    icon: Megaphone,
+    color: "amber",
+  },
   { to: "/coordinator/noc", label: "NOC / LOR", icon: FileText, color: "pink" },
-  { to: "/coordinator/attendance", label: "Attendance", icon: QrCode, color: "teal" },
-  { to: "/coordinator/analytics", label: "Analytics", icon: LineChart, color: "orange" },
+  {
+    to: "/coordinator/attendance",
+    label: "Attendance",
+    icon: QrCode,
+    color: "teal",
+  },
+  {
+    to: "/coordinator/analytics",
+    label: "Analytics",
+    icon: LineChart,
+    color: "orange",
+  },
 ];
 
 const moreColorMap = {
