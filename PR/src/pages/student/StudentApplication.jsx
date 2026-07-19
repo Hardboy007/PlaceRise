@@ -273,7 +273,7 @@ export default function StudentApplication() {
     return (
       <div
         style={{ backgroundColor: C.background }}
-        className="min-h-screen flex items-center justify-center p-10"
+        className="min-h-screen flex items-center justify-center p-4 sm:p-10"
       >
         <div
           className="rounded-2xl border p-6 max-w-md text-center shadow-sm"
@@ -292,22 +292,22 @@ export default function StudentApplication() {
   return (
     <div
       style={{ backgroundColor: C.background }}
-      className="min-h-screen p-10 font-sans"
+      className="min-h-screen p-4 sm:p-10 font-sans"
     >
       {/* ── Page Header ── */}
-      <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
+      <div className="flex items-start justify-between mb-5 sm:mb-6 flex-wrap gap-4">
         {/* Left: icon + title */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           <div
             style={{ backgroundColor: C.textMain }}
-            className="w-13 h-13 rounded-2xl flex items-center justify-center shrink-0 shadow-sm"
+            className="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl flex items-center justify-center shrink-0 shadow-sm"
           >
             <BriefcaseIcon />
           </div>
           <div>
             <h1
               style={{ color: C.textMain }}
-              className="text-[28px] font-bold leading-tight tracking-tight"
+              className="text-2xl sm:text-[28px] font-bold leading-tight tracking-tight"
             >
               My Applications
             </h1>
@@ -319,7 +319,7 @@ export default function StudentApplication() {
 
         {/* Right: live total counter */}
         <div
-          className="flex items-center gap-2.5 rounded-2xl border px-5 py-3 shadow-sm"
+          className="flex items-center gap-2.5 rounded-2xl border px-4 sm:px-5 py-3 shadow-sm"
           style={{ backgroundColor: C.white, borderColor: C.border }}
         >
           <span
@@ -348,7 +348,7 @@ export default function StudentApplication() {
 
       {/* ── Filter tabs ── */}
       <div
-        className="flex items-center gap-2 flex-wrap mb-6 rounded-2xl border p-2 shadow-sm w-fit"
+        className="grid grid-cols-2 sm:flex items-center gap-2 mb-5 sm:mb-6 rounded-2xl border p-2 shadow-sm w-full sm:w-fit"
         style={{ backgroundColor: C.white, borderColor: C.border }}
       >
         {filterTabs.map((tab) => {
@@ -358,7 +358,7 @@ export default function StudentApplication() {
             <button
               key={tab.value}
               onClick={() => setFilterStatus(tab.value)}
-              className="text-[13px] font-semibold px-4 py-1.5 rounded-xl border transition-all"
+              className="w-full sm:w-auto text-[13px] font-semibold px-3 sm:px-4 py-1.5 rounded-xl border transition-all"
               style={{
                 color: active ? (s ? s.color : C.primary) : C.textMuted,
                 backgroundColor: active
@@ -386,15 +386,8 @@ export default function StudentApplication() {
       >
         {/* Column headers */}
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "2.2fr 2fr 1.6fr 1.2fr",
-            paddingLeft: "24px",
-            paddingRight: "24px",
-            paddingTop: "16px",
-            paddingBottom: "16px",
-            borderBottom: `1px solid ${C.border}`,
-          }}
+          className="hidden md:grid md:grid-cols-[2.2fr_2fr_1.6fr_1.2fr] px-6 py-4"
+          style={{ borderBottom: `1px solid ${C.border}` }}
         >
           {["COMPANY", "ROLE", "APPLIED DATE", "STATUS"].map((h) => (
             <span
@@ -424,14 +417,8 @@ export default function StudentApplication() {
             return (
               <div
                 key={app._id}
+                className="grid grid-cols-1 gap-3 md:grid-cols-[2.2fr_2fr_1.6fr_1.2fr] md:items-center md:gap-0 px-4 py-5 sm:px-6 sm:py-[22px]"
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: "2.2fr 2fr 1.6fr 1.2fr",
-                  alignItems: "center",
-                  paddingLeft: "24px",
-                  paddingRight: "24px",
-                  paddingTop: "22px",
-                  paddingBottom: "22px",
                   borderBottom: isLast ? "none" : `1px solid ${C.border}`,
                   backgroundColor: C.white,
                   transition: "background 0.15s",
@@ -455,27 +442,27 @@ export default function StudentApplication() {
                     website={app.jobId.companyId.website}
                     size={40}
                   />
-                  <span className="font-bold text-[15px] text-[#0F172A] group-hover:text-[#1D4ED8] group-hover:underline transition-colors">
+                  <span className="font-bold text-[15px] text-[#0F172A] group-hover:text-[#1D4ED8] group-hover:underline transition-colors break-words">
                     {app.jobId.companyId.name}
                   </span>
                 </div>
 
                 {/* Role */}
-                <span style={{ color: C.textMuted }} className="text-[14px]">
+                <span style={{ color: C.textMuted }} className="text-[14px] before:content-['Role'] before:mr-2 before:text-[10px] before:font-semibold before:tracking-widest before:uppercase before:text-[#64748B] md:before:hidden">
                   {app.jobId?.role || "—"}
                 </span>
 
                 {/* Applied Date */}
                 <span
                   style={{ color: C.textMuted }}
-                  className="text-[14px] flex items-center"
+                  className="text-[14px] flex items-center before:content-['Applied'] before:mr-2 before:text-[10px] before:font-semibold before:tracking-widest before:uppercase before:text-[#64748B] md:before:hidden"
                 >
                   <CalendarIcon />
                   {formatDate(app.appliedDate)}
                 </span>
 
                 {/* Status badge */}
-                <div>
+                <div className="flex items-center gap-2 before:content-['Status'] before:text-[10px] before:font-semibold before:tracking-widest before:uppercase before:text-[#64748B] md:before:hidden">
                   <span
                     style={{
                       color: s.color,

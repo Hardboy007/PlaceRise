@@ -43,9 +43,9 @@ function SectionCard({
 }) {
   return (
     <div
-      className={`bg-white rounded-2xl border border-[#E2E8F0] border-l-4 ${borderColor} p-6 shadow-sm hover:shadow-md transition-shadow`}
+      className={`bg-white rounded-2xl border border-[#E2E8F0] border-l-4 ${borderColor} p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow`}
     >
-      <div className="flex items-center gap-3 mb-5 pb-4 border-b border-background">
+      <div className="flex items-center gap-3 mb-4 sm:mb-5 pb-3 sm:pb-4 border-b border-background">
         <div
           className={`w-8 h-8 rounded-lg flex items-center justify-center ${iconBg}`}
         >
@@ -170,12 +170,12 @@ export default function StudentProfilePage() {
 
   return (
     <div
-      className="max-w-4xl mx-auto"
+      className="max-w-4xl mx-auto px-4 md:px-0"
       style={{ fontFamily: "Inter, sans-serif" }}
     >
       {/* Hero Card */}
       <div
-        className="relative rounded-3xl overflow-hidden mb-6 border border-white/10"
+        className="relative rounded-2xl sm:rounded-3xl overflow-hidden mb-5 sm:mb-6 border border-white/10"
         style={{
           background:
             "linear-gradient(135deg, #3B82F6 0%, #60A5FA 60%, #818CF8 100%)",
@@ -190,10 +190,10 @@ export default function StudentProfilePage() {
           }}
         />
 
-        <div className="relative z-10 p-8 flex flex-wrap items-center gap-6">
+        <div className="relative z-10 p-5 sm:p-8 flex flex-wrap items-start sm:items-center gap-4 sm:gap-6">
           {/* Avatar */}
           <div
-            className="w-20 h-20 rounded-full flex items-center justify-center text-white text-3xl font-bold flex-shrink-0"
+            className="w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center text-white text-3xl font-bold flex-shrink-0"
             style={{
               background: "linear-gradient(135deg, white, #E0E7FF)",
               padding: "3px",
@@ -210,7 +210,7 @@ export default function StudentProfilePage() {
           {/* Info */}
           <div className="flex-1 min-w-0">
             <h1
-              className="text-2xl font-bold text-white mb-1"
+              className="text-xl sm:text-2xl font-bold text-white mb-1 truncate"
               style={{ fontFamily: "Space Grotesk, sans-serif" }}
             >
               {displayData?.name}
@@ -232,18 +232,18 @@ export default function StudentProfilePage() {
           </div>
 
           {/* Actions */}
-          <div className="flex flex-col gap-2 shrink-0">
+          <div className="flex flex-col gap-2 w-full sm:w-auto shrink-0">
             {editing ? (
               <>
                 <button
                   onClick={handleSave}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#22C55E] hover:bg-green-600 text-white text-sm font-semibold transition-colors"
+                  className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#22C55E] hover:bg-green-600 text-white text-sm font-semibold transition-colors"
                 >
                   <Check size={14} /> Save Changes
                 </button>
                 <button
                   onClick={handleCancel}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white/80 text-sm font-medium transition-colors border border-white/10"
+                  className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white/80 text-sm font-medium transition-colors border border-white/10"
                 >
                   <X size={14} /> Cancel
                 </button>
@@ -251,7 +251,7 @@ export default function StudentProfilePage() {
             ) : (
               <button
                 onClick={handleEdit}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-[#3B82F6] hover:bg-white/90 text-sm font-semibold transition-colors shadow-md"
+                className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white text-[#3B82F6] hover:bg-white/90 text-sm font-semibold transition-colors shadow-md"
               >
                 <Edit3 size={14} /> Edit Profile
               </button>
@@ -266,7 +266,7 @@ export default function StudentProfilePage() {
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-5 sm:mb-6">
         {[
           {
             label: "CGPA Score",
@@ -301,7 +301,7 @@ export default function StudentProfilePage() {
         ].map((stat) => (
           <div
             key={stat.label}
-            className={`bg-white rounded-2xl border border-[#E2E8F0] border-t-2 ${stat.color} p-4 shadow-sm hover:shadow-md transition-shadow`}
+            className={`bg-white rounded-2xl border border-[#E2E8F0] border-t-2 ${stat.color} p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow`}
           >
             <div
               className={`w-8 h-8 rounded-lg ${stat.bg} flex items-center justify-center text-base mb-3`}
@@ -309,12 +309,12 @@ export default function StudentProfilePage() {
               {stat.icon}
             </div>
             <p
-              className="text-xl font-bold text-[#1E293B]"
+              className="text-lg sm:text-xl font-bold text-[#1E293B]"
               style={{ fontFamily: "Space Grotesk, sans-serif" }}
             >
               {stat.value}
             </p>
-            <p className="text-xs uppercase tracking-widest text-[#64748B] mt-1">
+            <p className="text-[10px] sm:text-xs uppercase tracking-wide sm:tracking-widest text-[#64748B] mt-1">
               {stat.label}
             </p>
           </div>
@@ -322,7 +322,7 @@ export default function StudentProfilePage() {
       </div>
 
       {/* Personal + Academic */}
-      <div className="grid md:grid-cols-2 gap-5 mb-5">
+      <div className="grid md:grid-cols-2 gap-4 sm:gap-5 mb-5">
         <SectionCard
           icon={User}
           title="Personal Information"
@@ -554,7 +554,7 @@ export default function StudentProfilePage() {
           )}
         </div>
         {editing && (
-          <div className="flex gap-2 mt-4">
+          <div className="flex flex-col sm:flex-row gap-2 mt-4">
             <input
               type="text"
               value={newSkill}
@@ -565,7 +565,7 @@ export default function StudentProfilePage() {
             />
             <button
               onClick={addSkill}
-              className="flex items-center gap-1 px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium hover:bg-blue-600 transition-colors"
+              className="flex items-center justify-center gap-1 px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium hover:bg-blue-600 transition-colors"
             >
               <Plus size={14} /> Add
             </button>
@@ -582,7 +582,7 @@ export default function StudentProfilePage() {
           borderColor="border-l-[#F59E0B]"
         >
           {displayData?.resume ? (
-            <div className="flex items-center gap-4 p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
               <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center">
                 <FileText size={18} className="text-primary" />
               </div>
@@ -602,7 +602,7 @@ export default function StudentProfilePage() {
               {editing && (
                 <button
                   onClick={() => resumeInputRef.current.click()}
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-background text-[#64748B] border border-[#E2E8F0] hover:bg-[#E2E8F0] transition-colors"
+                  className="ml-auto px-3 py-1.5 rounded-lg text-xs font-medium bg-background text-[#64748B] border border-[#E2E8F0] hover:bg-[#E2E8F0] transition-colors"
                 >
                   Replace
                 </button>
@@ -635,7 +635,7 @@ export default function StudentProfilePage() {
       </div>
       {/* Placement Status */}
       {!editing && (
-        <div className="mt-5 flex items-center justify-between px-5 py-3 rounded-2xl border border-[#E2E8F0] bg-white shadow-sm">
+        <div className="mt-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 sm:px-5 py-3 rounded-2xl border border-[#E2E8F0] bg-white shadow-sm">
           <div className="flex items-center gap-3">
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center"
@@ -668,7 +668,7 @@ export default function StudentProfilePage() {
             </div>
           </div>
           <span
-            className={`px-3 py-1 rounded-full text-xs font-semibold border ${
+            className={`self-end sm:self-auto px-3 py-1 rounded-full text-xs font-semibold border ${
               student.placementStatus === "Placed"
                 ? "bg-green-50 text-green-700 border-green-200"
                 : "bg-amber-50 text-[#F59E0B] border-amber-200"

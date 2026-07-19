@@ -202,11 +202,11 @@ function ChangePasswordModal({ onClose, onSave }) {
       }}
     >
       <div
-        className="bg-white rounded-3xl shadow-2xl w-full max-w-md border border-[#E2E8F0]"
+        className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-md max-h-[calc(100vh-2rem)] overflow-y-auto border border-[#E2E8F0]"
         style={{ animation: "fadeSlideUp 0.2s ease-out" }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-[#F1F5F9]">
+        <div className="flex items-center justify-between px-4 pt-5 pb-4 sm:px-6 sm:pt-6 border-b border-[#F1F5F9]">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/40 ring-1 ring-blue-100 flex items-center justify-center">
               <Lock size={16} className="text-[#3B82F6]" />
@@ -229,7 +229,7 @@ function ChangePasswordModal({ onClose, onSave }) {
         </div>
 
         {/* Body */}
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <PasswordInput
             label="Current Password"
             name="current"
@@ -268,7 +268,7 @@ function ChangePasswordModal({ onClose, onSave }) {
           )}
 
           {passwords.newPass && (
-            <div className="mt-4 bg-[#F8FAFC] rounded-xl p-4 border border-[#E2E8F0]">
+            <div className="mt-4 bg-[#F8FAFC] rounded-xl p-3 sm:p-4 border border-[#E2E8F0]">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold uppercase tracking-widest text-[#64748B]">
                   Strength
@@ -287,7 +287,7 @@ function ChangePasswordModal({ onClose, onSave }) {
                   />
                 ))}
               </div>
-              <div className="grid grid-cols-2 gap-2 mt-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
                 {[
                   ["8+ characters", passwords.newPass.length >= 8],
                   ["Uppercase letter", /[A-Z]/.test(passwords.newPass)],
@@ -310,17 +310,17 @@ function ChangePasswordModal({ onClose, onSave }) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 pb-6">
+        <div className="flex items-center justify-end gap-2 sm:gap-3 px-4 pb-5 sm:px-6 sm:pb-6">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 rounded-xl text-sm font-semibold text-[#64748B] hover:bg-[#F1F5F9] transition-colors"
+            className="px-3 sm:px-5 py-2.5 rounded-xl text-sm font-semibold text-[#64748B] hover:bg-[#F1F5F9] transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="flex items-center gap-2 bg-[#1E293B] hover:bg-[#3B82F6] text-white text-sm font-semibold px-6 py-2.5 rounded-xl shadow-md transition-all disabled:opacity-60"
+            className="flex items-center gap-1 sm:gap-2 bg-[#1E293B] hover:bg-[#3B82F6] text-white text-sm font-semibold px-3 sm:px-6 py-2.5 rounded-xl shadow-md transition-all disabled:opacity-60"
           >
             <Key size={14} /> {submitting ? "Updating..." : "Update Password"}
           </button>
@@ -420,7 +420,7 @@ export default function StudentSettingsPage() {
 
   if (loading) {
     return (
-      <div className="max-w-3xl mx-auto py-24 flex flex-col items-center gap-3">
+      <div className="max-w-3xl mx-auto px-4 md:px-0 py-24 flex flex-col items-center gap-3">
         <div className="w-8 h-8 rounded-full border-2 border-[#E2E8F0] border-t-[#3B82F6] animate-spin" />
         <p className="text-sm text-[#94A3B8]">Loading your settings…</p>
       </div>
@@ -429,12 +429,12 @@ export default function StudentSettingsPage() {
 
   return (
     <div
-      className="max-w-3xl mx-auto pb-28"
+      className="max-w-3xl mx-auto px-4 md:px-0 pb-28"
       style={{ fontFamily: "Inter, sans-serif" }}
     >
       {/* Hero Header */}
       <div
-        className="relative overflow-hidden rounded-3xl mb-6 px-6 py-7 sm:px-8 sm:py-8 shadow-lg shadow-blue-900/10"
+        className="relative overflow-hidden rounded-2xl sm:rounded-3xl mb-5 sm:mb-6 px-5 py-6 sm:px-8 sm:py-8 shadow-lg shadow-blue-900/10"
         style={{
           background:
             "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
@@ -463,7 +463,7 @@ export default function StudentSettingsPage() {
           </div>
 
           {/* Tab Switcher — glass pill on gradient */}
-          <div className="relative flex items-center bg-white/15 backdrop-blur-sm ring-1 ring-white/25 rounded-xl p-1">
+          <div className="relative flex items-center w-full sm:w-auto bg-white/15 backdrop-blur-sm ring-1 ring-white/25 rounded-xl p-1">
             <div
               className="absolute top-1 bottom-1 rounded-lg bg-white shadow-sm transition-all duration-300 ease-out"
               style={{ left: indicator.left, width: indicator.width }}
@@ -480,7 +480,7 @@ export default function StudentSettingsPage() {
                 key={tab.id}
                 ref={(el) => (tabRefs.current[tab.id] = el)}
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative z-10 flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors duration-200
+                className={`relative z-10 flex flex-1 sm:flex-none justify-center items-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-colors duration-200
                   ${activeTab === tab.id ? "text-[#1D4ED8]" : "text-white/85 hover:text-white"}`}
               >
                 {tab.icon}
@@ -492,7 +492,7 @@ export default function StudentSettingsPage() {
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-5 sm:mb-6">
         {[
           {
             icon: <Shield size={18} className="text-[#3B82F6]" />,
@@ -520,7 +520,7 @@ export default function StudentSettingsPage() {
           return (
             <div
               key={stat.label}
-              className="group bg-white rounded-2xl border border-[#E2E8F0] p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative overflow-hidden"
+              className="group bg-white rounded-2xl border border-[#E2E8F0] p-3 sm:p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative overflow-hidden"
             >
               <div
                 className={`w-9 h-9 rounded-xl bg-gradient-to-br ${c.grad} ring-1 ${c.ring} flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-105`}
@@ -548,7 +548,7 @@ export default function StudentSettingsPage() {
           className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm"
           style={{ animation: "fadeSlideUp 0.25s ease-out" }}
         >
-          <div className="flex items-center gap-3 px-6 pt-6 pb-4 border-b border-[#F1F5F9]">
+          <div className="flex items-center gap-3 px-4 pt-5 pb-4 sm:px-6 sm:pt-6 border-b border-[#F1F5F9]">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100/40 ring-1 ring-blue-100 flex items-center justify-center">
               <Lock size={15} className="text-[#3B82F6]" />
             </div>
@@ -561,8 +561,8 @@ export default function StudentSettingsPage() {
               </p>
             </div>
           </div>
-          <div className="p-6">
-            <div className="flex items-center justify-between bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-5 py-4">
+          <div className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 sm:px-5 py-4">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-green-50 to-green-100/40 ring-1 ring-green-100 flex items-center justify-center">
                   <Shield size={16} className="text-[#22C55E]" />
@@ -578,7 +578,7 @@ export default function StudentSettingsPage() {
               </div>
               <button
                 onClick={() => setShowPassModal(true)}
-                className="flex items-center gap-2 bg-[#1E293B] hover:bg-[#3B82F6] text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all"
+                className="flex w-full sm:w-auto justify-center items-center gap-2 bg-[#1E293B] hover:bg-[#3B82F6] text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all"
               >
                 <Key size={13} /> Change Password
               </button>
@@ -593,7 +593,7 @@ export default function StudentSettingsPage() {
           className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm"
           style={{ animation: "fadeSlideUp 0.25s ease-out" }}
         >
-          <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-[#F1F5F9]">
+          <div className="flex items-start sm:items-center justify-between gap-3 px-4 pt-5 pb-4 sm:px-6 sm:pt-6 border-b border-[#F1F5F9]">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-50 to-amber-100/40 ring-1 ring-amber-100 flex items-center justify-center">
                 <Bell size={15} className="text-[#F59E0B]" />
@@ -617,9 +617,9 @@ export default function StudentSettingsPage() {
               return (
                 <div
                   key={key}
-                  className="flex items-center justify-between px-6 py-4 hover:bg-[#F8FAFC] transition-colors"
+                  className="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 hover:bg-[#F8FAFC] transition-colors"
                 >
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                     <div
                       className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300
                       ${
@@ -630,13 +630,13 @@ export default function StudentSettingsPage() {
                     >
                       {icon}
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <p
                         className={`text-sm font-semibold transition-colors ${toggles[key] ? "text-[#1E293B]" : "text-[#94A3B8]"}`}
                       >
                         {label}
                       </p>
-                      <p className="text-xs text-[#64748B] mt-0.5">{desc}</p>
+                      <p className="text-xs text-[#64748B] mt-0.5 leading-relaxed">{desc}</p>
                     </div>
                   </div>
                   <Toggle
@@ -653,8 +653,8 @@ export default function StudentSettingsPage() {
 
       {/* Save Bar — sticky, glass-blur */}
       <div className="fixed bottom-0 left-0 right-0 z-20 bg-white/80 backdrop-blur-md border-t border-[#E2E8F0]">
-        <div className="max-w-3xl mx-auto flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2 min-h-[18px]">
+        <div className="max-w-3xl mx-auto flex items-center justify-between gap-3 px-4 md:px-0 py-3 sm:py-4">
+          <div className="flex items-center gap-2 min-h-[18px] min-w-0">
             {saved ? (
               <span
                 className="flex items-center gap-1.5 text-xs font-semibold text-[#22C55E]"
@@ -663,7 +663,7 @@ export default function StudentSettingsPage() {
                 <Check size={13} /> Changes Saved
               </span>
             ) : (
-              <p className="text-xs text-[#64748B]">
+              <p className="text-xs text-[#64748B] leading-relaxed">
                 {activeTab === "security"
                   ? "Password changes apply immediately."
                   : "Toggle changes are saved instantly."}
@@ -672,7 +672,7 @@ export default function StudentSettingsPage() {
           </div>
           <button
             onClick={handleSave}
-            className="flex items-center gap-2 bg-[#1E293B] hover:bg-[#3B82F6] text-white text-sm font-semibold px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all"
+            className="flex shrink-0 items-center gap-1 sm:gap-2 bg-[#1E293B] hover:bg-[#3B82F6] text-white text-sm font-semibold px-3 sm:px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all"
           >
             <Save size={14} /> Save Changes
           </button>
