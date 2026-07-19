@@ -719,8 +719,8 @@ export default function StudentProfilePage() {
         <ResumeBuilder
           student={student}
           onClose={() => setShowResumeBuilder(false)}
-          onGenerated={(resumeUrl) => {
-            setStudent({ ...student, resume: resumeUrl });
+          onGenerated={(updatedStudent) => {
+            setStudent(updatedStudent); // ← poora fresh object, resumeData included
             setShowResumeBuilder(false);
             alert("Resume generated and saved successfully!");
           }}

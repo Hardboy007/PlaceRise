@@ -173,7 +173,7 @@ export default function ResumeBuilder({ student, onClose, onGenerated }) {
       );
       const data = await res.json();
       if (data.resumeUrl) {
-        onGenerated(data.resumeUrl);
+        onGenerated(data.student); 
       } else {
         alert(data.message || "Something went wrong generating your resume.");
       }
