@@ -172,8 +172,12 @@ function CoordinatorLayout() {
           to="/"
           className="flex items-center gap-2 sm:gap-2.5 min-w-0 shrink-0"
         >
-          <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-[0_4px_12px_rgba(59,130,246,0.4)] shrink-0">
-            <Sparkles size={14} className="text-white" />
+          <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center shadow-[0_4px_12px_rgba(59,130,246,0.4)] shrink-0">
+            <img
+              src="/images/logo-transparent.png"
+              alt="PlaceRise"
+              className="w-full h-full object-contain"
+            />
           </div>
           <span
             className="text-base sm:text-lg font-bold whitespace-nowrap"

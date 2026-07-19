@@ -323,9 +323,13 @@ function RoleSelectionPage() {
         <header className="relative z-10 px-6 py-6 md:px-12 flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="relative w-10 h-10 rounded-2xl bg-primary flex items-center justify-center shadow-[0_20px_60px_-15px_rgba(59,130,246,0.4)]">
-              <SparklesIcon />
-              <div className="absolute inset-0 rounded-2xl border-2 border-primary animate-pulse-ring" />
+            <div className="relative w-10 h-10 rounded-2xl bg-white flex items-center justify-center shadow-[0_20px_60px_-15px_rgba(59,130,246,0.4)] overflow-hidden">
+              <img
+                src="/images/logo-transparent.png"
+                alt="PlaceRise"
+                className="w-full h-full object-contain"
+              />
+              <div className="absolute inset-0 rounded-2xl border-3 border-primary animate-pulse-ring" />
             </div>
             <span
               className="text-xl font-bold"
