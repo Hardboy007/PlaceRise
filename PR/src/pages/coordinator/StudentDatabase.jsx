@@ -301,7 +301,7 @@ function CourseBadge({ course }) {
 // ── Select / Filter pill (single-select) ────────────────────
 function FilterSelect({ label, value, options, onChange, disabled = false }) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1 flex-1 min-w-[46%] sm:min-w-0 sm:flex-none">
       <label
         style={{ color: C.textMuted }}
         className="text-[11px] font-semibold uppercase tracking-wider pl-0.5"
@@ -319,7 +319,7 @@ function FilterSelect({ label, value, options, onChange, disabled = false }) {
           outline: "none",
           cursor: disabled ? "not-allowed" : "pointer",
         }}
-        className="border rounded-xl px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-200 transition"
+        className="border rounded-xl px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-200 transition w-full sm:w-auto"
       >
         {options.map((o) => (
           <option key={o.label || o} value={o.label || o}>
@@ -516,7 +516,7 @@ function CourseGroupSelectFilter({
   const isSearching = query.trim().length > 0;
 
   return (
-    <div className="flex flex-col gap-1 relative" ref={ref}>
+    <div className="flex flex-col gap-1 relative w-full sm:w-auto" ref={ref}>
       <label
         style={{ color: C.textMuted }}
         className="text-[11px] font-semibold uppercase tracking-wider pl-0.5"
@@ -533,7 +533,7 @@ function CourseGroupSelectFilter({
           outline: "none",
           cursor: "pointer",
         }}
-        className="border rounded-xl px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-200 transition flex items-center justify-between gap-2 min-w-[190px]"
+        className="border rounded-xl px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-200 transition flex items-center justify-between gap-2 w-full sm:min-w-47.5 sm:w-auto"
       >
         <span
           className="truncate"
@@ -549,7 +549,7 @@ function CourseGroupSelectFilter({
       {open && (
         <div
           style={{ borderColor: C.border, backgroundColor: C.white }}
-          className="absolute top-full left-0 mt-1.5 w-80 max-h-96 overflow-y-auto border rounded-xl shadow-lg z-20"
+          className="absolute top-full left-0 mt-1.5 w-[92vw] max-w-[92vw] sm:w-80 sm:max-w-none max-h-96 overflow-y-auto border rounded-xl shadow-lg z-20"
         >
           {/* Search within courses/schools */}
           <div
@@ -618,11 +618,11 @@ function StatCard({ icon, label, value, bg, border }) {
   return (
     <div
       style={{ backgroundColor: C.white, borderColor: border || C.border }}
-      className="rounded-2xl border p-5 flex items-center gap-4 shadow-sm"
+      className="rounded-2xl border p-3 sm:p-5 flex items-center gap-3 sm:gap-4 shadow-sm"
     >
       <div
         style={{ backgroundColor: bg }}
-        className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+        className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0"
       >
         {icon}
       </div>
@@ -632,7 +632,7 @@ function StatCard({ icon, label, value, bg, border }) {
         </p>
         <p
           style={{ color: C.textMain }}
-          className="text-2xl font-bold leading-tight"
+          className="text-lg sm:text-2xl font-bold leading-tight"
         >
           {value}
         </p>
@@ -672,13 +672,13 @@ function StudentModal({ student, onClose }) {
       >
         {title}
       </h4>
-      <div className="grid grid-cols-2 gap-4">{children}</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">{children}</div>
     </div>
   );
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
       style={{
         backgroundColor: "rgba(15,23,42,0.5)",
         backdropFilter: "blur(4px)",
@@ -696,7 +696,7 @@ function StudentModal({ student, onClose }) {
         {/* Modal Header */}
         <div
           style={{ borderColor: C.border }}
-          className="flex items-center justify-between px-7 py-5 border-b sticky top-0 bg-white rounded-t-3xl z-10"
+          className="flex items-center flex-wrap justify-between gap-3 px-4 sm:px-7 py-4 sm:py-5 border-b sticky top-0 bg-white rounded-t-3xl z-10"
         >
           <div className="flex items-center gap-4">
             <div
@@ -717,7 +717,7 @@ function StudentModal({ student, onClose }) {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap w-full sm:w-auto">
             <StatusBadge status={student.placementStatus} size="lg" />
             <button
               onClick={onClose}
@@ -730,7 +730,7 @@ function StudentModal({ student, onClose }) {
         </div>
 
         {/* Modal Body */}
-        <div className="px-7 py-6 space-y-7">
+        <div className="px-4 sm:px-7 py-5 sm:py-6 space-y-6 sm:space-y-7">
           {/* Personal Info */}
           <Section title="Personal Information">
             <InfoRow icon={Icon.mail} label="Email" value={student.email} />
@@ -859,7 +859,7 @@ function StudentModal({ student, onClose }) {
               </h4>
               <div
                 style={{ backgroundColor: "#F0FDF4", borderColor: "#86EFAC" }}
-                className="rounded-2xl border p-5 grid grid-cols-3 gap-4"
+                className="rounded-2xl border p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-3 gap-4"
               >
                 <div>
                   <p
@@ -1080,10 +1080,10 @@ export default function StudentDatabasePage() {
   return (
     <div
       style={{ backgroundColor: C.background }}
-      className="min-h-screen p-6 space-y-6"
+      className="min-h-screen p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6"
     >
       {/* ── Page Title ── */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
         {/* Left Side */}
         <div>
           <h1 style={{ color: C.textMain }} className="text-2xl font-bold">
@@ -1096,12 +1096,12 @@ export default function StudentDatabasePage() {
         </div>
 
         {/* Right Side - Import / Export */}
-        <div className="flex flex-col items-end gap-2">
-          <p className="text-xs text-[#64748B] text-right">
+        <div className="flex flex-col items-start sm:items-end gap-2 w-full sm:w-auto">
+          <p className="text-xs text-text-muted text-left sm:text-right">
             Bulk student database Upload or Export current database to Excel
           </p>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap w-full sm:w-auto">
             {importResult && (
               <span
                 className={`text-xs font-medium ${
@@ -1115,7 +1115,7 @@ export default function StudentDatabasePage() {
             )}
 
             <label
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer transition
+              className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer transition flex-1 sm:flex-none
       ${
         importing
           ? "bg-slate-200 text-slate-400 cursor-not-allowed"
@@ -1136,7 +1136,7 @@ export default function StudentDatabasePage() {
 
             <button
               onClick={handleExport}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-300 transition"
+              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-300 transition flex-1 sm:flex-none"
             >
               <Download size={14} />
               Export Excel
@@ -1146,7 +1146,7 @@ export default function StudentDatabasePage() {
       </div>
 
       {/* ── Stats Strip ── */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <StatCard
           icon={Icon.students}
           label="Total Students"
@@ -1180,7 +1180,7 @@ export default function StudentDatabasePage() {
       {/* ── Search + Filters ── */}
       <div
         style={{ backgroundColor: C.white, borderColor: C.border }}
-        className="rounded-2xl border p-5 shadow-sm"
+        className="rounded-2xl border p-3 sm:p-5 shadow-sm"
       >
         <div className="flex flex-col gap-4">
           {/* Search bar */}
@@ -1207,10 +1207,10 @@ export default function StudentDatabasePage() {
           </div>
 
           {/* Filters row */}
-          <div className="flex items-end gap-4 flex-wrap">
+          <div className="flex items-end gap-3 sm:gap-4 flex-wrap">
             <div
               style={{ color: C.textMuted }}
-              className="flex items-center gap-1.5 text-sm font-medium mr-1 mb-0.5"
+              className="flex items-center gap-1.5 text-sm font-medium mr-1 mb-0.5 w-full sm:w-auto"
             >
               {Icon.filter} Filters
             </div>
@@ -1256,14 +1256,14 @@ export default function StudentDatabasePage() {
                   backgroundColor: "#FFF1F2",
                   borderColor: "#FECDD3",
                 }}
-                className="border text-xs font-semibold px-3 py-2 rounded-xl hover:opacity-80 transition self-end mb-0.5"
+                className="border text-xs font-semibold px-3 py-2 rounded-xl hover:opacity-80 transition self-end mb-0.5 w-full sm:w-auto"
               >
                 Clear Filters
               </button>
             )}
             <span
               style={{ color: C.textMuted }}
-              className="ml-auto text-sm self-end mb-0.5"
+              className="w-full sm:w-auto sm:ml-auto text-sm self-end mb-0.5"
             >
               Showing{" "}
               <strong style={{ color: C.textMain }}>{filtered.length}</strong>{" "}
@@ -1307,186 +1307,203 @@ export default function StudentDatabasePage() {
         style={{ backgroundColor: C.white, borderColor: C.border }}
         className="rounded-2xl border shadow-sm overflow-hidden"
       >
-        {/* Table Header */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "2fr 1fr 1.4fr 0.8fr 0.7fr 0.7fr 1.2fr 1.2fr",
-            padding: "14px 24px",
-            borderBottom: `1px solid ${C.border}`,
-            backgroundColor: C.background,
-          }}
-        >
-          {[
-            "Name",
-            "ERP ID",
-            "Course",
-            "Batch",
-            "CGPA",
-            "Backlogs",
-            "Selected In",
-            "Status",
-          ].map((h) => (
-            <span
-              key={h}
-              style={{ color: C.textMuted }}
-              className="text-[11px] font-bold uppercase tracking-wider"
+        <div className="overflow-x-auto">
+          <div style={{ minWidth: 900 }}>
+            {/* Table Header */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "2fr 1fr 1.4fr 0.8fr 0.7fr 0.7fr 1.2fr 1.2fr", columnGap: "12px",
+                padding: "14px 24px",
+                borderBottom: `1px solid ${C.border}`,
+                backgroundColor: C.background,
+              }}
             >
-              {h}
-            </span>
-          ))}
-        </div>
-
-        {/* Rows */}
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <p style={{ color: C.textMuted }} className="text-sm font-medium">
-              Loading students…
-            </p>
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-3">
-            <svg
-              className="w-12 h-12"
-              fill="none"
-              stroke={C.border}
-              strokeWidth={1.5}
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <p style={{ color: C.textMuted }} className="text-sm font-medium">
-              No students found matching your filters.
-            </p>
-            <button
-              onClick={resetFilters}
-              style={{ color: C.primary }}
-              className="text-sm font-semibold hover:underline"
-            >
-              Clear all filters
-            </button>
-          </div>
-        ) : (
-          filtered.map((student, idx) => {
-            const isLast = idx === filtered.length - 1;
-            return (
-              <div
-                key={student._id}
-                onClick={() => setSelected(student)}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns:
-                    "2fr 1fr 1.4fr 0.8fr 0.7fr 0.7fr 1.2fr 1.2fr",
-                  alignItems: "center",
-                  padding: "16px 24px",
-                  borderBottom: isLast ? "none" : `1px solid ${C.border}`,
-                  cursor: "pointer",
-                  transition: "background 0.15s",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "#F8FAFC")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = C.white)
-                }
-              >
-                {/* Name */}
-                <div className="flex items-center gap-3">
-                  <div
-                    style={{
-                      background: `linear-gradient(135deg, ${C.primary}, ${C.accent})`,
-                    }}
-                    className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0"
-                  >
-                    {student.name.charAt(0)}
-                  </div>
-                  <div>
-                    <p
-                      style={{ color: C.textMain }}
-                      className="font-semibold text-sm leading-tight"
-                    >
-                      {student.name}
-                    </p>
-                    <p style={{ color: C.textMuted }} className="text-xs">
-                      {student.email}
-                    </p>
-                  </div>
-                </div>
-
-                {/* ERP ID */}
+              {[
+                "Name",
+                "ERP ID",
+                "Course",
+                "Batch",
+                "CGPA",
+                "Backlogs",
+                "Selected In",
+                "Status",
+              ].map((h) => (
                 <span
+                  key={h}
                   style={{ color: C.textMuted }}
-                  className="text-sm font-mono"
+                  className="text-[11px] font-bold uppercase tracking-wider"
                 >
-                  {getStudentErpId(student)}
+                  {h}
                 </span>
+              ))}
+            </div>
 
-                {/* Course */}
-                <CourseBadge course={getStudentCourse(student)} />
-
-                {/* Batch */}
-                <span style={{ color: C.textMuted }} className="text-sm">
-                  {student.batch}
-                </span>
-
-                {/* CGPA */}
-                <span
-                  style={{
-                    color:
-                      student.cgpa >= 8.5
-                        ? "#15803D"
-                        : student.cgpa >= 7
-                          ? C.textMain
-                          : C.danger,
-                    fontWeight: 700,
-                  }}
-                  className="text-sm"
+            {/* Rows */}
+            {loading ? (
+              <div className="flex items-center justify-center py-20">
+                <p
+                  style={{ color: C.textMuted }}
+                  className="text-sm font-medium"
                 >
-                  {(student.cgpa ?? 0).toFixed(1)}
-                </span>
-
-                {/* Backlogs */}
-                <span
-                  style={{
-                    color: student.backlogs === 0 ? C.textMuted : C.danger,
-                    fontWeight: student.backlogs > 0 ? 700 : 400,
-                  }}
-                  className="text-sm"
+                  Loading students…
+                </p>
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 gap-3">
+                <svg
+                  className="w-12 h-12"
+                  fill="none"
+                  stroke={C.border}
+                  strokeWidth={1.5}
+                  viewBox="0 0 24 24"
                 >
-                  {student.backlogs === 0 ? "—" : student.backlogs}
-                </span>
-                {/* Selected In */}
-                <div className="flex flex-wrap gap-1">
-                  {getSelectedCompanyCount(student) === 0 ? (
-                    <span style={{ color: C.textMuted }} className="text-sm">
-                      —
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <p
+                  style={{ color: C.textMuted }}
+                  className="text-sm font-medium"
+                >
+                  No students found matching your filters.
+                </p>
+                <button
+                  onClick={resetFilters}
+                  style={{ color: C.primary }}
+                  className="text-sm font-semibold hover:underline"
+                >
+                  Clear all filters
+                </button>
+              </div>
+            ) : (
+              filtered.map((student, idx) => {
+                const isLast = idx === filtered.length - 1;
+                return (
+                  <div
+                    key={student._id}
+                    onClick={() => setSelected(student)}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "2fr 1fr 1.4fr 0.8fr 0.7fr 0.7fr 1.2fr 1.2fr",
+                      alignItems: "center", columnGap: "12px",
+                      padding: "16px 24px",
+                      borderBottom: isLast ? "none" : `1px solid ${C.border}`,
+                      cursor: "pointer",
+                      transition: "background 0.15s",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor = "#F8FAFC")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.backgroundColor = C.white)
+                    }
+                  >
+                    {/* Name */}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        style={{
+                          background: `linear-gradient(135deg, ${C.primary}, ${C.accent})`,
+                        }}
+                        className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0"
+                      >
+                        {student.name.charAt(0)}
+                      </div>
+                      <div className="min-w-0">
+                        <p
+                          style={{ color: C.textMain }}
+                          className="font-semibold text-sm leading-tight truncate"
+                        >
+                          {student.name}
+                        </p>
+                        <p
+                          style={{ color: C.textMuted }}
+                          className="text-xs truncate"
+                        >
+                          {student.email}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* ERP ID */}
+                    <span
+                      style={{ color: C.textMuted }}
+                      className="text-sm font-mono"
+                    >
+                      {getStudentErpId(student)}
                     </span>
-                  ) : (
+
+                    {/* Course */}
+                    <CourseBadge course={getStudentCourse(student)} />
+
+                    {/* Batch */}
+                    <span style={{ color: C.textMuted }} className="text-sm">
+                      {student.batch}
+                    </span>
+
+                    {/* CGPA */}
                     <span
                       style={{
-                        color: "#15803D",
-                        backgroundColor: "#F0FDF4",
-                        borderColor: "#86EFAC",
+                        color:
+                          student.cgpa >= 8.5
+                            ? "#15803D"
+                            : student.cgpa >= 7
+                              ? C.textMain
+                              : C.danger,
+                        fontWeight: 700,
                       }}
-                      className="border text-xs font-semibold px-2 py-0.5 rounded-full"
+                      className="text-sm"
                     >
-                      {getSelectedCompanyCount(student)}{" "}
-                      {getSelectedCompanyCount(student) === 1
-                        ? "company"
-                        : "companies"}
+                      {(student.cgpa ?? 0).toFixed(1)}
                     </span>
-                  )}
-                </div>
-                {/* Status */}
-                <StatusBadge status={getPlacementStatus(student)} />
-              </div>
-            );
-          })
-        )}
+
+                    {/* Backlogs */}
+                    <span
+                      style={{
+                        color: student.backlogs === 0 ? C.textMuted : C.danger,
+                        fontWeight: student.backlogs > 0 ? 700 : 400,
+                      }}
+                      className="text-sm"
+                    >
+                      {student.backlogs === 0 ? "—" : student.backlogs}
+                    </span>
+                    {/* Selected In */}
+                    <div className="flex flex-wrap gap-1">
+                      {getSelectedCompanyCount(student) === 0 ? (
+                        <span
+                          style={{ color: C.textMuted }}
+                          className="text-sm"
+                        >
+                          —
+                        </span>
+                      ) : (
+                        <span
+                          style={{
+                            color: "#15803D",
+                            backgroundColor: "#F0FDF4",
+                            borderColor: "#86EFAC",
+                          }}
+                          className="border text-xs font-semibold px-2 py-0.5 rounded-full"
+                        >
+                          {getSelectedCompanyCount(student)}{" "}
+                          {getSelectedCompanyCount(student) === 1
+                            ? "company"
+                            : "companies"}
+                        </span>
+                      )}
+                    </div>
+                    {/* Status */}
+                    <StatusBadge status={getPlacementStatus(student)} />
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
       </div>
 
       {/* ── Student Detail Modal ── */}
