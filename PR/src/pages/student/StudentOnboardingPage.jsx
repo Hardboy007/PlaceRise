@@ -178,7 +178,10 @@ function StudentOnboardingPage() {
               const isCompleted = currentStep > id;
               const isActive = currentStep === id;
               return (
-                <div key={id} className="flex flex-col items-center gap-1.5 sm:gap-2 z-10">
+                <div
+                  key={id}
+                  className="flex flex-col items-center gap-1.5 sm:gap-2 z-10"
+                >
                   <div
                     className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-300
                     ${isCompleted ? "bg-primary" : isActive ? "bg-primary" : "bg-[#E2E8F0]"}

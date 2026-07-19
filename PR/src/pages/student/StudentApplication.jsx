@@ -448,7 +448,10 @@ export default function StudentApplication() {
                 </div>
 
                 {/* Role */}
-                <span style={{ color: C.textMuted }} className="text-[14px] before:content-['Role'] before:mr-2 before:text-[10px] before:font-semibold before:tracking-widest before:uppercase before:text-[#64748B] md:before:hidden">
+                <span
+                  style={{ color: C.textMuted }}
+                  className="text-[14px] before:content-['Role'] before:mr-2 before:text-[10px] before:font-semibold before:tracking-widest before:uppercase before:text-[#64748B] md:before:hidden"
+                >
                   {app.jobId?.role || "—"}
                 </span>
 

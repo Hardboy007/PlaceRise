@@ -636,7 +636,9 @@ export default function StudentSettingsPage() {
                       >
                         {label}
                       </p>
-                      <p className="text-xs text-[#64748B] mt-0.5 leading-relaxed">{desc}</p>
+                      <p className="text-xs text-[#64748B] mt-0.5 leading-relaxed">
+                        {desc}
+                      </p>
                     </div>
                   </div>
                   <Toggle
