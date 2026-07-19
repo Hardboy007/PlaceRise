@@ -142,11 +142,22 @@ export function getCourseDuration(course) {
   return duration;
 }
 
+// Shifts the date back by 6 months before reading the year — this makes
+// the "year" used in the calculation roll over on 1 July instead of
+// 1 January, matching how Indian college academic sessions actually work
+// (July–June), without changing anything on the Jan 1 boundary.
+function getAcademicCalendarYear(date = new Date()) {
+  const shifted = new Date(date);
+  shifted.setMonth(shifted.getMonth() - 6);
+  return shifted.getFullYear();
+}
+
 // Computes current year of study, clamped between 1 and the program's
 // total duration (so a final-year MBA student never shows "Year 3").
 export function getCurrentYear(batch, course) {
   if (!batch) return null;
   const duration = getCourseDuration(course);
-  const raw = new Date().getFullYear() - parseInt(batch) + duration;
+  const academicYear = getAcademicCalendarYear();
+  const raw = academicYear - parseInt(batch) + duration;
   return Math.min(Math.max(raw, 1), duration);
 }
