@@ -389,7 +389,24 @@ const generateResume = async (req, res) => {
 
     const student = await Student.findOneAndUpdate(
       { userId: req.user.id },
-      { resume: uploadResult.secure_url },
+      {
+        resume: uploadResult.secure_url,
+        resumeData: {
+          name,
+          email,
+          phone,
+          city,
+          linkedinUrl,
+          about,
+          college,
+          branch,
+          cgpa,
+          skills,
+          experience,
+          projects,
+          template,
+        },
+      },
       { new: true },
     );
 

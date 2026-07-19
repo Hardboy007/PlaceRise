@@ -591,7 +591,7 @@ export default function StudentProfilePage() {
         >
           {displayData?.resume ? (
             <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
                 <FileText size={18} className="text-primary" />
               </div>
               <div className="flex-1 min-w-0">
@@ -607,14 +607,24 @@ export default function StudentProfilePage() {
                   View Resume
                 </a>
               </div>
-              {editing && (
-                <button
-                  onClick={() => resumeInputRef.current.click()}
-                  className="ml-auto px-3 py-1.5 rounded-lg text-xs font-medium bg-background text-[#64748B] border border-[#E2E8F0] hover:bg-[#E2E8F0] transition-colors"
-                >
-                  Replace
-                </button>
-              )}
+              <div className="ml-auto flex items-center gap-2 shrink-0">
+                {student.resumeData && (
+                  <button
+                    onClick={() => setShowResumeBuilder(true)}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-primary border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1"
+                  >
+                    <Sparkles size={12} /> Edit
+                  </button>
+                )}
+                {editing && (
+                  <button
+                    onClick={() => resumeInputRef.current.click()}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-background text-[#64748B] border border-[#E2E8F0] hover:bg-[#E2E8F0] transition-colors"
+                  >
+                    Replace
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed border-[#CBD5E1]">

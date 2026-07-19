@@ -102,23 +102,34 @@ function TemplatePreview({ id, accent }) {
 }
 
 export default function ResumeBuilder({ student, onClose, onGenerated }) {
+  const existing = student?.resumeData || null;
+
   const [step, setStep] = useState(1); // 1: form, 2: template
-  const [template, setTemplate] = useState("modern");
+  const [template, setTemplate] = useState(existing?.template || "modern");
   const [generating, setGenerating] = useState(false);
 
   const [form, setForm] = useState({
-    name: student?.name || "",
-    email: student?.email || "",
-    phone: student?.phone || "",
-    city: student?.city || "",
-    linkedinUrl: student?.linkedinUrl || "",
-    about: student?.about || "",
-    college: student?.college || "Dev Bhoomi Uttarakhand University",
-    branch: student?.branch || "",
-    cgpa: student?.cgpa || "",
-    skills: student?.skills || [],
-    experience: [],
-    projects: [],
+    name: existing?.name || student?.name || "",
+    email: existing?.email || student?.email || "",
+    phone: existing?.phone || student?.phone || "",
+    city: existing?.city || student?.city || "",
+    linkedinUrl: existing?.linkedinUrl || student?.linkedinUrl || "",
+    about: existing?.about || student?.about || "",
+    college:
+      existing?.college ||
+      student?.college ||
+      "Dev Bhoomi Uttarakhand University",
+    branch: existing?.branch || student?.branch || "",
+    cgpa: existing?.cgpa || student?.cgpa || "",
+    skills: existing?.skills || student?.skills || [],
+    experience: (existing?.experience || []).map((e) => ({
+      ...e,
+      id: e.id || Date.now() + Math.random(),
+    })),
+    projects: (existing?.projects || []).map((p) => ({
+      ...p,
+      id: p.id || Date.now() + Math.random(),
+    })),
   });
 
   const [newSkill, setNewSkill] = useState("");
@@ -186,7 +197,11 @@ export default function ResumeBuilder({ student, onClose, onGenerated }) {
             </div>
             <div>
               <h2 className="text-sm font-bold text-[#1E293B]">
-                {step === 1 ? "Build Your Resume" : "Choose a Template"}
+                {step === 1
+                  ? existing
+                    ? "Edit Your Resume"
+                    : "Build Your Resume"
+                  : "Choose a Template"}
               </h2>
               <p className="text-xs text-[#94A3B8] mt-0.5">Step {step} of 2</p>
             </div>

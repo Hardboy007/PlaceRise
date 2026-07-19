@@ -31,6 +31,10 @@ const studentSchema = new mongoose.Schema(
     tenthMarks: { type: Number },
     twelfthMarks: { type: Number },
     backlogs: { type: Number, default: 0 },
+    resumeData: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
 
     // Placement
     skills: [{ type: String }],
