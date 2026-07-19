@@ -22,6 +22,7 @@ import {
   Bell,
   X,
   LineChart,
+  MoreHorizontal,
 } from "lucide-react";
 
 const navLinks = [
@@ -44,6 +45,35 @@ const navLinks = [
   { to: "/coordinator/analytics", label: "Analytics", icon: LineChart },
 ];
 
+// Bottom bar pe sirf ye 4 sabse zyada use hone wale pages, 5th "More"
+const bottomTabs = [
+  { to: "/coordinator/dashboard", label: "Home", icon: LayoutDashboard },
+  { to: "/coordinator/calendar", label: "Calendar", icon: Calendar },
+  { to: "/coordinator/jobs/all", label: "Companies", icon: Building2 },
+  { to: "/coordinator/profile", label: "Profile", icon: User },
+];
+
+// "More" sheet mein baaki saare links — har ek ko alag accent color
+const moreLinks = [
+  { to: "/coordinator/students", label: "Students", icon: Users, color: "blue" },
+  { to: "/coordinator/recruiter-crm", label: "Recruiter CRM", icon: Building2, color: "purple" },
+  { to: "/coordinator/applications", label: "Applications", icon: FileCheck, color: "green" },
+  { to: "/coordinator/announcements", label: "Announcements", icon: Megaphone, color: "amber" },
+  { to: "/coordinator/noc", label: "NOC / LOR", icon: FileText, color: "pink" },
+  { to: "/coordinator/attendance", label: "Attendance", icon: QrCode, color: "teal" },
+  { to: "/coordinator/analytics", label: "Analytics", icon: LineChart, color: "orange" },
+];
+
+const moreColorMap = {
+  blue: { bg: "bg-blue-50", text: "text-blue-600" },
+  purple: { bg: "bg-purple-50", text: "text-purple-600" },
+  green: { bg: "bg-green-50", text: "text-green-600" },
+  amber: { bg: "bg-amber-50", text: "text-amber-600" },
+  pink: { bg: "bg-pink-50", text: "text-pink-600" },
+  teal: { bg: "bg-teal-50", text: "text-teal-600" },
+  orange: { bg: "bg-orange-50", text: "text-orange-600" },
+};
+
 function CoordinatorLayout() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -52,6 +82,7 @@ function CoordinatorLayout() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifs, setShowNotifs] = useState(false);
   const [openGroup, setOpenGroup] = useState(null);
+  const [showMore, setShowMore] = useState(false);
   const coordinator = JSON.parse(localStorage.getItem("coordinator") || "{}");
 
   const initials = coordinator.name
@@ -95,6 +126,10 @@ function CoordinatorLayout() {
     localStorage.removeItem("isFirstLogin");
     navigate("/");
   };
+
+  const isMoreActive = moreLinks.some((l) =>
+    location.pathname.startsWith(l.to),
+  );
 
   return (
     <div
@@ -203,11 +238,11 @@ function CoordinatorLayout() {
 
       {/* ── Body ── */}
       <div className="pt-16">
-        {/* ── Sidebar — hover to expand, pushes content ── */}
+        {/* ── Sidebar — DESKTOP ONLY (sm and above), hover to expand ── */}
         <aside
           onMouseEnter={() => setExpanded(true)}
           onMouseLeave={() => setExpanded(false)}
-          className={`fixed top-16 left-0 bottom-0 z-40 flex flex-col bg-white border-r border-[#CBD5E1] transition-all duration-300 ease-in-out overflow-hidden ${expanded ? "w-60" : "w-15"}`}
+          className={`hidden sm:flex fixed top-16 left-0 bottom-0 z-40 flex-col bg-white border-r border-[#CBD5E1] transition-all duration-300 ease-in-out overflow-hidden ${expanded ? "w-60" : "w-15"}`}
         >
           <div className="flex-1 flex flex-col gap-1 p-2 mt-2 overflow-hidden">
             {navLinks.map(({ to, label, icon: Icon, children }) => {
@@ -327,13 +362,90 @@ function CoordinatorLayout() {
           </div>
         </aside>
 
-        {/* ── Main Content — shrinks/expands with sidebar ── */}
+        {/* ── Main Content — desktop pe sidebar ke hisaab se margin, mobile pe full width ── */}
         <main
-          className={`min-h-screen p-3 sm:p-6 transition-all duration-300 ease-in-out ${expanded ? "ml-60" : "ml-15"}`}
+          className={`min-h-screen p-3 sm:p-6 pb-28 sm:pb-6 transition-all duration-300 ease-in-out ml-0 ${expanded ? "sm:ml-60" : "sm:ml-15"}`}
         >
           <Outlet />
         </main>
       </div>
+
+      {/* ── Floating Bottom Tab Bar — MOBILE ONLY ── */}
+      <nav className="sm:hidden fixed bottom-4 left-3 right-3 z-40 h-16 bg-white/95 backdrop-blur border border-[#E2E8F0] rounded-3xl shadow-[0_8px_24px_rgba(15,23,42,0.12)] flex items-center justify-around px-1">
+        {bottomTabs.map(({ to, label, icon: Icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            onClick={() => setShowMore(false)}
+            className={({ isActive }) =>
+              `flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-[10px] font-medium rounded-2xl ${
+                isActive ? "text-primary" : "text-text-muted"
+              }`
+            }
+          >
+            <Icon size={20} />
+            {label}
+          </NavLink>
+        ))}
+        <button
+          onClick={() => setShowMore(true)}
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-[10px] font-medium rounded-2xl ${
+            isMoreActive ? "text-primary" : "text-text-muted"
+          }`}
+        >
+          <MoreHorizontal size={20} />
+          More
+        </button>
+      </nav>
+
+      {/* ── "More" bottom sheet — MOBILE ONLY ── */}
+      {showMore && (
+        <div className="sm:hidden fixed inset-0 z-50">
+          <div
+            onClick={() => setShowMore(false)}
+            className="absolute inset-0 bg-black/40"
+          />
+          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[70vh] overflow-y-auto pb-4">
+            <div className="px-4 py-3 border-b border-[#F1F5F9] flex items-center justify-between sticky top-0 bg-white">
+              <p className="text-sm font-bold text-[#1E293B]">More</p>
+              <button
+                onClick={() => setShowMore(false)}
+                className="p-1.5 rounded-full text-[#64748B] hover:text-[#EF4444] hover:bg-red-50"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="p-3 grid grid-cols-2 gap-2">
+              {moreLinks.map(({ to, label, icon: Icon, color }) => {
+                const c = moreColorMap[color];
+                return (
+                  <NavLink
+                    key={to}
+                    to={to}
+                    onClick={() => setShowMore(false)}
+                    className={({ isActive }) =>
+                      `flex flex-col items-start gap-1.5 p-2.5 rounded-xl border transition-all duration-150 ${
+                        isActive
+                          ? "border-primary bg-primary/5"
+                          : "border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-background"
+                      }`
+                    }
+                  >
+                    <div
+                      className={`w-7 h-7 rounded-lg ${c.bg} flex items-center justify-center`}
+                    >
+                      <Icon size={14} className={c.text} />
+                    </div>
+                    <p className="text-xs font-semibold text-[#1E293B] leading-tight">
+                      {label}
+                    </p>
+                  </NavLink>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
