@@ -42,7 +42,8 @@ export default defineConfig({
       workbox: {
         skipWaiting: true, // ← add karo
         clientsClaim: true,
-        globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
+        globPatterns: ["**/*.{js,css,ico,png,svg}"],
+        navigateFallback: null,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/placerise-backend\.onrender\.com\/api/,
