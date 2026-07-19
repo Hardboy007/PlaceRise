@@ -11,6 +11,7 @@ import {
   Clock,
   CheckCircle2,
   UserPlus,
+  ChevronDown,
 } from "lucide-react";
 
 export default function AttendancePage() {
@@ -20,6 +21,8 @@ export default function AttendancePage() {
   const [selectedJobId, setSelectedJobId] = useState("");
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState("");
+  const [driveDropdownOpen, setDriveDropdownOpen] = useState(false);
+  const driveDropdownRef = useRef(null);
 
   // ── Checking if selected drive already has a live session ──
   const [checkingSession, setCheckingSession] = useState(false);
@@ -90,6 +93,20 @@ export default function AttendancePage() {
       }
     };
     fetchStudents();
+  }, []);
+
+  // ── Close the custom drive dropdown when clicking outside it ──
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        driveDropdownRef.current &&
+        !driveDropdownRef.current.contains(e.target)
+      ) {
+        setDriveDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   // ── Load QR + records for a session object (shared by join/start) ──
@@ -267,14 +284,14 @@ export default function AttendancePage() {
       style={{ fontFamily: "Inter, sans-serif" }}
     >
       <div
-        className="rounded-2xl px-6 py-8 mb-6 shadow-lg"
+        className="rounded-2xl px-4 sm:px-6 py-6 sm:py-8 mb-6 shadow-lg"
         style={{
           background:
             "linear-gradient(135deg, #3B82F6 0%, #60A5FA 60%, #818CF8 100%)",
         }}
       >
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2.5">
-          <QrCode size={24} /> QR Attendance
+        <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5">
+          <QrCode size={22} className="shrink-0" /> QR Attendance
         </h1>
         <p className="text-sm text-white/80 mt-1">
           Start a session, let students scan in, and export the final sheet.
@@ -289,7 +306,7 @@ export default function AttendancePage() {
 
       {/* ── 1. Drive Select — always visible jab tak session join na ho ── */}
       {!sessionId && (
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm mb-6">
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 sm:p-6 shadow-sm mb-6">
           <h2 className="text-sm font-bold text-[#1E293B] mb-4">
             Select Drive
           </h2>
@@ -299,22 +316,53 @@ export default function AttendancePage() {
             <p className="text-sm text-[#64748B]">No active drives found.</p>
           ) : (
             <div className="flex flex-col sm:flex-row gap-3">
-              <select
-                value={selectedJobId}
-                onChange={(e) => setSelectedJobId(e.target.value)}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] bg-white focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
-              >
-                <option value="">Choose a drive...</option>
-                {jobs.map((j) => (
-                  <option key={j._id} value={j._id}>
-                    {j.companyId?.name} — {j.role}
-                  </option>
-                ))}
-              </select>
+              <div className="relative flex-1 min-w-0" ref={driveDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setDriveDropdownOpen((o) => !o)}
+                  className="w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-left bg-white focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+                >
+                  <span
+                    className={`truncate ${selectedJob ? "text-[#1E293B]" : "text-[#94A3B8]"}`}
+                  >
+                    {selectedJob
+                      ? `${selectedJob.companyId?.name} — ${selectedJob.role}`
+                      : "Choose a drive..."}
+                  </span>
+                  <ChevronDown
+                    size={15}
+                    className={`text-[#94A3B8] shrink-0 transition-transform ${driveDropdownOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+
+                {driveDropdownOpen && (
+                  <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-[#E2E8F0] rounded-xl shadow-xl z-30 max-h-64 overflow-y-auto">
+                    {jobs.map((j) => (
+                      <button
+                        key={j._id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedJobId(j._id);
+                          setDriveDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2.5 text-sm transition-colors border-b border-[#F1F5F9] last:border-b-0 ${
+                          j._id === selectedJobId
+                            ? "bg-primary/10 text-primary font-semibold"
+                            : "text-[#1E293B] hover:bg-[#F8FAFC]"
+                        }`}
+                      >
+                        <span className="block truncate">
+                          {j.companyId?.name} — {j.role}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               <button
                 onClick={handleStartSession}
                 disabled={!selectedJobId || starting || checkingSession}
-                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
               >
                 <PlayCircle size={16} />
                 {checkingSession
@@ -336,12 +384,12 @@ export default function AttendancePage() {
       {sessionId && (
         <>
           {/* ── Session header ── */}
-          <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-sm mb-6 flex items-center justify-between flex-wrap gap-3">
-            <div>
+          <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 sm:p-5 shadow-sm mb-6 flex items-center justify-between flex-wrap gap-3">
+            <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-widest text-[#64748B]">
                 Active Drive
               </p>
-              <p className="text-sm font-bold text-[#1E293B] mt-0.5">
+              <p className="text-sm font-bold text-[#1E293B] mt-0.5 break-words">
                 {session?.jobId?.role ||
                   (selectedJob
                     ? `${selectedJob.companyId?.name} — ${selectedJob.role}`
@@ -349,7 +397,7 @@ export default function AttendancePage() {
               </p>
             </div>
             <span
-              className={`px-3 py-1 rounded-full text-xs font-semibold ${
+              className={`px-3 py-1 rounded-full text-xs font-semibold shrink-0 ${
                 isClosed
                   ? "bg-gray-100 text-gray-600 border border-gray-300"
                   : "bg-green-100 text-green-700 border border-green-300"
@@ -359,9 +407,9 @@ export default function AttendancePage() {
             </span>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6 mb-6">
+          <div className="grid md:grid-cols-2 gap-4 sm:gap-6 mb-6">
             {/* ── 2. QR Code Display ── */}
-            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm flex flex-col items-center">
+            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 sm:p-6 shadow-sm flex flex-col items-center">
               <h2 className="text-sm font-bold text-[#1E293B] mb-4 self-start flex items-center gap-2">
                 <QrCode size={16} /> Scan to Mark Attendance
               </h2>
@@ -375,7 +423,7 @@ export default function AttendancePage() {
                   <img
                     src={qrDataUrl}
                     alt="Attendance QR Code"
-                    className="w-72 h-72 rounded-xl border border-[#E2E8F0]"
+                    className="w-56 h-56 sm:w-72 sm:h-72 rounded-xl border border-[#E2E8F0]"
                   />
                   <p className="text-xs text-[#94A3B8] mt-4">
                     Backup token (if scanning fails):
@@ -392,7 +440,7 @@ export default function AttendancePage() {
             </div>
 
             {/* ── 4. Manual Mark ── */}
-            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-sm">
+            <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 sm:p-6 shadow-sm">
               <h2 className="text-sm font-bold text-[#1E293B] mb-4 flex items-center gap-2">
                 <UserPlus size={16} /> Manual Mark
               </h2>
@@ -468,23 +516,27 @@ export default function AttendancePage() {
 
           {/* ── 3. Live Attendance List ── */}
           <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm mb-6 overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#F1F5F9]">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-[#F1F5F9] gap-2">
               <h2 className="text-sm font-bold text-[#1E293B] flex items-center gap-2">
                 <Users size={16} /> Live Attendance
               </h2>
-              <span className="text-xs font-bold text-primary bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-lg">
+              <span className="text-xs font-bold text-primary bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-lg shrink-0">
                 {records.length} present
               </span>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm min-w-[520px]">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200 text-left text-gray-500 text-xs uppercase tracking-wide">
-                    <th className="px-6 py-3 font-medium">Name</th>
-                    <th className="px-6 py-3 font-medium">ERP ID</th>
-                    <th className="px-6 py-3 font-medium">Course</th>
-                    <th className="px-6 py-3 font-medium">Time</th>
-                    <th className="px-6 py-3 font-medium">Mode</th>
+                    <th className="px-3 sm:px-6 py-3 font-medium">Name</th>
+                    <th className="px-3 sm:px-6 py-3 font-medium hidden sm:table-cell">
+                      ERP ID
+                    </th>
+                    <th className="px-3 sm:px-6 py-3 font-medium hidden sm:table-cell">
+                      Course
+                    </th>
+                    <th className="px-3 sm:px-6 py-3 font-medium">Time</th>
+                    <th className="px-3 sm:px-6 py-3 font-medium">Mode</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -500,27 +552,32 @@ export default function AttendancePage() {
                   ) : (
                     records.map((r) => (
                       <tr key={r._id || r.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-3 font-medium text-gray-800">
+                        <td className="px-3 sm:px-6 py-3 font-medium text-gray-800">
                           {r.studentId?.name || "—"}
                         </td>
-                        <td className="px-6 py-3 text-gray-500 font-mono text-xs">
+                        <td className="px-3 sm:px-6 py-3 text-gray-500 font-mono text-xs hidden sm:table-cell">
                           {r.studentId?.userId?.erpId || "—"}
                         </td>
-                        <td className="px-6 py-3 text-gray-600">
+                        <td className="px-3 sm:px-6 py-3 text-gray-600 hidden sm:table-cell">
                           {r.studentId?.course || "—"}
                         </td>
-                        <td className="px-6 py-3 text-gray-500 flex items-center gap-1.5">
-                          <Clock size={12} />
-                          {r.markedAt
-                            ? new Date(r.markedAt).toLocaleTimeString("en-IN", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })
-                            : "—"}
+                        <td className="px-3 sm:px-6 py-3 text-gray-500">
+                          <span className="flex items-center gap-1.5 whitespace-nowrap">
+                            <Clock size={12} />
+                            {r.markedAt
+                              ? new Date(r.markedAt).toLocaleTimeString(
+                                  "en-IN",
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  },
+                                )
+                              : "—"}
+                          </span>
                         </td>
-                        <td className="px-6 py-3">
+                        <td className="px-3 sm:px-6 py-3">
                           <span
-                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                            className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
                               r.mode === "Manual"
                                 ? "bg-amber-100 text-amber-700 border border-amber-300"
                                 : "bg-blue-100 text-blue-700 border border-blue-300"
@@ -540,12 +597,12 @@ export default function AttendancePage() {
           </div>
 
           {/* ── 5. Close Session + Download PDF ── */}
-          <div className="flex items-center justify-end gap-3 mb-10">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 mb-10">
             {!isClosed && (
               <button
                 onClick={handleCloseSession}
                 disabled={closing}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-50 transition-colors disabled:opacity-50"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-50 transition-colors disabled:opacity-50"
               >
                 <StopCircle size={16} />
                 {closing ? "Closing..." : "Close Session"}
@@ -554,7 +611,7 @@ export default function AttendancePage() {
             <button
               onClick={handleDownloadPDF}
               disabled={downloading}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-blue-600 transition-colors disabled:opacity-50"
+              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-blue-600 transition-colors disabled:opacity-50"
             >
               <Download size={16} />
               {downloading ? "Downloading..." : "Download PDF"}

@@ -74,7 +74,7 @@ function BranchSearchDropdown({ value, onChange }) {
   const displayLabel = value === "All" ? null : value;
 
   return (
-    <div ref={ref} className="relative min-w-[220px]">
+    <div ref={ref} className="relative w-full sm:min-w-[220px] sm:w-auto">
       {/* Trigger */}
       <button
         type="button"
@@ -110,7 +110,7 @@ function BranchSearchDropdown({ value, onChange }) {
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute z-50 mt-1 left-0 w-80 bg-white border border-[#E2E8F0] rounded-xl shadow-xl overflow-hidden">
+        <div className="absolute z-50 mt-1 left-0 w-[calc(100vw-2.5rem)] sm:w-80 max-w-80 bg-white border border-[#E2E8F0] rounded-xl shadow-xl overflow-hidden">
           {/* Search */}
           <div className="p-2.5 border-b border-[#F1F5F9] sticky top-0 bg-white">
             <div className="relative">
@@ -189,6 +189,75 @@ function BranchSearchDropdown({ value, onChange }) {
   );
 }
 
+// Self-contained role dropdown — replaces native <select> so the option
+// list always renders inside the app's own width (native <select> menus
+// are OS-rendered and ignore any container/viewport sizing, which made
+// the list blow out past the card on narrow / emulated mobile screens).
+//
+// FIXED: the option list could still overflow past the bottom of the
+// screen on mobile because the height cap and the rounded-corner clip
+// were both on the SAME element (`overflow-hidden` + `max-h-64
+// overflow-y-auto` together), which is fragile — the list is now split
+// into an outer wrapper (rounded corners + shadow + overflow-hidden,
+// never scrolls) and an inner div that alone owns the max-height +
+// scroll, so clipping and scrolling can't step on each other. The mobile
+// cap is also shorter (max-h-52 ≈ 208px) so the list reliably fits
+// within a phone viewport instead of running off the bottom edge.
+function RoleDropdown({ value, onChange, options }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative w-full md:w-auto md:min-w-[180px]">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl border border-[#CBD5E1] bg-white text-sm text-[#1E293B] hover:border-[#3B82F6] transition focus:outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/20"
+      >
+        <span className="truncate">
+          {value === "All" ? "All Roles" : value}
+        </span>
+        <ChevronDown
+          size={14}
+          className={`text-[#94A3B8] shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div className="absolute z-50 mt-1 left-0 right-0 md:left-auto md:right-0 md:w-56 bg-white border border-[#E2E8F0] rounded-xl shadow-xl overflow-hidden">
+          <div className="max-h-52 sm:max-h-64 overflow-y-auto overscroll-contain">
+            {options.map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => {
+                  onChange(r);
+                  setOpen(false);
+                }}
+                className={`w-full text-left px-4 py-2 text-sm transition-colors border-b border-[#F1F5F9] last:border-b-0 ${
+                  value === r
+                    ? "bg-blue-50 text-[#3B82F6] font-semibold"
+                    : "text-[#1E293B] hover:bg-[#F8FAFC]"
+                }`}
+              >
+                {r === "All" ? "All Roles" : r}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function BranchChips({ branches }) {
   if (!branches || branches.length === 0)
     return <span className="text-xs text-[#94A3B8]">—</span>;
@@ -255,25 +324,25 @@ function CompanyCard({ company, onViewDetails, isSaved, onToggleSave }) {
         : "text-[#22C55E] bg-green-50 border-green-200";
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 flex flex-col hover:shadow-xl hover:shadow-blue-100 hover:-translate-y-1.5 hover:border-blue-200 transition-all duration-300 group">
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3">
+    <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 sm:p-5 flex flex-col hover:shadow-xl hover:shadow-blue-100 hover:-translate-y-1.5 hover:border-blue-200 transition-all duration-300 group">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+        <div className="flex items-center gap-3 min-w-0">
           <CompanyLogo
             name={company.companyId?.name}
             website={company.companyId?.website}
             size={40}
           />
-          <div>
+          <div className="min-w-0 flex-1">
             <h3
-              className="text-sm font-bold text-[#1E293B]"
+              className="text-sm font-bold text-[#1E293B] leading-snug break-words"
               style={{ fontFamily: "Space Grotesk, sans-serif" }}
             >
               {company.companyId?.name || "Unknown Company"}
             </h3>
-            <p className="text-xs text-[#64748B]">{company.role}</p>
+            <p className="text-xs text-[#64748B] break-words">{company.role}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0 ml-2">
+        <div className="flex items-center gap-2 shrink-0 sm:ml-2">
           <button
             onClick={onToggleSave}
             className={`p-1.5 rounded-lg border transition-all duration-200 hover:scale-110 active:scale-95 ${
@@ -294,7 +363,7 @@ function CompanyCard({ company, onViewDetails, isSaved, onToggleSave }) {
             </svg>
           </button>
           <span
-            className={`text-xs font-semibold px-2 py-1 rounded-lg border ${urgency}`}
+            className={`text-xs font-semibold px-2 py-1 rounded-lg border whitespace-nowrap ${urgency}`}
           >
             {isExpired
               ? "Expired"
@@ -433,7 +502,7 @@ export default function CompanyListPage() {
 
   return (
     <div
-      className="max-w-6xl mx-auto"
+      className="max-w-6xl mx-auto px-4 sm:px-0"
       style={{ fontFamily: "Inter, sans-serif" }}
     >
       {/* Hero */}
@@ -467,20 +536,20 @@ export default function CompanyListPage() {
             opacity: 0.3,
           }}
         />
-        <div className="relative z-10 p-8">
-          <p className="text-xs font-semibold uppercase tracking-widest text-white/70 mb-2">
+        <div className="relative z-10 p-4 sm:p-8">
+          <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-white/70 mb-1 sm:mb-2">
             Placement Season 2025-26
           </p>
           <h1
-            className="text-2xl font-bold text-white mb-1"
+            className="text-lg sm:text-2xl font-bold text-white mb-1"
             style={{ fontFamily: "Space Grotesk, sans-serif" }}
           >
             Company Listings
           </h1>
-          <p className="text-sm text-white/60 mb-6">
+          <p className="text-xs sm:text-sm text-white/60 mb-3 sm:mb-6">
             Active placement opportunities — apply before deadline
           </p>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
             {[
               { label: "Active Companies", value: uniqueCompanies },
               { label: "Open Roles", value: filteredCompanies.length },
@@ -488,22 +557,24 @@ export default function CompanyListPage() {
             ].map((stat) => (
               <div
                 key={stat.label}
-                className="bg-white/10 backdrop-blur rounded-2xl p-4 border border-white/10 hover:bg-white/15 hover:-translate-y-0.5 transition-all duration-200"
+                className="bg-white/10 backdrop-blur rounded-xl sm:rounded-2xl p-2.5 sm:p-4 border border-white/10 hover:bg-white/15 hover:-translate-y-0.5 transition-all duration-200"
               >
                 <p
-                  className="text-xl font-bold text-white"
+                  className="text-sm sm:text-xl font-bold text-white truncate"
                   style={{ fontFamily: "Space Grotesk, sans-serif" }}
                 >
                   {stat.value}
                 </p>
-                <p className="text-xs text-white/60 mt-1">{stat.label}</p>
+                <p className="text-[10px] sm:text-xs text-white/60 mt-0.5 sm:mt-1 leading-tight">
+                  {stat.label}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </div>
       {/* Tabs */}
-      <div className="flex items-center gap-2 mb-5">
+      <div className="flex flex-wrap items-center gap-2 mb-3 sm:mb-5">
         {[
           { id: "all", label: "All Jobs" },
           { id: "saved", label: `Saved Jobs (${savedJobIds.size})` },
@@ -522,14 +593,14 @@ export default function CompanyListPage() {
         ))}
       </div>
       {/* Filters */}
-      <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 mb-6 shadow-sm">
-        <div className="flex items-center gap-2 mb-3">
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] p-3 sm:p-4 mb-4 sm:mb-6 shadow-sm">
+        <div className="flex items-center gap-2 mb-2 sm:mb-3">
           <Filter size={14} className="text-[#64748B]" />
           <span className="text-xs font-semibold uppercase tracking-widest text-[#64748B]">
             Filters
           </span>
         </div>
-        <div className="flex flex-col md:flex-row gap-3">
+        <div className="flex flex-col md:flex-row gap-2 sm:gap-3">
           <div className="relative flex-1">
             <Search
               size={15}
@@ -546,17 +617,7 @@ export default function CompanyListPage() {
 
           <BranchSearchDropdown value={branch} onChange={setBranch} />
 
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            className="px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] focus:outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/20 transition bg-white"
-          >
-            {allRoles.map((r) => (
-              <option key={r} value={r}>
-                {r === "All" ? "All Roles" : r}
-              </option>
-            ))}
-          </select>
+          <RoleDropdown value={role} onChange={setRole} options={allRoles} />
         </div>
       </div>
 
@@ -574,7 +635,7 @@ export default function CompanyListPage() {
           </p>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredCompanies.map((company) => (
             <CompanyCard
               key={company._id}

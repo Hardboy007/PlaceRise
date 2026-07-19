@@ -28,17 +28,13 @@ export default function CompanyDetailPage() {
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
   const [applied, setApplied] = useState(false);
-  const [existingStatus, setExistingStatus] = useState(null); // FIXED: tracks Shortlisted/Selected/Rejected too
+  const [existingStatus, setExistingStatus] = useState(null);
   const [applyLoading, setApplyLoading] = useState(false);
-  const [isEligible, setIsEligible] = useState(true); // default true
+  const [isEligible, setIsEligible] = useState(true);
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [resumeConfirmed, setResumeConfirmed] = useState(false);
   const [studentProfile, setStudentProfile] = useState(null);
 
-  // FIXED: goes back to whichever page the student actually came from
-  // (StudentApplication, CompanyList, etc.) instead of always jumping to
-  // the Company List page. Falls back to Company List only if there's no
-  // history to go back to (e.g. page opened directly via URL).
   const goBack = () => {
     if (window.history.length > 1) {
       navigate(-1);
@@ -57,7 +53,6 @@ export default function CompanyDetailPage() {
         setCompany(data);
         setStudentProfile(studentData);
 
-        // Eligibility check
         if (
           data.eligibleBranches &&
           !data.eligibleBranches.includes("All") &&
@@ -78,7 +73,6 @@ export default function CompanyDetailPage() {
           setIsEligible(branchOk && cgpaOk && backlogOk);
         }
 
-        // Already applied check
         try {
           const myApps = await api.get("/applications/my");
           const existing = Array.isArray(myApps)
@@ -129,7 +123,7 @@ export default function CompanyDetailPage() {
     const companyName = (companyInfo.name || "JD").replace(
       /[^a-zA-Z0-9_-]/g,
       "_",
-    ); // spaces/special chars hata di, warna URL/download issue ho sakta hai
+    );
 
     const downloadUrl = company.jdPdfUrl.replace(
       "/upload/",
@@ -160,7 +154,6 @@ export default function CompanyDetailPage() {
       </div>
     );
 
-  // Company info — JobPosting mein companyId populate hua hai
   const companyInfo = company.companyId || {};
   const deadline = new Date(company.lastDate);
   deadline.setHours(23, 59, 59, 999);
@@ -182,7 +175,7 @@ export default function CompanyDetailPage() {
 
   return (
     <div
-      className="max-w-3xl mx-auto"
+      className="max-w-3xl mx-auto px-4 sm:px-0"
       style={{ fontFamily: "Inter, sans-serif" }}
     >
       <div className="flex items-center justify-between mb-5">
@@ -196,9 +189,11 @@ export default function CompanyDetailPage() {
         <button
           onClick={handleDownloadPDF}
           disabled={!company.jdPdfUrl}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-[#1E293B] hover:bg-[#3B82F6] text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#1E293B]"
+          className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold bg-[#1E293B] hover:bg-[#3B82F6] text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#1E293B]"
         >
-          <Download size={14} /> Download JD
+          <Download size={14} />
+          <span className="hidden sm:inline">Download JD</span>
+          <span className="sm:hidden">JD</span>
         </button>
       </div>
 
@@ -217,18 +212,18 @@ export default function CompanyDetailPage() {
                          radial-gradient(circle at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 40%)`,
           }}
         />
-        <div className="relative z-10 p-7">
-          <div className="flex items-start gap-4 mb-5">
-            <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center flex-shrink-0 shadow-md p-1.5">
+        <div className="relative z-10 p-5 sm:p-7">
+          <div className="flex items-start gap-3 sm:gap-4 mb-5">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white flex items-center justify-center flex-shrink-0 shadow-md p-1.5">
               <CompanyLogo
                 name={companyInfo.name}
                 website={companyInfo.website}
                 size={44}
               />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <h1
-                className="text-xl font-bold text-white mb-1"
+                className="text-lg sm:text-xl font-bold text-white mb-1 break-words"
                 style={{ fontFamily: "Space Grotesk, sans-serif" }}
               >
                 {companyInfo.name || "Company"}
@@ -281,7 +276,7 @@ export default function CompanyDetailPage() {
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-3 gap-4 mb-5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-5">
         {[
           {
             label: "Min CGPA",
@@ -319,7 +314,7 @@ export default function CompanyDetailPage() {
       </div>
 
       {/* Eligibility */}
-      <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#3B82F6] p-5 mb-4 shadow-sm">
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#3B82F6] p-4 sm:p-5 mb-4 shadow-sm">
         <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#F1F5F9]">
           <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
             <CheckCircle size={14} className="text-[#3B82F6]" />
@@ -331,7 +326,7 @@ export default function CompanyDetailPage() {
             Eligibility Criteria
           </h3>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[
             { label: "Min CGPA", value: `${company.minCgpa}+` },
             {
@@ -356,7 +351,7 @@ export default function CompanyDetailPage() {
               <p className="text-xs text-[#64748B] uppercase tracking-widest mb-1">
                 {item.label}
               </p>
-              <p className="text-sm font-semibold text-[#1E293B]">
+              <p className="text-sm font-semibold text-[#1E293B] break-words">
                 {item.value}
               </p>
             </div>
@@ -365,7 +360,7 @@ export default function CompanyDetailPage() {
       </div>
 
       {/* About Company */}
-      <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#818CF8] p-5 mb-4 shadow-sm">
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#818CF8] p-4 sm:p-5 mb-4 shadow-sm">
         <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#F1F5F9]">
           <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center">
             <Building2 size={14} className="text-[#818CF8]" />
@@ -401,7 +396,7 @@ export default function CompanyDetailPage() {
 
       {/* Skills Required */}
       {company.skills?.length > 0 && (
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#F59E0B] p-5 mb-4 shadow-sm">
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#F59E0B] p-4 sm:p-5 mb-4 shadow-sm">
           <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#F1F5F9]">
             <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center">
               <Code size={14} className="text-[#F59E0B]" />
@@ -427,7 +422,7 @@ export default function CompanyDetailPage() {
       )}
 
       {/* Work Details */}
-      <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#22C55E] p-5 mb-4 shadow-sm">
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#22C55E] p-4 sm:p-5 mb-4 shadow-sm">
         <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#F1F5F9]">
           <div className="w-7 h-7 rounded-lg bg-green-50 flex items-center justify-center">
             <Briefcase size={14} className="text-[#22C55E]" />
@@ -439,7 +434,7 @@ export default function CompanyDetailPage() {
             Work Details
           </h3>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[
             { label: "Job Type", value: company.jobType },
             { label: "Location", value: company.location },
@@ -458,7 +453,7 @@ export default function CompanyDetailPage() {
               <p className="text-xs text-[#64748B] uppercase tracking-widest mb-1">
                 {item.label}
               </p>
-              <p className="text-sm font-semibold text-[#1E293B]">
+              <p className="text-sm font-semibold text-[#1E293B] break-words">
                 {item.value}
               </p>
             </div>
@@ -468,7 +463,7 @@ export default function CompanyDetailPage() {
 
       {/* Perks */}
       {company.perks?.length > 0 && (
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#EF4444] p-5 mb-4 shadow-sm">
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#EF4444] p-4 sm:p-5 mb-4 shadow-sm">
           <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#F1F5F9]">
             <div className="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center">
               <Gift size={14} className="text-[#EF4444]" />
@@ -480,7 +475,7 @@ export default function CompanyDetailPage() {
               Perks & Benefits
             </h3>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {company.perks.map((p) => (
               <div
                 key={p}
@@ -499,7 +494,7 @@ export default function CompanyDetailPage() {
 
       {/* Selection Process */}
       {company.selectionProcess?.length > 0 && (
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#3B82F6] p-5 mb-4 shadow-sm">
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#3B82F6] p-4 sm:p-5 mb-4 shadow-sm">
           <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#F1F5F9]">
             <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
               <TrendingUp size={14} className="text-[#3B82F6]" />
@@ -520,7 +515,7 @@ export default function CompanyDetailPage() {
                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 z-10 mt-1 bg-blue-100 text-[#3B82F6]">
                   {index + 1}
                 </div>
-                <div className="pb-5 flex-1">
+                <div className="pb-5 flex-1 min-w-0">
                   <p className="text-sm font-semibold text-[#1E293B]">
                     {step.title || step}
                   </p>
@@ -593,7 +588,7 @@ export default function CompanyDetailPage() {
             e.target === e.currentTarget && setShowApplyModal(false)
           }
         >
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-5 sm:p-6 max-h-[90vh] overflow-y-auto">
             {/* Header */}
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-base font-bold text-[#1E293B]">
@@ -628,7 +623,7 @@ export default function CompanyDetailPage() {
                   <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
                     <FileText size={18} className="text-[#3B82F6]" />
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-[#1E293B]">
                       Resume uploaded
                     </p>
@@ -680,7 +675,7 @@ export default function CompanyDetailPage() {
             )}
 
             {/* Buttons */}
-            <div className="flex gap-3 mt-2">
+            <div className="flex flex-col sm:flex-row gap-3 mt-2">
               <button
                 onClick={() => setShowApplyModal(false)}
                 className="flex-1 py-2.5 rounded-xl border border-[#E2E8F0] text-sm font-medium text-[#64748B] hover:bg-[#F8FAFC] transition-colors"

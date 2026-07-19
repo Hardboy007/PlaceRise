@@ -189,7 +189,7 @@ function JobDetailModal({ job, onClose }) {
           overflow-y-auto, built to absorb overflow) gives up space.
         */}
         <div
-          className="px-6 pt-6 pb-5 relative overflow-hidden shrink-0"
+          className="px-4 sm:px-6 pt-5 sm:pt-6 pb-5 relative overflow-hidden shrink-0"
           style={{
             background:
               "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
@@ -206,17 +206,17 @@ function JobDetailModal({ job, onClose }) {
           >
             <X size={16} />
           </button>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 pr-8">
             <CompanyLogo
               name={companyName}
               website={job.companyId?.website}
               size={48}
             />
-            <div>
-              <p className="text-white font-semibold text-base leading-tight tracking-tight">
+            <div className="min-w-0">
+              <p className="text-white font-semibold text-base leading-tight tracking-tight truncate">
                 {companyName}
               </p>
-              <p className="text-white/75 text-[12px] mt-0.5">{job.role}</p>
+              <p className="text-white/75 text-[12px] mt-0.5 truncate">{job.role}</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2 mt-4">
@@ -241,7 +241,7 @@ function JobDetailModal({ job, onClose }) {
             <button
               key={t}
               onClick={() => setActiveTab(t)}
-              className={`px-4 py-3 text-[12px] font-medium capitalize transition-colors border-b-2 -mb-px ${
+              className={`px-3 sm:px-4 py-3 text-[12px] font-medium capitalize transition-colors border-b-2 -mb-px ${
                 activeTab === t
                   ? "border-blue-500 text-blue-600"
                   : "border-transparent text-gray-400 hover:text-gray-600"
@@ -252,7 +252,7 @@ function JobDetailModal({ job, onClose }) {
           ))}
         </div>
 
-        <div className="overflow-y-auto flex-1 p-5">
+        <div className="overflow-y-auto flex-1 p-4 sm:p-5">
           {activeTab === "overview" && (
             <div className="space-y-4">
               {job.companyId?.about && (
@@ -293,7 +293,7 @@ function JobDetailModal({ job, onClose }) {
                   ),
               )}
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
                 {[
                   { icon: Briefcase, label: "Job Type", val: job.jobType },
                   {
@@ -314,15 +314,15 @@ function JobDetailModal({ job, onClose }) {
                 ].map(({ icon: Icon, label, val }) => (
                   <div
                     key={label}
-                    className="bg-gray-50 rounded-xl p-3 border border-gray-100"
+                    className="bg-gray-50 rounded-xl p-2.5 sm:p-3 border border-gray-100 min-w-0"
                   >
                     <div className="flex items-center gap-1.5 mb-1">
-                      <Icon size={12} className="text-gray-400" />
+                      <Icon size={12} className="text-gray-400 shrink-0" />
                       <span className="text-[10px] text-gray-400 font-medium">
                         {label}
                       </span>
                     </div>
-                    <p className="text-[12px] text-gray-700 font-medium">
+                    <p className="text-[12px] text-gray-700 font-medium break-words">
                       {val}
                     </p>
                   </div>
@@ -374,9 +374,9 @@ function JobDetailModal({ job, onClose }) {
           )}
 
           {activeTab === "perks" && (
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {(job.perks || []).length === 0 ? (
-                <p className="text-[12px] text-gray-400 text-center py-6 col-span-2">
+                <p className="text-[12px] text-gray-400 text-center py-6 col-span-1 sm:col-span-2">
                   No perks listed.
                 </p>
               ) : (
@@ -416,12 +416,12 @@ function DayPopupModal({
   if (!selectedDay) return null;
   return (
     <div
-      className="fixed inset-0 bg-black/40 z-50 flex items-start justify-center pt-20"
+      className="fixed inset-0 bg-black/40 z-50 flex items-start justify-center pt-16 sm:pt-20 px-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-2xl w-90 overflow-hidden animate-[modalIn_0.18s_ease-out]">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-2xl w-full max-w-90 sm:w-90 overflow-hidden animate-[modalIn_0.18s_ease-out]">
         <div
-          className="px-5 py-4 border-b border-gray-100 flex items-start justify-between"
+          className="px-4 sm:px-5 py-4 border-b border-gray-100 flex items-start justify-between"
           style={{
             background:
               "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
@@ -458,10 +458,10 @@ function DayPopupModal({
                   website={j.companyId?.website}
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-semibold text-gray-900">
+                  <p className="text-[13px] font-semibold text-gray-900 truncate">
                     {j.companyId?.name || "Unknown"}
                   </p>
-                  <p className="text-[11px] text-gray-500">{j.role}</p>
+                  <p className="text-[11px] text-gray-500 truncate">{j.role}</p>
                 </div>
                 <JobTypeBadge type={j.jobType} />
               </div>
@@ -589,6 +589,16 @@ export default function CompanyCalendarPage() {
     return "bg-emerald-50 text-emerald-700 border-emerald-100";
   }
 
+  // Solid, high-contrast color for the small mobile "event dot" — the
+  // pale bg-*-50 tones used for desktop chips are too faint to read as a
+  // 6px dot, so mobile gets its own solid palette instead.
+  function calendarDotColor(jobDate) {
+    const diff = daysUntil(jobDate, todayMid);
+    if (diff < 0) return "bg-gray-300";
+    if (diff <= 7) return "bg-red-500";
+    return "bg-emerald-500";
+  }
+
   if (loading)
     return (
       <div className="p-4 space-y-4 animate-pulse">
@@ -600,9 +610,9 @@ export default function CompanyCalendarPage() {
             opacity: 0.25,
           }}
         />
-        <div className="flex gap-4">
+        <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1 h-96 bg-gray-100 rounded-2xl" />
-          <div className="w-67 h-96 bg-gray-100 rounded-2xl shrink-0" />
+          <div className="w-full lg:w-67 h-96 bg-gray-100 rounded-2xl shrink-0" />
         </div>
       </div>
     );
@@ -617,7 +627,7 @@ export default function CompanyCalendarPage() {
       `}</style>
 
       <div
-        className="relative overflow-hidden rounded-2xl mx-4 mt-4 p-6"
+        className="relative overflow-hidden rounded-2xl mx-2 sm:mx-4 mt-2 sm:mt-4 p-4 sm:p-6"
         style={{
           background:
             "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
@@ -639,10 +649,10 @@ export default function CompanyCalendarPage() {
           }}
         />
 
-        <div className="relative z-10 flex items-start justify-between gap-4 mb-6">
-          <div>
+        <div className="relative z-10 flex items-start justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="min-w-0">
             <div className="flex items-center gap-2 mb-1.5">
-              <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center">
+              <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center shrink-0">
                 <CalendarDays size={13} className="text-white" />
               </div>
               <span className="text-white/60 text-[10px] font-bold uppercase tracking-widest">
@@ -650,13 +660,13 @@ export default function CompanyCalendarPage() {
               </span>
             </div>
             <h1
-              className="text-2xl font-bold text-white tracking-tight"
+              className="text-lg sm:text-2xl font-bold text-white tracking-tight"
               style={{ fontFamily: "Space Grotesk, sans-serif" }}
             >
               Placement Calendar
             </h1>
-            <p className="text-white/55 text-xs mt-1 flex items-center gap-1.5">
-              <Clock size={12} /> {todayLabel}
+            <p className="text-white/55 text-[11px] sm:text-xs mt-1 flex items-center gap-1.5">
+              <Clock size={12} className="shrink-0" /> {todayLabel}
             </p>
           </div>
           <button
@@ -664,40 +674,52 @@ export default function CompanyCalendarPage() {
               setCurYear(today.getFullYear());
               setCurMonth(today.getMonth());
             }}
-            className="flex items-center gap-1.5 bg-white text-[#1D4ED8] rounded-xl px-4 py-2.5 text-sm font-bold hover:bg-blue-50 transition-colors shadow-lg shrink-0 mt-1"
+            className="flex items-center gap-1.5 bg-white text-[#1D4ED8] rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold hover:bg-blue-50 transition-colors shadow-lg shrink-0 mt-1"
           >
             <Calendar size={14} /> Today
           </button>
         </div>
 
-        <div className="relative z-10 grid grid-cols-3 gap-3">
+        <div className="relative z-10 grid grid-cols-3 gap-2 sm:gap-3">
           {[
-            { icon: Building2, label: "Active JDs", val: jobs.length },
+            {
+              icon: Building2,
+              label: "Active JDs",
+              shortLabel: "Active JDs",
+              val: jobs.length,
+            },
             {
               icon: Bell,
               label: "Deadlines Ahead",
+              shortLabel: "Deadlines",
               val: upcomingCount,
               highlight: upcomingCount > 0,
             },
-            { icon: CalendarDays, label: "This Month", val: thisMonthCount },
-          ].map(({ icon: Icon, label, val, highlight }) => (
+            {
+              icon: CalendarDays,
+              label: "This Month",
+              shortLabel: "This Month",
+              val: thisMonthCount,
+            },
+          ].map(({ icon: Icon, label, shortLabel, val, highlight }) => (
             <div
               key={label}
-              className="rounded-xl px-4 py-3 border border-white/10"
+              className="rounded-xl px-2 sm:px-4 py-2.5 sm:py-3 border border-white/10 min-w-0"
               style={{
                 background: highlight
                   ? "rgba(239,68,68,0.20)"
                   : "rgba(255,255,255,0.12)",
               }}
             >
-              <div className="flex items-center gap-1.5 mb-1">
-                <Icon size={12} className="text-white/60" />
-                <span className="text-white/55 text-[10px] font-semibold uppercase tracking-wider">
-                  {label}
+              <div className="flex items-center gap-1 mb-1">
+                <Icon size={12} className="text-white/60 shrink-0" />
+                <span className="text-white/55 text-[8.5px] sm:text-[10px] font-semibold uppercase tracking-wider leading-tight sm:whitespace-nowrap">
+                  <span className="sm:hidden">{shortLabel}</span>
+                  <span className="hidden sm:inline">{label}</span>
                 </span>
               </div>
               <p
-                className="text-white text-2xl font-bold leading-none tabular-nums"
+                className="text-white text-lg sm:text-2xl font-bold leading-none tabular-nums"
                 style={{ fontFamily: "Space Grotesk, sans-serif" }}
               >
                 {val}
@@ -707,23 +729,23 @@ export default function CompanyCalendarPage() {
         </div>
       </div>
 
-      <div className="flex flex-1 mx-4 mb-4">
-        <div className="flex-1 flex flex-col overflow-auto pt-4 pr-4">
-          <div className="bg-white border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_-8px_rgba(29,78,216,0.10)] rounded-2xl p-5 flex-1">
-            <div className="flex items-center justify-between mb-5">
-              <span className="text-[15px] font-semibold text-gray-900 tracking-tight">
+      <div className="flex flex-col lg:flex-row flex-1 mx-2 sm:mx-4 mb-4">
+        <div className="flex-1 flex flex-col overflow-auto pt-3 sm:pt-4 lg:pr-4">
+          <div className="bg-white border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_-8px_rgba(29,78,216,0.10)] rounded-2xl p-3 sm:p-5 flex-1">
+            <div className="flex items-center justify-between mb-3 sm:mb-5">
+              <span className="text-[13px] sm:text-[15px] font-semibold text-gray-900 tracking-tight">
                 {MONTHS[curMonth]} {curYear}
               </span>
               <div className="flex gap-1.5">
                 <button
                   onClick={() => changeMonth(-1)}
-                  className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-xl text-gray-400 hover:bg-gray-50 hover:text-gray-700 transition-colors"
+                  className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center border border-gray-200 rounded-xl text-gray-400 hover:bg-gray-50 hover:text-gray-700 transition-colors"
                 >
                   <ChevronLeft size={15} />
                 </button>
                 <button
                   onClick={() => changeMonth(1)}
-                  className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-xl text-gray-400 hover:bg-gray-50 hover:text-gray-700 transition-colors"
+                  className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center border border-gray-200 rounded-xl text-gray-400 hover:bg-gray-50 hover:text-gray-700 transition-colors"
                 >
                   <ChevronRight size={15} />
                 </button>
@@ -734,7 +756,7 @@ export default function CompanyCalendarPage() {
               {WDAYS.map((d) => (
                 <div
                   key={d}
-                  className="text-center text-[10px] font-semibold text-gray-400 tracking-wider py-1 uppercase"
+                  className="text-center text-[9px] sm:text-[10px] font-semibold text-gray-400 tracking-wider py-1 uppercase"
                 >
                   {d}
                 </div>
@@ -743,7 +765,7 @@ export default function CompanyCalendarPage() {
 
             <div className="grid grid-cols-7 divide-x divide-y divide-gray-100">
               {Array.from({ length: firstDay }).map((_, i) => (
-                <div key={`e-${i}`} className="min-h-17" />
+                <div key={`e-${i}`} className="min-h-12 sm:min-h-17" />
               ))}
               {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(
                 (day) => {
@@ -754,20 +776,31 @@ export default function CompanyCalendarPage() {
                     today.getMonth() === curMonth &&
                     today.getDate() === day;
                   const cellDate = new Date(curYear, curMonth, day);
+                  const hasJobs = dayJobs.length > 0;
+                  // Mobile gets a persistent light tint on any date that
+                  // has a deadline, so you can see at a glance which dates
+                  // have companies without needing to tap each one.
+                  const mobileTint = !hasJobs
+                    ? ""
+                    : daysUntil(cellDate, todayMid) < 0
+                      ? "sm:bg-transparent bg-gray-50"
+                      : daysUntil(cellDate, todayMid) <= 7
+                        ? "sm:bg-transparent bg-red-50/70"
+                        : "sm:bg-transparent bg-emerald-50/70";
                   return (
                     <div
                       key={day}
                       onClick={() =>
                         dayJobs.length && setDayPopup({ day, jobs: dayJobs })
                       }
-                      className={`min-h-17 p-2 transition-all duration-200 ${
+                      className={`min-h-12 sm:min-h-17 p-1 sm:p-2 transition-all duration-200 ${mobileTint} ${
                         dayJobs.length
                           ? "cursor-pointer hover:bg-blue-50/50 hover:-translate-y-0.5 hover:shadow-sm hover:z-10 relative rounded-lg"
                           : "cursor-default"
                       } ${isToday ? "bg-blue-50 ring-1 ring-inset ring-blue-300 rounded-lg" : ""}`}
                     >
                       <span
-                        className={`text-[12px] block mb-1.5 leading-none font-medium tabular-nums ${isToday ? "text-blue-600" : "text-gray-400"}`}
+                        className={`text-[10px] sm:text-[12px] block mb-1 sm:mb-1.5 leading-none font-medium tabular-nums ${isToday ? "text-blue-600" : "text-gray-400"}`}
                       >
                         {day}
                       </span>
@@ -776,17 +809,33 @@ export default function CompanyCalendarPage() {
                           {dayJobs.slice(0, 2).map((j, i) => (
                             <div
                               key={i}
-                              className={`text-[9px] font-semibold px-1.5 py-0.75 rounded-md border truncate leading-none flex items-center gap-1 ${calendarChipClasses(cellDate)}`}
+                              className={`hidden sm:flex text-[9px] font-semibold px-1.5 py-0.75 rounded-md border truncate leading-none items-center gap-1 ${calendarChipClasses(cellDate)}`}
                             >
                               <span className="w-1 h-1 rounded-full bg-current shrink-0" />
                               {j.companyId?.name || "—"}
                             </div>
                           ))}
                           {dayJobs.length > 2 && (
-                            <span className="text-[9px] text-gray-400 px-0.5 font-medium">
+                            <span className="hidden sm:inline text-[9px] text-gray-400 px-0.5 font-medium">
                               +{dayJobs.length - 2} more
                             </span>
                           )}
+                          {/* Mobile: solid dots (one per job, up to 3) + count, since full
+                              chips don't fit a 7-column grid on a phone screen. Tap the
+                              day to see the full list in the popup. */}
+                          <div className="sm:hidden flex items-center gap-0.5 flex-wrap">
+                            {dayJobs.slice(0, 3).map((j, i) => (
+                              <span
+                                key={i}
+                                className={`w-1.5 h-1.5 rounded-full ${calendarDotColor(cellDate)}`}
+                              />
+                            ))}
+                            {dayJobs.length > 1 && (
+                              <span className="text-[8px] font-bold text-gray-500 ml-0.5 tabular-nums">
+                                {dayJobs.length}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -795,26 +844,26 @@ export default function CompanyCalendarPage() {
               )}
             </div>
 
-            <div className="flex gap-5 mt-4 pt-4 border-t border-gray-100">
-              <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
-                <div className="w-2.5 h-2.5 rounded bg-emerald-50 border border-emerald-200" />{" "}
+            <div className="flex flex-wrap gap-3 sm:gap-5 mt-4 pt-4 border-t border-gray-100">
+              <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-gray-400">
+                <div className="w-2.5 h-2.5 rounded bg-emerald-50 border border-emerald-200 shrink-0" />{" "}
                 More than 7 days left
               </div>
-              <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
-                <div className="w-2.5 h-2.5 rounded bg-red-50 border border-red-200" />{" "}
+              <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-gray-400">
+                <div className="w-2.5 h-2.5 rounded bg-red-50 border border-red-200 shrink-0" />{" "}
                 7 days or fewer left
               </div>
-              <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
-                <div className="w-2.5 h-2.5 rounded-sm bg-blue-50 border border-blue-300" />{" "}
+              <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-gray-400">
+                <div className="w-2.5 h-2.5 rounded-sm bg-blue-50 border border-blue-300 shrink-0" />{" "}
                 Today
               </div>
             </div>
           </div>
         </div>
 
-        <div className="w-67 border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_-8px_rgba(29,78,216,0.10)] bg-white rounded-2xl flex flex-col shrink-0 mt-4 overflow-hidden">
+        <div className="w-full lg:w-67 border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_-8px_rgba(29,78,216,0.10)] bg-white rounded-2xl flex flex-col shrink-0 mt-3 lg:mt-4 overflow-hidden">
           <div className="px-4 py-3.5 border-b border-gray-100">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <p className="text-[13px] font-semibold text-gray-900 tracking-tight">
                 Deadlines
               </p>
@@ -840,7 +889,7 @@ export default function CompanyCalendarPage() {
               className="w-full mt-2.5 px-2.5 py-1.5 text-[11px] border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:border-blue-400 placeholder:text-gray-400"
             />
           </div>
-          <div className="flex-1 overflow-y-auto divide-y divide-gray-100">
+          <div className="flex-1 overflow-y-auto divide-y divide-gray-100 max-h-80 lg:max-h-none">
             {sortedJobs.length === 0 ? (
               <p className="text-[12px] text-gray-400 text-center py-10">
                 No active job postings yet.

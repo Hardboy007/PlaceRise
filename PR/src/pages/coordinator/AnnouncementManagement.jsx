@@ -231,10 +231,10 @@ function LiveDateTimeBar() {
   });
 
   return (
-    <div className="max-w-4xl mx-auto px-8 pb-4">
-      <div className="flex items-center justify-center gap-2 text-[12.5px] font-semibold text-slate-500 bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5">
+    <div className="max-w-4xl mx-auto px-4 sm:px-8 pb-4">
+      <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 text-[11px] sm:text-[12.5px] font-semibold text-slate-500 bg-slate-50 border border-slate-100 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-center">
         <svg
-          className="w-3.5 h-3.5 text-slate-400"
+          className="w-3.5 h-3.5 text-slate-400 shrink-0"
           fill="none"
           stroke="currentColor"
           strokeWidth={2}
@@ -457,9 +457,9 @@ export default function AnnouncementManagementPage() {
       />
 
       {/* ── Hero ── */}
-      <div className="px-4 pt-4">
+      <div className="px-3 sm:px-4 pt-3 sm:pt-4">
         <div
-          className="max-w-4xl mx-auto rounded-3xl overflow-hidden relative"
+          className="max-w-4xl mx-auto rounded-2xl sm:rounded-3xl overflow-hidden relative"
           style={{
             background:
               "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
@@ -472,24 +472,24 @@ export default function AnnouncementManagementPage() {
               transform: "translate(30%,-40%)",
             }}
           />
-          <div className="relative z-10 px-7 py-6 flex items-start justify-between gap-4 flex-wrap">
-            <div>
-              <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest mb-1.5">
+          <div className="relative z-10 px-4 sm:px-7 py-5 sm:py-6 flex items-start justify-between gap-3 sm:gap-4 flex-wrap">
+            <div className="min-w-0">
+              <p className="text-white/60 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest mb-1.5">
                 Placement Portal
               </p>
               <h1
-                className="text-2xl font-bold text-white"
+                className="text-lg sm:text-2xl font-bold text-white"
                 style={{ fontFamily: "Space Grotesk, sans-serif" }}
               >
                 Announcement Board
               </h1>
-              <p className="text-white/60 text-xs mt-1">
+              <p className="text-white/60 text-[11px] sm:text-xs mt-1">
                 Post drives, alerts, and updates for students
               </p>
             </div>
             <button
               onClick={openCreate}
-              className="flex items-center gap-2 bg-white text-[#1D4ED8] text-[13px] font-bold px-4 py-2.5 rounded-xl hover:bg-blue-50 transition-colors shadow-lg shrink-0"
+              className="flex items-center gap-1.5 sm:gap-2 bg-white text-[#1D4ED8] text-[12px] sm:text-[13px] font-bold px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl hover:bg-blue-50 transition-colors shadow-lg shrink-0"
             >
               <svg
                 className="w-4 h-4"
@@ -504,25 +504,26 @@ export default function AnnouncementManagementPage() {
                   d="M12 4v16m8-8H4"
                 />
               </svg>
-              New Announcement
+              <span className="hidden sm:inline">New Announcement</span>
+              <span className="sm:hidden">New</span>
             </button>
           </div>
 
           {/* Type-wise counts — derived from existing `announcements` state, no extra fetch */}
-          <div className="relative z-10 grid grid-cols-3 gap-3 px-7 pb-6">
+          <div className="relative z-10 grid grid-cols-3 gap-2 sm:gap-3 px-4 sm:px-7 pb-5 sm:pb-6">
             {["Urgent", "Important", "General"].map((type) => {
               const count = announcements.filter((a) => a.type === type).length;
               return (
                 <div
                   key={type}
-                  className="rounded-xl px-4 py-3 border border-white/10"
+                  className="rounded-xl px-2.5 sm:px-4 py-2.5 sm:py-3 border border-white/10 min-w-0"
                   style={{ background: "rgba(255,255,255,0.1)" }}
                 >
-                  <p className="text-white/55 text-[10px] font-semibold uppercase tracking-wider mb-1">
+                  <p className="text-white/55 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider mb-1 truncate">
                     {type}
                   </p>
                   <p
-                    className="text-white text-xl font-bold leading-none"
+                    className="text-white text-base sm:text-xl font-bold leading-none"
                     style={{ fontFamily: "Space Grotesk, sans-serif" }}
                   >
                     {count}
@@ -536,12 +537,12 @@ export default function AnnouncementManagementPage() {
 
       {/* ── Error banner ── */}
       {error && (
-        <div className="max-w-4xl mx-auto px-8 pt-4">
-          <div className="flex items-center justify-between gap-3 text-[12.5px] font-semibold text-rose-600 bg-rose-50 border border-rose-100 rounded-xl px-4 py-2.5">
+        <div className="max-w-4xl mx-auto px-4 sm:px-8 pt-4">
+          <div className="flex items-center justify-between gap-3 text-[12px] sm:text-[12.5px] font-semibold text-rose-600 bg-rose-50 border border-rose-100 rounded-xl px-3 sm:px-4 py-2.5">
             <span>{error}</span>
             <button
               onClick={() => setError("")}
-              className="text-rose-400 hover:text-rose-600"
+              className="text-rose-400 hover:text-rose-600 shrink-0"
             >
               ✕
             </button>
@@ -552,13 +553,13 @@ export default function AnnouncementManagementPage() {
       {/* ── Live date/time bar, ticks every second so it rolls to the next day on its own ── */}
       <LiveDateTimeBar />
       {/* ── Type filter tabs ── */}
-      <div className="max-w-4xl mx-auto px-8 pb-4">
-        <div className="flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-1 w-fit">
+      <div className="max-w-4xl mx-auto px-4 sm:px-8 pb-4">
+        <div className="flex items-center gap-1 sm:gap-2 bg-white border border-slate-100 rounded-xl p-1 w-full sm:w-fit overflow-x-auto">
           {["All", "Urgent", "Important", "General"].map((t) => (
             <button
               key={t}
               onClick={() => setTypeFilter(t)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-all whitespace-nowrap ${
                 typeFilter === t
                   ? "bg-slate-900 text-white"
                   : "text-slate-500 hover:text-slate-900"
@@ -571,9 +572,7 @@ export default function AnnouncementManagementPage() {
       </div>
 
       {/* ── Card Feed ── */}
-      <div className="max-w-4xl mx-auto px-8 pb-7 space-y-3"></div>
-      {/* ── Card Feed ── */}
-      <div className="max-w-4xl mx-auto px-8 pb-7 space-y-3">
+      <div className="max-w-4xl mx-auto px-4 sm:px-8 pb-7 space-y-3">
         {loading && announcements.length === 0 && (
           <div className="text-center py-24 text-slate-400 text-sm">
             Loading announcements…
@@ -606,7 +605,7 @@ export default function AnnouncementManagementPage() {
                 key={id ?? `${ann.title}-${ann.date}-${ann.time}`}
                 className={`group bg-white rounded-2xl border border-slate-100 border-l-4 ${tc.border} shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${isDeleting ? "opacity-40" : ""}`}
               >
-                <div className="flex items-stretch gap-0 px-5 py-4">
+                <div className="flex items-stretch gap-0 px-4 sm:px-5 py-4">
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-1.5 mb-2">
@@ -632,18 +631,21 @@ export default function AnnouncementManagementPage() {
                         {ann.time ? ` · ${ann.time}` : ""}
                       </span>
                     </div>
-                    <h3 className="text-[14.5px] font-bold text-slate-900 leading-snug">
+                    <h3 className="text-[13.5px] sm:text-[14.5px] font-bold text-slate-900 leading-snug">
                       {ann.title || "(untitled announcement)"}
                     </h3>
                     {ann.description && (
-                      <p className="text-[13px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                      <p className="text-[12.5px] sm:text-[13px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
                         {ann.description}
                       </p>
                     )}
                   </div>
 
-                  {/* Action buttons — appear on hover */}
-                  <div className="flex flex-col justify-center gap-2 ml-4 opacity-0 group-hover:opacity-100 transition-opacity duration-150 shrink-0">
+                  {/* Action buttons — always visible on mobile (no hover state
+                      exists on touch devices, so the old "opacity-0
+                      group-hover:opacity-100" left these permanently invisible
+                      on phones/tablets). Desktop keeps the hover-reveal. */}
+                  <div className="flex flex-col justify-center gap-2 ml-2 sm:ml-4 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-150 shrink-0">
                     <button
                       onClick={() => openEdit(ann)}
                       className="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-500 transition-colors"
@@ -689,26 +691,26 @@ export default function AnnouncementManagementPage() {
 
       {/* ── Modal ── */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
           <div
             className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
             onClick={closeModal}
           />
-          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden modal-pop max-h-[90vh] flex flex-col">
+          <div className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden modal-pop max-h-[90vh] flex flex-col">
             {/* Accent bar — changes colour with type */}
             <div
               className="h-1.5 w-full shrink-0 transition-colors duration-300"
               style={{ background: TYPE_CONFIG[form.type]?.glow ?? "#64748b" }}
             />
 
-            <div className="px-7 py-6 space-y-5 overflow-y-auto">
+            <div className="px-4 sm:px-7 py-5 sm:py-6 space-y-4 sm:space-y-5 overflow-y-auto">
               {/* Header */}
               <div className="flex items-start justify-between">
-                <div>
-                  <h2 className="text-[18px] font-bold text-slate-900">
+                <div className="min-w-0">
+                  <h2 className="text-[16px] sm:text-[18px] font-bold text-slate-900">
                     {editingId ? "Edit Announcement" : "New Announcement"}
                   </h2>
-                  <p className="text-[12px] text-slate-400 mt-0.5">
+                  <p className="text-[11px] sm:text-[12px] text-slate-400 mt-0.5">
                     {editingId
                       ? "Edit the fields and save changes"
                       : "Fill in the fields to create"}
@@ -716,7 +718,7 @@ export default function AnnouncementManagementPage() {
                 </div>
                 <button
                   onClick={closeModal}
-                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 transition-colors"
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 transition-colors shrink-0"
                 >
                   <svg
                     className="w-4 h-4"
@@ -769,7 +771,7 @@ export default function AnnouncementManagementPage() {
               </FormField>
 
               {/* Type + Date */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <FormField label="Type">
                   <select
                     value={form.type}
@@ -793,11 +795,11 @@ export default function AnnouncementManagementPage() {
 
               {/* Time — 12hr with AM/PM (cycles 1-12, not 0-23) */}
               <FormField label="Time">
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                   <select
                     value={form.hour}
                     onChange={(e) => updateForm({ hour: e.target.value })}
-                    className="w-full px-3 py-2.5 text-[13.5px] border border-slate-200 rounded-xl outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-white transition-all"
+                    className="w-full px-1.5 sm:px-3 py-2.5 text-[12.5px] sm:text-[13.5px] border border-slate-200 rounded-xl outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-white transition-all"
                   >
                     {HOURS.map((h) => (
                       <option key={h} value={h}>
@@ -808,7 +810,7 @@ export default function AnnouncementManagementPage() {
                   <select
                     value={form.minute}
                     onChange={(e) => updateForm({ minute: e.target.value })}
-                    className="w-full px-3 py-2.5 text-[13.5px] border border-slate-200 rounded-xl outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-white transition-all"
+                    className="w-full px-1.5 sm:px-3 py-2.5 text-[12.5px] sm:text-[13.5px] border border-slate-200 rounded-xl outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-white transition-all"
                   >
                     {MINUTES.map((m) => (
                       <option key={m} value={m}>
@@ -819,7 +821,7 @@ export default function AnnouncementManagementPage() {
                   <select
                     value={form.period}
                     onChange={(e) => updateForm({ period: e.target.value })}
-                    className="w-full px-3 py-2.5 text-[13.5px] border border-slate-200 rounded-xl outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-white transition-all"
+                    className="w-full px-1.5 sm:px-3 py-2.5 text-[12.5px] sm:text-[13.5px] border border-slate-200 rounded-xl outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-white transition-all"
                   >
                     {PERIODS.map((p) => (
                       <option key={p} value={p}>
@@ -840,17 +842,17 @@ export default function AnnouncementManagementPage() {
               />
 
               {/* Footer */}
-              <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
+              <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2 sm:gap-3 pt-2 border-t border-slate-100">
                 <button
                   onClick={closeModal}
-                  className="px-4 py-2 text-[13px] font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                  className="w-full sm:w-auto px-4 py-2 text-[13px] font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={!isFormValid || saving}
-                  className="px-5 py-2 text-[13px] font-semibold text-white rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="w-full sm:w-auto px-5 py-2 text-[13px] font-semibold text-white rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   style={{
                     background: TYPE_CONFIG[form.type]?.glow ?? "#1e293b",
                   }}
@@ -869,12 +871,12 @@ export default function AnnouncementManagementPage() {
 
       {/* ── Delete Confirm ── */}
       {deleteConfirm !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
           <div
             className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
             onClick={() => setDeleteConfirm(null)}
           />
-          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm p-7 text-center modal-pop">
+          <div className="relative bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-sm p-6 sm:p-7 text-center modal-pop">
             <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <svg
                 className="w-7 h-7 text-red-500"
@@ -890,10 +892,10 @@ export default function AnnouncementManagementPage() {
                 />
               </svg>
             </div>
-            <h3 className="text-[17px] font-bold text-slate-900 mb-1">
+            <h3 className="text-[16px] sm:text-[17px] font-bold text-slate-900 mb-1">
               Delete this announcement?
             </h3>
-            <p className="text-[13px] text-slate-500 mb-6 leading-relaxed">
+            <p className="text-[12.5px] sm:text-[13px] text-slate-500 mb-6 leading-relaxed">
               This will be permanently removed and cannot be undone.
             </p>
             <div className="flex gap-3">
@@ -1007,7 +1009,7 @@ function TargetAudience({ targetAll, targetSelections, onChange }) {
           type="checkbox"
           checked={targetAll}
           onChange={(e) => setAll(e.target.checked)}
-          className="w-4 h-4 accent-slate-900"
+          className="w-4 h-4 accent-slate-900 shrink-0"
         />
         <span className="text-[13px] font-semibold text-slate-700">
           All Students
@@ -1016,7 +1018,7 @@ function TargetAudience({ targetAll, targetSelections, onChange }) {
 
       {!targetAll && (
         <div className="mt-2.5 border border-slate-200 rounded-xl p-3 max-h-72 overflow-y-auto">
-          <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center justify-between mb-1.5 gap-2">
             <span className="text-[10.5px] font-bold text-slate-400 uppercase tracking-widest">
               Schools
               {selectedSchoolCount > 0 && ` (${selectedSchoolCount})`}
@@ -1024,7 +1026,7 @@ function TargetAudience({ targetAll, targetSelections, onChange }) {
             <button
               type="button"
               onClick={selectAllSchools}
-              className="text-[11px] font-semibold text-indigo-500 hover:underline"
+              className="text-[11px] font-semibold text-indigo-500 hover:underline shrink-0"
             >
               Select all
             </button>
@@ -1040,14 +1042,14 @@ function TargetAudience({ targetAll, targetSelections, onChange }) {
 
               return (
                 <div key={s.school} className="rounded-lg overflow-hidden">
-                  <div className="flex items-center gap-2.5 px-1 py-1.5 text-[13px] text-slate-700 hover:bg-slate-50 rounded-lg transition-colors">
+                  <div className="flex items-center gap-2 sm:gap-2.5 px-1 py-1.5 text-[12.5px] sm:text-[13px] text-slate-700 hover:bg-slate-50 rounded-lg transition-colors">
                     <SchoolCheckbox
                       checked={fully}
                       indeterminate={partial}
                       onChange={() => toggleSchool(s)}
                     />
                     <span
-                      className="flex-1 cursor-pointer"
+                      className="flex-1 cursor-pointer min-w-0 break-words"
                       onClick={() => toggleSchool(s)}
                     >
                       {s.school}
@@ -1089,7 +1091,7 @@ function TargetAudience({ targetAll, targetSelections, onChange }) {
                       every course is picked, dash/indeterminate when
                       only some are). */}
                   {isExpanded && departments.length > 0 && (
-                    <div className="ml-8 mb-1.5 pl-3 border-l-2 border-slate-100 space-y-2">
+                    <div className="ml-6 sm:ml-8 mb-1.5 pl-3 border-l-2 border-slate-100 space-y-2">
                       {departments.map((dept) => (
                         <div key={dept.name}>
                           <div className="text-[11px] font-bold text-slate-500 mb-1">
@@ -1105,7 +1107,7 @@ function TargetAudience({ targetAll, targetSelections, onChange }) {
                                   type="checkbox"
                                   checked={selectedCourses.includes(c)}
                                   onChange={() => toggleCourse(s.school, c)}
-                                  className="w-3.5 h-3.5 accent-indigo-500"
+                                  className="w-3.5 h-3.5 accent-indigo-500 shrink-0"
                                 />
                                 <span className="text-[11.5px] text-slate-600">
                                   {c}

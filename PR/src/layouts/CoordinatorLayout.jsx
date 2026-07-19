@@ -98,35 +98,35 @@ function CoordinatorLayout() {
 
   return (
     <div
-      className="min-h-screen bg-background"
+      className="min-h-screen bg-background overflow-x-hidden"
       style={{ fontFamily: "Inter, sans-serif" }}
     >
       {/* ── Navbar ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-white/80 backdrop-blur border-b border-[#CBD5E1] px-6 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-[0_4px_12px_rgba(59,130,246,0.4)]">
+      <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-white/80 backdrop-blur border-b border-[#CBD5E1] px-3 sm:px-6 flex items-center justify-between gap-2">
+        <Link to="/" className="flex items-center gap-2 sm:gap-2.5 min-w-0 shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shadow-[0_4px_12px_rgba(59,130,246,0.4)] shrink-0">
             <Sparkles size={14} className="text-white" />
           </div>
           <span
-            className="text-lg font-bold"
+            className="text-base sm:text-lg font-bold whitespace-nowrap"
             style={{ fontFamily: "Space Grotesk, sans-serif" }}
           >
             <span className="text-[#1E293B]">Place</span>
             <span className="text-primary">Rise</span>
           </span>
-          <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-semibold bg-[#1E293B] text-white">
+          <span className="hidden sm:inline-block ml-1 sm:ml-2 px-2 py-0.5 rounded-full text-xs font-semibold bg-[#1E293B] text-white whitespace-nowrap">
             Coordinator
           </span>
         </Link>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1 sm:gap-3 shrink-0">
           {/* Notification Bell */}
           <div className="relative">
             <button
               onClick={handleBellClick}
-              className="relative w-9 h-9 rounded-xl bg-[#F1F5F9] hover:bg-[#E2E8F0] flex items-center justify-center transition-colors"
+              className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#F1F5F9] hover:bg-[#E2E8F0] flex items-center justify-center transition-colors shrink-0"
             >
-              <Bell size={16} className="text-[#64748B]" />
+              <Bell size={15} className="text-[#64748B]" />
               {unreadCount > 0 && (
                 <span className="absolute top-1 right-1 w-4 h-4 bg-[#EF4444] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                   {unreadCount > 9 ? "9+" : unreadCount}
@@ -135,7 +135,7 @@ function CoordinatorLayout() {
             </button>
             {/* Notification Dropdown */}
             {showNotifs && (
-              <div className="absolute right-0 top-11 w-80 bg-white rounded-2xl shadow-xl border border-[#E2E8F0] z-50 overflow-hidden">
+              <div className="absolute right-0 top-11 w-[calc(100vw-1.5rem)] max-w-80 sm:w-80 bg-white rounded-2xl shadow-xl border border-[#E2E8F0] z-50 overflow-hidden">
                 <div className="px-4 py-3 border-b border-[#F1F5F9] flex items-center justify-between">
                   <p className="text-sm font-bold text-[#1E293B]">
                     Notifications
@@ -175,22 +175,22 @@ function CoordinatorLayout() {
             )}
           </div>
 
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold shrink-0">
               {initials}
             </div>
-            <div className="hidden md:block">
-              <p className="text-sm font-medium text-[#1E293B] leading-none">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-[#1E293B] leading-none truncate max-w-[130px] sm:max-w-[180px]">
                 {coordinator.name || "Coordinator"}
               </p>
-              <p className="text-xs text-text-muted mt-0.5">
+              <p className="text-[10px] sm:text-xs text-text-muted mt-0.5 hidden sm:block">
                 Placement Coordinator
               </p>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-text-muted hover:text-danger hover:bg-red-50 transition-colors"
+            className="flex items-center gap-1.5 px-1.5 sm:px-3 py-1.5 rounded-xl text-xs font-medium text-text-muted hover:text-danger hover:bg-red-50 transition-colors shrink-0"
           >
             <LogOut size={14} />
             <span className="hidden md:block">Logout</span>
@@ -199,7 +199,7 @@ function CoordinatorLayout() {
       </nav>
 
       {/* ── Body ── */}
-      <div className="flex pt-16">
+      <div className="pt-16">
         {/* ── Sidebar — hover to expand, pushes content ── */}
         <aside
           onMouseEnter={() => setExpanded(true)}
@@ -326,7 +326,7 @@ function CoordinatorLayout() {
 
         {/* ── Main Content — shrinks/expands with sidebar ── */}
         <main
-          className={`flex-1 min-h-screen p-6 transition-all duration-300 ease-in-out ${expanded ? "ml-60" : "ml-15"}`}
+          className={`min-h-screen p-3 sm:p-6 transition-all duration-300 ease-in-out ${expanded ? "ml-60" : "ml-15"}`}
         >
           <Outlet />
         </main>

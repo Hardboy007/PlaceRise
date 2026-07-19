@@ -127,7 +127,7 @@ function PasswordModal({ onClose, onSave }) {
       }}
     >
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md border border-[#E2E8F0]">
-        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-background">
+        <div className="flex items-center justify-between px-4 sm:px-6 pt-6 pb-4 border-b border-background">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
               <Lock size={16} className="text-primary" />
@@ -149,7 +149,7 @@ function PasswordModal({ onClose, onSave }) {
           </button>
         </div>
 
-        <div className="p-6 flex flex-col gap-4">
+        <div className="p-4 sm:p-6 flex flex-col gap-4">
           {[
             { label: "Current Password", name: "current" },
             { label: "New Password", name: "newPass" },
@@ -211,7 +211,7 @@ function PasswordModal({ onClose, onSave }) {
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-3 px-6 pb-6">
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 px-4 sm:px-6 pb-6">
           <button
             onClick={onClose}
             className="px-5 py-2.5 rounded-xl text-sm font-semibold text-text-muted hover:bg-background transition-colors"
@@ -220,7 +220,7 @@ function PasswordModal({ onClose, onSave }) {
           </button>
           <button
             onClick={handleSubmit}
-            className="flex items-center gap-2 bg-[#1E293B] hover:bg-primary text-white text-sm font-semibold px-6 py-2.5 rounded-xl shadow-md transition-colors"
+            className="flex items-center justify-center gap-2 bg-[#1E293B] hover:bg-primary text-white text-sm font-semibold px-6 py-2.5 rounded-xl shadow-md transition-colors"
           >
             <Key size={14} /> Update Password
           </button>
@@ -231,19 +231,19 @@ function PasswordModal({ onClose, onSave }) {
 }
 function Field({ label, name, icon: Icon, editing, value, onChange }) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1 min-w-0">
       <span className="text-xs font-semibold uppercase tracking-widest text-text-muted flex items-center gap-1.5">
-        <Icon size={11} /> {label}
+        <Icon size={11} className="shrink-0" /> {label}
       </span>
       {editing ? (
         <input
           name={name}
           value={value || ""}
           onChange={onChange}
-          className="w-full px-3 py-2 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] bg-[#F8FAFC] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+          className="w-full min-w-0 px-3 py-2 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] bg-[#F8FAFC] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
         />
       ) : (
-        <span className="text-sm font-medium text-[#1E293B]">
+        <span className="text-sm font-medium text-[#1E293B] break-words">
           {value || "—"}
         </span>
       )}
@@ -433,7 +433,7 @@ export default function CoordinatorProfile() {
                          radial-gradient(circle at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 40%)`,
           }}
         />
-        <div className="relative z-10 p-8 flex flex-wrap items-center gap-6">
+        <div className="relative z-10 p-5 sm:p-8 flex flex-col sm:flex-row items-center sm:items-center gap-3 sm:gap-6 text-center sm:text-left">
           <div
             className="w-20 h-20 rounded-full shrink-0"
             style={{
@@ -449,38 +449,38 @@ export default function CoordinatorProfile() {
             </div>
           </div>
 
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 w-full flex flex-col items-center sm:items-start">
             <h1
-              className="text-2xl font-bold text-white mb-1"
+              className="text-xl sm:text-2xl font-bold text-white mb-1 break-words px-2 sm:px-0"
               style={{ fontFamily: "Space Grotesk, sans-serif" }}
             >
               {displayData.name}
             </h1>
-            <p className="text-sm text-white/70 mb-3">
+            <p className="text-sm text-white/70 mb-3 break-words px-2 sm:px-0">
               {displayData.designation} · {displayData.department}
             </p>
-            <div className="flex flex-wrap gap-2">
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30">
+            <div className="flex flex-wrap justify-center sm:justify-start gap-2 max-w-full">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30 max-w-full break-words">
                 {displayData.college}
               </span>
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30 whitespace-nowrap">
                 Since {displayData.activeSince}
               </span>
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 shrink-0">
+          <div className="flex flex-col gap-2 shrink-0 w-full sm:w-auto mt-1 sm:mt-0">
             {editing ? (
               <>
                 <button
                   onClick={handleSave}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-primary hover:bg-white/90 text-sm font-semibold transition-colors shadow-md"
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 rounded-xl bg-white text-primary hover:bg-white/90 text-sm font-semibold transition-colors shadow-md w-full sm:w-auto"
                 >
                   <Check size={14} /> Save Changes
                 </button>
                 <button
                   onClick={handleCancel}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white text-sm font-medium transition-colors border border-white/20"
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white text-sm font-medium transition-colors border border-white/20 w-full sm:w-auto"
                 >
                   <X size={14} /> Cancel
                 </button>
@@ -488,7 +488,7 @@ export default function CoordinatorProfile() {
             ) : (
               <button
                 onClick={handleEdit}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-primary hover:bg-white/90 text-sm font-semibold transition-colors shadow-md"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 rounded-xl bg-white text-primary hover:bg-white/90 text-sm font-semibold transition-colors shadow-md w-full sm:w-auto"
               >
                 <Edit3 size={14} /> Edit Profile
               </button>
@@ -503,7 +503,7 @@ export default function CoordinatorProfile() {
       </div>
 
       {/* Stats Strip */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
         {[
           {
             label: "Total Drives",
@@ -540,7 +540,7 @@ export default function CoordinatorProfile() {
         ].map((stat) => (
           <div
             key={stat.label}
-            className={`bg-white rounded-2xl border border-[#E2E8F0] border-t-2 ${stat.color} p-4 shadow-sm`}
+            className={`bg-white rounded-2xl border border-[#E2E8F0] border-t-2 ${stat.color} p-3 sm:p-4 shadow-sm`}
           >
             <div
               className={`w-8 h-8 rounded-lg ${stat.bg} flex items-center justify-center mb-3`}
@@ -548,12 +548,12 @@ export default function CoordinatorProfile() {
               <stat.icon size={16} className={stat.iconColor} />
             </div>
             <p
-              className="text-xl font-bold text-[#1E293B]"
+              className="text-lg sm:text-xl font-bold text-[#1E293B]"
               style={{ fontFamily: "Space Grotesk, sans-serif" }}
             >
               {stat.value}
             </p>
-            <p className="text-xs uppercase tracking-widest text-text-muted mt-1">
+            <p className="text-[10px] sm:text-xs uppercase tracking-widest text-text-muted mt-1">
               {stat.label}
             </p>
           </div>
@@ -561,7 +561,7 @@ export default function CoordinatorProfile() {
       </div>
 
       {/* Profile Details */}
-      <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-primary p-6 shadow-sm mb-5">
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-primary p-4 sm:p-6 shadow-sm mb-5">
         <div className="flex items-center gap-2 mb-5 pb-4 border-b border-background">
           <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
             <Users size={14} className="text-primary" />
@@ -573,7 +573,7 @@ export default function CoordinatorProfile() {
             Profile Information
           </h3>
         </div>
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <Field
             label="Full Name"
             name="name"
@@ -622,7 +622,7 @@ export default function CoordinatorProfile() {
             value={displayData.activeSince}
             onChange={handleChange}
           />
-          <div className="col-span-2">
+          <div className="col-span-1 sm:col-span-2">
             <Field
               label="College"
               name="college"
@@ -636,7 +636,7 @@ export default function CoordinatorProfile() {
       </div>
 
       {/* Quick Links */}
-      <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-sm mb-5">
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 sm:p-5 shadow-sm mb-5">
         <h3
           className="text-sm font-bold text-[#1E293B] mb-4"
           style={{ fontFamily: "Space Grotesk, sans-serif" }}
@@ -664,7 +664,7 @@ export default function CoordinatorProfile() {
             <button
               key={link.label}
               onClick={() => navigate(link.route)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-background text-[#1E293B] hover:bg-[#E2E8F0] border border-[#CBD5E1] transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-background text-[#1E293B] hover:bg-[#E2E8F0] border border-[#CBD5E1] transition-colors w-full sm:w-auto justify-center sm:justify-start"
             >
               <link.icon size={14} />
               {link.label}
@@ -675,7 +675,7 @@ export default function CoordinatorProfile() {
       </div>
 
       {/* Activity Log */}
-      <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-success p-5 shadow-sm mb-5">
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-success p-4 sm:p-5 shadow-sm mb-5">
         <div className="flex items-center gap-2 mb-4 pb-3 border-b border-background">
           <div className="w-7 h-7 rounded-lg bg-green-50 flex items-center justify-center">
             <TrendingUp size={14} className="text-success" />
@@ -696,10 +696,10 @@ export default function CoordinatorProfile() {
             activityLog.map((log, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]"
               >
                 <p className="text-sm text-[#1E293B]">{log.action}</p>
-                <span className="text-xs text-text-muted shrink-0 ml-4">
+                <span className="text-xs text-text-muted shrink-0 sm:ml-4">
                   {log.time}
                 </span>
               </div>
@@ -719,7 +719,7 @@ export default function CoordinatorProfile() {
 
       {/* Security */}
       <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm mb-5">
-        <div className="flex items-center gap-3 px-6 pt-6 pb-4 border-b border-background">
+        <div className="flex items-center gap-3 px-4 sm:px-6 pt-6 pb-4 border-b border-background">
           <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
             <Shield size={15} className="text-primary" />
           </div>
@@ -730,10 +730,10 @@ export default function CoordinatorProfile() {
             </p>
           </div>
         </div>
-        <div className="p-6">
-          <div className="flex items-center justify-between bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-5 py-4">
+        <div className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 sm:px-5 py-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0">
                 <Shield size={16} className="text-success" />
               </div>
               <div>
@@ -745,7 +745,7 @@ export default function CoordinatorProfile() {
             </div>
             <button
               onClick={() => setShowPassModal(true)}
-              className="flex items-center gap-2 bg-[#1E293B] hover:bg-primary text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors"
+              className="flex items-center justify-center gap-2 bg-[#1E293B] hover:bg-primary text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors w-full sm:w-auto"
             >
               <Key size={13} /> Change Password
             </button>
@@ -755,7 +755,7 @@ export default function CoordinatorProfile() {
 
       {/* Signature Upload */}
       <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm mb-5">
-        <div className="flex items-center gap-3 px-6 pt-6 pb-4 border-b border-background">
+        <div className="flex items-center gap-3 px-4 sm:px-6 pt-6 pb-4 border-b border-background">
           <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
             <FileText size={15} className="text-primary" />
           </div>
@@ -768,9 +768,9 @@ export default function CoordinatorProfile() {
             </p>
           </div>
         </div>
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {signatureUrl ? (
-            <div className="flex items-center gap-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4">
+            <div className="flex flex-col sm:flex-row items-center gap-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4 text-center sm:text-left">
               <img
                 src={signatureUrl}
                 alt="Signature"
@@ -793,14 +793,14 @@ export default function CoordinatorProfile() {
             </div>
           ) : (
             <label
-              className={`flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed cursor-pointer transition-all
+              className={`flex flex-col items-center justify-center p-6 sm:p-8 rounded-2xl border-2 border-dashed cursor-pointer transition-all
         ${signatureUploading ? "border-[#CBD5E1] opacity-50" : "border-primary bg-blue-50/50 hover:bg-blue-50"}`}
             >
               <FileText size={28} className="text-primary mb-2" />
-              <p className="text-sm font-medium text-[#1E293B]">
+              <p className="text-sm font-medium text-[#1E293B] text-center">
                 {signatureUploading ? "Uploading..." : "Upload your signature"}
               </p>
-              <p className="text-xs text-text-muted mt-1">
+              <p className="text-xs text-text-muted mt-1 text-center">
                 PNG or JPG — white background recommended
               </p>
               <input
@@ -817,9 +817,9 @@ export default function CoordinatorProfile() {
       
       {/* Notifications */}
       <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm mb-6">
-        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-background">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 sm:px-6 pt-6 pb-4 border-b border-background">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
               <Bell size={15} className="text-warning" />
             </div>
             <div>
@@ -831,7 +831,7 @@ export default function CoordinatorProfile() {
               </p>
             </div>
           </div>
-          <span className="text-xs font-bold text-primary bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-lg">
+          <span className="text-xs font-bold text-primary bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-lg self-start sm:self-auto">
             {Object.values(toggles).filter(Boolean).length} Active
           </span>
         </div>
@@ -839,9 +839,9 @@ export default function CoordinatorProfile() {
           {notificationOptions.map(({ key, label, desc, color }) => (
             <div
               key={key}
-              className="flex items-center justify-between px-6 py-4 hover:bg-[#F8FAFC] transition-colors"
+              className="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 hover:bg-[#F8FAFC] transition-colors"
             >
-              <div>
+              <div className="min-w-0">
                 <p
                   className={`text-sm font-semibold ${toggles[key] ? "text-[#1E293B]" : "text-[#94A3B8]"}`}
                 >
@@ -857,10 +857,10 @@ export default function CoordinatorProfile() {
             </div>
           ))}
         </div>
-        <div className="px-6 py-4 border-t border-background">
+        <div className="px-4 sm:px-6 py-4 border-t border-background">
           <button
             onClick={handleSaveNotifications}
-            className="flex items-center gap-2 bg-[#1E293B] hover:bg-primary text-white text-sm font-semibold px-6 py-2.5 rounded-xl shadow-md transition-colors"
+            className="flex items-center justify-center gap-2 bg-[#1E293B] hover:bg-primary text-white text-sm font-semibold px-6 py-2.5 rounded-xl shadow-md transition-colors w-full sm:w-auto"
           >
             {notifSaved ? (
               <>

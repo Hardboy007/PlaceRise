@@ -56,16 +56,44 @@ const emptyJD = {
   selectionProcess: [],
 };
 
+// FIXED: days-left counting now matches the Calendar / Coordinator Profile
+// pages exactly. Previously this compared the raw deadline timestamp
+// against `new Date()` (the current moment, including hours/minutes) using
+// Math.ceil — so a deadline of "19 July 23:59" checked at, say, 3pm on the
+// 19th would round UP to "1d left" instead of showing it's actually the
+// last day. Both dates are now normalized to local midnight first, so the
+// result is a clean whole-day difference: 0 means "the deadline is today"
+// (rendered as "Today · Last day" wherever this is displayed, same as the
+// Calendar/Profile pages), and counting effectively starts from tomorrow —
+// a deadline of tomorrow shows "1d left", not "0d left" just because it's
+// less than 24 hours away by the clock.
 const daysLeft = (lastDate) => {
   if (!lastDate) return null;
   const d = new Date(lastDate);
   if (isNaN(d.getTime())) return null;
-  return Math.ceil((d - new Date()) / (1000 * 60 * 60 * 24));
+  const today = new Date();
+  const todayMid = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  );
+  const deadlineMid = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  return Math.round((deadlineMid - todayMid) / (1000 * 60 * 60 * 24));
 };
 
 const isExpired = (lastDate) => {
   const d = daysLeft(lastDate);
   return d !== null && d < 0;
+};
+
+// Shared "Xd left" / "Today · Last day" / "Closed" label, so every place
+// this page shows a deadline countdown reads the same way as the Calendar
+// and Coordinator Profile pages.
+const daysLeftLabel = (days) => {
+  if (days === null) return "";
+  if (days < 0) return "Closed";
+  if (days === 0) return "Today · Last day";
+  return `${days}d left`;
 };
 
 // FIXED: plain `.toLocaleDateString()` (no locale arg) renders mm/dd/yyyy
@@ -267,10 +295,10 @@ function BranchSelectorModal({ selected, onChange }) {
             style={{ maxHeight: "85vh" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-5 border-b border-[#F1F5F9] flex-shrink-0">
+            <div className="p-4 sm:p-5 border-b border-[#F1F5F9] flex-shrink-0">
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
                     <GraduationCap size={14} className="text-[#3B82F6]" />
                   </div>
                   <div>
@@ -409,7 +437,7 @@ function BranchSelectorModal({ selected, onChange }) {
                                     {dept.courses.length} courses
                                   </span>
                                 </div>
-                                <div className="grid grid-cols-2 gap-1 pl-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 pl-6">
                                   {dept.courses.map((course) => (
                                     <label
                                       key={course}
@@ -438,7 +466,7 @@ function BranchSelectorModal({ selected, onChange }) {
               )}
             </div>
 
-            <div className="flex items-center justify-between px-5 py-4 border-t border-[#F1F5F9] flex-shrink-0">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 px-4 sm:px-5 py-4 border-t border-[#F1F5F9] flex-shrink-0">
               <div className="text-xs text-[#64748B]">
                 <span className="font-bold text-[#1E293B]">
                   {tempSel.length}
@@ -536,7 +564,7 @@ function Field({ label, required, optional, error, children }) {
 function JDFields({ form, setForm, errors }) {
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Role / Position" required error={errors.role}>
           <input
             value={form.role}
@@ -556,7 +584,7 @@ function JDFields({ form, setForm, errors }) {
         </Field>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Job Type">
           <select
             value={form.jobType}
@@ -720,6 +748,12 @@ export default function CompanyManagementPage() {
     ({ job }) => job?.jobType === "Internship",
   ).length;
 
+  // "Closing Soon" now counts a deadline that's exactly today too (days
+  // === 0, shown elsewhere as "Today · Last day") — it used to require
+  // days >= 0 which already covered this, but with the old Math.ceil
+  // logic "today" could read as 0 OR 1 depending on the time of day. With
+  // the normalized-midnight daysLeft() this is now a reliable same-day
+  // check across the whole page.
   const urgent = merged.filter(({ job }) => {
     if (!job) return false;
     const d = daysLeft(job.lastDate);
@@ -929,12 +963,12 @@ export default function CompanyManagementPage() {
 
   return (
     <div
-      className="max-w-6xl mx-auto px-1"
+      className="max-w-6xl mx-auto px-1 sm:px-1"
       style={{ fontFamily: "Inter, sans-serif" }}
     >
       {/* ══ HERO ══ */}
       <div
-        className="relative rounded-2xl overflow-hidden mb-6 p-6"
+        className="relative rounded-2xl overflow-hidden mb-6 p-4 sm:p-6"
         style={{
           background:
             "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
@@ -955,7 +989,7 @@ export default function CompanyManagementPage() {
           }}
         />
 
-        <div className="relative flex items-start justify-between gap-4 mb-6">
+        <div className="relative flex flex-col sm:flex-row items-start sm:items-start justify-between gap-4 mb-6">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center">
@@ -966,7 +1000,7 @@ export default function CompanyManagementPage() {
               </span>
             </div>
             <h1
-              className="text-2xl font-bold text-white"
+              className="text-xl sm:text-2xl font-bold text-white"
               style={{ fontFamily: "Space Grotesk, sans-serif" }}
             >
               Company Management
@@ -977,13 +1011,13 @@ export default function CompanyManagementPage() {
           </div>
           <button
             onClick={openAddCompany}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[#1D4ED8] text-sm font-bold hover:bg-blue-50 transition-colors shadow-lg shrink-0 mt-1"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[#1D4ED8] text-sm font-bold hover:bg-blue-50 transition-colors shadow-lg shrink-0 mt-1 w-full sm:w-auto justify-center"
           >
             <Plus size={15} /> Add Company
           </button>
         </div>
 
-        <div className="relative grid grid-cols-4 gap-3">
+        <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           {[
             {
               label: "Total Companies",
@@ -1001,7 +1035,7 @@ export default function CompanyManagementPage() {
           ].map(({ label, value, icon: Icon, highlight }) => (
             <div
               key={label}
-              className="rounded-xl px-4 py-3 border border-white/10"
+              className="rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 border border-white/10"
               style={{
                 background: highlight
                   ? "rgba(239,68,68,0.25)"
@@ -1009,13 +1043,13 @@ export default function CompanyManagementPage() {
               }}
             >
               <div className="flex items-center gap-1.5 mb-1">
-                <Icon size={12} className="text-white/60" />
-                <span className="text-white/55 text-[10px] font-semibold uppercase tracking-wider">
+                <Icon size={12} className="text-white/60 flex-shrink-0" />
+                <span className="text-white/55 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider truncate">
                   {label}
                 </span>
               </div>
               <p
-                className="text-white text-2xl font-bold leading-none"
+                className="text-white text-lg sm:text-2xl font-bold leading-none"
                 style={{ fontFamily: "Space Grotesk, sans-serif" }}
               >
                 {value}
@@ -1026,7 +1060,7 @@ export default function CompanyManagementPage() {
       </div>
 
       {/* ── Search + Filter ── */}
-      <div className="flex items-center gap-3 mb-5">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-5">
         <div className="flex-1 relative">
           <Search
             size={15}
@@ -1039,12 +1073,12 @@ export default function CompanyManagementPage() {
             className="w-full pl-9 pr-4 py-2.5 text-sm border border-[#E2E8F0] rounded-xl bg-white focus:outline-none focus:border-primary transition-colors text-[#1E293B] placeholder:text-[#94A3B8]"
           />
         </div>
-        <div className="flex items-center gap-2 bg-white border border-[#E2E8F0] rounded-xl p-1">
+        <div className="flex items-center gap-2 bg-white border border-[#E2E8F0] rounded-xl p-1 overflow-x-auto">
           {["All", "Active", "Closed"].map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${filter === f ? "bg-primary text-white" : "text-text-muted hover:text-[#1E293B]"}`}
+              className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${filter === f ? "bg-primary text-white" : "text-text-muted hover:text-[#1E293B]"}`}
             >
               {f}
             </button>
@@ -1068,9 +1102,9 @@ export default function CompanyManagementPage() {
             return (
               <div
                 key={company._id}
-                className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-primary p-5 shadow-sm hover:shadow-md transition-all"
+                className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-primary p-4 sm:p-5 shadow-sm hover:shadow-md transition-all"
               >
-                <div className="flex items-start gap-4">
+                <div className="flex flex-col sm:flex-row items-start gap-4">
                   <CompanyLogo
                     name={company.name}
                     website={company.website}
@@ -1122,8 +1156,8 @@ export default function CompanyManagementPage() {
                           <Calendar size={11} />
                           {formatDDMMYYYY(job.lastDate)}
                           {isUrgent && (
-                            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-200 text-[10px] font-bold">
-                              {days}d left
+                            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-200 text-[10px] font-bold whitespace-nowrap">
+                              {daysLeftLabel(days)}
                             </span>
                           )}
                         </span>
@@ -1153,7 +1187,7 @@ export default function CompanyManagementPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap sm:flex-shrink-0 w-full sm:w-auto">
                     <button
                       onClick={() => {
                         setViewingCompany({ company, job });
@@ -1202,7 +1236,7 @@ export default function CompanyManagementPage() {
             className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between p-5 border-b border-[#F1F5F9]">
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[#F1F5F9]">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
                   <Eye size={15} className="text-purple-500" />
@@ -1227,7 +1261,7 @@ export default function CompanyManagementPage() {
               </button>
             </div>
 
-            <div className="p-5 flex flex-col gap-5">
+            <div className="p-4 sm:p-5 flex flex-col gap-5">
               <div>
                 <div className="flex items-center gap-3 mb-3">
                   <CompanyLogo
@@ -1273,7 +1307,7 @@ export default function CompanyManagementPage() {
                     <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-3">
                       Job Details
                     </p>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]">
                         <p className="text-[10px] text-[#94A3B8] mb-1">Role</p>
                         <p className="text-xs font-semibold text-[#1E293B]">
@@ -1300,9 +1334,18 @@ export default function CompanyManagementPage() {
                             Last Date
                           </p>
                           <p
-                            className={`text-xs font-semibold ${(daysLeft(viewingCompany.job.lastDate) ?? 999) <= 7 ? "text-red-500" : "text-[#1E293B]"}`}
+                            className={`text-xs font-semibold flex items-center gap-1.5 flex-wrap ${(daysLeft(viewingCompany.job.lastDate) ?? 999) <= 7 ? "text-red-500" : "text-[#1E293B]"}`}
                           >
                             {formatDDMMYYYY(viewingCompany.job.lastDate)}
+                            {(() => {
+                              const d = daysLeft(viewingCompany.job.lastDate);
+                              if (d === null || d < 0) return null;
+                              return (
+                                <span className="px-1.5 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-200 text-[10px] font-bold whitespace-nowrap">
+                                  {daysLeftLabel(d)}
+                                </span>
+                              );
+                            })()}
                           </p>
                         </div>
                       )}
@@ -1428,7 +1471,7 @@ export default function CompanyManagementPage() {
               )}
             </div>
 
-            <div className="flex items-center justify-between gap-3 p-5 border-t border-[#F1F5F9]">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 sm:p-5 border-t border-[#F1F5F9]">
               <button
                 onClick={() => {
                   setShowViewModal(false);
@@ -1482,14 +1525,14 @@ export default function CompanyManagementPage() {
             className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between p-5 border-b border-[#F1F5F9]">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[#F1F5F9] gap-2">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
                   <Building2 size={15} className="text-[#3B82F6]" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h2
-                    className="text-sm font-bold text-[#1E293B]"
+                    className="text-sm font-bold text-[#1E293B] truncate"
                     style={{ fontFamily: "Space Grotesk, sans-serif" }}
                   >
                     {addStep === 1
@@ -1498,13 +1541,13 @@ export default function CompanyManagementPage() {
                         : "Add New Company"
                       : "Post Job Description"}
                   </h2>
-                  <p className="text-xs text-[#94A3B8] mt-0.5">
+                  <p className="text-xs text-[#94A3B8] mt-0.5 truncate">
                     Step {addStep} of 2 —{" "}
                     {addStep === 1 ? "Company Info" : "JD Details (optional)"}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 mr-3">
+              <div className="hidden sm:flex items-center gap-2 mr-3 flex-shrink-0">
                 <div
                   className={`w-6 h-6 rounded-full text-[10px] font-bold flex items-center justify-center ${addStep === 1 ? "bg-[#3B82F6] text-white" : "bg-green-500 text-white"}`}
                 >
@@ -1519,13 +1562,13 @@ export default function CompanyManagementPage() {
               </div>
               <button
                 onClick={() => setShowCompanyModal(false)}
-                className="w-7 h-7 rounded-lg bg-[#F1F5F9] flex items-center justify-center hover:bg-[#E2E8F0] transition-colors"
+                className="w-7 h-7 rounded-lg bg-[#F1F5F9] flex items-center justify-center hover:bg-[#E2E8F0] transition-colors flex-shrink-0"
               >
                 <X size={14} className="text-[#64748B]" />
               </button>
             </div>
 
-            <div className="p-5 flex flex-col gap-4">
+            <div className="p-4 sm:p-5 flex flex-col gap-4">
               {addStep === 1 && (
                 <>
                   <Field
@@ -1637,7 +1680,7 @@ export default function CompanyManagementPage() {
               )}
             </div>
 
-            <div className="flex items-center justify-between gap-3 p-5 border-t border-[#F1F5F9]">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 sm:p-5 border-t border-[#F1F5F9]">
               {addStep === 1 && (
                 <>
                   <button
@@ -1646,7 +1689,7 @@ export default function CompanyManagementPage() {
                   >
                     Cancel
                   </button>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                     {createdCompanyId && (
                       <button
                         onClick={async () => {
@@ -1685,7 +1728,7 @@ export default function CompanyManagementPage() {
                   >
                     <ChevronLeft size={14} /> Back
                   </button>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                     <button
                       onClick={saveCompanyOnly}
                       className="px-4 py-2 rounded-xl border border-[#E2E8F0] text-sm font-medium text-[#64748B] hover:bg-[#F8FAFC] transition-colors"
@@ -1716,7 +1759,7 @@ export default function CompanyManagementPage() {
             className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between p-5 border-b border-[#F1F5F9]">
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[#F1F5F9]">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
                   <FileText size={15} className="text-[#3B82F6]" />
@@ -1740,7 +1783,7 @@ export default function CompanyManagementPage() {
                 <X size={14} className="text-[#64748B]" />
               </button>
             </div>
-            <div className="p-5">
+            <div className="p-4 sm:p-5">
               <JDFields form={jdForm} setForm={setJdForm} errors={jdErrors} />
 
               {jdTargetJob && (
@@ -1784,7 +1827,7 @@ export default function CompanyManagementPage() {
                 </div>
               )}
             </div>
-            <div className="flex items-center justify-end gap-3 p-5 border-t border-[#F1F5F9]">
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 p-4 sm:p-5 border-t border-[#F1F5F9]">
               <button
                 onClick={() => setShowJDModal(false)}
                 className="px-4 py-2 rounded-xl border border-[#E2E8F0] text-sm font-medium text-[#64748B] hover:bg-[#F8FAFC] transition-colors"
