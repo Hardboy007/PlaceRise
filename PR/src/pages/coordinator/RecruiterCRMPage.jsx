@@ -175,10 +175,10 @@ function POCModal({ poc, onClose, onSave }) {
       }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col">
         {/* Header */}
         <div
-          className="px-6 py-5 border-b border-background flex items-center justify-between"
+          className="px-4 sm:px-6 py-4 sm:py-5 border-b border-background flex items-center justify-between"
           style={{
             background: "linear-gradient(135deg, #1E293B 0%, #3B82F6 100%)",
           }}
@@ -202,8 +202,8 @@ function POCModal({ poc, onClose, onSave }) {
           </button>
         </div>
 
-        <div className="p-6 flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-4">
+        <div className="p-4 sm:p-6 flex flex-col gap-4 overflow-y-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-semibold text-text-muted uppercase tracking-widest block mb-1.5">
                 Company Name <span className="text-red-400">*</span>
@@ -230,7 +230,7 @@ function POCModal({ poc, onClose, onSave }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-semibold text-text-muted uppercase tracking-widest block mb-1.5">
                 Managed By
@@ -260,7 +260,7 @@ function POCModal({ poc, onClose, onSave }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-semibold text-text-muted uppercase tracking-widest block mb-1.5">
                 Email
@@ -414,7 +414,7 @@ export default function RecruiterCRMPage() {
     >
       {/* Hero */}
       <div
-        className="relative rounded-3xl overflow-hidden mb-6 p-6"
+        className="relative rounded-3xl overflow-hidden mb-6 p-4 sm:p-6"
         style={{
           background:
             "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
@@ -434,7 +434,7 @@ export default function RecruiterCRMPage() {
             transform: "translate(-30%,40%)",
           }}
         />
-        <div className="relative flex items-start justify-between gap-4 mb-6">
+        <div className="relative flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center">
@@ -445,7 +445,7 @@ export default function RecruiterCRMPage() {
               </span>
             </div>
             <h1
-              className="text-2xl font-bold text-white"
+              className="text-xl sm:text-2xl font-bold text-white"
               style={{ fontFamily: "Space Grotesk, sans-serif" }}
             >
               Point of Contact Manager
@@ -454,10 +454,10 @@ export default function RecruiterCRMPage() {
               Track recruiter interactions, contacts, and engagement status
             </p>
           </div>
-          <div className="flex items-center gap-2 shrink-0 mt-1">
+          <div className="flex items-center gap-2 shrink-0 mt-1 flex-wrap w-full sm:w-auto">
             <button
               onClick={exportAll}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/15 text-white border border-white/25 text-sm font-semibold hover:bg-white/25 transition-colors"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/15 text-white border border-white/25 text-sm font-semibold hover:bg-white/25 transition-colors flex-1 sm:flex-none"
             >
               <Download size={15} /> Export all POCs Excel
             </button>
@@ -466,7 +466,7 @@ export default function RecruiterCRMPage() {
                 setEditingPoc(null);
                 setShowModal(true);
               }}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[#1E293B] text-sm font-bold hover:bg-blue-50 transition-colors shadow-lg"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[#1E293B] text-sm font-bold hover:bg-blue-50 transition-colors shadow-lg flex-1 sm:flex-none"
             >
               <Plus size={15} /> Add POC
             </button>
@@ -474,7 +474,7 @@ export default function RecruiterCRMPage() {
         </div>
 
         {/* Stats */}
-        <div className="relative grid grid-cols-4 gap-3">
+        <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             { label: "Total POCs", value: stats.total, icon: Users },
             { label: "Visited", value: stats.visited, icon: CheckCircle },
@@ -487,7 +487,7 @@ export default function RecruiterCRMPage() {
           ].map(({ label, value, icon: Icon }) => (
             <div
               key={label}
-              className="rounded-xl px-4 py-3 border border-white/10"
+              className="rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 border border-white/10"
               style={{ background: "rgba(255,255,255,0.12)" }}
             >
               <div className="flex items-center gap-1.5 mb-1">
@@ -497,7 +497,7 @@ export default function RecruiterCRMPage() {
                 </span>
               </div>
               <p
-                className="text-white text-2xl font-bold leading-none"
+                className="text-white text-lg sm:text-2xl font-bold leading-none"
                 style={{ fontFamily: "Space Grotesk, sans-serif" }}
               >
                 {value}
@@ -521,7 +521,7 @@ export default function RecruiterCRMPage() {
             className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
           />
         </div>
-        <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-1">
+        <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-1 flex-wrap">
           {["All", ...STATUS_OPTIONS].map((s) => (
             <button
               key={s}
@@ -542,7 +542,7 @@ export default function RecruiterCRMPage() {
       <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm overflow-hidden">
         {/* Header */}
         <div
-          className="grid border-b border-background px-6 py-3"
+          className="hidden sm:grid border-b border-background px-6 py-3"
           style={{
             gridTemplateColumns: "2fr 1.5fr 1.5fr 1.8fr 1fr 1fr 0.5fr",
             backgroundColor: "#F8FAFC",
@@ -568,7 +568,7 @@ export default function RecruiterCRMPage() {
 
         {/* Rows */}
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center py-16 gap-3">
+          <div className="hidden sm:flex flex-col items-center py-16 gap-3">
             <Building2 size={36} className="text-[#CBD5E1]" />
             <p className="text-sm text-text-muted">No POCs found</p>
           </div>
@@ -576,7 +576,7 @@ export default function RecruiterCRMPage() {
           filtered.map((poc, idx) => (
             <div
               key={poc.id}
-              className="grid px-6 py-4 hover:bg-[#F8FAFC] transition-colors border-b border-background last:border-b-0"
+              className="hidden sm:grid px-6 py-4 hover:bg-[#F8FAFC] transition-colors border-b border-background last:border-b-0"
               style={{
                 gridTemplateColumns: "2fr 1.5fr 1.5fr 1.8fr 1fr 1fr 0.5fr",
                 alignItems: "center",
@@ -584,7 +584,11 @@ export default function RecruiterCRMPage() {
             >
               {/* Company */}
               <div className="flex items-center gap-3">
-                <CompanyLogo name={poc.companyName} website={poc.website} size={36} />
+                <CompanyLogo
+                  name={poc.companyName}
+                  website={poc.website}
+                  size={36}
+                />
                 <div>
                   <p className="text-sm font-bold text-[#1E293B]">
                     {poc.companyName}
@@ -708,6 +712,144 @@ export default function RecruiterCRMPage() {
             </div>
           ))
         )}
+        {/* ── Mobile Card List (only below sm breakpoint) ── */}
+        <div className="sm:hidden divide-y divide-background">
+          {filtered.length === 0 ? (
+            <div className="flex flex-col items-center py-16 gap-3">
+              <Building2 size={36} className="text-[#CBD5E1]" />
+              <p className="text-sm text-text-muted">No POCs found</p>
+            </div>
+          ) : (
+            filtered.map((poc) => (
+              <div key={poc.id} className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <CompanyLogo
+                      name={poc.companyName}
+                      website={poc.website}
+                      size={36}
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-[#1E293B] truncate">
+                        {poc.companyName}
+                      </p>
+                      <p className="text-xs text-text-muted truncate">
+                        {poc.pocName}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="relative shrink-0">
+                    <button
+                      onClick={() =>
+                        setOpenMenu(openMenu === poc.id ? null : poc.id)
+                      }
+                      className="hover:opacity-80 transition-opacity"
+                    >
+                      <StatusBadge status={poc.status} />
+                    </button>
+                    {openMenu === poc.id && (
+                      <div className="absolute right-0 top-8 z-20 bg-white rounded-xl border border-[#E2E8F0] shadow-lg py-1 min-w-45">
+                        {STATUS_OPTIONS.map((s) => (
+                          <button
+                            key={s}
+                            onClick={() => handleStatusChange(poc.id, s)}
+                            className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-[#F8FAFC] transition-colors flex items-center gap-2"
+                          >
+                            <span
+                              className="w-2 h-2 rounded-full shrink-0"
+                              style={{ backgroundColor: STATUS_CONFIG[s].dot }}
+                            />
+                            {s}
+                            {poc.status === s && (
+                              <Check
+                                size={11}
+                                className="ml-auto text-primary"
+                              />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {poc.notes && (
+                  <p className="text-xs text-[#94A3B8] mt-2 truncate">
+                    {poc.notes}
+                  </p>
+                )}
+
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3">
+                  <span className="text-xs text-text-muted">
+                    Managed by{" "}
+                    <span className="font-medium text-[#1E293B]">
+                      {poc.managedBy || "—"}
+                    </span>
+                  </span>
+                </div>
+
+                <div className="flex items-center flex-wrap gap-4 mt-2">
+                  {poc.email ? (
+                    showEmailFor === poc.id ? (
+                      <span className="text-xs text-primary font-medium">
+                        {poc.email}
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => setShowEmailFor(poc.id)}
+                        className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
+                      >
+                        <Mail size={12} /> Show Email
+                      </button>
+                    )
+                  ) : (
+                    <span className="text-xs text-[#94A3B8]">No email</span>
+                  )}
+                  {poc.phone ? (
+                    showPhoneFor === poc.id ? (
+                      <span className="text-xs text-primary font-medium">
+                        {poc.phone}
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => setShowPhoneFor(poc.id)}
+                        className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
+                      >
+                        <Phone size={12} /> Show Number
+                      </button>
+                    )
+                  ) : (
+                    <span className="text-xs text-[#94A3B8]">No phone</span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 justify-end mt-3 pt-3 border-t border-background">
+                  <button
+                    onClick={() => exportSingle(poc)}
+                    className="w-8 h-8 rounded-lg bg-background hover:bg-green-50 hover:text-green-600 text-text-muted flex items-center justify-center transition-colors"
+                  >
+                    <Download size={14} />
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingPoc(poc);
+                      setShowModal(true);
+                    }}
+                    className="w-8 h-8 rounded-lg bg-background hover:bg-blue-50 hover:text-primary text-text-muted flex items-center justify-center transition-colors"
+                  >
+                    <Edit3 size={14} />
+                  </button>
+                  <button
+                    onClick={() => setDeleteConfirm(poc.id)}
+                    className="w-8 h-8 rounded-lg bg-background hover:bg-red-50 hover:text-danger text-text-muted flex items-center justify-center transition-colors"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {/* POC Modal */}

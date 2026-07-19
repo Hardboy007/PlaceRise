@@ -130,7 +130,7 @@ function StatPill({ icon: Icon, label, value, tone = "white" }) {
     rose: "bg-rose-400",
   };
   return (
-    <div className="relative flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl pl-5 pr-4 py-3 min-w-37.5 overflow-hidden">
+    <div className="relative flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl pl-3 pr-3 py-2 sm:pl-5 sm:pr-4 sm:py-3 min-w-32.5 sm:min-w-37.5 overflow-hidden">
       <span
         className={`absolute inset-y-0 left-0 w-1 ${TONE_STYLES[tone]}`}
         aria-hidden="true"
@@ -139,7 +139,7 @@ function StatPill({ icon: Icon, label, value, tone = "white" }) {
         <Icon size={18} className="text-white" />
       </div>
       <div>
-        <div className="text-xl font-bold text-white leading-none tracking-tight">
+        <div className="text-lg sm:text-xl font-bold text-white leading-none tracking-tight">
           {value}
         </div>
         <div className="text-xs text-white/70 mt-1 font-medium">{label}</div>
@@ -231,7 +231,7 @@ function ViewModal({ open, request, onClose }) {
   if (!open || !request) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="bg-white rounded-2xl shadow-2xl shadow-gray-900/10 ring-1 ring-gray-100 w-full max-w-lg p-6">
+      <div className="bg-white rounded-2xl shadow-2xl shadow-gray-900/10 ring-1 ring-gray-100 w-full max-w-lg p-4 sm:p-6">
         <div className="flex items-start justify-between mb-4">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
@@ -267,7 +267,7 @@ function ViewModal({ open, request, onClose }) {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-2 gap-3 mb-4 text-sm sm:text-base">
           <div>
             <p className="text-xs text-gray-400 mb-0.5">Student</p>
             <p className="text-sm font-medium text-gray-800">
@@ -354,7 +354,7 @@ function ApproveModal({
   const isReapprove = request?.status === "Rejected";
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="bg-white rounded-2xl shadow-2xl shadow-gray-900/10 ring-1 ring-gray-100 w-full max-w-md p-6">
+      <div className="bg-white rounded-2xl shadow-2xl shadow-gray-900/10 ring-1 ring-gray-100 w-full max-w-md p-4 sm:p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
           {isReapprove ? "Re-approve Request?" : "Approve Request?"}
         </h3>
@@ -382,7 +382,7 @@ function ApproveModal({
           </div>
         )}
 
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3">
           <button
             onClick={onCancel}
             disabled={loading}
@@ -427,7 +427,7 @@ function RejectModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="bg-white rounded-2xl shadow-2xl shadow-gray-900/10 ring-1 ring-gray-100 w-full max-w-md p-6">
+      <div className="bg-white rounded-2xl shadow-2xl shadow-gray-900/10 ring-1 ring-gray-100 w-full max-w-md p-4 sm:p-6">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-lg font-semibold text-gray-900">
             {isRevoke ? "Revoke Approval" : "Reject Request"}
@@ -474,7 +474,7 @@ function RejectModal({
           </div>
         )}
 
-        <div className="flex justify-end gap-3 mt-5">
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 mt-5">
           <button
             onClick={onCancel}
             disabled={loading}
@@ -735,7 +735,7 @@ export default function NOCManagementPage() {
     <div className="max-w-7xl mx-auto">
       {/* Gradient Hero */}
       <div
-        className="relative overflow-hidden rounded-2xl px-6 py-8 mb-6 shadow-lg shadow-blue-900/10"
+        className="relative overflow-hidden rounded-2xl px-4 py-6 sm:px-6 sm:py-8 mb-6 shadow-lg shadow-blue-900/10"
         style={{
           background:
             "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #4F46E5 100%)",
@@ -749,7 +749,7 @@ export default function NOCManagementPage() {
           }}
           aria-hidden="true"
         />
-        <h1 className="relative text-2xl font-bold text-white tracking-tight">
+        <h1 className="relative text-xl sm:text-2xl font-bold text-white tracking-tight">
           NOC / LOR Requests
         </h1>
         <p className="relative text-sm text-white/75 mt-1 mb-5">
@@ -785,7 +785,7 @@ export default function NOCManagementPage() {
         </div>
       </div>
 
-      <div className="px-6 pb-6">
+      <div className="px-4 pb-4 sm:px-6 sm:pb-6">
         {/* School-wise breakdown */}
         {schoolBreakdown.length > 0 && (
           <div className="mb-4">
@@ -840,7 +840,7 @@ export default function NOCManagementPage() {
           ))}
 
           {/* Search by student name or ERP ID */}
-          <div className="relative ml-auto">
+          <div className="relative w-full sm:w-auto sm:ml-auto mt-2 sm:mt-0">
             <Search
               size={15}
               className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
@@ -850,7 +850,7 @@ export default function NOCManagementPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search name or ERP ID..."
-              className="pl-8 pr-7 py-1.5 rounded-lg text-sm bg-white text-gray-700 ring-1 ring-inset ring-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow w-56"
+              className="pl-8 pr-7 py-1.5 rounded-lg text-sm bg-white text-gray-700 ring-1 ring-inset ring-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow w-full sm:w-56"
             />
             {searchQuery && (
               <button
@@ -865,14 +865,14 @@ export default function NOCManagementPage() {
 
           {/* Course dropdown, grouped by school — reads as a refinement
               step after the school pills above, not a duplicate filter */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 w-full sm:w-auto">
             <span className="text-xs font-medium text-gray-400 hidden sm:inline">
               Course:
             </span>
             <select
               value={courseFilter}
               onChange={(e) => setCourseFilter(e.target.value)}
-              className="px-3 py-1.5 rounded-lg text-sm bg-gray-50 text-gray-600 ring-1 ring-inset ring-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+              className="w-full sm:w-auto px-3 py-1.5 rounded-lg text-sm bg-gray-50 text-gray-600 ring-1 ring-inset ring-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
             >
               <option value="All">
                 {schoolFilter === "All"
@@ -905,16 +905,16 @@ export default function NOCManagementPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50/80 border-b border-gray-200 text-left text-gray-500 text-[11px] font-semibold uppercase tracking-wider">
-                  <th className="px-4 py-3 font-medium">Student</th>
-                  <th className="px-4 py-3 font-medium">ERP ID</th>
-                  <th className="px-4 py-3 font-medium">Course</th>
-                  <th className="px-4 py-3 font-medium">Type</th>
-                  <th className="px-4 py-3 font-medium">Purpose</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium text-center">
+                  <th className="px-2.5 py-2 sm:px-4 sm:py-3 font-medium">Student</th>
+                  <th className="px-2.5 py-2 sm:px-4 sm:py-3 font-medium">ERP ID</th>
+                  <th className="px-2.5 py-2 sm:px-4 sm:py-3 font-medium">Course</th>
+                  <th className="px-2.5 py-2 sm:px-4 sm:py-3 font-medium">Type</th>
+                  <th className="px-2.5 py-2 sm:px-4 sm:py-3 font-medium">Purpose</th>
+                  <th className="px-2.5 py-2 sm:px-4 sm:py-3 font-medium">Status</th>
+                  <th className="px-2.5 py-2 sm:px-4 sm:py-3 font-medium text-center">
                     Document
                   </th>
-                  <th className="px-4 py-3 font-medium text-center">Actions</th>
+                  <th className="px-2.5 py-2 sm:px-4 sm:py-3 font-medium text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -968,7 +968,7 @@ export default function NOCManagementPage() {
                       <td className="px-4 py-3">
                         <TypeBadge type={req.requestType} />
                       </td>
-                      <td className="px-4 py-3 text-gray-600 max-w-xs">
+                      <td className="px-2.5 py-2 sm:px-4 sm:py-3 text-gray-600 max-w-35 sm:max-w-xs">
                         <button
                           onClick={() => setViewTarget(req)}
                           className="truncate block w-full text-left hover:text-blue-600 hover:underline"
@@ -1011,7 +1011,7 @@ export default function NOCManagementPage() {
 
           {/* Pagination footer */}
           {!loading && filteredRequests.length > ROWS_PER_PAGE && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-slate-50/50 text-sm text-gray-500">
+            <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-2 px-4 py-3 border-t border-gray-100 bg-slate-50/50 text-sm text-gray-500">
               <span>
                 Showing{" "}
                 <span className="font-semibold text-gray-700">

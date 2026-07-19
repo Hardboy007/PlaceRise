@@ -178,27 +178,27 @@ export default function CoordinatorDashboard() {
                          radial-gradient(circle at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 40%)`,
           }}
         />
-        <div className="relative z-10 p-8 flex flex-wrap items-center justify-between gap-4">
+        <div className="relative z-10 p-5 sm:p-8 flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-white/70 mb-1">
               {getGreeting(now)}
             </p>
             <h1
-              className="text-2xl font-bold text-white mb-1"
+              className="text-xl sm:text-2xl font-bold text-white mb-1"
               style={{ fontFamily: "Space Grotesk, sans-serif" }}
             >
               {toDisplayName(coordinator.name) || "Coordinator"}
             </h1>
             <p className="text-sm text-white/60">{formatDate(today)}</p>
           </div>
-          <span className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 border border-white/30 text-white text-sm font-semibold">
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+          <span className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/20 border border-white/30 text-white text-xs sm:text-sm font-semibold whitespace-nowrap">
+            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse shrink-0" />
             Placement Season 2025-26 Active
           </span>
         </div>
       </div>
       {recentJobPostings.length > 0 && (
-        <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-xl px-4 py-2.5 mb-6 text-sm text-blue-800">
+        <div className="flex items-start sm:items-center gap-2 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 mb-6 text-xs sm:text-sm text-blue-800">
           <span>💡</span>
           <span>
             <span className="font-semibold">
@@ -247,7 +247,7 @@ export default function CoordinatorDashboard() {
         ].map((stat) => (
           <div
             key={stat.label}
-            className={`bg-white rounded-2xl border border-[#E2E8F0] border-t-2 ${stat.color} p-4 shadow-sm hover:shadow-md transition-shadow`}
+            className={`bg-white rounded-2xl border border-[#E2E8F0] border-t-2 ${stat.color} p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow`}
           >
             <div
               className={`w-8 h-8 rounded-lg ${stat.bg} flex items-center justify-center mb-3`}
@@ -255,7 +255,7 @@ export default function CoordinatorDashboard() {
               <stat.icon size={16} className={stat.iconColor} />
             </div>
             <p
-              className="text-xl font-bold text-[#1E293B]"
+              className="text-lg sm:text-xl font-bold text-[#1E293B] truncate"
               style={{ fontFamily: "Space Grotesk, sans-serif" }}
             >
               {stat.value}
@@ -279,7 +279,7 @@ export default function CoordinatorDashboard() {
       <div className="grid md:grid-cols-2 gap-5 mb-6">
         {/* Upcoming Deadlines */}
         <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm">
-          <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-background">
+          <div className="flex items-center justify-between px-4 pt-4 pb-3 sm:px-5 sm:pt-5 sm:pb-4 border-b border-background">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center">
                 <AlertCircle size={14} className="text-danger" />
@@ -303,21 +303,21 @@ export default function CoordinatorDashboard() {
               upcomingDeadlines.map((c) => (
                 <div
                   key={c._id}
-                  className="flex items-center justify-between p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]"
+                  className="flex items-center justify-between gap-2 p-2.5 sm:p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]"
                 >
-                  <div>
-                    <p className="text-sm font-semibold text-[#1E293B]">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-[#1E293B] truncate">
                       {c.companyId?.name || "Unknown"}
                     </p>
-                    <p className="text-xs text-text-muted">{c.role}</p>
+                    <p className="text-xs text-text-muted truncate">{c.role}</p>
                   </div>
                   <span
-                    className={`text-xs font-bold px-2.5 py-1 rounded-full border
-                    ${
-                      c.diff <= 3
-                        ? "text-danger bg-red-50 border-red-200"
-                        : "text-warning bg-amber-50 border-amber-200"
-                    }`}
+                    className={`text-xs font-bold px-2.5 py-1 rounded-full border shrink-0 whitespace-nowrap
+    ${
+      c.diff <= 3
+        ? "text-danger bg-red-50 border-red-200"
+        : "text-warning bg-amber-50 border-amber-200"
+    }`}
                   >
                     {c.diff === 0 ? "Today · Last day" : `${c.diff}d left`}
                   </span>
@@ -329,7 +329,7 @@ export default function CoordinatorDashboard() {
 
         {/* Recent Job Postings */}
         <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm">
-          <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-background">
+          <div className="flex items-center justify-between px-4 pt-4 pb-3 sm:px-5 sm:pt-5 sm:pb-4 border-b border-background">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
                 <Clock size={14} className="text-primary" />
@@ -357,26 +357,28 @@ export default function CoordinatorDashboard() {
               recentJobPostings.map((job) => (
                 <div
                   key={job.id}
-                  className="flex items-center justify-between p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]"
+                  className="flex items-center justify-between gap-2 p-2.5 sm:p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                     <CompanyLogo
                       name={job.company}
                       website={job.website}
                       size={32}
                     />
-                    <div>
-                      <p className="text-sm font-semibold text-[#1E293B]">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-[#1E293B] truncate">
                         {job.company}
                       </p>
-                      <p className="text-xs text-text-muted">{job.role}</p>
+                      <p className="text-xs text-text-muted truncate">
+                        {job.role}
+                      </p>
                     </div>
                   </div>
                   <span
-                    className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${
+                    className={`text-xs font-semibold px-2.5 py-1 rounded-full border shrink-0 whitespace-nowrap ${
                       job.status === "Active"
                         ? "bg-blue-50 text-primary border-blue-200"
-                        : "bg-[#F1F5F9] text-text-muted border-[#E2E8F0]"
+                        : "bg-background text-text-muted border-[#E2E8F0]"
                     }`}
                   >
                     {job.status}
@@ -389,14 +391,14 @@ export default function CoordinatorDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-5">
+      <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm p-4 sm:p-5">
         <h3
           className="text-sm font-bold text-[#1E293B] mb-4"
           style={{ fontFamily: "Space Grotesk, sans-serif" }}
         >
           Quick Actions
         </h3>
-        <div className="flex flex-wrap gap-3">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3">
           {[
             {
               label: "Add Company",
@@ -429,7 +431,7 @@ export default function CoordinatorDashboard() {
             <button
               key={action.label}
               onClick={() => navigate(action.route)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:-translate-y-0.5 hover:shadow-md ${action.color}`}
+              className={`flex items-center justify-center sm:justify-start gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all hover:-translate-y-0.5 hover:shadow-md ${action.color}`}
             >
               <action.icon size={15} />
               {action.label}

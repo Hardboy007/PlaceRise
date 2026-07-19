@@ -66,7 +66,7 @@ function StatCard({ icon, label, value, bg, borderColor }) {
   return (
     <div
       style={{ borderColor, backgroundColor: "#fff" }}
-      className="rounded-2xl border p-4 flex items-center gap-3 shadow-sm min-w-0"
+      className="rounded-2xl border p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3 shadow-sm min-w-0"
     >
       <div
         style={{ backgroundColor: bg }}
@@ -82,7 +82,7 @@ function StatCard({ icon, label, value, bg, borderColor }) {
           {label}
         </p>
         <p
-          className="text-xl font-bold leading-tight truncate"
+          className="text-base sm:text-xl font-bold leading-tight truncate"
           style={{ color: "#0F172A" }}
         >
           {value}
@@ -206,13 +206,13 @@ function JDBanner({
 
   return (
     <div
-      className="rounded-2xl border p-4 flex flex-col gap-4"
+      className="rounded-2xl border p-3 sm:p-4 flex flex-col gap-4"
       style={{
         background: "linear-gradient(135deg,#EFF6FF,#F0F9FF)",
         borderColor: "#BFDBFE",
       }}
     >
-      <div className="flex items-center justify-between gap-3 flex-wrap">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
@@ -220,7 +220,7 @@ function JDBanner({
           >
             <Briefcase size={18} color="white" />
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 w-full sm:w-auto">
             <p
               className="text-[10px] font-semibold uppercase tracking-widest mb-1"
               style={{ color: "#64748B" }}
@@ -233,11 +233,11 @@ function JDBanner({
                 drives{driveFilter !== "All" ? "" : " posted yet"}
               </p>
             ) : (
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap min-w-0 w-full">
                 <select
                   value={selectedJobId || ""}
                   onChange={(e) => setSelectedJobId(e.target.value)}
-                  className="text-sm font-bold border border-blue-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:border-blue-400 max-w-full"
+                  className="text-sm font-bold border border-blue-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:border-blue-400 w-full sm:w-auto sm:max-w-xs truncate"
                   style={{ color: "#0F172A" }}
                 >
                   {jobs.map((j) => (
@@ -400,7 +400,7 @@ function EligibleTab({ selectedJob, allStudents }) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard
           icon={<Users size={20} color="#3B82F6" />}
           label="Total Eligible"
@@ -620,7 +620,7 @@ function AppliedTab({ selectedJobId, readOnly }) {
         </div>
       )}
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3">
         <StatCard
           icon={<Users size={20} color="#3B82F6" />}
           label="Total Applied"
@@ -658,7 +658,7 @@ function AppliedTab({ selectedJobId, readOnly }) {
         />
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm flex items-center gap-2 flex-wrap">
+      <div className="bg-white rounded-2xl border border-gray-100 p-3 sm:p-4 shadow-sm flex items-center gap-2 flex-wrap">
         <div
           className="flex items-center gap-1.5 text-sm font-medium mr-1"
           style={{ color: "#64748B" }}
@@ -684,7 +684,10 @@ function AppliedTab({ selectedJobId, readOnly }) {
             </button>
           );
         })}
-        <span className="ml-auto text-sm" style={{ color: "#64748B" }}>
+        <span
+          className="w-full sm:w-auto sm:ml-auto text-sm"
+          style={{ color: "#64748B" }}
+        >
           Showing{" "}
           <strong style={{ color: "#0F172A" }}>{filtered.length}</strong> of{" "}
           {counts.total}
@@ -692,7 +695,7 @@ function AppliedTab({ selectedJobId, readOnly }) {
         <button
           onClick={handleExport}
           disabled={exporting}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all border"
+          className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all border w-full sm:w-auto"
           style={{
             background: exporting
               ? "#94A3B8"
@@ -875,7 +878,7 @@ function AppliedTab({ selectedJobId, readOnly }) {
       {/* Student Detail Modal */}
       {selectedStudent && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
           style={{
             backgroundColor: "rgba(15,23,42,0.5)",
             backdropFilter: "blur(4px)",
@@ -885,12 +888,12 @@ function AppliedTab({ selectedJobId, readOnly }) {
           }
         >
           <div
-            className="rounded-3xl border shadow-2xl w-full max-w-2xl overflow-y-auto bg-white border-[#E2E8F0]"
+            className="rounded-3xl border shadow-2xl w-full max-w-2xl overflow-y-auto bg-white border-[#E2E8F0] flex flex-col"
             style={{ maxHeight: "90vh" }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-7 py-5 border-b border-[#E2E8F0] sticky top-0 bg-white rounded-t-3xl z-10">
-              <div className="flex items-center gap-4">
+            <div className="flex items-center flex-wrap justify-between gap-3 px-4 sm:px-7 py-4 sm:py-5 border-b border-[#E2E8F0] sticky top-0 bg-white rounded-t-3xl z-10">
+              <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                 <div
                   className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-lg shrink-0"
                   style={{
@@ -943,13 +946,13 @@ function AppliedTab({ selectedJobId, readOnly }) {
             </div>
 
             {/* Body */}
-            <div className="px-7 py-6 space-y-7">
+            <div className="px-4 sm:px-7 py-5 sm:py-6 space-y-6 sm:space-y-7">
               {/* Personal */}
               <div>
                 <h4 className="text-xs font-bold uppercase tracking-widest mb-4 pb-2 border-b border-[#E2E8F0] text-[#0F172A]">
                   Personal Information
                 </h4>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {[
                     { label: "Email", value: selectedStudent.email },
                     { label: "Phone", value: selectedStudent.phone },
@@ -973,7 +976,7 @@ function AppliedTab({ selectedJobId, readOnly }) {
                 <h4 className="text-xs font-bold uppercase tracking-widest mb-4 pb-2 border-b border-[#E2E8F0] text-[#0F172A]">
                   Academic Details
                 </h4>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {[
                     { label: "Course", value: selectedStudent.course },
                     { label: "Batch", value: selectedStudent.batch },
@@ -1151,11 +1154,14 @@ export default function ApplicationsManagementPage() {
 
   return (
     <div
-      className="space-y-5 p-6"
+      className="space-y-4 sm:space-y-5 p-3 sm:p-6"
       style={{ fontFamily: "Inter, system-ui, sans-serif" }}
     >
       <div>
-        <h1 className="text-2xl font-bold" style={{ color: "#0F172A" }}>
+        <h1
+          className="text-xl sm:text-2xl font-bold"
+          style={{ color: "#0F172A" }}
+        >
           Applications Management
         </h1>
         <p className="text-sm mt-0.5" style={{ color: "#64748B" }}>
@@ -1177,7 +1183,7 @@ export default function ApplicationsManagementPage() {
 
       {jobs.length > 0 && selectedJob && (
         <>
-          <div className="flex items-center gap-1 bg-white rounded-2xl border border-gray-100 p-1.5 shadow-sm w-fit">
+          <div className="flex items-center gap-1 bg-white rounded-2xl border border-gray-100 p-1.5 shadow-sm w-full sm:w-fit overflow-x-auto">
             {tabs.map((tab) => {
               const active = activeTab === tab.id;
               return (

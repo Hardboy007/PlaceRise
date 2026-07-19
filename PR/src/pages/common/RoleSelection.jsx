@@ -85,7 +85,7 @@ function RoleCard({
       onClick={onSelect}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className={`relative overflow-hidden rounded-3xl p-8 cursor-pointer
+      className={`relative overflow-hidden rounded-3xl p-5 sm:p-8 cursor-pointer
         transition-all duration-500 select-none
         ${isDark ? "text-white" : "text-[#1E293B] border border-[#CBD5E1] bg-white"}
         ${hovered ? "-translate-y-2 rotate-0" : isDark ? "-rotate-2" : "rotate-2"}
@@ -102,11 +102,10 @@ function RoleCard({
     >
       {/* Watermark Number */}
       <span
-        className={`absolute top-4 right-6 font-bold select-none pointer-events-none
-          ${isDark ? "text-white" : "text-[#1E293B]"}
-        `}
+        className={`absolute top-4 right-6 font-bold select-none pointer-events-none text-[4rem] sm:text-[8rem]
+    ${isDark ? "text-white" : "text-[#1E293B]"}
+  `}
         style={{
-          fontSize: "8rem",
           lineHeight: 1,
           opacity: 0.05,
           fontFamily: "Space Grotesk, sans-serif",
@@ -125,7 +124,7 @@ function RoleCard({
       />
 
       {/* Top Row */}
-      <div className="relative flex items-center justify-between mb-10">
+      <div className="relative flex items-center justify-between mb-6 sm:mb-10">
         {/* Icon Title */}
         <div
           className={`w-12 h-12 rounded-2xl flex items-center justify-center
@@ -157,7 +156,7 @@ function RoleCard({
           Continue As
         </p>
         <h2
-          className="text-3xl font-bold mb-3"
+          className="text-2xl sm:text-3xl font-bold mb-3"
           style={{ fontFamily: "Space Grotesk, sans-serif" }}
         >
           {label}
@@ -169,7 +168,7 @@ function RoleCard({
         </p>
 
         {/* Tags */}
-        <div className="flex flex-wrap gap-2 mt-8">
+        <div className="flex flex-wrap gap-2 mt-5 sm:mt-8">
           {tags.map((tag) => (
             <span
               key={tag}
@@ -276,7 +275,10 @@ function RoleSelectionPage() {
   return (
     <div
       className="min-h-screen bg-background relative overflow-hidden"
-      style={{ fontFamily: "Inter, sans-serif" }}
+      style={{
+        fontFamily: "Inter, sans-serif",
+        paddingTop: "env(safe-area-inset-top)",
+      }}
     >
       <div className="relative">
         {/* Background - Diagonal Navy Panel */}
@@ -292,7 +294,7 @@ function RoleSelectionPage() {
         <img
           src="/images/building 2.png"
           alt=""
-          className="absolute"
+          className="absolute hidden sm:block"
           style={{
             top: "240px",
             right: "0px",
@@ -315,8 +317,8 @@ function RoleSelectionPage() {
         />
 
         {/* Floating Orbs */}
-        <div className="absolute top-10 right-20 w-64 h-64 rounded-full bg-blue-500/20 blur-3xl animate-float-slow pointer-events-none" />
-        <div className="absolute bottom-20 left-10 w-48 h-48 rounded-full bg-blue-400/20 blur-3xl animate-float-slow-delayed pointer-events-none" />
+        <div className="absolute top-10 right-20 w-40 h-40 sm:w-64 sm:h-64 rounded-full bg-blue-500/20 blur-3xl animate-float-slow pointer-events-none" />
+        <div className="hidden sm:block absolute bottom-20 left-10 w-48 h-48 rounded-full bg-blue-400/20 blur-3xl animate-float-slow-delayed pointer-events-none" />
         {/* Navbar */}
         <header className="relative z-10 px-6 py-6 md:px-12 flex items-center justify-between">
           {/* Logo */}
@@ -352,9 +354,9 @@ function RoleSelectionPage() {
           </nav>
 
           {/* Status Pill */}
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur border border-white/20">
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            <span className="text-white/80 text-xs font-medium">
+          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/10 backdrop-blur border border-white/20">
+            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-400 animate-pulse shrink-0" />
+            <span className="text-white/80 text-[10px] sm:text-xs font-medium whitespace-nowrap">
               Season 2026 live
             </span>
           </div>
@@ -362,6 +364,22 @@ function RoleSelectionPage() {
 
         {/* Hero */}
         <section className="relative z-10 text-center px-6 pt-10 md:pt-16 max-w-5xl mx-auto animate-slide-up">
+          {/* Mobile-only nav pills — About / Support, same capsule style as eyebrow below */}
+          <div className="flex md:hidden items-center justify-center gap-3 mb-4">
+            <Link
+              to="/about"
+              className="inline-flex items-center px-4 py-2 rounded-full bg-white/10 backdrop-blur border border-white/20 text-white/80 hover:text-white text-sm transition-colors"
+            >
+              About
+            </Link>
+            <Link
+              to="/support"
+              className="inline-flex items-center px-4 py-2 rounded-full bg-white/10 backdrop-blur border border-white/20 text-white/80 hover:text-white text-sm transition-colors"
+            >
+              Support
+            </Link>
+          </div>
+
           {/* Eyebrow */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur border border-white/20 mb-6">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
@@ -372,7 +390,7 @@ function RoleSelectionPage() {
 
           {/* H1 */}
           <h1
-            className="text-5xl md:text-7xl font-bold text-white mb-4 leading-none"
+            className="text-3xl sm:text-5xl md:text-7xl font-bold text-white mb-4 leading-tight sm:leading-none"
             style={{
               fontFamily: "Space Grotesk, sans-serif",
               letterSpacing: "-0.03em",
@@ -399,7 +417,7 @@ function RoleSelectionPage() {
             </span>
           </h1>
           <p
-            className="text-white/70 text-lg max-w-xl mx-auto mt-4"
+            className="text-white/70 text-sm sm:text-lg max-w-xl mx-auto mt-4 px-2"
             style={{ animationDelay: "200ms" }}
           >
             One platform for students and placement teams to connect,
@@ -408,8 +426,8 @@ function RoleSelectionPage() {
         </section>
 
         {/* Role Cards */}
-        <section className="relative z-10 max-w-4xl mx-auto px-6 mt-16">
-          <div className="grid md:grid-cols-2 gap-8 relative">
+        <section className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 mt-10 sm:mt-16">
+          <div className="grid md:grid-cols-2 gap-6 sm:gap-8 relative">
             {/* Student Card */}
             <div>
               <RoleCard
@@ -423,7 +441,7 @@ function RoleSelectionPage() {
               />
             </div>
 
-            {/* OR Badge */}
+            {/* OR Badge — desktop, centered over both cards */}
             <div
               className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10
             w-16 h-16 rounded-full bg-white items-center justify-center
@@ -436,6 +454,15 @@ function RoleSelectionPage() {
               >
                 OR
               </span>
+            </div>
+
+            {/* OR divider — mobile only, sits between the stacked cards */}
+            <div className="flex md:hidden items-center gap-3 -my-1">
+              <span className="flex-1 h-px bg-[#CBD5E1]" />
+              <span className="text-xs font-bold tracking-widest text-text-muted px-2">
+                OR
+              </span>
+              <span className="flex-1 h-px bg-[#CBD5E1]" />
             </div>
 
             {/* Coordinator Card */}
@@ -455,7 +482,7 @@ function RoleSelectionPage() {
       </div>
       {/* Background texture for the white section — city skyline, very faint */}
       <div
-        className="absolute pointer-events-none overflow-hidden"
+        className="absolute pointer-events-none overflow-hidden hidden sm:block"
         style={{ top: "950px", left: 0, right: 0, height: "1000px" }}
       >
         {/* Blueprint grid — halka texture, optional rakh sakte ho */}
@@ -494,7 +521,7 @@ function RoleSelectionPage() {
             Why PlaceRise
           </p>
           <h2
-            className="text-3xl md:text-4xl font-bold text-[#1E293B]"
+            className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#1E293B] px-2"
             style={{ fontFamily: "Space Grotesk, sans-serif" }}
           >
             Everything placement season needs
@@ -504,7 +531,7 @@ function RoleSelectionPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 lg:grid-rows-2 gap-5">
           {/* Featured card — big, dark, spans 2x2 */}
           <div
-            className="sm:col-span-2 lg:col-span-2 lg:row-span-2 relative overflow-hidden rounded-3xl p-8 text-white
+            className="sm:col-span-2 lg:col-span-2 lg:row-span-2 relative overflow-hidden rounded-3xl p-5 sm:p-8 text-white
         -rotate-1 hover:rotate-0 hover:-translate-y-1 transition-all duration-500
         shadow-[0_25px_50px_-12px_rgba(15,23,42,0.5)] hover:shadow-[0_20px_60px_-15px_rgba(59,130,246,0.4)]"
             style={{
@@ -515,9 +542,8 @@ function RoleSelectionPage() {
             }}
           >
             <span
-              className="absolute top-2 right-4 font-bold select-none pointer-events-none text-white"
+              className="absolute top-2 right-4 font-bold select-none pointer-events-none text-white text-[4.5rem] sm:text-[9rem]"
               style={{
-                fontSize: "9rem",
                 lineHeight: 1,
                 opacity: 0.06,
                 fontFamily: "Space Grotesk, sans-serif",
@@ -564,7 +590,7 @@ function RoleSelectionPage() {
                   </span>
                 </div>
                 <h3
-                  className="text-2xl font-bold mb-3"
+                  className="text-xl sm:text-2xl font-bold mb-3"
                   style={{ fontFamily: "Space Grotesk, sans-serif" }}
                 >
                   Real-time Announcements
@@ -580,9 +606,8 @@ function RoleSelectionPage() {
           {/* Application Tracking — wide */}
           <div className="lg:col-span-2 bg-white rounded-2xl border border-[#CBD5E1] p-6 hover:-translate-y-1 hover:shadow-[0_10px_40px_-10px_rgba(15,23,42,0.15)] transition-all duration-300 relative overflow-hidden">
             <span
-              className="absolute top-1 right-3 font-bold select-none pointer-events-none text-[#1E293B]"
+              className="absolute top-1 right-3 font-bold select-none pointer-events-none text-[#1E293B] text-[2.5rem] sm:text-[5rem]"
               style={{
-                fontSize: "5rem",
                 lineHeight: 1,
                 opacity: 0.05,
                 fontFamily: "Space Grotesk, sans-serif",
@@ -619,9 +644,8 @@ function RoleSelectionPage() {
           {/* Eligibility Matching — small */}
           <div className="bg-white rounded-2xl border border-[#CBD5E1] p-6 hover:-translate-y-1 hover:shadow-[0_10px_40px_-10px_rgba(15,23,42,0.15)] transition-all duration-300 relative overflow-hidden">
             <span
-              className="absolute top-1 right-2 font-bold select-none pointer-events-none text-[#1E293B]"
+              className="absolute top-1 right-2 font-bold select-none pointer-events-none text-[#1E293B] text-[2rem] sm:text-[4rem]"
               style={{
-                fontSize: "4rem",
                 lineHeight: 1,
                 opacity: 0.05,
                 fontFamily: "Space Grotesk, sans-serif",
@@ -658,9 +682,8 @@ function RoleSelectionPage() {
           {/* Coordinator Dashboard — small */}
           <div className="bg-white rounded-2xl border border-[#CBD5E1] p-6 hover:-translate-y-1 hover:shadow-[0_10px_40px_-10px_rgba(15,23,42,0.15)] transition-all duration-300 relative overflow-hidden">
             <span
-              className="absolute top-1 right-2 font-bold select-none pointer-events-none text-[#1E293B]"
+              className="absolute top-1 right-2 font-bold select-none pointer-events-none text-[#1E293B] text-[2rem] sm:text-[4rem]"
               style={{
-                fontSize: "4rem",
                 lineHeight: 1,
                 opacity: 0.05,
                 fontFamily: "Space Grotesk, sans-serif",
@@ -700,7 +723,7 @@ function RoleSelectionPage() {
       </section>
       {/* Footer */}
       <footer className="relative z-10 max-w-4xl mx-auto px-6 py-8 mt-4 mb-4">
-        <div className="bg-white/70 backdrop-blur rounded-3xl border border-[#CBD5E1] px-8 py-5 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="bg-white/70 backdrop-blur rounded-3xl border border-[#CBD5E1] px-5 py-5 sm:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
           {/* Left - Logo + Tagline */}
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
@@ -720,7 +743,7 @@ function RoleSelectionPage() {
           </div>
 
           {/* Right - Links */}
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6">
             {[
               { label: "Privacy Policy", href: "/privacy" },
               { label: "Support", href: "/support" },
@@ -728,7 +751,7 @@ function RoleSelectionPage() {
               <a
                 key={label}
                 href={href}
-                className="text-xs text-text-muted hover:text-[#1E293B] transition-colors"
+                className="text-xs text-text-muted hover:text-[#1E293B] transition-colors py-2 px-1 -m-1"
               >
                 {label}
               </a>
@@ -740,7 +763,7 @@ function RoleSelectionPage() {
       {/* Login Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-8 w-full max-w-md mx-4 shadow-2xl">
+          <div className="bg-white rounded-3xl p-5 sm:p-8 w-full max-w-md mx-4 shadow-2xl">
             {/* Modal Header */}
             <div className="flex items-center justify-between mb-6">
               <div>
@@ -797,7 +820,7 @@ function RoleSelectionPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-text-muted hover:text-[#1E293B]"
+                    className="absolute inset-y-0 right-0 flex items-center px-3 -mr-1 text-text-muted hover:text-[#1E293B]"
                     aria-label={
                       showPassword ? "Hide password" : "Show password"
                     }

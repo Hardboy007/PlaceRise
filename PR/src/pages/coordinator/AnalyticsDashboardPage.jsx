@@ -406,14 +406,14 @@ const AnalyticsDashboardPage = () => {
     <div className="pb-10">
       {/* ---- Toast ---- */}
       {toast && (
-        <div className="fixed top-6 right-6 z-50 bg-[#1E293B] text-white text-sm px-4 py-3 rounded-lg shadow-lg">
+        <div className="fixed top-4 sm:top-6 right-4 sm:right-6 left-4 sm:left-auto z-50 bg-[#1E293B] text-white text-sm px-4 py-3 rounded-lg shadow-lg">
           {toast}
         </div>
       )}
 
       {/* ---- Hero Section ---- */}
       <div
-        className="rounded-b-2xl px-6 py-8 mb-6"
+        className="rounded-b-2xl px-4 sm:px-6 py-6 sm:py-8 mb-6"
         style={{
           background:
             "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
@@ -422,7 +422,7 @@ const AnalyticsDashboardPage = () => {
         <p className="text-blue-100 text-xs font-medium tracking-wide uppercase mb-1">
           Placement Insights
         </p>
-        <h1 className="text-2xl font-bold text-white mb-1">
+        <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">
           Analytics Dashboard
         </h1>
         <p className="text-blue-100 text-sm">
@@ -431,16 +431,16 @@ const AnalyticsDashboardPage = () => {
         </p>
       </div>
 
-      <div className="px-6 space-y-6">
+      <div className="px-3 sm:px-6 space-y-4 sm:space-y-6">
         {/* ---- Filter Bar (sticky) ---- */}
-        <div className="sticky top-0 z-30 bg-white rounded-xl border border-[#E2E8F0] p-4 shadow-sm">
+        <div className="sticky top-0 z-30 bg-white rounded-xl border border-[#E2E8F0] p-3 sm:p-4 shadow-sm">
           <div className="flex flex-wrap items-center gap-3">
             <select
               value={filters.batch}
               onChange={(e) =>
                 setFilters({ ...filters, batch: e.target.value })
               }
-              className="px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm"
+              className="px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm flex-1 min-w-[45%] sm:flex-none sm:min-w-0"
             >
               <option value="">All Batches</option>
               {batchOptions.map((b) => (
@@ -455,7 +455,7 @@ const AnalyticsDashboardPage = () => {
               onChange={(e) =>
                 setFilters({ ...filters, school: e.target.value })
               }
-              className="px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm max-w-55"
+              className="px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm flex-1 min-w-[45%] sm:flex-none sm:max-w-55"
             >
               <option value="">All Schools</option>
               {schoolOptions.map((s) => (
@@ -470,7 +470,7 @@ const AnalyticsDashboardPage = () => {
               onChange={(e) =>
                 setFilters({ ...filters, jobType: e.target.value })
               }
-              className="px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm"
+              className="px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm flex-1 min-w-[45%] sm:flex-none sm:min-w-0"
             >
               <option value="">All Job Types</option>
               {jobTypeOptions.map((j) => (
@@ -482,23 +482,23 @@ const AnalyticsDashboardPage = () => {
 
             <button
               onClick={handleApply}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 flex-1 sm:flex-none"
             >
               Apply
             </button>
 
             <button
               onClick={handleReset}
-              className="px-4 py-2 bg-background text-[#334155] rounded-lg text-sm font-medium hover:bg-[#E2E8F0]"
+              className="px-4 py-2 bg-background text-[#334155] rounded-lg text-sm font-medium hover:bg-[#E2E8F0] flex-1 sm:flex-none"
             >
               Reset
             </button>
 
-            <div className="ml-auto relative group">
+            <div className="ml-auto relative group w-full sm:w-auto">
               <button
                 onClick={handleExport}
                 disabled={exporting || !analytics}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
               >
                 {exporting ? "Exporting..." : "Export Excel"}
               </button>
@@ -538,12 +538,12 @@ const AnalyticsDashboardPage = () => {
 
         {loading ? (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-4">
               {Array.from({ length: 6 }).map((_, i) => (
                 <SkeletonCard key={i} />
               ))}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               {Array.from({ length: 4 }).map((_, i) => (
                 <SkeletonChart key={i} />
               ))}
@@ -556,7 +556,7 @@ const AnalyticsDashboardPage = () => {
         ) : (
           <>
             {/* ---- Summary Cards ---- */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-4">
               {summaryCards.map((card) => (
                 <SummaryCard key={card.key} card={card} />
               ))}
@@ -573,9 +573,9 @@ const AnalyticsDashboardPage = () => {
             )}
 
             {/* ---- Charts Grid ---- */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               {/* Company-wise Selections */}
-              <div className="bg-white rounded-xl border border-[#E2E8F0] p-4 hover:shadow-md transition-shadow">
+              <div className="bg-white rounded-xl border border-[#E2E8F0] p-3 sm:p-4 hover:shadow-md transition-shadow">
                 <h3 className="text-sm font-semibold text-[#1E293B] mb-1">
                   Company-wise Selections
                 </h3>
@@ -622,7 +622,7 @@ const AnalyticsDashboardPage = () => {
               </div>
 
               {/* Branch-wise Placement */}
-              <div className="bg-white rounded-xl border border-[#E2E8F0] p-4 hover:shadow-md transition-shadow">
+              <div className="bg-white rounded-xl border border-[#E2E8F0] p-3 sm:p-4 hover:shadow-md transition-shadow">
                 <h3 className="text-sm font-semibold text-[#1E293B] mb-3">
                   Branch-wise Placement
                 </h3>
@@ -636,7 +636,7 @@ const AnalyticsDashboardPage = () => {
               {/* CTC Distribution — clickable. Each bucket carries its own
                   student list from the backend, and each student now also
                   carries their own CTC (package) for the drilldown. */}
-              <div className="bg-white rounded-xl border border-[#E2E8F0] p-4 hover:shadow-md transition-shadow">
+              <div className="bg-white rounded-xl border border-[#E2E8F0] p-3 sm:p-4 hover:shadow-md transition-shadow">
                 <h3 className="text-sm font-semibold text-[#1E293B] mb-1">
                   CTC Distribution
                 </h3>
@@ -697,7 +697,7 @@ const AnalyticsDashboardPage = () => {
               </div>
 
               {/* Placement Donut */}
-              <div className="bg-white rounded-xl border border-[#E2E8F0] p-4 hover:shadow-md transition-shadow">
+              <div className="bg-white rounded-xl border border-[#E2E8F0] p-3 sm:p-4 hover:shadow-md transition-shadow">
                 <h3 className="text-sm font-semibold text-[#1E293B] mb-3">
                   Placement Overview
                 </h3>
@@ -709,7 +709,7 @@ const AnalyticsDashboardPage = () => {
                   backend, and each student now also carries the company
                   name of the job they applied to / were shortlisted or
                   selected for. */}
-              <div className="bg-white rounded-xl border border-[#E2E8F0] p-4 hover:shadow-md transition-shadow md:col-span-2">
+              <div className="bg-white rounded-xl border border-[#E2E8F0] p-3 sm:p-4 hover:shadow-md transition-shadow md:col-span-2">
                 <h3 className="text-sm font-semibold text-[#1E293B] mb-1">
                   Application Funnel
                 </h3>
@@ -778,18 +778,18 @@ const SummaryCard = ({ card }) => {
   const animatedValue = useCountUp(card.value);
   return (
     <div
-      className={`bg-white rounded-2xl border border-[#E2E8F0] p-4 hover:shadow-xl ${card.glow} hover:-translate-y-1 transition-all duration-300`}
+      className={`bg-white rounded-2xl border border-[#E2E8F0] p-3 sm:p-4 hover:shadow-xl ${card.glow} hover:-translate-y-1 transition-all duration-300`}
     >
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs font-medium text-text-muted">{card.label}</p>
         <span
-          className={`w-9 h-9 rounded-xl bg-linear-to-br ${card.gradient} text-white flex items-center justify-center shadow-md`}
+          className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-linear-to-br ${card.gradient} text-white flex items-center justify-center shadow-md`}
         >
           {card.icon}
         </span>
       </div>
       <p
-        className="text-2xl font-bold text-[#1E293B]"
+        className="text-lg sm:text-2xl font-bold text-[#1E293B]"
         style={{ fontFamily: "Space Grotesk, sans-serif" }}
       >
         {card.prefix || ""}
@@ -826,7 +826,7 @@ const DrilldownModal = ({ drilldown, onClose }) => {
         className="bg-white rounded-xl max-w-lg w-full max-h-[80vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-5 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
+        <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-[#E2E8F0] flex items-center justify-between">
           <div>
             <h3 className="text-sm font-semibold text-[#1E293B]">
               {drilldown.title}
