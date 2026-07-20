@@ -39,7 +39,7 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/noc", nocRoutes);
 
 app.get("/", (req, res) => {
-  res.json({ message: "PlaceRise Backend Running" });
+  res.json({ message: "ok" });
 });
 
 const PORT = process.env.PORT || 5000;
