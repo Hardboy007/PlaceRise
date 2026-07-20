@@ -200,7 +200,17 @@ function RoleSelectionPage() {
 
   const handleRoleSelect = (role) => {
     setModalRole(role);
+    setErpId("");
+    setPassword("");
+    setError("");
     setShowModal(true);
+  };
+
+  const handleModalClose = () => {
+    setShowModal(false);
+    setErpId("");
+    setPassword("");
+    setError("");
   };
 
   const [error, setError] = useState("");
@@ -209,6 +219,10 @@ function RoleSelectionPage() {
   const handleLogin = async () => {
     setError("");
 
+    // ERP ID ko trim karo — case ko chhedna nahi, jo user ne type
+    // kiya wahi bhejo. Case-insensitive matching ab backend
+    // (authController.js) handle karta hai, taaki UI mein koi
+    // silent/unexpected case-change na dikhe.
     const normalizedErpId = erpId.trim();
     if (!normalizedErpId) {
       setError("ERP ID is required");
@@ -788,7 +802,7 @@ function RoleSelectionPage() {
                 </h3>
               </div>
               <button
-                onClick={() => setShowModal(false)}
+                onClick={handleModalClose}
                 className="w-9 h-9 rounded-full bg-background flex items-center justify-center text-text-muted hover:bg-[#E2E8F0] transition-colors cursor-pointer"
               >
                 ✕

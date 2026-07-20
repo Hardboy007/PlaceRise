@@ -9,13 +9,28 @@ const generateToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: "7d" });
 };
 
+// Helper: kisi bhi special regex character ko escape karo,
+// taaki agar erpId mein galti se koi regex-special character
+// (jaise ., *, +, etc.) ho toh query crash na ho
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 // Student Login
 const studentLogin = async (req, res) => {
   try {
     const { erpId, password } = req.body;
 
-    //ERP ID se user dhundho
-    const user = await User.findOne({ erpId, role: "student" });
+    if (!erpId) {
+      return res.status(400).json({ message: "ERP ID is required" });
+    }
+
+    const trimmedErpId = erpId.trim();
+
+    // ERP ID se user dhundho — case-insensitive match
+    // (23btcse0333, 23BTCSE0333, 23BtCsE0333 sab match honge)
+    const user = await User.findOne({
+      erpId: { $regex: `^${escapeRegex(trimmedErpId)}$`, $options: "i" },
+      role: "student",
+    });
     if (!user) {
       return res.status(401).json({ message: "Invalid ERP ID" });
     }
@@ -53,8 +68,17 @@ const coordinatorLogin = async (req, res) => {
   try {
     const { erpId, password } = req.body;
 
-    //Erp se user dhundho
-    const user = await User.findOne({ erpId, role: "coordinator" });
+    if (!erpId) {
+      return res.status(400).json({ message: "ERP ID is required" });
+    }
+
+    const trimmedErpId = erpId.trim();
+
+    //Erp se user dhundho — case-insensitive match
+    const user = await User.findOne({
+      erpId: { $regex: `^${escapeRegex(trimmedErpId)}$`, $options: "i" },
+      role: "coordinator",
+    });
     if (!user) {
       return res.status(401).json({ message: "Invalid ERP ID" });
     }
