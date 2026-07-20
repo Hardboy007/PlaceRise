@@ -437,6 +437,7 @@ function EligibleTab({ selectedJob, allStudents }) {
           style={{
             display: "grid",
             gridTemplateColumns: cols,
+            columnGap: "12px",
             padding: "12px 20px",
             backgroundColor: "#F1F5F9",
             minWidth: "650px",
@@ -467,6 +468,7 @@ function EligibleTab({ selectedJob, allStudents }) {
               style={{
                 display: "grid",
                 gridTemplateColumns: cols,
+                columnGap: "12px",
                 alignItems: "center",
                 padding: "14px 20px",
                 borderBottom:
@@ -746,6 +748,7 @@ function AppliedTab({ selectedJobId, readOnly }) {
           style={{
             display: "grid",
             gridTemplateColumns: cols,
+            columnGap: "12px",
             padding: "12px 20px",
             backgroundColor: "#F1F5F9",
             minWidth: "850px",
@@ -787,6 +790,7 @@ function AppliedTab({ selectedJobId, readOnly }) {
                 style={{
                   display: "grid",
                   gridTemplateColumns: cols,
+                  columnGap: "12px",
                   alignItems: "center",
                   padding: "14px 20px",
                   borderBottom:
@@ -796,17 +800,17 @@ function AppliedTab({ selectedJobId, readOnly }) {
                 }}
                 className="hover:bg-[#F8FAFC] transition-colors"
               >
-                <div className="flex flex-col gap-0.5">
+                <div className="flex flex-col gap-0.5 min-w-0">
                   <NameCell student={student} />
                   {(student?.selectedCount ?? 0) > 0 ? (
                     <span
-                      className="text-[10px] font-semibold text-success ml-10 truncate max-w-55"
+                      className="text-[10px] font-semibold text-success ml-10 truncate max-w-[140px] sm:max-w-55 block"
                       title={student.selectedCompanies?.join(", ")}
                     >
                       ✓ Selected in: {student.selectedCompanies?.join(", ")}
                     </span>
                   ) : (
-                    <span className="text-[10px] font-medium text-[#94A3B8] ml-10">
+                    <span className="text-[10px] font-medium text-[#94A3B8] ml-10 truncate block max-w-[140px] sm:max-w-none">
                       Not selected anywhere yet
                     </span>
                   )}
