@@ -191,8 +191,12 @@ export default function SupportPage() {
       {/* Navbar */}
       <header className="relative z-10 px-6 py-6 md:px-12 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center shadow-[0_20px_60px_-15px_rgba(59,130,246,0.4)]">
-            <SparklesIcon />
+          <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center shadow-[0_20px_60px_-15px_rgba(59,130,246,0.4)]">
+            <img
+              src="/images/logo-transparent.png"
+              alt="PlaceRise"
+              className="w-full h-full object-contain"
+            />
           </div>
           <span
             className="text-xl font-bold"
@@ -408,8 +412,12 @@ export default function SupportPage() {
       <footer className="relative z-10 max-w-4xl mx-auto px-6 py-8 mb-4">
         <div className="bg-white/70 backdrop-blur rounded-3xl border border-[#CBD5E1] px-8 py-5 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
-              <SparklesIcon />
+            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center">
+              <img
+                src="/images/logo-transparent.png"
+                alt="PlaceRise"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <span

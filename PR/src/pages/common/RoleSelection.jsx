@@ -730,8 +730,12 @@ function RoleSelectionPage() {
         <div className="bg-white/70 backdrop-blur rounded-3xl border border-[#CBD5E1] px-5 py-5 sm:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
           {/* Left - Logo + Tagline */}
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
-              <SparklesIcon />
+            <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center">
+              <img
+                src="/images/logo-transparent.png"
+                alt="PlaceRise"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <span
