@@ -848,70 +848,89 @@ function StudentModal({ student, onClose }) {
             </div>
           </div>
 
-          {/* Placement Info */}
-          {student.placementStatus === "Placed" && (
-            <div>
-              <h4
-                style={{ color: C.textMain, borderColor: C.border }}
-                className="text-xs font-bold uppercase tracking-widest mb-4 pb-2 border-b"
-              >
-                Placement Details
-              </h4>
-              <div
-                style={{ backgroundColor: "#F0FDF4", borderColor: "#86EFAC" }}
-                className="rounded-2xl border p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-3 gap-4"
-              >
-                <div>
-                  <p
-                    style={{ color: "#64748B" }}
-                    className="text-xs font-medium mb-1"
-                  >
-                    Company
-                  </p>
-                  <p
-                    style={{ color: "#15803D" }}
-                    className="font-bold text-base"
-                  >
-                    {student.selectedCompanies?.[0]?.companyId?.name || "—"}
-                  </p>
-                </div>
-                <div>
-                  <p
-                    style={{ color: "#64748B" }}
-                    className="text-xs font-medium mb-1"
-                  >
-                    CTC
-                  </p>
-                  <p
-                    style={{ color: "#15803D" }}
-                    className="font-bold text-base"
-                  >
-                    {student.selectedCompanies?.[0]?.ctc
-                      ? `₹${student.selectedCompanies[0].ctc} LPA`
-                      : "—"}
-                  </p>
-                </div>
-                <div>
-                  <p
-                    style={{ color: "#64748B" }}
-                    className="text-xs font-medium mb-1"
-                  >
-                    Offer Date
-                  </p>
-                  <p
-                    style={{ color: "#15803D" }}
-                    className="font-bold text-base"
-                  >
-                    {student.selectedCompanies?.[0]?.lastDate
-                      ? new Date(
-                          student.selectedCompanies[0].lastDate,
-                        ).toLocaleDateString()
-                      : "—"}
-                  </p>
+          {/* Placement Info — shows EVERY company the student is selected
+              in, not just the first one. A student can have multiple
+              offers, so each gets its own card instead of overwriting
+              the previous one. */}
+          {student.placementStatus === "Placed" &&
+            Array.isArray(student.selectedCompanies) &&
+            student.selectedCompanies.length > 0 && (
+              <div>
+                <h4
+                  style={{ color: C.textMain, borderColor: C.border }}
+                  className="text-xs font-bold uppercase tracking-widest mb-4 pb-2 border-b flex items-center justify-between"
+                >
+                  <span>Placement Details</span>
+                  {student.selectedCompanies.length > 1 && (
+                    <span
+                      style={{ color: C.primary, backgroundColor: "#EFF6FF" }}
+                      className="text-[10px] font-bold px-2 py-0.5 rounded-full normal-case tracking-normal"
+                    >
+                      {student.selectedCompanies.length} offers
+                    </span>
+                  )}
+                </h4>
+                <div className="flex flex-col gap-3">
+                  {student.selectedCompanies.map((offer, idx) => (
+                    <div
+                      key={offer._id || offer.companyId?._id || idx}
+                      style={{
+                        backgroundColor: "#F0FDF4",
+                        borderColor: "#86EFAC",
+                      }}
+                      className="rounded-2xl border p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-3 gap-4"
+                    >
+                      <div>
+                        <p
+                          style={{ color: "#64748B" }}
+                          className="text-xs font-medium mb-1"
+                        >
+                          Company
+                        </p>
+                        <p
+                          style={{ color: "#15803D" }}
+                          className="font-bold text-base"
+                        >
+                          {offer?.companyId?.name || "—"}
+                        </p>
+                      </div>
+                      <div>
+                        <p
+                          style={{ color: "#64748B" }}
+                          className="text-xs font-medium mb-1"
+                        >
+                          CTC
+                        </p>
+                        <p
+                          style={{ color: "#15803D" }}
+                          className="font-bold text-base"
+                        >
+                          {offer?.ctc ? `₹${offer.ctc} LPA` : "—"}
+                        </p>
+                      </div>
+                      <div>
+                        <p
+                          style={{ color: "#64748B" }}
+                          className="text-xs font-medium mb-1"
+                        >
+                          Selected Date
+                        </p>
+                        <p
+                          style={{ color: "#15803D" }}
+                          className="font-bold text-base"
+                        >
+                          {offer?.lastDate
+                            ? new Date(offer.lastDate).toLocaleDateString(
+                                "en-GB",
+                              )
+                            : "—"}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
       </div>
     </div>
@@ -1082,65 +1101,98 @@ export default function StudentDatabasePage() {
       style={{ backgroundColor: C.background }}
       className="min-h-screen p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6"
     >
-      {/* ── Page Title ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
-        {/* Left Side */}
-        <div>
-          <h1 style={{ color: C.textMain }} className="text-2xl font-bold">
-            Student Database
-          </h1>
+      {/* ── Hero Header ── */}
+      <div
+        className="relative overflow-hidden rounded-3xl p-5 sm:p-8 text-white"
+        style={{
+          background:
+            "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
+        }}
+      >
+        {/* Decorative glow orbs */}
+        <div className="absolute -top-10 -right-10 w-56 h-56 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-16 -left-10 w-56 h-56 rounded-full bg-white/10 blur-3xl pointer-events-none" />
 
-          <p style={{ color: C.textMuted }} className="text-sm mt-0.5">
-            Manage and track placement status of all registered students.
-          </p>
-        </div>
-
-        {/* Right Side - Import / Export */}
-        <div className="flex flex-col items-start sm:items-end gap-2 w-full sm:w-auto">
-          <p className="text-xs text-text-muted text-left sm:text-right">
-            Bulk student database Upload or Export current database to Excel
-          </p>
-
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap w-full sm:w-auto">
-            {importResult && (
-              <span
-                className={`text-xs font-medium ${
-                  importResult.error ? "text-red-500" : "text-green-600"
-                }`}
+        <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+          {/* Left — icon + title */}
+          <div className="flex items-start gap-3 sm:gap-4">
+            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center shrink-0">
+              <svg
+                className="w-5 h-5 sm:w-6 sm:h-6"
+                fill="none"
+                stroke="white"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
               >
-                {importResult.error
-                  ? `❌ ${importResult.error}`
-                  : `✓ ${importResult.imported} imported, ${importResult.skipped} skipped`}
-              </span>
-            )}
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-white/70 mb-1">
+                Placement Records
+              </p>
+              <h1 className="text-2xl sm:text-3xl font-bold leading-tight">
+                Student Database
+              </h1>
+              <p className="text-white/75 text-sm mt-1 max-w-md">
+                Manage and track placement status of all registered students.
+              </p>
+            </div>
+          </div>
 
-            <label
-              className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer transition flex-1 sm:flex-none
-      ${
-        importing
-          ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-          : "bg-slate-900 hover:bg-blue-600 text-white"
-      }`}
-            >
-              <Upload size={14} />
-              {importing ? "Importing..." : "Import CSV"}
+          {/* Right — Import / Export */}
+          <div className="flex flex-col items-start lg:items-end gap-2 w-full lg:w-auto">
+            <p className="text-xs text-white/70 text-left lg:text-right">
+              Bulk student database Upload or Export current database to Excel
+            </p>
 
-              <input
-                type="file"
-                accept=".csv,.xlsx"
-                className="hidden"
-                onChange={handleImport}
-                disabled={importing}
-              />
-            </label>
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap w-full lg:w-auto">
+              {importResult && (
+                <span
+                  className={`text-xs font-semibold px-2.5 py-1 rounded-lg backdrop-blur ${
+                    importResult.error
+                      ? "bg-red-500/20 text-red-100"
+                      : "bg-white/15 text-white"
+                  }`}
+                >
+                  {importResult.error
+                    ? `❌ ${importResult.error}`
+                    : `✓ ${importResult.imported} imported, ${importResult.skipped} skipped`}
+                </span>
+              )}
 
-            <button
-              onClick={handleExport}
-              className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-300 transition flex-1 sm:flex-none"
-            >
-              <Download size={14} />
-              Export Excel
-            </button>
+              <label
+                className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer transition flex-1 lg:flex-none
+        ${
+          importing
+            ? "bg-white/20 text-white/50 cursor-not-allowed"
+            : "bg-white text-[#1D4ED8] hover:bg-blue-50"
+        }`}
+              >
+                <Upload size={14} />
+                {importing ? "Importing..." : "Import CSV"}
+
+                <input
+                  type="file"
+                  accept=".csv,.xlsx"
+                  className="hidden"
+                  onChange={handleImport}
+                  disabled={importing}
+                />
+              </label>
+
+              <button
+                onClick={handleExport}
+                className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold bg-white/15 hover:bg-white/25 text-white border border-white/25 backdrop-blur transition flex-1 lg:flex-none"
+              >
+                <Download size={14} />
+                Export Excel
+              </button>
+            </div>
           </div>
         </div>
       </div>
