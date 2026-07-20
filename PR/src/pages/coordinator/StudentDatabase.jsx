@@ -291,7 +291,7 @@ function CourseBadge({ course }) {
         backgroundColor: "#EFF6FF",
         borderColor: "#BFDBFE",
       }}
-      className="border text-xs font-semibold px-2.5 py-1.5 rounded-full inline-flex items-center justify-center text-center leading-snug break-words max-w-full"
+      className="border text-xs font-semibold px-2.5 py-1.5 rounded-full inline-flex items-center justify-center text-center leading-snug wrap-break-word max-w-full"
     >
       {course || "—"}
     </span>
@@ -1366,7 +1366,8 @@ export default function StudentDatabasePage() {
               style={{
                 display: "grid",
                 gridTemplateColumns:
-                  "2fr 1fr 1.4fr 0.8fr 0.7fr 0.7fr 1.2fr 1.2fr", columnGap: "12px",
+                  "2fr 1fr 1.4fr 0.8fr 0.7fr 0.7fr 1.2fr 1.2fr",
+                columnGap: "12px",
                 padding: "14px 24px",
                 borderBottom: `1px solid ${C.border}`,
                 backgroundColor: C.background,
@@ -1442,7 +1443,8 @@ export default function StudentDatabasePage() {
                       display: "grid",
                       gridTemplateColumns:
                         "2fr 1fr 1.4fr 0.8fr 0.7fr 0.7fr 1.2fr 1.2fr",
-                      alignItems: "center", columnGap: "12px",
+                      alignItems: "center",
+                      columnGap: "12px",
                       padding: "16px 24px",
                       borderBottom: isLast ? "none" : `1px solid ${C.border}`,
                       cursor: "pointer",
