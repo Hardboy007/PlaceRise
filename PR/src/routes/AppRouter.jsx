@@ -27,6 +27,7 @@ import AnalyticsDashboardPage from "../pages/coordinator/AnalyticsDashboardPage"
 import AboutPage from "../pages/common/About";
 import SupportPage from "../pages/common/SupportPage";
 import PrivacyPolicyPage from "../pages/common/PrivacyPage";
+import ResetPasswordPage from "../pages/common/ResetPasswordPage";
 
 
 function AppRouter() {
@@ -50,6 +51,7 @@ function AppRouter() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/support" element={<SupportPage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         {/* Student Routes - Layout ke andar */}
         <Route
           path="/student"

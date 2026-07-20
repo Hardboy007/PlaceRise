@@ -197,12 +197,19 @@ function RoleSelectionPage() {
   const [erpId, setErpId] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [modalView, setModalView] = useState("login"); // "login" | "forgot"
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotMessage, setForgotMessage] = useState("");
 
   const handleRoleSelect = (role) => {
     setModalRole(role);
     setErpId("");
     setPassword("");
     setError("");
+    setModalView("login");
+    setForgotEmail("");
+    setForgotMessage("");
     setShowModal(true);
   };
 
@@ -211,6 +218,9 @@ function RoleSelectionPage() {
     setErpId("");
     setPassword("");
     setError("");
+    setModalView("login");
+    setForgotEmail("");
+    setForgotMessage("");
   };
 
   const [error, setError] = useState("");
@@ -284,6 +294,34 @@ function RoleSelectionPage() {
     }
 
     setLoading(false);
+  };
+
+  const handleForgotPassword = async () => {
+    setForgotMessage("");
+    const trimmedEmail = forgotEmail.trim();
+    if (!trimmedEmail) {
+      setForgotMessage("Please enter your email");
+      return;
+    }
+
+    setForgotLoading(true);
+    try {
+      const BASE_URL =
+        import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+      const response = await fetch(`${BASE_URL}/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmedEmail }),
+      });
+      const data = await response.json();
+      setForgotMessage(
+        data.message ||
+          "If that email is registered, a reset link has been sent.",
+      );
+    } catch (err) {
+      setForgotMessage("Unable to connect to the server");
+    }
+    setForgotLoading(false);
   };
 
   return (
@@ -786,91 +824,174 @@ function RoleSelectionPage() {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-3xl p-5 sm:p-8 w-full max-w-md mx-4 shadow-2xl">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <p className="text-xs font-semibold tracking-widest uppercase text-primary">
-                  {modalRole === "student"
-                    ? "Student Login"
-                    : "Coordinator Login"}
-                </p>
-                <h3
-                  className="text-2xl font-bold text-[#1E293B] mt-1"
-                  style={{ fontFamily: "Space Grotesk, sans-serif" }}
-                >
-                  Welcome back
-                </h3>
-              </div>
-              <button
-                onClick={handleModalClose}
-                className="w-9 h-9 rounded-full bg-background flex items-center justify-center text-text-muted hover:bg-[#E2E8F0] transition-colors cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Fields */}
-            <div className="flex flex-col gap-4">
-              <div>
-                <label className="text-sm font-medium text-[#1E293B] block mb-1">
-                  {modalRole === "student" ? "ERP ID" : "ERP ID"}
-                </label>
-                <input
-                  type="text"
-                  value={erpId}
-                  onChange={(e) => setErpId(e.target.value)}
-                  placeholder={
-                    modalRole === "student"
-                      ? "Enter your ERP ID"
-                      : "Enter your ERP ID"
-                  }
-                  className="w-full px-4 py-3 rounded-xl border border-[#CBD5E1] text-[#1E293B] placeholder-text-muted focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-[#1E293B] block mb-1">
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                    className="w-full px-4 py-3 pr-12 rounded-xl border border-[#CBD5E1] text-[#1E293B] placeholder-text-muted focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
-                  />
+            {modalView === "login" ? (
+              <>
+                {/* Modal Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <p className="text-xs font-semibold tracking-widest uppercase text-primary">
+                      {modalRole === "student"
+                        ? "Student Login"
+                        : "Coordinator Login"}
+                    </p>
+                    <h3
+                      className="text-2xl font-bold text-[#1E293B] mt-1"
+                      style={{ fontFamily: "Space Grotesk, sans-serif" }}
+                    >
+                      Welcome back
+                    </h3>
+                  </div>
                   <button
-                    type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute inset-y-0 right-0 flex items-center px-3 -mr-1 text-text-muted hover:text-[#1E293B]"
-                    aria-label={
-                      showPassword ? "Hide password" : "Show password"
-                    }
+                    onClick={handleModalClose}
+                    className="w-9 h-9 rounded-full bg-background flex items-center justify-center text-text-muted hover:bg-[#E2E8F0] transition-colors cursor-pointer"
                   >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    ✕
                   </button>
                 </div>
-              </div>
-            </div>
 
-            {/* Login Button */}
-            {error && (
-              <p className="text-xs text-danger text-center mt-4">{error}</p>
-            )}
+                {/* Fields */}
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-[#1E293B] block mb-1">
+                      ERP ID
+                    </label>
+                    <input
+                      type="text"
+                      value={erpId}
+                      onChange={(e) => setErpId(e.target.value)}
+                      placeholder="Enter your ERP ID"
+                      className="w-full px-4 py-3 rounded-xl border border-[#CBD5E1] text-[#1E293B] placeholder-text-muted focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+                    />
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-sm font-medium text-[#1E293B]">
+                        Password
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setModalView("forgot");
+                          setError("");
+                        }}
+                        className="text-xs font-semibold text-primary hover:underline"
+                      >
+                        Forgot password?
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter your password"
+                        className="w-full px-4 py-3 pr-12 rounded-xl border border-[#CBD5E1] text-[#1E293B] placeholder-text-muted focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="absolute inset-y-0 right-0 flex items-center px-3 -mr-1 text-text-muted hover:text-[#1E293B]"
+                        aria-label={
+                          showPassword ? "Hide password" : "Show password"
+                        }
+                      >
+                        {showPassword ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
 
-            <button
-              onClick={handleLogin}
-              disabled={loading}
-              className="w-full mt-4 py-3 rounded-xl bg-primary hover:bg-blue-600 text-white font-semibold transition-colors cursor-pointer disabled:opacity-50"
-              style={{ fontFamily: "Space Grotesk, sans-serif" }}
-            >
-              {loading ? "Logging in..." : "Login →"}
-            </button>
+                {error && (
+                  <p className="text-xs text-danger text-center mt-4">
+                    {error}
+                  </p>
+                )}
 
-            {modalRole === "student" && (
-              <p className="text-center text-xs text-text-muted mt-4">
-                Having trouble? Contact your placement coordinator.
-              </p>
+                <button
+                  onClick={handleLogin}
+                  disabled={loading}
+                  className="w-full mt-4 py-3 rounded-xl bg-primary hover:bg-blue-600 text-white font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                  style={{ fontFamily: "Space Grotesk, sans-serif" }}
+                >
+                  {loading ? "Logging in..." : "Login →"}
+                </button>
+
+                {modalRole === "student" && (
+                  <p className="text-center text-xs text-text-muted mt-4">
+                    Having trouble? Contact your placement coordinator.
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                {/* Forgot Password view */}
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <p className="text-xs font-semibold tracking-widest uppercase text-primary">
+                      Reset Password
+                    </p>
+                    <h3
+                      className="text-2xl font-bold text-[#1E293B] mt-1"
+                      style={{ fontFamily: "Space Grotesk, sans-serif" }}
+                    >
+                      Forgot password?
+                    </h3>
+                  </div>
+                  <button
+                    onClick={handleModalClose}
+                    className="w-9 h-9 rounded-full bg-background flex items-center justify-center text-text-muted hover:bg-[#E2E8F0] transition-colors cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <p className="text-sm text-text-muted mb-4">
+                  Enter your registered email — we'll send you a link to reset
+                  your password.
+                </p>
+
+                <div>
+                  <label className="text-sm font-medium text-[#1E293B] block mb-1">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="w-full px-4 py-3 rounded-xl border border-[#CBD5E1] text-[#1E293B] placeholder-text-muted focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+                  />
+                </div>
+
+                {forgotMessage && (
+                  <p className="text-xs text-center mt-4 text-[#1E293B]">
+                    {forgotMessage}
+                  </p>
+                )}
+
+                <button
+                  onClick={handleForgotPassword}
+                  disabled={forgotLoading}
+                  className="w-full mt-4 py-3 rounded-xl bg-primary hover:bg-blue-600 text-white font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                  style={{ fontFamily: "Space Grotesk, sans-serif" }}
+                >
+                  {forgotLoading ? "Sending..." : "Send Reset Link"}
+                </button>
+
+                <button
+                  onClick={() => {
+                    setModalView("login");
+                    setForgotMessage("");
+                  }}
+                  className="w-full mt-3 text-center text-xs font-semibold text-text-muted hover:text-[#1E293B]"
+                >
+                  ← Back to login
+                </button>
+              </>
             )}
           </div>
         </div>
