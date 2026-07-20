@@ -1,8 +1,10 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 const User = require("../models/User");
 const Student = require("../models/Student");
 const Coordinator = require("../models/Coordinator");
+const { sendEmail } = require("../config/email");
 
 // Token generate karne ka function
 const generateToken = (id, role) => {
@@ -152,4 +154,116 @@ const changePassword = async (req, res) => {
   }
 };
 
-module.exports = { studentLogin, coordinatorLogin, changePassword };
+// Forgot Password — student/coordinator email daalega, reset link jayega
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email: email.trim().toLowerCase() });
+
+    // Security: user exist na kare tab bhi same success message do,
+    // taaki koi bhi yeh pata na laga sake ki kaunse emails registered hai
+    if (!user) {
+      return res.json({
+        message: "If that email is registered, a reset link has been sent.",
+      });
+    }
+
+    // Raw token student ko email me milega, hashed version DB me save hoga —
+    // isse agar DB leak bhi ho jaye, actual usable token kisi ko nahi milega
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(rawToken)
+      .digest("hex");
+
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpires = Date.now() + 30 * 60 * 1000; // 30 minutes
+    await user.save();
+
+    const frontendUrl =
+      process.env.FRONTEND_URL || "https://placerise.vercel.app";
+    const resetLink = `${frontendUrl}/reset-password/${rawToken}`;
+
+    await sendEmail({
+      to: user.email,
+      subject: "Reset Your PlaceRise Password",
+      html: `
+        <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+          <div style="background: linear-gradient(135deg, #1D4ED8, #3B82F6); border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px;">
+            <img 
+              src="https://res.cloudinary.com/saviaykm/image/upload/v1783784651/WhatsApp_Image_2026-07-11_at_18.55.23_krac4c.jpg" 
+              alt="PlaceRise" 
+              style="height: 40px; border-radius: 8px;"
+            />
+            <p style="color: white; font-size: 12px; margin: 8px 0 0 0; opacity: 0.85; font-weight: 600; letter-spacing: 1px;">
+              PLACERISE - Connect . Grow . Succeed
+            </p>
+          </div>
+          <h2 style="color: #1E293B;">Reset Your Password</h2>
+          <p style="color: #475569;">
+            We received a request to reset your PlaceRise password. Click the button below to set a new one. This link expires in 30 minutes.
+          </p>
+          <a href="${resetLink}"
+             style="display: inline-block; background: #3B82F6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin: 16px 0;">
+            Reset Password
+          </a>
+          <p style="color: #94A3B8; font-size: 12px;">
+            If you didn't request this, you can safely ignore this email — your password won't change.
+          </p>
+          <p style="color: #94A3B8; font-size: 12px; margin-top: 24px;">
+            PlaceRise | Dev Bhoomi Uttarakhand University
+          </p>
+        </div>
+      `,
+    });
+
+    res.json({
+      message: "If that email is registered, a reset link has been sent.",
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Reset Password — token verify karke naya password set karo
+const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters" });
+    }
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "This reset link is invalid or has expired. Please request a new one.",
+      });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    user.isFirstLogin = false;
+    await user.save();
+
+    res.json({ message: "Password reset successfully. You can now log in." });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { studentLogin, coordinatorLogin, changePassword, forgotPassword, resetPassword };
