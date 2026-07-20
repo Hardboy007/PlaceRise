@@ -168,7 +168,7 @@ export default function CoordinatorDashboard() {
         className="relative rounded-3xl overflow-hidden mb-6 border border-white/10"
         style={{
           background:
-            "linear-gradient(135deg, #3B82F6 0%, #60A5FA 60%, #818CF8 100%)",
+            "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
         }}
       >
         <div
