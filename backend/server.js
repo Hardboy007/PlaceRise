@@ -42,6 +42,10 @@ app.get("/", (req, res) => {
   res.json({ message: "ok" });
 });
 
+app.get("/health", (req, res) => {
+  res.send("ok")  // ← for cron job 
+});
+
 const PORT = process.env.PORT || 5000;
 
 connectDB()
