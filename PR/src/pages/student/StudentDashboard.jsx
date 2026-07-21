@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { api } from "../../utils/api";
 import universityStructure from "../../data/universityStructure";
+import ContactCellModal from "../../components/student/ContactCellModal";
 
 // ─── Design Tokens ───────────────────────────────────────────
 const C = {
@@ -594,6 +595,7 @@ export default function PlacementDashboard() {
   const [announcementsLoading, setAnnouncementsLoading] = useState(true);
   const [announcementsError, setAnnouncementsError] = useState("");
   const [showAnnouncementHistory, setShowAnnouncementHistory] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
 
   const [jobs, setJobs] = useState([]);
   const [jobsLoading, setJobsLoading] = useState(true);
@@ -1294,6 +1296,7 @@ export default function PlacementDashboard() {
                 applications and interviews.
               </p>
               <button
+                onClick={() => setShowContactModal(true)}
                 style={{
                   borderColor: C.border,
                   backgroundColor: C.white,
@@ -1378,6 +1381,10 @@ export default function PlacementDashboard() {
             </div>
           </div>
         </div>
+      )}
+
+      {showContactModal && (
+        <ContactCellModal onClose={() => setShowContactModal(false)} />
       )}
     </div>
   );

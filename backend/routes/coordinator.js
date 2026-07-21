@@ -7,6 +7,7 @@ const {
   updateMyProfile,
   updateNotificationPreferences,
   getRecentActivity,
+  getContactInfo,
 } = require("../controllers/coordinatorController");
 const Coordinator = require("../models/Coordinator");
 const { uploadPDF } = require("../config/cloudinary");
@@ -53,5 +54,6 @@ router.put(
   updateNotificationPreferences,
 );
 router.get("/me/activity", protect, coordinatorOnly, getRecentActivity);
+router.get('/contact', protect, getContactInfo)
 
 module.exports = router;

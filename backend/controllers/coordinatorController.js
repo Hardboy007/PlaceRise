@@ -169,10 +169,25 @@ const getRecentActivity = async (req, res) => {
   }
 };
 
+// GET /api/coordinators/contact — students ke liye, safe public info hi
+// (naam, email, phone, designation) — koi sensitive field return nahi hota.
+// Multiple coordinators ho sakte hai, isliye array return karta hai.
+const getContactInfo = async (req, res) => {
+  try {
+    const coordinators = await Coordinator.find().select(
+      "name email phone designation department",
+    );
+    res.json(coordinators);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createCoordinator,
   getMyProfile,
   updateMyProfile,
   updateNotificationPreferences,
   getRecentActivity,
+  getContactInfo,
 };
