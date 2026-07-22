@@ -46,6 +46,8 @@ app.get("/health", (req, res) => {
   res.send("ok")  // ← for cron job 
 });
 
+app.use("/api/hr-feedback", require("./routes/hrFeedback"));
+
 const PORT = process.env.PORT || 5000;
 
 connectDB()

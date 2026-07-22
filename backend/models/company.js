@@ -32,6 +32,11 @@ const companySchema = new mongoose.Schema(
     establishedYear: {
       type: Number,
     },
+
+    hrAccessCode: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,
