@@ -8,6 +8,7 @@ const Notification = require("../models/Notification");
 const User = require("../models/User");
 const { sendEmail } = require("../config/email");
 const logActivity = require("../utils/logActivity");
+const fs = require("fs");
 
 // Student request bheje
 const createRequest = async (req, res) => {
@@ -15,10 +16,21 @@ const createRequest = async (req, res) => {
     const { type, purpose } = req.body;
     const student = await Student.findOne({ userId: req.user.id });
     if (!student) return res.status(404).json({ message: "Student not found" });
+
+    let proofUrl = "";
+    if (req.file && type === "NOC") {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "placerise/noc-proofs",
+      });
+      proofUrl = result.secure_url;
+      fs.unlink(req.file.path, () => {});
+    }
+
     const request = await NOCRequest.create({
       studentId: student._id,
       type,
       purpose,
+      proofUrl,
     });
     res.status(201).json(request);
   } catch (error) {
@@ -70,6 +82,7 @@ const getAllRequests = async (req, res) => {
       status: r.status,
       rejectionReason: r.rejectionReason,
       pdfUrl: r.pdfUrl,
+      proofUrl: r.proofUrl,
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,
     }));

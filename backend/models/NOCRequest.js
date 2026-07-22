@@ -16,6 +16,7 @@ const nocRequestSchema = new mongoose.Schema(
     },
     rejectionReason: { type: String, default: "" },
     pdfUrl: { type: String, default: "" },
+    proofUrl: { type: String, default: "" },
   },
   { timestamps: true },
 );

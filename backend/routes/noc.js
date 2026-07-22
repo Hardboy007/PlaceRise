@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const upload = require("../middleware/upload");
 const { protect, coordinatorOnly } = require("../middleware/auth");
 const {
   createRequest,
@@ -9,7 +10,7 @@ const {
   savePdfUrl,
 } = require("../controllers/nocController");
 
-router.post("/", protect, createRequest);
+router.post("/", protect, upload.single("proof"), createRequest);
 router.get("/my", protect, getMyRequests);
 router.get("/", protect, coordinatorOnly, getAllRequests);
 router.put("/:id/status", protect, coordinatorOnly, updateRequestStatus);

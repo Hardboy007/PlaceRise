@@ -72,6 +72,7 @@ const DocumentRequestPage = () => {
   const [requests, setRequests] = useState([]);
   const [type, setType] = useState("NOC");
   const [purpose, setPurpose] = useState("");
+  const [proofFile, setProofFile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -94,12 +95,26 @@ const DocumentRequestPage = () => {
 
   const handleSubmit = async () => {
     if (!purpose.trim() || submitting) return;
+    if (type === "NOC" && !proofFile) {
+      setError("Please upload a proof document for NOC.");
+      return;
+    }
     setSubmitting(true);
     setError("");
     try {
-      const newRequest = await api.post("/noc", { type, purpose });
+      const formData = new FormData();
+      formData.append("type", type);
+      formData.append("purpose", purpose);
+      if (type === "NOC" && proofFile) {
+        formData.append("proof", proofFile);
+      }
+
+      const newRequest = await api.post("/noc", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       setRequests((prev) => [newRequest, ...prev]);
       setPurpose("");
+      setProofFile(null);
     } catch (err) {
       console.error(err);
       setError(
@@ -217,6 +232,24 @@ const DocumentRequestPage = () => {
                 coordinator approve this faster.
               </p>
             </div>
+
+            {/* Proof Upload (Only for NOC) */}
+            {type === "NOC" && (
+              <div>
+                <label className="block text-sm font-medium text-text-muted mb-2">
+                  Upload Proof (Required)
+                </label>
+                <input
+                  type="file"
+                  accept="image/png, image/jpeg, image/jpg"
+                  onChange={(e) => setProofFile(e.target.files[0])}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 sm:px-4 py-2.5 text-sm sm:text-base text-text-main focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                />
+                <p className="text-[11px] text-slate-400 mt-1.5">
+                  Upload an image (PNG, JPG) as proof for your request.
+                </p>
+              </div>
+            )}
 
             {error && (
               <div className="flex items-start gap-1.5 text-danger text-sm font-medium bg-danger/5 border border-danger/20 rounded-lg px-3 py-2 break-words">

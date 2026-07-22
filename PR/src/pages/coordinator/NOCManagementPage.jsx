@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   RotateCcw,
+  ExternalLink,
 } from "lucide-react";
 import { api } from "../../utils/api";
 import universityStructure from "../../data/universityStructure";
@@ -168,6 +169,23 @@ function DocumentCell({ request, onDownload }) {
   );
 }
 
+function ProofCell({ request }) {
+  if (!request.proofUrl) {
+    return <span className="text-gray-300 text-xs">—</span>;
+  }
+  return (
+    <a
+      href={request.proofUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors text-[11px] font-semibold"
+    >
+      <ExternalLink size={12} />
+      View
+    </a>
+  );
+}
+
 // ---------- Actions cell ----------
 // Redesigned so every action is a labeled pill, not a bare icon.
 // A lone green tick on a Rejected row used to be ambiguous (approve? undo?
@@ -306,6 +324,20 @@ function ViewModal({ open, request, onClose }) {
           </p>
         </div>
 
+        {request.proofUrl && (
+          <div className="mb-4">
+            <p className="text-xs text-gray-400 mb-1">Proof Document</p>
+            <a
+              href={request.proofUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:underline"
+            >
+              <ExternalLink size={14} /> View Proof
+            </a>
+          </div>
+        )}
+
         {request.status === "Rejected" && request.rejectionReason && (
           <div className="mb-2">
             <p className="text-xs text-gray-400 mb-1">Rejection Reason</p>
@@ -375,6 +407,22 @@ function ApproveModal({
             {request?.purpose || "—"}
           </p>
         </div>
+
+        {request?.proofUrl && (
+          <div className="mb-4">
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">
+              Proof Document
+            </p>
+            <a
+              href={request.proofUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:underline"
+            >
+              <ExternalLink size={14} /> View Proof
+            </a>
+          </div>
+        )}
 
         {errorMessage && (
           <div className="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm border border-red-200">
@@ -454,6 +502,22 @@ function RejectModal({
             {request?.purpose || "—"}
           </p>
         </div>
+
+        {request?.proofUrl && (
+          <div className="mb-4">
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">
+              Proof Document
+            </p>
+            <a
+              href={request.proofUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:underline"
+            >
+              <ExternalLink size={14} /> View Proof
+            </a>
+          </div>
+        )}
 
         <p className="text-sm text-gray-600 mb-2">
           {isRevoke
@@ -905,23 +969,22 @@ export default function NOCManagementPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50/80 border-b border-gray-200 text-left text-gray-500 text-[11px] font-semibold uppercase tracking-wider">
-                  <th className="px-2.5 py-2 sm:px-4 sm:py-3 font-medium">Student</th>
-                  <th className="px-2.5 py-2 sm:px-4 sm:py-3 font-medium">ERP ID</th>
-                  <th className="px-2.5 py-2 sm:px-4 sm:py-3 font-medium">Course</th>
-                  <th className="px-2.5 py-2 sm:px-4 sm:py-3 font-medium">Type</th>
-                  <th className="px-2.5 py-2 sm:px-4 sm:py-3 font-medium">Purpose</th>
-                  <th className="px-2.5 py-2 sm:px-4 sm:py-3 font-medium">Status</th>
-                  <th className="px-2.5 py-2 sm:px-4 sm:py-3 font-medium text-center">
-                    Document
-                  </th>
-                  <th className="px-2.5 py-2 sm:px-4 sm:py-3 font-medium text-center">Actions</th>
+                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium">Student</th>
+                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium">ERP ID</th>
+                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium">Course</th>
+                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium">Type</th>
+                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium">Purpose</th>
+                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium">Proof</th>
+                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium">Status</th>
+                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium text-center">Document</th>
+                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {loading ? (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={9}
                       className="px-4 py-10 text-center text-gray-400"
                     >
                       <Loader2
@@ -934,7 +997,7 @@ export default function NOCManagementPage() {
                 ) : filteredRequests.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={9}
                       className="px-4 py-10 text-center text-gray-400"
                     >
                       <FileText
@@ -958,17 +1021,19 @@ export default function NOCManagementPage() {
                       key={req._id}
                       className="hover:bg-blue-50/40 transition-colors"
                     >
-                      <td className="px-4 py-3 font-medium text-gray-800">
+                      <td className="px-2 sm:px-3 py-2.5 font-medium text-gray-800 max-w-[120px] truncate" title={req.studentName}>
                         {req.studentName}
                       </td>
-                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
+                      <td className="px-2 sm:px-3 py-2.5 text-gray-500 whitespace-nowrap">
                         {req.erpId || "—"}
                       </td>
-                      <td className="px-4 py-3 text-gray-600">{req.course}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-2 sm:px-3 py-2.5 text-gray-600 max-w-[120px] truncate" title={req.course}>
+                        {req.course}
+                      </td>
+                      <td className="px-2 sm:px-3 py-2.5">
                         <TypeBadge type={req.requestType} />
                       </td>
-                      <td className="px-2.5 py-2 sm:px-4 sm:py-3 text-gray-600 max-w-35 sm:max-w-xs">
+                      <td className="px-2 sm:px-3 py-2.5 text-gray-600 max-w-28 sm:max-w-40">
                         <button
                           onClick={() => setViewTarget(req)}
                           className="truncate block w-full text-left hover:text-blue-600 hover:underline"
@@ -977,19 +1042,22 @@ export default function NOCManagementPage() {
                           {req.purpose}
                         </button>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-2 sm:px-3 py-2.5">
+                        <ProofCell request={req} />
+                      </td>
+                      <td className="px-2 sm:px-3 py-2.5">
                         <StatusBadge
                           status={req.status}
                           createdAt={req.createdAt}
                         />
                       </td>
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-2 sm:px-3 py-2.5 text-center">
                         <DocumentCell
                           request={req}
                           onDownload={handleDownload}
                         />
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-2 sm:px-3 py-2.5">
                         <ActionsCell
                           request={req}
                           onApprove={(r) => {
