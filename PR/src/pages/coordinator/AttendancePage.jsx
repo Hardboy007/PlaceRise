@@ -193,6 +193,31 @@ export default function AttendancePage() {
     return () => clearInterval(pollRef.current);
   }, [sessionId, pollAttendance]);
 
+  const isClosed = session?.status?.toLowerCase() === "closed";
+
+  // ── FIX: QR token har 10s pe rotate karo, taaki screenshot/forwarded ──
+  // QR expire ho jaaye aur proxy attendance na lag paaye. Server current
+  // + prev token dono accept karta hai, isliye exact rotation ke waqt
+  // scan karne wale student ka request fail nahi hoga.
+  useEffect(() => {
+    if (!sessionId || isClosed) return;
+
+    const rotateQR = async () => {
+      try {
+        const res = await api.put(`/attendance/${sessionId}/rotate-token`);
+        const url = `https://placerise.vercel.app/attendance?token=${res.token}`;
+        const dataUrl = await QRCode.toDataURL(url, { width: 480, margin: 2 });
+        setQrDataUrl(dataUrl);
+        setSession((prev) => (prev ? { ...prev, token: res.token } : prev));
+      } catch (err) {
+        console.error("Failed to rotate QR token:", err);
+      }
+    };
+
+    const qrInterval = setInterval(rotateQR, 10000);
+    return () => clearInterval(qrInterval);
+  }, [sessionId, isClosed]);
+
   // ── Manual mark ──
   const filteredStudents = studentSearch.trim()
     ? allStudents.filter((s) =>
@@ -275,7 +300,6 @@ export default function AttendancePage() {
     }
   };
 
-  const isClosed = session?.status?.toLowerCase() === "closed";
   const selectedJob = jobs.find((j) => j._id === selectedJobId);
 
   return (
@@ -426,7 +450,7 @@ export default function AttendancePage() {
                     className="w-56 h-56 sm:w-72 sm:h-72 rounded-xl border border-[#E2E8F0]"
                   />
                   <p className="text-xs text-[#94A3B8] mt-4">
-                    Backup token (if scanning fails):
+                    QR refreshes automatically every few seconds
                   </p>
                   <p className="text-xs font-mono text-[#64748B] bg-[#F8FAFC] px-3 py-1.5 rounded-lg mt-1 break-all text-center">
                     {session?.token}

@@ -12,14 +12,13 @@ const attendanceRecordSchema = new mongoose.Schema(
       ref: "Student",
       required: true,
     },
-    markedAt: { type: Date, default: Date.now },
     mode: { type: String, enum: ["QR", "Manual"], default: "QR" },
     isLate: { type: Boolean, default: false },
+    markedAt: { type: Date, default: Date.now },
   },
   { timestamps: true },
 );
 
-// Ek student ek session mein sirf ek baar mark ho sakta hai
-attendanceRecordSchema.index({ sessionId: 1, studentId: 1 }, { unique: true });
-
-module.exports = mongoose.model("AttendanceRecord", attendanceRecordSchema);
+module.exports =
+  mongoose.models.AttendanceRecord ||
+  mongoose.model("AttendanceRecord", attendanceRecordSchema);

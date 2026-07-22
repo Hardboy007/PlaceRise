@@ -4,6 +4,7 @@ const { protect, coordinatorOnly } = require("../middleware/auth");
 const {
   startSession,
   getActiveSession,
+  rotateToken,
   getSessionAttendance,
   markAttendance,
   manualMark,
@@ -17,6 +18,7 @@ router.post("/mark", protect, markAttendance);
 router.get("/:sessionId/export", protect, coordinatorOnly, exportAttendancePDF);
 router.get("/:sessionId", protect, getSessionAttendance);
 router.post("/:sessionId/manual", protect, coordinatorOnly, manualMark);
+router.put("/:sessionId/rotate-token", protect, coordinatorOnly, rotateToken);
 router.put("/:sessionId/close", protect, coordinatorOnly, closeSession);
 
 module.exports = router;

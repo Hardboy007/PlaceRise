@@ -18,7 +18,9 @@ const ScanAttendancePage = () => {
       const data = await api.post("/attendance/mark", { token });
 
       setSuccess(data.message || "Attendance Marked Successfully!");
-      setStudentName(data.studentName || "");
+      // FIX: backend ab studentName seedha bhejta hai, lekin fallback
+      // bhi rakha hai agar kabhi record.studentId populated aaye
+      setStudentName(data.studentName || data.record?.studentId?.name || "");
     } catch (err) {
       setError(
         err.response?.data?.message || err.message || "Something went wrong",

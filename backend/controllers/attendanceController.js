@@ -9,8 +9,6 @@ const { cloudinary } = require("../config/cloudinary");
 const { Readable } = require("stream");
 const logActivity = require("../utils/logActivity");
 
-// Session start karo — agar iss job ka session pehle se active hai,
-// naya create mat karo, purana hi return karo (idempotent, race-safe)
 const startSession = async (req, res) => {
   try {
     const { jobId } = req.body;
@@ -28,11 +26,10 @@ const startSession = async (req, res) => {
     const session = await AttendanceSession.create({
       jobId,
       token,
+      tokenIssuedAt: new Date(),
       coordinatorId: coordinator._id,
     });
 
-    // Activity log — sirf naya session bane tab hi (existing return pe nahi,
-    // warna har baar page kholne par duplicate entry ban jaati)
     const job = await JobPosting.findById(jobId);
     await logActivity(
       req.user.id,
@@ -47,8 +44,6 @@ const startSession = async (req, res) => {
   }
 };
 
-// Ek specific job ka active session dhoondo (job-wise, global nahi)
-// Query: GET /attendance/active?jobId=xxx
 const getActiveSession = async (req, res) => {
   try {
     const { jobId } = req.query;
@@ -68,7 +63,26 @@ const getActiveSession = async (req, res) => {
   }
 };
 
-// Live attendance list dekho
+// ── NAYA: QR token rotate karo (har 7s frontend se call hoga) ──
+const rotateToken = async (req, res) => {
+  try {
+    const session = await AttendanceSession.findById(req.params.sessionId);
+    if (!session) return res.status(404).json({ message: "Session not found" });
+    if (session.status === "closed")
+      return res.status(400).json({ message: "Session is closed" });
+
+    const newToken = randomUUID();
+    session.prevToken = session.token; // purana token ek rotation ke liye grace period mein
+    session.token = newToken;
+    session.tokenIssuedAt = new Date();
+    await session.save();
+
+    res.json({ token: newToken, tokenIssuedAt: session.tokenIssuedAt });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 const getSessionAttendance = async (req, res) => {
   try {
     const session = await AttendanceSession.findById(
@@ -90,13 +104,18 @@ const getSessionAttendance = async (req, res) => {
   }
 };
 
-// Student attendance mark kare
+// ── UPDATED: ab token ko current + prev dono se match karta hai ──
+// ── FIX: response mein studentName seedha bhej rahe hain, taaki
+// ScanAttendancePage.jsx par "Welcome, <name>" turant dikh jaaye
+// bina kisi extra populate/refetch ke ──
 const markAttendance = async (req, res) => {
   try {
     const { token } = req.body;
 
-    const session = await AttendanceSession.findOne({ token });
-    if (!session) return res.status(404).json({ message: "Invalid QR code" });
+    const session = await AttendanceSession.findOne({
+      $or: [{ token }, { prevToken: token }],
+    });
+    if (!session) return res.status(404).json({ message: "Invalid or expired QR code" });
     if (session.status === "closed")
       return res.status(400).json({ message: "Session expired" });
 
@@ -115,13 +134,16 @@ const markAttendance = async (req, res) => {
       mode: "QR",
     });
 
-    res.status(201).json({ message: "Attendance marked successfully", record });
+    res.status(201).json({
+      message: "Attendance marked successfully",
+      record,
+      studentName: student.name,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Manual mark karo
 const manualMark = async (req, res) => {
   try {
     const { sessionId } = req.params;
@@ -151,7 +173,6 @@ const manualMark = async (req, res) => {
   }
 };
 
-// Session close karo
 const closeSession = async (req, res) => {
   try {
     const session = await AttendanceSession.findByIdAndUpdate(
@@ -166,7 +187,6 @@ const closeSession = async (req, res) => {
   }
 };
 
-// PDF export
 const exportAttendancePDF = async (req, res) => {
   try {
     const session = await AttendanceSession.findById(
@@ -297,6 +317,7 @@ const exportAttendancePDF = async (req, res) => {
 module.exports = {
   startSession,
   getActiveSession,
+  rotateToken,
   getSessionAttendance,
   markAttendance,
   manualMark,
