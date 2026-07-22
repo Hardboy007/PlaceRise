@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const Company = require("../models/Company");
+const Company = require("../models/company");
 const HRFeedback = require("../models/HRFeedback");
 
 // ── Coordinator: generate/regenerate an access code for a company ──
