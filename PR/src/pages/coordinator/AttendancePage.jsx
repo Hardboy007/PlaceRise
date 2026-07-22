@@ -214,7 +214,7 @@ export default function AttendancePage() {
       }
     };
 
-    const qrInterval = setInterval(rotateQR, 10000);
+    const qrInterval = setInterval(rotateQR, 15000);
     return () => clearInterval(qrInterval);
   }, [sessionId, isClosed]);
 
