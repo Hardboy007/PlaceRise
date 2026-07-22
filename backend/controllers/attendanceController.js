@@ -115,7 +115,8 @@ const markAttendance = async (req, res) => {
     const session = await AttendanceSession.findOne({
       $or: [{ token }, { prevToken: token }],
     });
-    if (!session) return res.status(404).json({ message: "Invalid or expired QR code" });
+    if (!session)
+      return res.status(404).json({ message: "Invalid or expired QR code" });
     if (session.status === "closed")
       return res.status(400).json({ message: "Session expired" });
 
