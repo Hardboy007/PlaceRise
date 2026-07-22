@@ -214,7 +214,7 @@ export default function AttendancePage() {
       }
     };
 
-    const qrInterval = setInterval(rotateQR, 15000);
+    const qrInterval = setInterval(rotateQR, 18000);
     return () => clearInterval(qrInterval);
   }, [sessionId, isClosed]);
 
@@ -450,7 +450,7 @@ export default function AttendancePage() {
                     className="w-56 h-56 sm:w-72 sm:h-72 rounded-xl border border-[#E2E8F0]"
                   />
                   <p className="text-xs text-[#94A3B8] mt-4">
-                    QR refreshes automatically every few seconds
+                    QR refreshes automatically every 10 seconds
                   </p>
                   <p className="text-xs font-mono text-[#64748B] bg-[#F8FAFC] px-3 py-1.5 rounded-lg mt-1 break-all text-center">
                     {session?.token}
