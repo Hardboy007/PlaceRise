@@ -969,15 +969,33 @@ export default function NOCManagementPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50/80 border-b border-gray-200 text-left text-gray-500 text-[11px] font-semibold uppercase tracking-wider">
-                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium">Student</th>
-                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium">ERP ID</th>
-                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium">Course</th>
-                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium">Type</th>
-                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium">Purpose</th>
-                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium">Proof</th>
-                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium">Status</th>
-                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium text-center">Document</th>
-                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium text-center">Actions</th>
+                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium">
+                    Student
+                  </th>
+                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium">
+                    ERP ID
+                  </th>
+                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium">
+                    Course
+                  </th>
+                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium">
+                    Type
+                  </th>
+                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium">
+                    Purpose
+                  </th>
+                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium">
+                    Proof
+                  </th>
+                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium">
+                    Status
+                  </th>
+                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium text-center">
+                    Document
+                  </th>
+                  <th className="px-2 sm:px-3 py-2 sm:py-3 font-medium text-center">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -1021,13 +1039,19 @@ export default function NOCManagementPage() {
                       key={req._id}
                       className="hover:bg-blue-50/40 transition-colors"
                     >
-                      <td className="px-2 sm:px-3 py-2.5 font-medium text-gray-800 max-w-[120px] truncate" title={req.studentName}>
+                      <td
+                        className="px-2 sm:px-3 py-2.5 font-medium text-gray-800 max-w-[120px] truncate"
+                        title={req.studentName}
+                      >
                         {req.studentName}
                       </td>
                       <td className="px-2 sm:px-3 py-2.5 text-gray-500 whitespace-nowrap">
                         {req.erpId || "—"}
                       </td>
-                      <td className="px-2 sm:px-3 py-2.5 text-gray-600 max-w-[120px] truncate" title={req.course}>
+                      <td
+                        className="px-2 sm:px-3 py-2.5 text-gray-600 max-w-[120px] truncate"
+                        title={req.course}
+                      >
                         {req.course}
                       </td>
                       <td className="px-2 sm:px-3 py-2.5">
