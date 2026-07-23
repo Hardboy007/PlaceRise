@@ -196,6 +196,10 @@ const uploadResume = async (req, res) => {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
+    // "onboarding" -> uploaded from the onboarding wizard
+    // "manual" -> uploaded from the profile page (default/fallback)
+    const source = req.body.source === "onboarding" ? "onboarding" : "manual";
+
     const result = await cloudinary.uploader.upload(req.file.path, {
       resource_type: "raw",
       folder: "placerise/resumes",
@@ -205,10 +209,12 @@ const uploadResume = async (req, res) => {
     // Temp file delete karo
     fs.unlink(req.file.path, () => {});
 
-    // Student ka resume URL update karo
+    // Student ka resume URL update karo. A manual/onboarding file upload
+    // means any previously AI-generated resumeData is now stale (the file
+    // itself no longer matches that template), so clear it.
     const student = await Student.findOneAndUpdate(
       { userId: req.user.id },
-      { resume: result.secure_url },
+      { resume: result.secure_url, resumeSource: source, resumeData: null },
       { new: true },
     );
 
@@ -403,6 +409,7 @@ const generateResume = async (req, res) => {
       { userId: req.user.id },
       {
         resume: uploadResult.secure_url,
+        resumeSource: null,
         resumeData: {
           name,
           email,

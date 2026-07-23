@@ -77,6 +77,7 @@ export default function StudentProfilePage() {
   const [form, setForm] = useState(null);
   const [newSkill, setNewSkill] = useState("");
   const [saved, setSaved] = useState(false);
+  const [uploadingResume, setUploadingResume] = useState(false);
   const resumeInputRef = useRef(null);
   const [showResumeBuilder, setShowResumeBuilder] = useState(false);
 
@@ -127,26 +128,25 @@ export default function StudentProfilePage() {
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("source", "manual");
 
+    setUploadingResume(true);
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/students/me/resume`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: formData,
-        },
-      );
-      const data = await res.json();
-      if (data.resumeUrl) {
+      const data = await api.post("/students/me/resume", formData);
+      if (data?.resumeUrl) {
         setStudent({ ...student, resume: data.resumeUrl });
-        setForm({ ...form, resume: data.resumeUrl });
+        if (form) setForm({ ...form, resume: data.resumeUrl });
         alert("Resume uploaded successfully!");
+      } else {
+        alert("Resume upload failed");
       }
     } catch (err) {
+      console.error("Resume upload error:", err);
       alert("Resume upload failed");
+    } finally {
+      setUploadingResume(false);
+      // Allow re-selecting the same file later.
+      e.target.value = "";
     }
   };
 
@@ -608,6 +608,10 @@ export default function StudentProfilePage() {
                 </a>
               </div>
               <div className="ml-auto flex items-center gap-2 shrink-0">
+                {/* AI-built resume -> can edit the template. Any other
+                    resume (uploaded during onboarding or manually from this
+                    page) only offers Replace — "Build" only shows up in the
+                    empty state before any resume exists. */}
                 {student.resumeData && (
                   <button
                     onClick={() => setShowResumeBuilder(true)}
@@ -616,14 +620,13 @@ export default function StudentProfilePage() {
                     <Sparkles size={12} /> Edit
                   </button>
                 )}
-                {editing && (
-                  <button
-                    onClick={() => resumeInputRef.current.click()}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-background text-[#64748B] border border-[#E2E8F0] hover:bg-[#E2E8F0] transition-colors"
-                  >
-                    Replace
-                  </button>
-                )}
+                <button
+                  onClick={() => resumeInputRef.current.click()}
+                  disabled={uploadingResume}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-background text-[#64748B] border border-[#E2E8F0] hover:bg-[#E2E8F0] transition-colors disabled:opacity-50"
+                >
+                  {uploadingResume ? "Uploading..." : "Replace"}
+                </button>
               </div>
             </div>
           ) : (
@@ -638,9 +641,10 @@ export default function StudentProfilePage() {
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <button
                   onClick={() => resumeInputRef.current.click()}
-                  className="px-4 py-2 rounded-xl bg-[#3B82F6] text-white text-sm font-semibold hover:bg-[#2563EB] transition-colors"
+                  disabled={uploadingResume}
+                  className="px-4 py-2 rounded-xl bg-[#3B82F6] text-white text-sm font-semibold hover:bg-[#2563EB] transition-colors disabled:opacity-50"
                 >
-                  Upload My Resume
+                  {uploadingResume ? "Uploading..." : "Upload My Resume"}
                 </button>
                 <button
                   onClick={() => setShowResumeBuilder(true)}

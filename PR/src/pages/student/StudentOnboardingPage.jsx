@@ -22,6 +22,7 @@ function StudentOnboardingPage() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [resumeFile, setResumeFile] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     // Personal
@@ -47,9 +48,8 @@ function StudentOnboardingPage() {
 
   useEffect(() => {
     const fetchStudentData = async () => {
-      const stored = JSON.parse(localStorage.getItem("student") || "{}");
-      if (stored.id) {
-        const data = await api.get(`/students/${stored.id}`);
+      try {
+        const data = await api.get("/students/me");
         if (data) {
           setFormData((prev) => ({
             ...prev,
@@ -66,6 +66,9 @@ function StudentOnboardingPage() {
             backlogs: data.backlogs || "0",
           }));
         }
+      } catch (err) {
+        // First-time onboarding — student record may not be fully queryable yet, ignore.
+        console.error("Prefill fetch failed:", err);
       }
     };
     fetchStudentData();
@@ -110,7 +113,39 @@ function StudentOnboardingPage() {
     if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
 
+  // Uploads the selected resume file using the same endpoint the profile page uses.
+  const uploadResume = async () => {
+    if (!resumeFile) return;
+
+    if (resumeFile.size > 5 * 1024 * 1024) {
+      alert("Resume file size must be less than 5MB");
+      return;
+    }
+
+    const resumeFormData = new FormData();
+    resumeFormData.append("file", resumeFile);
+    resumeFormData.append("source", "onboarding");
+
+    try {
+      const data = await api.post("/students/me/resume", resumeFormData);
+      if (!data?.resumeUrl) {
+        console.error("Resume upload failed:", data);
+        alert(
+          "Profile saved, but resume upload failed. You can upload it later from your profile page.",
+        );
+      }
+    } catch (err) {
+      console.error("Resume upload error:", err);
+      alert(
+        "Profile saved, but resume upload failed. You can upload it later from your profile page.",
+      );
+    }
+  };
+
   const handleSubmit = async () => {
+    if (submitting) return;
+    setSubmitting(true);
+
     const payload = {
       name: formData.fullName,
       dob: formData.dob,
@@ -133,8 +168,21 @@ function StudentOnboardingPage() {
         .filter(Boolean),
     };
 
-    await api.put("/students/me/onboard", payload);
-    navigate("/student/dashboard");
+    try {
+      await api.put("/students/me/onboard", payload);
+
+      // Resume file was only sitting in local state until now — actually send it.
+      if (resumeFile) {
+        await uploadResume();
+      }
+
+      navigate("/student/dashboard");
+    } catch (err) {
+      console.error("Onboarding submit failed:", err);
+      alert("Something went wrong while saving your profile. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -557,7 +605,14 @@ function StudentOnboardingPage() {
                       type="file"
                       accept=".pdf"
                       className="hidden"
-                      onChange={(e) => setResumeFile(e.target.files[0])}
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file && file.size > 5 * 1024 * 1024) {
+                          alert("File size must be less than 5MB");
+                          return;
+                        }
+                        setResumeFile(file);
+                      }}
                     />
                     {resumeFile ? (
                       <div className="flex flex-col items-center gap-2">
@@ -631,12 +686,12 @@ function StudentOnboardingPage() {
           ) : (
             <button
               onClick={handleSubmit}
-              disabled={!isCurrentStepValid()}
+              disabled={!isCurrentStepValid() || submitting}
               className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2.5 rounded-xl text-white text-sm font-medium transition-colors shadow-[0_4px_12px_rgba(59,130,246,0.3)]
-      ${isCurrentStepValid() ? "bg-primary hover:bg-blue-600" : "bg-[#CBD5E1] cursor-not-allowed"}`}
+      ${isCurrentStepValid() && !submitting ? "bg-primary hover:bg-blue-600" : "bg-[#CBD5E1] cursor-not-allowed"}`}
             >
-              Complete Setup
-              <Check size={16} />
+              {submitting ? "Saving..." : "Complete Setup"}
+              {!submitting && <Check size={16} />}
             </button>
           )}
         </div>

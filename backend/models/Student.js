@@ -35,6 +35,15 @@ const studentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.Mixed,
       default: null,
     },
+    // Tracks how the current resume file got here — "onboarding" (uploaded
+    // during the onboarding wizard) or "manual" (uploaded from the profile
+    // page). Used by the profile page to decide which resume actions
+    // (Replace / Build with AI / Edit) to show.
+    resumeSource: {
+      type: String,
+      enum: ["onboarding", "manual", null],
+      default: null,
+    },
 
     // Placement
     skills: [{ type: String }],
