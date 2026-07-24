@@ -378,6 +378,138 @@ function JDBanner({
   );
 }
 
+function BulkApplyModal({ show, onClose, onConfirm, loading, eligibleCount, appliedCount, jobName }) {
+  if (!show) return null;
+  const willApply = eligibleCount - appliedCount;
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{
+        backgroundColor: "rgba(15,23,42,0.55)",
+        backdropFilter: "blur(6px)",
+      }}
+      onClick={(e) => e.target === e.currentTarget && !loading && onClose()}
+    >
+      <div
+        className="bg-white rounded-3xl shadow-2xl border border-[#E2E8F0] w-full max-w-md overflow-hidden"
+        style={{ animation: "fadeInScale 0.2s ease-out" }}
+      >
+        {/* Header */}
+        <div
+          className="px-6 py-5 flex items-center gap-3"
+          style={{ background: "linear-gradient(135deg, #1D4ED8, #3B82F6)" }}
+        >
+          <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+            <Users size={20} color="white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-white">Bulk Apply Confirmation</h3>
+            <p className="text-xs text-white/70">Review before proceeding</p>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="px-6 py-5 space-y-4">
+          <div
+            className="rounded-xl border p-4 space-y-3"
+            style={{ backgroundColor: "#FFFBEB", borderColor: "#FDE68A" }}
+          >
+            <div className="flex items-center gap-2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+              <span className="text-sm font-bold" style={{ color: "#92400E" }}>
+                Are you sure?
+              </span>
+            </div>
+            <p className="text-xs leading-relaxed" style={{ color: "#78350F" }}>
+              This will create <strong>{willApply}</strong> new application{willApply !== 1 ? "s" : ""} with
+              &quot;Applied&quot; status for all eligible students who haven't applied yet.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#64748B" }}>
+              Drive Details
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { label: "Drive", value: jobName, full: true },
+                { label: "Total Eligible", value: eligibleCount },
+                { label: "Already Applied", value: appliedCount },
+                { label: "Will Apply Now", value: willApply, highlight: true },
+              ].map(({ label, value, full, highlight }) => (
+                <div
+                  key={label}
+                  className={`rounded-xl border px-3 py-2.5 ${full ? "col-span-2" : ""}`}
+                  style={{
+                    backgroundColor: highlight ? "#EFF6FF" : "#F8FAFC",
+                    borderColor: highlight ? "#BFDBFE" : "#E2E8F0",
+                  }}
+                >
+                  <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "#64748B" }}>
+                    {label}
+                  </p>
+                  <p
+                    className="text-sm font-bold truncate"
+                    style={{ color: highlight ? "#1D4ED8" : "#0F172A" }}
+                  >
+                    {value}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-[#E2E8F0] flex items-center gap-3 justify-end bg-[#F8FAFC]">
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="px-5 py-2.5 rounded-xl text-sm font-semibold border border-[#E2E8F0] bg-white text-[#64748B] hover:text-[#0F172A] transition-all disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading || willApply === 0}
+            className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            style={{
+              background: loading ? "#94A3B8" : "linear-gradient(135deg, #1D4ED8, #3B82F6)",
+              boxShadow: loading ? "none" : "0 2px 10px rgba(59,130,246,0.35)",
+            }}
+          >
+            {loading ? (
+              <>
+                <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="white" strokeWidth="4" />
+                  <path className="opacity-75" fill="white" d="M4 12a8 8 0 018-8v8z" />
+                </svg>
+                Applying...
+              </>
+            ) : (
+              <>
+                <Users size={14} />
+                Yes, Bulk Apply ({willApply})
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes fadeInScale {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 function EligibleTab({ selectedJob, allStudents }) {
   // Matching against s.course (not s.branch) — eligibleBranches actually
   // stores full COURSE name strings (e.g. "B.Tech Computer Science
@@ -396,7 +528,47 @@ function EligibleTab({ selectedJob, allStudents }) {
     });
   }, [selectedJob, allStudents]);
 
+  // Count how many eligible students have already applied
+  const [appliedCount, setAppliedCount] = useState(0);
+  const [bulkApplyModal, setBulkApplyModal] = useState(false);
+  const [bulkApplyLoading, setBulkApplyLoading] = useState(false);
+  const [bulkApplyResult, setBulkApplyResult] = useState(null);
+
+  useEffect(() => {
+    if (!selectedJob?._id) return;
+    const fetchAppliedCount = async () => {
+      try {
+        const apps = await api.get(`/applications/job/${selectedJob._id}`);
+        const appliedIds = new Set(
+          (Array.isArray(apps) ? apps : []).map((a) => a.studentId?._id?.toString?.() || a.studentId?.toString?.())
+        );
+        const eligibleIds = eligible.map((s) => s._id?.toString?.());
+        setAppliedCount(eligibleIds.filter((id) => appliedIds.has(id)).length);
+      } catch {
+        setAppliedCount(0);
+      }
+    };
+    fetchAppliedCount();
+  }, [selectedJob?._id, eligible]);
+
+  const handleBulkApply = async () => {
+    setBulkApplyLoading(true);
+    try {
+      const result = await api.post(`/applications/job/${selectedJob._id}/bulk-apply`);
+      setBulkApplyResult(result);
+      setBulkApplyModal(false);
+      // Refresh applied count
+      setAppliedCount((prev) => prev + (result.created || 0));
+    } catch (err) {
+      setBulkApplyResult({ error: err.message });
+    } finally {
+      setBulkApplyLoading(false);
+    }
+  };
+
   const cols = "2fr 1.2fr 1.4fr 0.8fr 0.8fr";
+  const notAppliedCount = eligible.length - appliedCount;
+  const jobName = `${selectedJob?.companyId?.name || "Company"} — ${selectedJob?.role || "Role"}`;
 
   return (
     <div className="space-y-4">
@@ -430,6 +602,81 @@ function EligibleTab({ selectedJob, allStudents }) {
           borderColor="#FDE68A"
         />
       </div>
+
+      {/* Bulk Apply action bar */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 sm:p-4 flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+            style={{ background: "linear-gradient(135deg, #1D4ED8, #3B82F6)" }}
+          >
+            <Users size={16} color="white" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-bold" style={{ color: "#0F172A" }}>
+              {notAppliedCount > 0
+                ? `${notAppliedCount} eligible student${notAppliedCount !== 1 ? "s" : ""} haven't applied yet`
+                : "All eligible students have applied ✓"}
+            </p>
+            <p className="text-xs" style={{ color: "#64748B" }}>
+              {appliedCount} of {eligible.length} eligible students already applied
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => { setBulkApplyResult(null); setBulkApplyModal(true); }}
+          disabled={notAppliedCount === 0}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+          style={{
+            background: notAppliedCount === 0 ? "#94A3B8" : "linear-gradient(135deg, #1D4ED8, #3B82F6)",
+            boxShadow: notAppliedCount === 0 ? "none" : "0 2px 10px rgba(59,130,246,0.35)",
+          }}
+        >
+          <Users size={14} />
+          Bulk Apply {notAppliedCount > 0 ? `(${notAppliedCount})` : ""}
+        </button>
+      </div>
+
+      {/* Success / Error toast */}
+      {bulkApplyResult && (
+        <div
+          className="rounded-xl border px-4 py-3 flex items-center justify-between gap-3"
+          style={{
+            backgroundColor: bulkApplyResult.error ? "#FFF1F2" : "#F0FDF4",
+            borderColor: bulkApplyResult.error ? "#FECDD3" : "#86EFAC",
+          }}
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            {bulkApplyResult.error ? (
+              <XCircle size={16} color="#EF4444" className="shrink-0" />
+            ) : (
+              <CheckCircle size={16} color="#22C55E" className="shrink-0" />
+            )}
+            <p
+              className="text-sm font-semibold"
+              style={{ color: bulkApplyResult.error ? "#991B1B" : "#14532D" }}
+            >
+              {bulkApplyResult.error || bulkApplyResult.message}
+            </p>
+          </div>
+          <button
+            onClick={() => setBulkApplyResult(null)}
+            className="text-[#94A3B8] hover:text-[#0F172A] transition shrink-0"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
+      <BulkApplyModal
+        show={bulkApplyModal}
+        onClose={() => setBulkApplyModal(false)}
+        onConfirm={handleBulkApply}
+        loading={bulkApplyLoading}
+        eligibleCount={eligible.length}
+        appliedCount={appliedCount}
+        jobName={jobName}
+      />
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
         <div

@@ -444,10 +444,113 @@ const exportJobApplications = async (req, res) => {
   }
 };
 
+// Coordinator bulk-apply — eligible students jinhone apply nahi kiya
+// unka ek saath "Applied" create karna
+const bulkApply = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+
+    const job = await JobPosting.findById(jobId).populate("companyId", "name");
+    if (!job) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+
+    // Saare students lao
+    const allStudents = await Student.find();
+
+    // Eligibility filter — same logic as createApplication
+    const eligible = allStudents.filter((s) => {
+      // Branch/course check
+      if (
+        job.eligibleBranches &&
+        !job.eligibleBranches.includes("All") &&
+        job.eligibleBranches.length > 0
+      ) {
+        const isEligible =
+          job.eligibleBranches.includes(s.course) ||
+          job.eligibleBranches.includes(s.branch);
+        if (!isEligible) return false;
+      }
+      // CGPA check
+      if (job.minCgpa && job.minCgpa > 0) {
+        if ((s.cgpa ?? 0) < job.minCgpa) return false;
+      }
+      // Backlogs check
+      if ((s.backlogs ?? 0) > (job.maxBacklogs ?? 0)) return false;
+      return true;
+    });
+
+    const eligibleIds = eligible.map((s) => s._id);
+
+    // Jo already apply kar chuke hain unhe nikalo
+    const existingApps = await Application.find({
+      jobId,
+      studentId: { $in: eligibleIds },
+    }).select("studentId");
+    const alreadyAppliedSet = new Set(
+      existingApps.map((a) => a.studentId.toString()),
+    );
+
+    // Jo 3 ya zyada companies me selected hain unhe bhi skip karo
+    const selectedCounts = await Application.aggregate([
+      {
+        $match: {
+          studentId: { $in: eligibleIds },
+          status: "Selected",
+        },
+      },
+      { $group: { _id: "$studentId", count: { $sum: 1 } } },
+    ]);
+    const overSelectedSet = new Set(
+      selectedCounts
+        .filter((s) => s.count >= 3)
+        .map((s) => s._id.toString()),
+    );
+
+    // Final list — eligible, not already applied, not 3x selected
+    const toBulkApply = eligible.filter((s) => {
+      const sid = s._id.toString();
+      return !alreadyAppliedSet.has(sid) && !overSelectedSet.has(sid);
+    });
+
+    if (toBulkApply.length === 0) {
+      return res.status(200).json({
+        message: "All eligible students have already applied",
+        created: 0,
+      });
+    }
+
+    // Bulk insert
+    const docs = toBulkApply.map((s) => ({
+      studentId: s._id,
+      jobId,
+      status: "Applied",
+      resumeUrl: s.resume || "",
+    }));
+    const created = await Application.insertMany(docs);
+
+    // Activity log
+    await logActivity(
+      req.user?.id,
+      `Bulk applied ${created.length} students for ${job.role} at ${job.companyId?.name || "Company"}`,
+      "application",
+    );
+
+    res.status(201).json({
+      message: `${created.length} students applied successfully`,
+      created: created.length,
+      skipped: eligible.length - toBulkApply.length,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createApplication,
   getMyApplications,
   getJobApplications,
   updateApplicationStatus,
   exportJobApplications,
+  bulkApply,
 };
