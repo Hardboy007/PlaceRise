@@ -491,26 +491,10 @@ const bulkApply = async (req, res) => {
       existingApps.map((a) => a.studentId.toString()),
     );
 
-    // Jo 3 ya zyada companies me selected hain unhe bhi skip karo
-    const selectedCounts = await Application.aggregate([
-      {
-        $match: {
-          studentId: { $in: eligibleIds },
-          status: "Selected",
-        },
-      },
-      { $group: { _id: "$studentId", count: { $sum: 1 } } },
-    ]);
-    const overSelectedSet = new Set(
-      selectedCounts
-        .filter((s) => s.count >= 3)
-        .map((s) => s._id.toString()),
-    );
-
-    // Final list — eligible, not already applied, not 3x selected
+    // Final list — eligible, not already applied
     const toBulkApply = eligible.filter((s) => {
       const sid = s._id.toString();
-      return !alreadyAppliedSet.has(sid) && !overSelectedSet.has(sid);
+      return !alreadyAppliedSet.has(sid);
     });
 
     if (toBulkApply.length === 0) {
