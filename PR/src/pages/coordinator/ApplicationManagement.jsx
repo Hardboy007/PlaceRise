@@ -464,7 +464,9 @@ function BulkApplyModal({
             <Users size={20} color="white" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-white">Bulk Apply Confirmation</h3>
+            <h3 className="text-lg font-bold text-white">
+              Bulk Apply Confirmation
+            </h3>
             <p className="text-xs text-white/70">Review before proceeding</p>
           </div>
         </div>
@@ -476,7 +478,16 @@ function BulkApplyModal({
             style={{ backgroundColor: "#FFFBEB", borderColor: "#FDE68A" }}
           >
             <div className="flex items-center gap-2">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#F59E0B"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                 <line x1="12" y1="9" x2="12" y2="13" />
                 <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -486,14 +497,18 @@ function BulkApplyModal({
               </span>
             </div>
             <p className="text-xs leading-relaxed" style={{ color: "#78350F" }}>
-              This will create <strong>{willApply}</strong> new application{willApply !== 1 ? "s" : ""} with
-              &quot;Applied&quot; status for the students you've selected below. Students with no
-              resume uploaded will be skipped automatically.
+              This will create <strong>{willApply}</strong> new application
+              {willApply !== 1 ? "s" : ""} with &quot;Applied&quot; status for
+              the students you've selected below. Students with no resume
+              uploaded will be skipped automatically.
             </p>
           </div>
 
           <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#64748B" }}>
+            <p
+              className="text-xs font-semibold uppercase tracking-wider"
+              style={{ color: "#64748B" }}
+            >
               Drive Details
             </p>
             <div className="grid grid-cols-2 gap-2">
@@ -501,7 +516,11 @@ function BulkApplyModal({
                 { label: "Drive", value: jobName, full: true },
                 { label: "Total Eligible", value: eligibleCount },
                 { label: "Already Applied", value: appliedCount },
-                { label: "Selected to Apply", value: willApply, highlight: true },
+                {
+                  label: "Selected to Apply",
+                  value: willApply,
+                  highlight: true,
+                },
               ].map(({ label, value, full, highlight }) => (
                 <div
                   key={label}
@@ -511,7 +530,10 @@ function BulkApplyModal({
                     borderColor: highlight ? "#BFDBFE" : "#E2E8F0",
                   }}
                 >
-                  <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "#64748B" }}>
+                  <p
+                    className="text-[10px] font-semibold uppercase tracking-wider"
+                    style={{ color: "#64748B" }}
+                  >
                     {label}
                   </p>
                   <p
@@ -540,15 +562,34 @@ function BulkApplyModal({
             disabled={loading || willApply === 0}
             className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             style={{
-              background: loading ? "#94A3B8" : "linear-gradient(135deg, #1D4ED8, #3B82F6)",
+              background: loading
+                ? "#94A3B8"
+                : "linear-gradient(135deg, #1D4ED8, #3B82F6)",
               boxShadow: loading ? "none" : "0 2px 10px rgba(59,130,246,0.35)",
             }}
           >
             {loading ? (
               <>
-                <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="white" strokeWidth="4" />
-                  <path className="opacity-75" fill="white" d="M4 12a8 8 0 018-8v8z" />
+                <svg
+                  className="animate-spin"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="white"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="white"
+                    d="M4 12a8 8 0 018-8v8z"
+                  />
                 </svg>
                 Applying...
               </>
@@ -572,7 +613,12 @@ function BulkApplyModal({
   );
 }
 
-function EligibleTab({ selectedJob, allStudents, onStudentBlockToggled, refreshKey }) {
+function EligibleTab({
+  selectedJob,
+  allStudents,
+  onStudentBlockToggled,
+  refreshKey,
+}) {
   // Matching against s.course (not s.branch) — eligibleBranches actually
   // stores full COURSE name strings (e.g. "B.Tech Computer Science
   // Engineering") as selected via BranchSelectorModal in
@@ -794,7 +840,9 @@ function EligibleTab({ selectedJob, allStudents, onStudentBlockToggled, refreshK
           )
           .map((s) => s._id?.toString?.()),
       );
-      const payloadIds = Array.from(selectedIds).filter((id) => validIds.has(id));
+      const payloadIds = Array.from(selectedIds).filter((id) =>
+        validIds.has(id),
+      );
 
       const result = await api.post(
         `/applications/job/${selectedJob._id}/bulk-apply`,
@@ -840,7 +888,10 @@ function EligibleTab({ selectedJob, allStudents, onStudentBlockToggled, refreshK
       const updated = await api.put(`/students/${id}`, {
         placementBlocked: !student.placementBlocked,
       });
-      onStudentBlockToggled?.(id, updated.placementBlocked ?? !student.placementBlocked);
+      onStudentBlockToggled?.(
+        id,
+        updated.placementBlocked ?? !student.placementBlocked,
+      );
       // If we just blocked someone who was checked, uncheck them.
       setSelectedIds((prev) => {
         if (!prev.has(id)) return prev;
@@ -917,20 +968,30 @@ function EligibleTab({ selectedJob, allStudents, onStudentBlockToggled, refreshK
             {/* Deadline-window messaging — tells the coordinator exactly
                 why the button is locked, and when it will open/closed. */}
             {bulkApplyStatus === "before" && lastDateLabel && (
-              <p className="text-xs mt-1 flex items-center gap-1" style={{ color: "#92400E" }}>
+              <p
+                className="text-xs mt-1 flex items-center gap-1"
+                style={{ color: "#92400E" }}
+              >
                 <Info size={11} className="shrink-0" />
-                Bulk apply opens on <strong>{lastDateLabel}</strong> — the drive's last
-                date to apply.
+                Bulk apply opens on <strong>{lastDateLabel}</strong> — the
+                drive's last date to apply.
               </p>
             )}
             {bulkApplyStatus === "after" && lastDateLabel && (
-              <p className="text-xs mt-1 flex items-center gap-1" style={{ color: "#991B1B" }}>
+              <p
+                className="text-xs mt-1 flex items-center gap-1"
+                style={{ color: "#991B1B" }}
+              >
                 <Lock size={11} className="shrink-0" />
-                Bulk apply window closed — deadline ({lastDateLabel}) has passed.
+                Bulk apply window closed — deadline ({lastDateLabel}) has
+                passed.
               </p>
             )}
             {bulkApplyStatus === "unknown" && (
-              <p className="text-xs mt-1 flex items-center gap-1" style={{ color: "#991B1B" }}>
+              <p
+                className="text-xs mt-1 flex items-center gap-1"
+                style={{ color: "#991B1B" }}
+              >
                 <Info size={11} className="shrink-0" />
                 This drive has no deadline set, so bulk apply is unavailable.
               </p>
@@ -938,7 +999,10 @@ function EligibleTab({ selectedJob, allStudents, onStudentBlockToggled, refreshK
           </div>
         </div>
         <button
-          onClick={() => { setBulkApplyResult(null); setBulkApplyModal(true); }}
+          onClick={() => {
+            setBulkApplyResult(null);
+            setBulkApplyModal(true);
+          }}
           disabled={selectedCount === 0 || !bulkApplyOpen}
           title={
             !bulkApplyOpen
@@ -979,7 +1043,11 @@ function EligibleTab({ selectedJob, allStudents, onStudentBlockToggled, refreshK
             {bulkApplyResult.error ? (
               <XCircle size={16} color="#EF4444" className="shrink-0 mt-0.5" />
             ) : (
-              <CheckCircle size={16} color="#22C55E" className="shrink-0 mt-0.5" />
+              <CheckCircle
+                size={16}
+                color="#22C55E"
+                className="shrink-0 mt-0.5"
+              />
             )}
             <div className="min-w-0">
               <p
@@ -988,12 +1056,17 @@ function EligibleTab({ selectedJob, allStudents, onStudentBlockToggled, refreshK
               >
                 {bulkApplyResult.error || bulkApplyResult.message}
               </p>
-              {!bulkApplyResult.error && bulkApplyResult.skippedNoResume > 0 && (
-                <p className="text-xs mt-1 flex items-start gap-1" style={{ color: "#92400E" }}>
-                  <FileWarning size={12} className="shrink-0 mt-0.5" />
-                  Skipped (no resume): {bulkApplyResult.skippedNoResumeNames?.join(", ")}
-                </p>
-              )}
+              {!bulkApplyResult.error &&
+                bulkApplyResult.skippedNoResume > 0 && (
+                  <p
+                    className="text-xs mt-1 flex items-start gap-1"
+                    style={{ color: "#92400E" }}
+                  >
+                    <FileWarning size={12} className="shrink-0 mt-0.5" />
+                    Skipped (no resume):{" "}
+                    {bulkApplyResult.skippedNoResumeNames?.join(", ")}
+                  </p>
+                )}
             </div>
           </div>
           <button
@@ -1061,15 +1134,17 @@ function EligibleTab({ selectedJob, allStudents, onStudentBlockToggled, refreshK
                 : "Select / deselect all visible (skips no-resume & blocked students)"
             }
           />
-          {["Name", "ERP ID", "Course", "CGPA", "Backlogs", "Status"].map((h) => (
-            <span
-              key={h}
-              className="text-[10px] font-bold uppercase tracking-wider"
-              style={{ color: "#64748B" }}
-            >
-              {h}
-            </span>
-          ))}
+          {["Name", "ERP ID", "Course", "CGPA", "Backlogs", "Status"].map(
+            (h) => (
+              <span
+                key={h}
+                className="text-[10px] font-bold uppercase tracking-wider"
+                style={{ color: "#64748B" }}
+              >
+                {h}
+              </span>
+            ),
+          )}
         </div>
 
         {appliedLoading ? (
@@ -1127,7 +1202,9 @@ function EligibleTab({ selectedJob, allStudents, onStudentBlockToggled, refreshK
                   alignItems: "center",
                   padding: "14px 20px",
                   borderBottom:
-                    idx !== displayedEligible.length - 1 ? "1px solid #F1F5F9" : "none",
+                    idx !== displayedEligible.length - 1
+                      ? "1px solid #F1F5F9"
+                      : "none",
                   minWidth: "780px",
                   opacity: hasApplied ? 0.6 : 1,
                 }}
@@ -1136,7 +1213,9 @@ function EligibleTab({ selectedJob, allStudents, onStudentBlockToggled, refreshK
                   type="checkbox"
                   checked={checked}
                   onChange={() => toggleStudent(student)}
-                  disabled={hasApplied || isBlocked || noResume || !bulkApplyOpen}
+                  disabled={
+                    hasApplied || isBlocked || noResume || !bulkApplyOpen
+                  }
                   className="w-3.5 h-3.5 accent-[#3B82F6]"
                   title={
                     !hasApplied && !isBlocked && !noResume && !bulkApplyOpen
@@ -1145,7 +1224,10 @@ function EligibleTab({ selectedJob, allStudents, onStudentBlockToggled, refreshK
                   }
                 />
                 <NameCell student={student} />
-                <span className="text-xs font-mono" style={{ color: "#64748B" }}>
+                <span
+                  className="text-xs font-mono"
+                  style={{ color: "#64748B" }}
+                >
                   {student.userId?.erpId || "—"}
                 </span>
                 <span
@@ -1174,7 +1256,8 @@ function EligibleTab({ selectedJob, allStudents, onStudentBlockToggled, refreshK
                 <span
                   className="text-sm"
                   style={{
-                    color: (student.backlogs ?? 0) === 0 ? "#64748B" : "#EF4444",
+                    color:
+                      (student.backlogs ?? 0) === 0 ? "#64748B" : "#EF4444",
                     fontWeight: (student.backlogs ?? 0) > 0 ? 700 : 400,
                   }}
                 >
@@ -1206,7 +1289,9 @@ function EligibleTab({ selectedJob, allStudents, onStudentBlockToggled, refreshK
                           : `Selected in ${student.selectedCount} companies already — block from future bulk applies`
                       }
                       className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all ${
-                        blockingId === student._id ? "opacity-50 cursor-not-allowed" : ""
+                        blockingId === student._id
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
                       } ${
                         isBlocked
                           ? "bg-red-50 text-red-600 border-red-200"
@@ -1252,7 +1337,10 @@ function RemoveApplicationModal({ application, onClose, onConfirm, loading }) {
       onClick={(e) => e.target === e.currentTarget && !loading && onClose()}
     >
       <div className="bg-white rounded-3xl shadow-2xl border border-[#E2E8F0] w-full max-w-md overflow-hidden">
-        <div className="px-6 py-5 flex items-center gap-3" style={{ background: "linear-gradient(135deg, #DC2626, #EF4444)" }}>
+        <div
+          className="px-6 py-5 flex items-center gap-3"
+          style={{ background: "linear-gradient(135deg, #DC2626, #EF4444)" }}
+        >
           <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
             <Trash2 size={20} color="white" />
           </div>
@@ -1275,10 +1363,10 @@ function RemoveApplicationModal({ application, onClose, onConfirm, loading }) {
             </div>
             <p className="text-xs leading-relaxed" style={{ color: "#7F1D1D" }}>
               This will permanently delete{" "}
-              <strong>{student?.name || "this student"}'s</strong> application for{" "}
-              <strong>{jobName}</strong>. If this application had "Selected" status,
-              the student's placement status will be recalculated automatically.
-              The student will be notified that it was removed.
+              <strong>{student?.name || "this student"}'s</strong> application
+              for <strong>{jobName}</strong>. If this application had "Selected"
+              status, the student's placement status will be recalculated
+              automatically. The student will be notified that it was removed.
             </p>
           </div>
         </div>
@@ -1296,14 +1384,33 @@ function RemoveApplicationModal({ application, onClose, onConfirm, loading }) {
             disabled={loading}
             className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-50 flex items-center gap-2"
             style={{
-              background: loading ? "#94A3B8" : "linear-gradient(135deg, #DC2626, #EF4444)",
+              background: loading
+                ? "#94A3B8"
+                : "linear-gradient(135deg, #DC2626, #EF4444)",
             }}
           >
             {loading ? (
               <>
-                <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="white" strokeWidth="4" />
-                  <path className="opacity-75" fill="white" d="M4 12a8 8 0 018-8v8z" />
+                <svg
+                  className="animate-spin"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="white"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="white"
+                    d="M4 12a8 8 0 018-8v8z"
+                  />
                 </svg>
                 Removing...
               </>
@@ -1757,9 +1864,7 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
       </div>
 
       <RemoveApplicationModal
-        application={
-          removeTarget ? { ...removeTarget, jobName } : null
-        }
+        application={removeTarget ? { ...removeTarget, jobName } : null}
         onClose={() => setRemoveTarget(null)}
         onConfirm={handleRemoveApplication}
         loading={removing}
@@ -1993,9 +2098,7 @@ export default function ApplicationsManagementPage() {
   // without needing a full re-fetch of /students.
   const handleStudentBlockToggled = (studentId, placementBlocked) => {
     setAllStudents((prev) =>
-      prev.map((s) =>
-        s._id === studentId ? { ...s, placementBlocked } : s,
-      ),
+      prev.map((s) => (s._id === studentId ? { ...s, placementBlocked } : s)),
     );
   };
 

@@ -75,10 +75,10 @@ const createApplication = async (req, res) => {
     // 3 selected restriction check — sirf student ke apne self-apply flow
     // pe lagu hota hai. Coordinator ke bulk-apply override me isko
     // jaanbujh kar skip kiya gaya hai (coordinator ka manual call hai).
-    
+
     //issa 3 sa jyada comapny mai apply krna sa rok rha tha students ko .
     // const selectedCount = await Application.countDocuments({
-    
+
     //   studentId: student._id,
     //   status: "Selected",
     // });
@@ -576,7 +576,8 @@ const bulkApply = async (req, res) => {
     // --- Bulk apply is only open on the drive's last date ---
     if (!job.lastDate) {
       return res.status(400).json({
-        message: "This drive has no application deadline set, so bulk apply is unavailable.",
+        message:
+          "This drive has no application deadline set, so bulk apply is unavailable.",
       });
     }
     // IMPORTANT: compare calendar days in IST (Asia/Kolkata), not the
