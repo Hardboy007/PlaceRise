@@ -39,7 +39,7 @@ router.delete("/clear-all", protect, coordinatorOnly, async (req, res) => {
 router.delete("/clear-codes", protect, coordinatorOnly, async (req, res) => {
   const Company = require("../models/Company");
   try {
-    await Company.updateMany({}, { $unset: { hrAccessCode: "" } });
+    await Company.updateMany({}, { $set: { hrAccessCode: null } });
     res.json({ message: "All access codes cleared" });
   } catch (error) {
     res.status(500).json({ message: error.message });
