@@ -27,11 +27,11 @@ router.patch(
   markSeenForCompany,
 );
 // TEMPORARY — delete after use
-router.delete("/clear-all", protect, coordinatorOnly, async (req, res) => {
-  const HRFeedback = require("../models/HRFeedback");
+router.delete("/clear-codes", protect, coordinatorOnly, async (req, res) => {
+  const Company = require("../models/Company");
   try {
-    await HRFeedback.deleteMany({});
-    res.json({ message: "All feedback cleared" });
+    await Company.updateMany({}, { $unset: { hrAccessCode: "" } });
+    res.json({ message: "All access codes cleared" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
