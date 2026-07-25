@@ -75,15 +75,18 @@ const createApplication = async (req, res) => {
     // 3 selected restriction check — sirf student ke apne self-apply flow
     // pe lagu hota hai. Coordinator ke bulk-apply override me isko
     // jaanbujh kar skip kiya gaya hai (coordinator ka manual call hai).
-    const selectedCount = await Application.countDocuments({
-      studentId: student._id,
-      status: "Selected",
-    });
-    if (selectedCount >= 3) {
-      return res
-        .status(400)
-        .json({ message: "You have been selected in 3 companies already" });
-    }
+    
+    //issa 3 sa jyada comapny mai apply krna sa rok rha tha students ko .
+    // const selectedCount = await Application.countDocuments({
+    
+    //   studentId: student._id,
+    //   status: "Selected",
+    // });
+    // if (selectedCount >= 3) {
+    //   return res
+    //     .status(400)
+    //     .json({ message: "You have been selected in 3 companies already" });
+    // }
 
     const application = await Application.create({
       studentId: student._id,
