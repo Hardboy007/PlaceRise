@@ -108,6 +108,8 @@ const updateStudent = async (req, res) => {
       "gender",
       "about",
       "linkedinUrl",
+      "parentEmail",
+      "parentPhone",
     ];
     const updates = {};
     allowedFields.forEach((field) => {

@@ -95,7 +95,76 @@ const createApplication = async (req, res) => {
       resumeUrl: student.resume || "",
       appliedVia: "self",
     });
+    // Parent notification — fires after response, non-blocking
+    setImmediate(async () => {
+      try {
+        const populatedStudent = await Student.findById(student._id).populate(
+          "userId",
+          "email",
+        );
+        if (!populatedStudent?.parentEmail) return;
 
+        const company = await JobPosting.findById(jobId).populate(
+          "companyId",
+          "name",
+        );
+        const companyName = company?.companyId?.name || "Company";
+        const role = company?.role || "Role";
+        const ctc = company?.ctc ? `₹${company.ctc} LPA` : "Not disclosed";
+        const lastDate = company?.lastDate
+          ? new Date(company.lastDate).toLocaleDateString("en-IN", {
+              day: "2-digit",
+              month: "long",
+              year: "numeric",
+            })
+          : "—";
+
+        await sendEmail({
+          to: populatedStudent.parentEmail,
+          subject: `PlaceRise — ${populatedStudent.name} has applied to ${companyName}`,
+          html: `
+        <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #ffffff;">
+          <div style="background: linear-gradient(135deg, #1D4ED8, #3B82F6); border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px;">
+            <img
+              src="https://res.cloudinary.com/saviaykm/image/upload/v1783784651/WhatsApp_Image_2026-07-11_at_18.55.23_krac4c.jpg"
+              alt="PlaceRise"
+              style="height: 40px; border-radius: 8px;"
+            />
+            <p style="color: white; font-size: 12px; margin: 8px 0 0 0; opacity: 0.85; font-weight: 600; letter-spacing: 1px;">
+              PLACERISE — Connect. Grow. Succeed.
+            </p>
+          </div>
+
+          <h2 style="color: #1E293B; margin-bottom: 4px;">Dear Parent / Guardian,</h2>
+          <p style="color: #475569; font-size: 15px; line-height: 1.6;">
+            We wanted to let you know that <strong>${populatedStudent.name}</strong> has submitted a placement application through PlaceRise.
+          </p>
+
+          <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 12px; padding: 20px; margin: 20px 0;">
+            <p style="color: #1D4ED8; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 12px 0;">Application Details</p>
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px; color: #1E293B;">
+              <tr><td style="padding: 6px 0; color: #64748B; width: 40%;">Company</td><td style="padding: 6px 0; font-weight: 600;">${companyName}</td></tr>
+              <tr><td style="padding: 6px 0; color: #64748B;">Role</td><td style="padding: 6px 0; font-weight: 600;">${role}</td></tr>
+              <tr><td style="padding: 6px 0; color: #64748B;">Package</td><td style="padding: 6px 0; font-weight: 600;">${ctc}</td></tr>
+              <tr><td style="padding: 6px 0; color: #64748B;">Application Deadline</td><td style="padding: 6px 0; font-weight: 600;">${lastDate}</td></tr>
+            </table>
+          </div>
+
+          <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+            You will receive further updates as the selection process progresses. Shortlisting and interview outcomes will be communicated through this email.
+          </p>
+
+          <p style="color: #94A3B8; font-size: 12px; margin-top: 32px; border-top: 1px solid #F1F5F9; padding-top: 16px;">
+            This is an automated notification from PlaceRise · Dev Bhoomi Uttarakhand University Placement Portal.<br/>
+            Please do not reply to this email.
+          </p>
+        </div>
+      `,
+        });
+      } catch (err) {
+        console.error("Parent apply email error:", err.message);
+      }
+    });
     res.status(201).json(application);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -267,6 +336,101 @@ const updateApplicationStatus = async (req, res) => {
             isRead: false,
           });
 
+          // ---- Parent email — student ke email preference se INDEPENDENT ----
+          // Isliye ye emailNotifications/applicationUpdates check se pehle hai,
+          // aur try block ke andar hai taaki 'student', 'companyName', 'role' scope me rahe
+          if (student.parentEmail) {
+            const isSelected = status === "Selected";
+            const isShortlisted = status === "Shortlisted";
+
+            const parentSubject = isSelected
+              ? `PlaceRise — Great News! ${student.name} has been Selected at ${companyName}`
+              : isShortlisted
+                ? `PlaceRise — ${student.name} has been Shortlisted at ${companyName}`
+                : `PlaceRise — Application Update for ${student.name} — ${companyName}`;
+
+            const statusBg = isSelected
+              ? "#F0FDF4"
+              : isShortlisted
+                ? "#EFF6FF"
+                : "#FEF2F2";
+            const statusBorder = isSelected
+              ? "#BBF7D0"
+              : isShortlisted
+                ? "#BFDBFE"
+                : "#FECACA";
+            const statusColor = isSelected
+              ? "#15803D"
+              : isShortlisted
+                ? "#1D4ED8"
+                : "#DC2626";
+            const statusLabel = isSelected
+              ? "#16A34A"
+              : isShortlisted
+                ? "#2563EB"
+                : "#EF4444";
+
+            const parentIntro = isSelected
+              ? `We are delighted to inform you that <strong>${student.name}</strong> has been <strong>selected</strong> by <strong>${companyName}</strong> for the role of <strong>${role}</strong>. This is a significant milestone, and the placement team congratulates your ward on this achievement.`
+              : isShortlisted
+                ? `We are pleased to inform you that <strong>${student.name}</strong> has been <strong>shortlisted</strong> by <strong>${companyName}</strong> for the role of <strong>${role}</strong>. The next rounds of the selection process are underway.`
+                : `We would like to inform you that <strong>${student.name}'s</strong> application for <strong>${role}</strong> at <strong>${companyName}</strong> has not progressed further at this stage. We encourage your ward to continue applying to other opportunities available on PlaceRise.`;
+
+            try {
+              await sendEmail({
+                to: student.parentEmail,
+                subject: parentSubject,
+                html: `
+      <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #ffffff;">
+        <div style="background: linear-gradient(135deg, #1D4ED8, #3B82F6); border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px;">
+          <img
+            src="https://res.cloudinary.com/saviaykm/image/upload/v1783784651/WhatsApp_Image_2026-07-11_at_18.55.23_krac4c.jpg"
+            alt="PlaceRise"
+            style="height: 40px; border-radius: 8px;"
+          />
+          <p style="color: white; font-size: 12px; margin: 8px 0 0 0; opacity: 0.85; font-weight: 600; letter-spacing: 1px;">
+            PLACERISE — Connect. Grow. Succeed.
+          </p>
+        </div>
+
+        <h2 style="color: #1E293B; margin-bottom: 4px;">Dear Parent / Guardian,</h2>
+        <p style="color: #475569; font-size: 15px; line-height: 1.6;">${parentIntro}</p>
+
+        <div style="background: ${statusBg}; border: 1px solid ${statusBorder}; border-radius: 12px; padding: 20px; margin: 20px 0;">
+          <p style="color: ${statusColor}; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 12px 0;">Application Status</p>
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px; color: #1E293B;">
+            <tr><td style="padding: 6px 0; color: #64748B; width: 40%;">Student</td><td style="padding: 6px 0; font-weight: 600;">${student.name}</td></tr>
+            <tr><td style="padding: 6px 0; color: #64748B;">Company</td><td style="padding: 6px 0; font-weight: 600;">${companyName}</td></tr>
+            <tr><td style="padding: 6px 0; color: #64748B;">Role</td><td style="padding: 6px 0; font-weight: 600;">${role}</td></tr>
+            <tr>
+              <td style="padding: 6px 0; color: #64748B;">Current Status</td>
+              <td style="padding: 6px 0;">
+                <span style="background: ${statusBg}; color: ${statusLabel}; font-weight: 700; padding: 2px 10px; border-radius: 999px; font-size: 12px; border: 1px solid ${statusBorder};">
+                  ${status}
+                </span>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+          For a complete view of all applications and their current status, please visit the PlaceRise portal.
+        </p>
+
+        <p style="color: #94A3B8; font-size: 12px; margin-top: 32px; border-top: 1px solid #F1F5F9; padding-top: 16px;">
+          This is an automated notification from PlaceRise · Dev Bhoomi Uttarakhand University Placement Portal.<br/>
+          Please do not reply to this email.
+        </p>
+      </div>
+    `,
+              });
+            } catch (parentEmailError) {
+              // Parent email fail hone se student email na ruke, isliye alag catch
+              console.error("Parent email error:", parentEmailError.message);
+            }
+          }
+          // ---- End parent email block ----
+
           // Email — sirf agar emailNotifications master switch ON hai
           // AUR applicationUpdates preference bhi ON hai
           if (
@@ -276,7 +440,6 @@ const updateApplicationStatus = async (req, res) => {
             return;
           }
 
-          // Email
           const bgColor =
             status === "Selected"
               ? "#F0FDF4"

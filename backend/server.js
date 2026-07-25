@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const { scheduleWeeklyDigest } = require('./jobs/weeklyDigest')
+const { scheduleDeadlineCheck } = require("./jobs/deadlineCheck");
 
 dotenv.config();
 
@@ -54,6 +55,7 @@ connectDB()
   .then(() => {
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
     scheduleWeeklyDigest();
+    scheduleDeadlineCheck();
   })
   .catch((error) => {
     console.error("Failed to connect to database:", error.message);

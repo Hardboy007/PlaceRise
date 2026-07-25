@@ -363,6 +363,39 @@ function StudentOnboardingPage() {
                     className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
                   />
                 </div>
+                <div className="sm:col-span-2">
+                  <label className="text-xs font-medium text-[#1E293B] block mb-1">
+                    Parent / Guardian Email{" "}
+                    <span className="text-[#94A3B8] font-normal">
+                    </span>
+                  </label>
+                  <input
+                    name="parentEmail"
+                    value={formData.parentEmail}
+                    onChange={handleChange}
+                    placeholder="Parent's email address"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+                  />
+                  <p className="text-[10px] text-[#94A3B8] mt-1">
+                    They'll be notified when you apply or get
+                    shortlisted/selected.
+                  </p>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="text-xs font-medium text-[#1E293B] block mb-1">
+                    Parent / Guardian Phone{" "}
+                    <span className="text-[#94A3B8] font-normal">
+                      (optional)
+                    </span>
+                  </label>
+                  <input
+                    name="parentPhone"
+                    value={formData.parentPhone}
+                    onChange={handleChange}
+                    placeholder="Parent's phone number"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+                  />
+                </div>
               </div>
             </div>
           )}

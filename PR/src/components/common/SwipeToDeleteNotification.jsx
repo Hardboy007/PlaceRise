@@ -10,7 +10,7 @@ export default function SwipeToDeleteNotification({
   const [isSwiping, setIsSwiping] = useState(false);
   const startXRef = useRef(0);
   const currentXRef = useRef(0);
-  
+
   const SWIPE_THRESHOLD = -80; // How far to swipe left before showing delete
 
   const handleTouchStart = (e) => {
@@ -23,7 +23,7 @@ export default function SwipeToDeleteNotification({
     if (!isSwiping) return;
     currentXRef.current = e.touches[0].clientX;
     const diffX = currentXRef.current - startXRef.current;
-    
+
     // Only allow swiping left
     if (diffX < 0) {
       setTranslateX(diffX);
@@ -59,8 +59,10 @@ export default function SwipeToDeleteNotification({
   return (
     <div className="relative overflow-hidden group">
       {/* Background Delete Button (shows when swiped left) */}
-      <div className="absolute inset-y-0 right-0 w-20 bg-[#EF4444] flex flex-col items-center justify-center text-white cursor-pointer"
-           onClick={handleDelete}>
+      <div
+        className="absolute inset-y-0 right-0 w-20 bg-danger flex flex-col items-center justify-center text-white cursor-pointer"
+        onClick={handleDelete}
+      >
         <Trash2 size={20} />
         <span className="text-[10px] font-medium mt-1">Delete</span>
       </div>
@@ -73,23 +75,21 @@ export default function SwipeToDeleteNotification({
         onTouchEnd={handleTouchEnd}
         className={`px-4 py-3 border-b border-[#F8FAFC] cursor-pointer relative transition-transform ${
           !isSwiping ? "duration-300 ease-out" : "duration-0"
-        } bg-white ${!n.isRead ? "bg-blue-50/50 border-l-2 border-l-[#3B82F6]" : ""}`}
+        } bg-white ${!n.isRead ? "bg-blue-50/50 border-l-2 border-l-primary" : ""}`}
         style={{ transform: `translateX(${translateX}px)` }}
       >
-        <p className="text-sm font-semibold text-[#1E293B] pr-6">
-          {n.title}
-        </p>
-        
+        <p className="text-sm font-semibold text-[#1E293B] pr-6">{n.title}</p>
+
         {/* Desktop hover delete button */}
         <button
           onClick={handleDelete}
-          className="absolute right-4 top-3 opacity-0 group-hover:opacity-100 transition-opacity p-1 text-[#64748B] hover:text-[#EF4444] rounded-full hover:bg-red-50 hidden md:block"
+          className="absolute right-4 top-3 opacity-0 group-hover:opacity-100 transition-opacity p-1 text-text-muted hover:text-danger rounded-full hover:bg-red-50 hidden md:block"
           title="Delete notification"
         >
           <X size={14} />
         </button>
 
-        <p className="text-xs text-[#64748B] mt-0.5 pr-6">{n.message}</p>
+        <p className="text-xs text-text-muted mt-0.5 pr-6">{n.message}</p>
         <p className="text-xs text-[#94A3B8] mt-1">
           {new Date(n.createdAt).toLocaleString("en-IN")}
         </p>

@@ -19,6 +19,9 @@ const studentSchema = new mongoose.Schema(
     state: { type: String },
     about: { type: String },
     linkedinUrl: { type: String },
+    // Parent contact — used for email notifications about applications
+    parentEmail: { type: String, default: "" },
+    parentPhone: { type: String, default: "" },
 
     // Academic
     college: { type: String },

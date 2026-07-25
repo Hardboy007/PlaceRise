@@ -130,11 +130,11 @@ function CoordinatorLayout() {
 
   const initials = coordinator.name
     ? coordinator.name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase()
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
     : "MK";
 
   // Poll unread notification count every 30s
@@ -184,7 +184,6 @@ function CoordinatorLayout() {
     location.pathname.startsWith(l.to),
   );
 
-  
   return (
     <div
       className="min-h-screen bg-background overflow-x-hidden"
@@ -329,10 +328,11 @@ function CoordinatorLayout() {
                     <button
                       onClick={() => setOpenGroup(isOpen ? null : label)}
                       className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap
-              ${isGroupActive
-                          ? "bg-primary/10 text-primary"
-                          : "text-text-muted hover:bg-background hover:text-[#1E293B]"
-                        }`}
+              ${
+                isGroupActive
+                  ? "bg-primary/10 text-primary"
+                  : "text-text-muted hover:bg-background hover:text-[#1E293B]"
+              }`}
                     >
                       <Icon size={18} className="shrink-0" />
                       <span
@@ -368,10 +368,11 @@ function CoordinatorLayout() {
                             to={childTo}
                             className={({ isActive }) =>
                               `flex items-center px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 whitespace-nowrap
-                    ${isActive
-                                ? "bg-primary text-white shadow-[0_4px_12px_rgba(59,130,246,0.3)]"
-                                : "text-text-muted hover:bg-background hover:text-[#1E293B]"
-                              }`
+                    ${
+                      isActive
+                        ? "bg-primary text-white shadow-[0_4px_12px_rgba(59,130,246,0.3)]"
+                        : "text-text-muted hover:bg-background hover:text-[#1E293B]"
+                    }`
                             }
                           >
                             {childLabel}
@@ -389,10 +390,11 @@ function CoordinatorLayout() {
                   to={to}
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap
-          ${isActive
-                      ? "bg-primary text-white shadow-[0_4px_12px_rgba(59,130,246,0.3)]"
-                      : "text-text-muted hover:bg-background hover:text-[#1E293B]"
-                    }`
+          ${
+            isActive
+              ? "bg-primary text-white shadow-[0_4px_12px_rgba(59,130,246,0.3)]"
+              : "text-text-muted hover:bg-background hover:text-[#1E293B]"
+          }`
                   }
                 >
                   <Icon size={18} className="shrink-0" />
@@ -409,8 +411,9 @@ function CoordinatorLayout() {
           {/* Bottom user card */}
           <div className="mb-2 px-2">
             <div
-              className={`rounded-xl bg-background border border-[#CBD5E1] flex items-center overflow-hidden transition-all duration-200 ${expanded ? "gap-2.5 p-3" : "justify-center p-1.5"
-                }`}
+              className={`rounded-xl bg-background border border-[#CBD5E1] flex items-center overflow-hidden transition-all duration-200 ${
+                expanded ? "gap-2.5 p-3" : "justify-center p-1.5"
+              }`}
             >
               <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold shrink-0">
                 {initials}
@@ -445,7 +448,8 @@ function CoordinatorLayout() {
             to={to}
             onClick={() => setShowMore(false)}
             className={({ isActive }) =>
-              `flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-[10px] font-medium rounded-2xl ${isActive ? "text-primary" : "text-text-muted"
+              `flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-[10px] font-medium rounded-2xl ${
+                isActive ? "text-primary" : "text-text-muted"
               }`
             }
           >
@@ -455,8 +459,9 @@ function CoordinatorLayout() {
         ))}
         <button
           onClick={() => setShowMore(true)}
-          className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-[10px] font-medium rounded-2xl ${isMoreActive ? "text-primary" : "text-text-muted"
-            }`}
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-[10px] font-medium rounded-2xl ${
+            isMoreActive ? "text-primary" : "text-text-muted"
+          }`}
         >
           <MoreHorizontal size={20} />
           More
@@ -489,9 +494,10 @@ function CoordinatorLayout() {
                     to={to}
                     onClick={() => setShowMore(false)}
                     className={({ isActive }) =>
-                      `flex flex-col items-center justify-center gap-1.5 w-[100px] h-[84px] p-2 rounded-xl border shrink-0 transition-all duration-150 ${isActive
-                        ? "border-primary bg-primary/5"
-                        : "border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-background"
+                      `flex flex-col items-center justify-center gap-1.5 w-[100px] h-[84px] p-2 rounded-xl border shrink-0 transition-all duration-150 ${
+                        isActive
+                          ? "border-primary bg-primary/5"
+                          : "border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-background"
                       }`
                     }
                   >

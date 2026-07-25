@@ -528,6 +528,42 @@ export default function StudentProfilePage() {
               <span className="text-sm font-medium text-[#1E293B]">—</span>
             )}
           </div>
+          <div>
+            <span className="text-xs mt-6 font-semibold uppercase tracking-widest text-[#64748B] block mb-1.5">
+              Parent / Guardian Email
+            </span>
+            {editing ? (
+              <input
+                name="parentEmail"
+                value={form?.parentEmail || ""}
+                onChange={handleChange}
+                placeholder="Parent's email address"
+                className="w-full px-3 py-2 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] bg-[#F8FAFC] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+              />
+            ) : (
+              <span className="text-sm font-medium text-[#1E293B]">
+                {student?.parentEmail || "—"}
+              </span>
+            )}
+          </div>
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-widest text-[#64748B] block mb-1.5">
+              Parent / Guardian Phone
+            </span>
+            {editing ? (
+              <input
+                name="parentPhone"
+                value={form?.parentPhone || ""}
+                onChange={handleChange}
+                placeholder="Parent's phone number"
+                className="w-full px-3 py-2 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] bg-[#F8FAFC] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+              />
+            ) : (
+              <span className="text-sm font-medium text-[#1E293B]">
+                {student?.parentPhone || "—"}
+              </span>
+            )}
+          </div>
         </SectionCard>
       </div>
 
