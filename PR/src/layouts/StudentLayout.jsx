@@ -14,11 +14,11 @@ import {
   Settings,
   Bell,
   LogOut,
-  Sparkles,
   FileText,
   X,
   MoreHorizontal,
 } from "lucide-react";
+import SwipeToDeleteNotification from "../components/common/SwipeToDeleteNotification";
 import { api } from "../utils/api";
 const navLinks = [
   { to: "/student/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -226,28 +226,12 @@ function StudentLayout() {
                     </p>
                   ) : (
                     notifications.map((n) => (
-                      <div
+                      <SwipeToDeleteNotification
                         key={n._id}
-                        onClick={() => handleNotifClick(n)}
-                        className={`px-4 py-3 border-b border-[#F8FAFC] hover:bg-[#F8FAFC] cursor-pointer transition-colors relative group ${!n.isRead ? "bg-blue-50/50 border-l-2 border-l-[#3B82F6]" : ""}`}
-                      >
-                        <p className="text-sm font-semibold text-[#1E293B] pr-6">
-                          {n.title}
-                        </p>
-                        <button
-                          onClick={(e) => handleDeleteNotif(e, n._id)}
-                          className="absolute right-4 top-3 opacity-0 group-hover:opacity-100 transition-opacity p-1 text-[#64748B] hover:text-[#EF4444] rounded-full hover:bg-red-50"
-                          title="Delete notification"
-                        >
-                          <X size={14} />
-                        </button>
-                        <p className="text-xs text-[#64748B] mt-0.5 pr-6">
-                          {n.message}
-                        </p>
-                        <p className="text-xs text-[#94A3B8] mt-1">
-                          {new Date(n.createdAt).toLocaleString("en-IN")}
-                        </p>
-                      </div>
+                        notification={n}
+                        onClick={handleNotifClick}
+                        onDelete={handleDeleteNotif}
+                      />
                     ))
                   )}
                 </div>
