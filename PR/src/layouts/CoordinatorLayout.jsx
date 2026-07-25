@@ -184,6 +184,7 @@ function CoordinatorLayout() {
     location.pathname.startsWith(l.to),
   );
 
+  
   return (
     <div
       className="min-h-screen bg-background overflow-x-hidden"
