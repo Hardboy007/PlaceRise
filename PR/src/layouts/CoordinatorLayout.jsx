@@ -94,6 +94,12 @@ const moreLinks = [
     icon: LineChart,
     color: "orange",
   },
+  {
+    to: "/coordinator/hr-feedback",
+    label: "HR Feedback",
+    icon: MessageSquareText,
+    color: "indigo",   // ← naya color
+  },
 ];
 
 const moreColorMap = {
@@ -104,6 +110,7 @@ const moreColorMap = {
   pink: { bg: "bg-pink-50", text: "text-pink-600" },
   teal: { bg: "bg-teal-50", text: "text-teal-600" },
   orange: { bg: "bg-orange-50", text: "text-orange-600" },
+  indigo: { bg: "bg-indigo-50", text: "text-indigo-600" },
 };
 
 function CoordinatorLayout() {
