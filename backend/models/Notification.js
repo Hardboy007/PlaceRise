@@ -16,6 +16,7 @@ const notificationSchema = new mongoose.Schema(
         "ATTENDANCE_LIVE",
         "NOC_REQUEST",
         "NOC_STATUS",
+        "HR_FEEDBACK",
       ],
       required: true,
     },

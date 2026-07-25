@@ -23,6 +23,7 @@ import {
   X,
   LineChart,
   MoreHorizontal,
+  MessageSquareText,
 } from "lucide-react";
 
 const navLinks = [
@@ -39,10 +40,11 @@ const navLinks = [
   { to: "/coordinator/calendar", label: "Calendar", icon: Calendar },
   { to: "/coordinator/applications", label: "Applications", icon: FileCheck },
   { to: "/coordinator/announcements", label: "Announcements", icon: Megaphone },
-  { to: "/coordinator/profile", label: "Profile & Settings", icon: User },
   { to: "/coordinator/noc", label: "NOC / LOR", icon: FileText },
   { to: "/coordinator/attendance", label: "Attendance", icon: QrCode },
   { to: "/coordinator/analytics", label: "Analytics", icon: LineChart },
+  { to: "/coordinator/profile", label: "Profile & Settings", icon: User },
+  { to: "/coordinator/hr-feedback", label: "HR Feedback", icon: MessageSquareText },
 ];
 
 // Bottom bar pe sirf ye 4 sabse zyada use hone wale pages, 5th "More"

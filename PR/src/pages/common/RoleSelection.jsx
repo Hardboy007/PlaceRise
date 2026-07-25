@@ -536,290 +536,319 @@ function RoleSelectionPage() {
           </div>
         </section>
       </div>
-      {/* Background texture for the white section — city skyline, very faint */}
-      <div
-        className="absolute pointer-events-none overflow-hidden hidden sm:block"
-        style={{ top: "950px", left: 0, right: 0, height: "1000px" }}
-      >
-        {/* Blueprint grid — halka texture, optional rakh sakte ho */}
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `
+      <div className="relative overflow-hidden">
+        {/* Background texture for the white section — city skyline, very faint */}
+        <div className="absolute pointer-events-none inset-0 overflow-hidden hidden sm:block">
+          {/* Blueprint grid — halka texture, optional rakh sakte ho */}
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `
         linear-gradient(rgba(15,23,42,0.04) 1px, transparent 1px),
         linear-gradient(90deg, rgba(15,23,42,0.04) 1px, transparent 1px)
       `,
-            backgroundSize: "48px 48px",
-          }}
-        />
+              backgroundSize: "48px 48px",
+            }}
+          />
 
-        {/* City skyline — full width, sitting at the bottom, fading upward */}
-        <img
-          src="/images/building 3.png"
-          alt=""
-          className="absolute bottom-0 left-0 right-0"
-          style={{
-            width: "100%",
-            height: "auto",
-            opacity: 0.1,
-            filter: "grayscale(100%)",
-            mixBlendMode: "multiply",
-            WebkitMaskImage:
-              "linear-gradient(to top, black 40%, transparent 100%)",
-            maskImage: "linear-gradient(to top, black 40%, transparent 100%)",
-          }}
-        />
-      </div>
-      {/* Feature Highlights — bento grid */}
-      <section className="relative z-10 max-w-5xl mx-auto px-6 mt-24 mb-4">
-        <div className="text-center mb-12">
-          <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-2">
-            Why PlaceRise
-          </p>
-          <h2
-            className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#1E293B] px-2"
-            style={{ fontFamily: "Space Grotesk, sans-serif" }}
-          >
-            Everything placement season needs
-          </h2>
+          {/* City skyline — full width, sitting at the bottom, fading upward */}
+          <img
+            src="/images/building 3.png"
+            alt=""
+            className="absolute bottom-0 left-0 right-0"
+            style={{
+              bottom: "-15%",
+              width: "100%",
+              height: "auto",
+              transform: "scale(1.2)",
+              transformOrigin: "bottom",
+              opacity: 0.1,
+              filter: "grayscale(100%)",
+              mixBlendMode: "multiply",
+              WebkitMaskImage:
+                "linear-gradient(to top, black 40%, transparent 100%)",
+              maskImage: "linear-gradient(to top, black 40%, transparent 100%)",
+            }}
+          />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 lg:grid-rows-2 gap-5">
-          {/* Featured card — big, dark, spans 2x2 */}
-          <div
-            className="sm:col-span-2 lg:col-span-2 lg:row-span-2 relative overflow-hidden rounded-3xl p-5 sm:p-8 text-white
+        {/* Recruiter access strip — modest size, not competing with the main role cards */}
+        <section className="relative z-10 max-w-4xl mx-auto px-6 mt-10">
+          <Link
+            to="/hr-login"
+            className="flex items-center justify-between gap-4 bg-white rounded-2xl border border-[#CBD5E1] px-6 py-4 shadow-[0_10px_40px_-10px_rgba(15,23,42,0.1)] hover:-translate-y-0.5 hover:shadow-[0_15px_45px_-10px_rgba(59,130,246,0.2)] transition-all duration-300"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#1E293B] text-white flex items-center justify-center shrink-0">
+                <BriefcaseIcon />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-[#1E293B]">
+                  Visiting for interviews?
+                </p>
+                <p className="text-xs text-text-muted">
+                  Recruiters can leave quick candidate feedback here
+                </p>
+              </div>
+            </div>
+            <span className="flex items-center gap-1.5 text-primary text-sm font-semibold shrink-0">
+              Recruiter Login
+              <ArrowIcon />
+            </span>
+          </Link>
+        </section>
+
+        {/* Feature Highlights — bento grid */}
+        <section className="relative z-10 max-w-5xl mx-auto px-6 mt-24 mb-4">
+          <div className="text-center mb-12">
+            <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-2">
+              Why PlaceRise
+            </p>
+            <h2
+              className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#1E293B] px-2"
+              style={{ fontFamily: "Space Grotesk, sans-serif" }}
+            >
+              Everything placement season needs
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 lg:grid-rows-2 gap-5">
+            {/* Featured card — big, dark, spans 2x2 */}
+            <div
+              className="sm:col-span-2 lg:col-span-2 lg:row-span-2 relative overflow-hidden rounded-3xl p-5 sm:p-8 text-white
         -rotate-1 hover:rotate-0 hover:-translate-y-1 transition-all duration-500
         shadow-[0_25px_50px_-12px_rgba(15,23,42,0.5)] hover:shadow-[0_20px_60px_-15px_rgba(59,130,246,0.4)]"
-            style={{
-              backgroundImage: `linear-gradient(180deg, #0F172A 0%, #0F172A 45%, rgba(15,23,42,0.75) 75%, rgba(15,23,42,0.35) 100%), url("/images/building.png")`,
-              backgroundSize: "auto 140%",
-              backgroundPosition: "center bottom",
-              backgroundRepeat: "no-repeat",
-            }}
-          >
-            <span
-              className="absolute top-2 right-4 font-bold select-none pointer-events-none text-white text-[4.5rem] sm:text-[9rem]"
               style={{
-                lineHeight: 1,
-                opacity: 0.06,
-                fontFamily: "Space Grotesk, sans-serif",
+                backgroundImage: `linear-gradient(180deg, #0F172A 0%, #0F172A 45%, rgba(15,23,42,0.75) 75%, rgba(15,23,42,0.35) 100%), url("/images/building.png")`,
+                backgroundSize: "auto 140%",
+                backgroundPosition: "center bottom",
+                backgroundRepeat: "no-repeat",
               }}
             >
-              01
-            </span>
-            <div className="absolute -bottom-10 -right-10 w-56 h-56 rounded-full bg-blue-500/30 blur-2xl" />
-            {/* Building — bottom-right corner, full image visible */}
-            <img
-              src="/images/building.png"
-              alt=""
-              className="absolute pointer-events-none"
-              style={{
-                bottom: "80px",
-                right: "0px",
-                width: "60%",
-                height: "auto",
-                opacity: 0.45,
-                mixBlendMode: "lighten",
-              }}
-            />
-            <div className="relative flex flex-col h-full justify-between min-h-55 lg:min-h-80">
-              <div>
-                <div className="flex items-center gap-2 mb-6">
-                  <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center">
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 00-4-5.65V5a2 2 0 10-4 0v.35A6 6 0 006 11v3.2a2 2 0 01-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                      />
-                    </svg>
+              <span
+                className="absolute top-2 right-4 font-bold select-none pointer-events-none text-white text-[4.5rem] sm:text-[9rem]"
+                style={{
+                  lineHeight: 1,
+                  opacity: 0.06,
+                  fontFamily: "Space Grotesk, sans-serif",
+                }}
+              >
+                01
+              </span>
+              <div className="absolute -bottom-10 -right-10 w-56 h-56 rounded-full bg-blue-500/30 blur-2xl" />
+              {/* Building — bottom-right corner, full image visible */}
+              <img
+                src="/images/building.png"
+                alt=""
+                className="absolute pointer-events-none"
+                style={{
+                  bottom: "80px",
+                  right: "0px",
+                  width: "60%",
+                  height: "auto",
+                  opacity: 0.45,
+                  mixBlendMode: "lighten",
+                }}
+              />
+              <div className="relative flex flex-col h-full justify-between min-h-55 lg:min-h-80">
+                <div>
+                  <div className="flex items-center gap-2 mb-6">
+                    <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center">
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 00-4-5.65V5a2 2 0 10-4 0v.35A6 6 0 006 11v3.2a2 2 0 01-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                        />
+                      </svg>
+                    </div>
+                    <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs text-white/80">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                      Live
+                    </span>
                   </div>
-                  <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs text-white/80">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                    Live
-                  </span>
+                  <h3
+                    className="text-xl sm:text-2xl font-bold mb-3"
+                    style={{ fontFamily: "Space Grotesk, sans-serif" }}
+                  >
+                    Real-time Announcements
+                  </h3>
+                  <p className="text-white/70 text-sm leading-relaxed max-w-sm">
+                    Every update from your placement cell reaches you the moment
+                    it's posted — no missed forwards, no buried messages.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Application Tracking — wide */}
+            <div className="lg:col-span-2 bg-white rounded-2xl border border-[#CBD5E1] p-6 hover:-translate-y-1 hover:shadow-[0_10px_40px_-10px_rgba(15,23,42,0.15)] transition-all duration-300 relative overflow-hidden">
+              <span
+                className="absolute top-1 right-3 font-bold select-none pointer-events-none text-[#1E293B] text-[2.5rem] sm:text-[5rem]"
+                style={{
+                  lineHeight: 1,
+                  opacity: 0.05,
+                  fontFamily: "Space Grotesk, sans-serif",
+                }}
+              >
+                02
+              </span>
+              <div className="relative">
+                <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-5">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    viewBox="0 0 24 24"
+                  >
+                    <rect x="4" y="4" width="16" height="18" rx="2" />
+                    <path strokeLinecap="round" d="M8 9h8M8 13h8M8 17h5" />
+                  </svg>
                 </div>
                 <h3
-                  className="text-xl sm:text-2xl font-bold mb-3"
+                  className="text-[#1E293B] font-bold text-base mb-2"
                   style={{ fontFamily: "Space Grotesk, sans-serif" }}
                 >
-                  Real-time Announcements
+                  Application Tracking
                 </h3>
-                <p className="text-white/70 text-sm leading-relaxed max-w-sm">
-                  Every update from your placement cell reaches you the moment
-                  it's posted — no missed forwards, no buried messages.
+                <p className="text-text-muted text-sm leading-relaxed">
+                  Track every application from applied to selected, in one
+                  place, without chasing anyone for updates.
+                </p>
+              </div>
+            </div>
+
+            {/* Eligibility Matching — small */}
+            <div className="bg-white rounded-2xl border border-[#CBD5E1] p-6 hover:-translate-y-1 hover:shadow-[0_10px_40px_-10px_rgba(15,23,42,0.15)] transition-all duration-300 relative overflow-hidden">
+              <span
+                className="absolute top-1 right-2 font-bold select-none pointer-events-none text-[#1E293B] text-[2rem] sm:text-[4rem]"
+                style={{
+                  lineHeight: 1,
+                  opacity: 0.05,
+                  fontFamily: "Space Grotesk, sans-serif",
+                }}
+              >
+                03
+              </span>
+              <div className="relative">
+                <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-5">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle cx="12" cy="12" r="9" />
+                    <circle cx="12" cy="12" r="5" />
+                    <circle cx="12" cy="12" r="1" fill="currentColor" />
+                  </svg>
+                </div>
+                <h3
+                  className="text-[#1E293B] font-bold text-base mb-2"
+                  style={{ fontFamily: "Space Grotesk, sans-serif" }}
+                >
+                  Eligibility Matching
+                </h3>
+                <p className="text-text-muted text-sm leading-relaxed">
+                  See only what applies to your school and course.
+                </p>
+              </div>
+            </div>
+
+            {/* Coordinator Dashboard — small */}
+            <div className="bg-white rounded-2xl border border-[#CBD5E1] p-6 hover:-translate-y-1 hover:shadow-[0_10px_40px_-10px_rgba(15,23,42,0.15)] transition-all duration-300 relative overflow-hidden">
+              <span
+                className="absolute top-1 right-2 font-bold select-none pointer-events-none text-[#1E293B] text-[2rem] sm:text-[4rem]"
+                style={{
+                  lineHeight: 1,
+                  opacity: 0.05,
+                  fontFamily: "Space Grotesk, sans-serif",
+                }}
+              >
+                04
+              </span>
+              <div className="relative">
+                <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-5">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 3v18h18M8 17V10m5 7V6m5 11v-4"
+                    />
+                  </svg>
+                </div>
+                <h3
+                  className="text-[#1E293B] font-bold text-base mb-2"
+                  style={{ fontFamily: "Space Grotesk, sans-serif" }}
+                >
+                  Coordinator Dashboard
+                </h3>
+                <p className="text-text-muted text-sm leading-relaxed">
+                  Manage drives, shortlist candidates, message the batch — one
+                  screen.
                 </p>
               </div>
             </div>
           </div>
-
-          {/* Application Tracking — wide */}
-          <div className="lg:col-span-2 bg-white rounded-2xl border border-[#CBD5E1] p-6 hover:-translate-y-1 hover:shadow-[0_10px_40px_-10px_rgba(15,23,42,0.15)] transition-all duration-300 relative overflow-hidden">
-            <span
-              className="absolute top-1 right-3 font-bold select-none pointer-events-none text-[#1E293B] text-[2.5rem] sm:text-[5rem]"
-              style={{
-                lineHeight: 1,
-                opacity: 0.05,
-                fontFamily: "Space Grotesk, sans-serif",
-              }}
-            >
-              02
-            </span>
-            <div className="relative">
-              <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-5">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  viewBox="0 0 24 24"
-                >
-                  <rect x="4" y="4" width="16" height="18" rx="2" />
-                  <path strokeLinecap="round" d="M8 9h8M8 13h8M8 17h5" />
-                </svg>
+        </section>
+        {/* Footer */}
+        <footer className="relative z-10 max-w-4xl mx-auto px-6 py-8 mt-4 mb-4">
+          <div className="bg-white/70 backdrop-blur rounded-3xl border border-[#CBD5E1] px-5 py-5 sm:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            {/* Left - Logo + Tagline */}
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center">
+                <img
+                  src="/images/logo-transparent.png"
+                  alt="PlaceRise"
+                  className="w-full h-full object-contain"
+                />
               </div>
-              <h3
-                className="text-[#1E293B] font-bold text-base mb-2"
-                style={{ fontFamily: "Space Grotesk, sans-serif" }}
-              >
-                Application Tracking
-              </h3>
-              <p className="text-text-muted text-sm leading-relaxed">
-                Track every application from applied to selected, in one place,
-                without chasing anyone for updates.
-              </p>
-            </div>
-          </div>
-
-          {/* Eligibility Matching — small */}
-          <div className="bg-white rounded-2xl border border-[#CBD5E1] p-6 hover:-translate-y-1 hover:shadow-[0_10px_40px_-10px_rgba(15,23,42,0.15)] transition-all duration-300 relative overflow-hidden">
-            <span
-              className="absolute top-1 right-2 font-bold select-none pointer-events-none text-[#1E293B] text-[2rem] sm:text-[4rem]"
-              style={{
-                lineHeight: 1,
-                opacity: 0.05,
-                fontFamily: "Space Grotesk, sans-serif",
-              }}
-            >
-              03
-            </span>
-            <div className="relative">
-              <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-5">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  viewBox="0 0 24 24"
+              <div>
+                <span
+                  className="font-bold text-[#1E293B]"
+                  style={{ fontFamily: "Space Grotesk, sans-serif" }}
                 >
-                  <circle cx="12" cy="12" r="9" />
-                  <circle cx="12" cy="12" r="5" />
-                  <circle cx="12" cy="12" r="1" fill="currentColor" />
-                </svg>
+                  Place<span className="text-primary">Rise</span>
+                </span>
+                <p className="text-xs text-text-muted">
+                  Your placement journey, simplified.
+                </p>
               </div>
-              <h3
-                className="text-[#1E293B] font-bold text-base mb-2"
-                style={{ fontFamily: "Space Grotesk, sans-serif" }}
-              >
-                Eligibility Matching
-              </h3>
-              <p className="text-text-muted text-sm leading-relaxed">
-                See only what applies to your school and course.
-              </p>
             </div>
-          </div>
 
-          {/* Coordinator Dashboard — small */}
-          <div className="bg-white rounded-2xl border border-[#CBD5E1] p-6 hover:-translate-y-1 hover:shadow-[0_10px_40px_-10px_rgba(15,23,42,0.15)] transition-all duration-300 relative overflow-hidden">
-            <span
-              className="absolute top-1 right-2 font-bold select-none pointer-events-none text-[#1E293B] text-[2rem] sm:text-[4rem]"
-              style={{
-                lineHeight: 1,
-                opacity: 0.05,
-                fontFamily: "Space Grotesk, sans-serif",
-              }}
-            >
-              04
-            </span>
-            <div className="relative">
-              <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-5">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  viewBox="0 0 24 24"
+            {/* Right - Links */}
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6">
+              {[
+                { label: "Privacy Policy", href: "/privacy" },
+                { label: "Support", href: "/support" },
+              ].map(({ label, href }) => (
+                <a
+                  key={label}
+                  href={href}
+                  className="text-xs text-text-muted hover:text-[#1E293B] transition-colors py-2 px-1 -m-1"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3 3v18h18M8 17V10m5 7V6m5 11v-4"
-                  />
-                </svg>
-              </div>
-              <h3
-                className="text-[#1E293B] font-bold text-base mb-2"
-                style={{ fontFamily: "Space Grotesk, sans-serif" }}
-              >
-                Coordinator Dashboard
-              </h3>
-              <p className="text-text-muted text-sm leading-relaxed">
-                Manage drives, shortlist candidates, message the batch — one
-                screen.
-              </p>
+                  {label}
+                </a>
+              ))}
+              <span className="text-xs text-text-muted">© 2026 PlaceRise</span>
             </div>
           </div>
-        </div>
-      </section>
-      {/* Footer */}
-      <footer className="relative z-10 max-w-4xl mx-auto px-6 py-8 mt-4 mb-4">
-        <div className="bg-white/70 backdrop-blur rounded-3xl border border-[#CBD5E1] px-5 py-5 sm:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          {/* Left - Logo + Tagline */}
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center">
-              <img
-                src="/images/logo-transparent.png"
-                alt="PlaceRise"
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <div>
-              <span
-                className="font-bold text-[#1E293B]"
-                style={{ fontFamily: "Space Grotesk, sans-serif" }}
-              >
-                Place<span className="text-primary">Rise</span>
-              </span>
-              <p className="text-xs text-text-muted">
-                Your placement journey, simplified.
-              </p>
-            </div>
-          </div>
-
-          {/* Right - Links */}
-          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6">
-            {[
-              { label: "Privacy Policy", href: "/privacy" },
-              { label: "Support", href: "/support" },
-            ].map(({ label, href }) => (
-              <a
-                key={label}
-                href={href}
-                className="text-xs text-text-muted hover:text-[#1E293B] transition-colors py-2 px-1 -m-1"
-              >
-                {label}
-              </a>
-            ))}
-            <span className="text-xs text-text-muted">© 2026 PlaceRise</span>
-          </div>
-        </div>
-      </footer>
+        </footer>
+      </div>
       {/* Login Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">

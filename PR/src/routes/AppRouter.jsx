@@ -28,7 +28,9 @@ import AboutPage from "../pages/common/About";
 import SupportPage from "../pages/common/SupportPage";
 import PrivacyPolicyPage from "../pages/common/PrivacyPage";
 import ResetPasswordPage from "../pages/common/ResetPasswordPage";
-
+import HRLoginPage from "../pages/common/HRLoginPage";
+import HRFeedbackFormPage from "../pages/common/HRFeedbackFormPage";
+import HRFeedbackManagementPage from "../pages/coordinator/HRFeedbackManagementPage";
 
 function AppRouter() {
   return (
@@ -52,6 +54,8 @@ function AppRouter() {
         <Route path="/support" element={<SupportPage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+        <Route path="/hr-login" element={<HRLoginPage />} />
+        <Route path="/hr-feedback" element={<HRFeedbackFormPage />} />
         {/* Student Routes - Layout ke andar */}
         <Route
           path="/student"
@@ -91,10 +95,11 @@ function AppRouter() {
             path="announcements"
             element={<AnnouncementManagementPage />}
           />
-          <Route path="profile" element={<CoordinatorProfile />} />
           <Route path="noc" element={<NOCManagementPage />} />
           <Route path="attendance" element={<AttendancePage />} />
           <Route path="analytics" element={<AnalyticsDashboardPage />} />
+          <Route path="/coordinator/hr-feedback" element={<HRFeedbackManagementPage />} />
+          <Route path="profile" element={<CoordinatorProfile />} />
         </Route>
         <Route path="*" element={<div>404 - Page Not Found</div>} />
       </Routes>

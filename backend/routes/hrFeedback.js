@@ -5,15 +5,14 @@ const {
   verifyCompanyCode,
   submitFeedback,
   getFeedback,
+  markSeenForCompany,
 } = require("../controllers/hrFeedbackController");
 const { protect, coordinatorOnly } = require("../middleware/auth");
 const { guestProtect } = require("../middleware/guestAuth");
 
-// Guest (HR) routes — no student/coordinator auth
 router.post("/verify-code", verifyCompanyCode);
 router.post("/submit", guestProtect, submitFeedback);
 
-// Coordinator routes
 router.post(
   "/generate-code/:companyId",
   protect,
@@ -21,5 +20,11 @@ router.post(
   generateCompanyCode,
 );
 router.get("/", protect, coordinatorOnly, getFeedback);
+router.patch(
+  "/mark-seen/:companyId",
+  protect,
+  coordinatorOnly,
+  markSeenForCompany,
+);
 
 module.exports = router;

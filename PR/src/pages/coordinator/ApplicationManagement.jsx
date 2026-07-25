@@ -378,7 +378,15 @@ function JDBanner({
   );
 }
 
-function BulkApplyModal({ show, onClose, onConfirm, loading, eligibleCount, appliedCount, jobName }) {
+function BulkApplyModal({
+  show,
+  onClose,
+  onConfirm,
+  loading,
+  eligibleCount,
+  appliedCount,
+  jobName,
+}) {
   if (!show) return null;
   const willApply = eligibleCount - appliedCount;
   return (
@@ -403,7 +411,9 @@ function BulkApplyModal({ show, onClose, onConfirm, loading, eligibleCount, appl
             <Users size={20} color="white" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-white">Bulk Apply Confirmation</h3>
+            <h3 className="text-lg font-bold text-white">
+              Bulk Apply Confirmation
+            </h3>
             <p className="text-xs text-white/70">Review before proceeding</p>
           </div>
         </div>
@@ -415,7 +425,16 @@ function BulkApplyModal({ show, onClose, onConfirm, loading, eligibleCount, appl
             style={{ backgroundColor: "#FFFBEB", borderColor: "#FDE68A" }}
           >
             <div className="flex items-center gap-2">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#F59E0B"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                 <line x1="12" y1="9" x2="12" y2="13" />
                 <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -425,13 +444,17 @@ function BulkApplyModal({ show, onClose, onConfirm, loading, eligibleCount, appl
               </span>
             </div>
             <p className="text-xs leading-relaxed" style={{ color: "#78350F" }}>
-              This will create <strong>{willApply}</strong> new application{willApply !== 1 ? "s" : ""} with
-              &quot;Applied&quot; status for all eligible students who haven't applied yet.
+              This will create <strong>{willApply}</strong> new application
+              {willApply !== 1 ? "s" : ""} with &quot;Applied&quot; status for
+              all eligible students who haven't applied yet.
             </p>
           </div>
 
           <div className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#64748B" }}>
+            <p
+              className="text-xs font-semibold uppercase tracking-wider"
+              style={{ color: "#64748B" }}
+            >
               Drive Details
             </p>
             <div className="grid grid-cols-2 gap-2">
@@ -449,7 +472,10 @@ function BulkApplyModal({ show, onClose, onConfirm, loading, eligibleCount, appl
                     borderColor: highlight ? "#BFDBFE" : "#E2E8F0",
                   }}
                 >
-                  <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "#64748B" }}>
+                  <p
+                    className="text-[10px] font-semibold uppercase tracking-wider"
+                    style={{ color: "#64748B" }}
+                  >
                     {label}
                   </p>
                   <p
@@ -478,15 +504,34 @@ function BulkApplyModal({ show, onClose, onConfirm, loading, eligibleCount, appl
             disabled={loading || willApply === 0}
             className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             style={{
-              background: loading ? "#94A3B8" : "linear-gradient(135deg, #1D4ED8, #3B82F6)",
+              background: loading
+                ? "#94A3B8"
+                : "linear-gradient(135deg, #1D4ED8, #3B82F6)",
               boxShadow: loading ? "none" : "0 2px 10px rgba(59,130,246,0.35)",
             }}
           >
             {loading ? (
               <>
-                <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="white" strokeWidth="4" />
-                  <path className="opacity-75" fill="white" d="M4 12a8 8 0 018-8v8z" />
+                <svg
+                  className="animate-spin"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="white"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="white"
+                    d="M4 12a8 8 0 018-8v8z"
+                  />
                 </svg>
                 Applying...
               </>
@@ -540,7 +585,9 @@ function EligibleTab({ selectedJob, allStudents }) {
       try {
         const apps = await api.get(`/applications/job/${selectedJob._id}`);
         const appliedIds = new Set(
-          (Array.isArray(apps) ? apps : []).map((a) => a.studentId?._id?.toString?.() || a.studentId?.toString?.())
+          (Array.isArray(apps) ? apps : []).map(
+            (a) => a.studentId?._id?.toString?.() || a.studentId?.toString?.(),
+          ),
         );
         const eligibleIds = eligible.map((s) => s._id?.toString?.());
         setAppliedCount(eligibleIds.filter((id) => appliedIds.has(id)).length);
@@ -554,7 +601,9 @@ function EligibleTab({ selectedJob, allStudents }) {
   const handleBulkApply = async () => {
     setBulkApplyLoading(true);
     try {
-      const result = await api.post(`/applications/job/${selectedJob._id}/bulk-apply`);
+      const result = await api.post(
+        `/applications/job/${selectedJob._id}/bulk-apply`,
+      );
       setBulkApplyResult(result);
       setBulkApplyModal(false);
       // Refresh applied count
@@ -619,17 +668,27 @@ function EligibleTab({ selectedJob, allStudents }) {
                 : "All eligible students have applied ✓"}
             </p>
             <p className="text-xs" style={{ color: "#64748B" }}>
-              {appliedCount} of {eligible.length} eligible students already applied
+              {appliedCount} of {eligible.length} eligible students already
+              applied
             </p>
           </div>
         </div>
         <button
-          onClick={() => { setBulkApplyResult(null); setBulkApplyModal(true); }}
+          onClick={() => {
+            setBulkApplyResult(null);
+            setBulkApplyModal(true);
+          }}
           disabled={notAppliedCount === 0}
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
           style={{
-            background: notAppliedCount === 0 ? "#94A3B8" : "linear-gradient(135deg, #1D4ED8, #3B82F6)",
-            boxShadow: notAppliedCount === 0 ? "none" : "0 2px 10px rgba(59,130,246,0.35)",
+            background:
+              notAppliedCount === 0
+                ? "#94A3B8"
+                : "linear-gradient(135deg, #1D4ED8, #3B82F6)",
+            boxShadow:
+              notAppliedCount === 0
+                ? "none"
+                : "0 2px 10px rgba(59,130,246,0.35)",
           }}
         >
           <Users size={14} />

@@ -179,7 +179,9 @@ function StudentOnboardingPage() {
       navigate("/student/dashboard");
     } catch (err) {
       console.error("Onboarding submit failed:", err);
-      alert("Something went wrong while saving your profile. Please try again.");
+      alert(
+        "Something went wrong while saving your profile. Please try again.",
+      );
     } finally {
       setSubmitting(false);
     }
