@@ -26,6 +26,15 @@ router.patch(
   coordinatorOnly,
   markSeenForCompany,
 );
+router.delete("/clear-all", protect, coordinatorOnly, async (req, res) => {
+  const HRFeedback = require("../models/HRFeedback");
+  try {
+    await HRFeedback.deleteMany({});
+    res.json({ message: "All feedback cleared" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 // TEMPORARY — delete after use
 router.delete("/clear-codes", protect, coordinatorOnly, async (req, res) => {
   const Company = require("../models/Company");
