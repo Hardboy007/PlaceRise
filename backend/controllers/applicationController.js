@@ -72,7 +72,9 @@ const createApplication = async (req, res) => {
       return res.status(400).json({ message: "Already applied to this job" });
     }
 
-    // 3 selected restriction check
+    // 3 selected restriction check — sirf student ke apne self-apply flow
+    // pe lagu hota hai. Coordinator ke bulk-apply override me isko
+    // jaanbujh kar skip kiya gaya hai (coordinator ka manual call hai).
     const selectedCount = await Application.countDocuments({
       studentId: student._id,
       status: "Selected",
@@ -88,6 +90,7 @@ const createApplication = async (req, res) => {
       jobId,
       status: "Applied",
       resumeUrl: student.resume || "",
+      appliedVia: "self",
     });
 
     res.status(201).json(application);
@@ -328,6 +331,92 @@ const updateApplicationStatus = async (req, res) => {
   }
 };
 
+// Coordinator ek application permanently hata de — jaise koi student
+// galti se apply kar deta hai. Ye status ko "Rejected" karne se ALAG hai:
+// yaha Application doc hi database se poori tarah delete ho jaata hai.
+//
+// Guardrails:
+//  1. Results-finalized drive pe delete allowed nahi.
+//  2. Agar deleted application "Selected" thi, student ka placementStatus
+//     turant recompute hota hai.
+//  3. Student ko notify kiya jaata hai ki unki application coordinator ne
+//     remove ki hai.
+const withdrawApplication = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const application = await Application.findById(id).populate({
+      path: "studentId",
+      populate: { path: "userId", select: "email" },
+    });
+    if (!application) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    const job = await JobPosting.findById(application.jobId).populate(
+      "companyId",
+      "name",
+    );
+
+    if (job?.resultsFinalized) {
+      return res.status(400).json({
+        message:
+          "Results for this drive are finalized — reopen results before removing an application.",
+      });
+    }
+
+    const wasSelected = application.status === "Selected";
+    const studentId = application.studentId?._id || application.studentId;
+
+    await Application.findByIdAndDelete(id);
+
+    // Recompute placementStatus if we just deleted the student's
+    // "Selected" application for this drive.
+    if (wasSelected && studentId) {
+      const stillSelected = await Application.findOne({
+        studentId,
+        status: "Selected",
+      });
+      if (!stillSelected) {
+        await Student.findByIdAndUpdate(studentId, {
+          placementStatus: "Not Placed",
+        });
+      }
+    }
+
+    await logActivity(
+      req.user?.id,
+      `Removed application for ${application.studentId?.name || "a student"} — ${job?.role || "Role"} at ${job?.companyId?.name || "Company"}`,
+      "application",
+      id,
+    );
+
+    // Transparency notification — fire-and-forget, doesn't block the response.
+    setImmediate(async () => {
+      try {
+        if (!application.studentId?.userId) return;
+        const companyName = job?.companyId?.name || "Company";
+        const role = job?.role || "Role";
+
+        await Notification.create({
+          userId: application.studentId.userId._id,
+          type: "APPLICATION_REMOVED",
+          title: `Application removed — ${companyName}`,
+          message: `Your application for ${role} at ${companyName} has been removed by your placement coordinator.`,
+          link: "/student/applications",
+          isRead: false,
+        });
+      } catch (bgError) {
+        console.error("Withdraw notification error:", bgError.message);
+      }
+    });
+
+    res.json({ message: "Application removed successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 const exportJobApplications = async (req, res) => {
   try {
     const { jobId } = req.params;
@@ -445,22 +534,96 @@ const exportJobApplications = async (req, res) => {
 };
 
 // Coordinator bulk-apply — eligible students jinhone apply nahi kiya
-// unka ek saath "Applied" create karna
+// unka ek saath "Applied" create karna.
+//
+// Rules:
+//  1. Manually-blocked students (student.placementBlocked === true) are
+//     NEVER auto-applied.
+//  2. Students missing a resume are skipped (reported back to coordinator).
+//  3. Requires a `studentIds` array (the coordinator's checkbox
+//     selection). An ARRAY IS ALWAYS RESPECTED AS-IS — including an empty
+//     one — so an empty selection means "apply to nobody", never
+//     "fall back to everyone eligible". This is a deliberate guardrail:
+//     previously, an empty `studentIds` array silently fell back to
+//     "every eligible student", so any bug/race on the frontend that sent
+//     `[]` (e.g. a reset selection) would auto-apply the entire eligible
+//     pool instead of doing nothing. Only a genuinely MISSING studentIds
+//     key (old API callers / Postman, no key sent at all) falls back to
+//     "every eligible student" for backward compatibility.
+//  4. Every created application is tagged with `appliedVia` + `appliedBy`
+//     for audit/traceability.
+//  5. Each bulk-applied student gets a notification + email.
+//  6. Does NOT enforce the "max 3 Selected companies" self-apply cap —
+//     coordinator override, on purpose.
+//  7. Bulk apply is only allowed on the job's `lastDate` itself
+//     (the same date students' own apply deadline falls on). Before that
+//     day it's blocked ("not open yet"); after that day it's permanently
+//     frozen for whoever hasn't applied — same as the student-facing
+//     deadline, so there's exactly one cutoff date for everyone.
 const bulkApply = async (req, res) => {
   try {
     const { jobId } = req.params;
+    const { studentIds } = req.body; // coordinator's checkbox selection
 
     const job = await JobPosting.findById(jobId).populate("companyId", "name");
     if (!job) {
       return res.status(404).json({ message: "Job not found" });
     }
 
-    // Saare students lao
-    const allStudents = await Student.find();
+    // --- Bulk apply is only open on the drive's last date ---
+    if (!job.lastDate) {
+      return res.status(400).json({
+        message: "This drive has no application deadline set, so bulk apply is unavailable.",
+      });
+    }
+    // IMPORTANT: compare calendar days in IST (Asia/Kolkata), not the
+    // server's local timezone. Most hosts (Render/Railway/Vercel etc.)
+    // run in UTC, so the old getFullYear/getMonth/getDate comparison
+    // could flip "today" to the wrong day for hours around midnight IST
+    // — which is exactly why the window wasn't opening/closing at the
+    // right time. en-CA locale gives a YYYY-MM-DD string that's safe to
+    // compare directly.
+    const toISTDateString = (date) =>
+      date.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
 
-    // Eligibility filter — same logic as createApplication
+    const lastDateObj = new Date(job.lastDate);
+    const now = new Date();
+    const lastDayStr = toISTDateString(lastDateObj);
+    const todayStr = toISTDateString(now);
+    const isSameDay = todayStr === lastDayStr;
+
+    if (!isSameDay) {
+      const isBefore = todayStr < lastDayStr;
+      return res.status(400).json({
+        message: isBefore
+          ? `Bulk apply only opens on the application deadline (${lastDateObj.toLocaleDateString("en-IN")}) — not yet.`
+          : `Bulk apply window has closed — the deadline (${lastDateObj.toLocaleDateString("en-IN")}) has passed.`,
+      });
+    }
+
+    // If the coordinator explicitly sent a selection (even an empty one),
+    // that selection is authoritative — an empty array means "nobody",
+    // NOT "everybody eligible". We only treat studentIds as "not provided"
+    // when the key itself is missing/undefined (old callers).
+    const studentIdsProvided = Array.isArray(studentIds);
+    if (studentIdsProvided && studentIds.length === 0) {
+      return res.status(200).json({
+        message: "No students were selected, so no applications were created.",
+        created: 0,
+        skippedNoResume: 0,
+        skippedNoResumeNames: [],
+      });
+    }
+
+    // Saare students lao (with email for notifications)
+    const allStudents = await Student.find().populate("userId", "email erpId");
+
+    // Eligibility filter — same logic as createApplication, plus the
+    // manual block check.
     const eligible = allStudents.filter((s) => {
-      // Branch/course check
+      // Coordinator's manual "don't auto-apply this student" override.
+      if (s.placementBlocked) return false;
+
       if (
         job.eligibleBranches &&
         !job.eligibleBranches.includes("All") &&
@@ -471,16 +634,22 @@ const bulkApply = async (req, res) => {
           job.eligibleBranches.includes(s.branch);
         if (!isEligible) return false;
       }
-      // CGPA check
       if (job.minCgpa && job.minCgpa > 0) {
         if ((s.cgpa ?? 0) < job.minCgpa) return false;
       }
-      // Backlogs check
       if ((s.backlogs ?? 0) > (job.maxBacklogs ?? 0)) return false;
       return true;
     });
 
-    const eligibleIds = eligible.map((s) => s._id);
+    // If the coordinator selected specific students via checkboxes,
+    // narrow down to only those (this is now the ONLY path when
+    // studentIds was provided at all — see guardrail above). Falls back
+    // to "every eligible student" only when the key was never sent.
+    const eligiblePool = studentIdsProvided
+      ? eligible.filter((s) => studentIds.includes(s._id.toString()))
+      : eligible;
+
+    const eligibleIds = eligiblePool.map((s) => s._id);
 
     // Jo already apply kar chuke hain unhe nikalo
     const existingApps = await Application.find({
@@ -491,16 +660,25 @@ const bulkApply = async (req, res) => {
       existingApps.map((a) => a.studentId.toString()),
     );
 
-    // Final list — eligible, not already applied
-    const toBulkApply = eligible.filter((s) => {
+    const notYetApplied = eligiblePool.filter((s) => {
       const sid = s._id.toString();
       return !alreadyAppliedSet.has(sid);
     });
 
+    // Resume-missing students are skipped rather than silently applied
+    // with a blank resume link.
+    const toBulkApply = notYetApplied.filter((s) => !!s.resume);
+    const skippedNoResume = notYetApplied.filter((s) => !s.resume);
+
     if (toBulkApply.length === 0) {
       return res.status(200).json({
-        message: "All eligible students have already applied",
+        message:
+          skippedNoResume.length > 0
+            ? `No applications created — ${skippedNoResume.length} student(s) skipped due to missing resume`
+            : "All eligible students have already applied",
         created: 0,
+        skippedNoResume: skippedNoResume.length,
+        skippedNoResumeNames: skippedNoResume.map((s) => s.name),
       });
     }
 
@@ -510,6 +688,8 @@ const bulkApply = async (req, res) => {
       jobId,
       status: "Applied",
       resumeUrl: s.resume || "",
+      appliedVia: "bulk-coordinator",
+      appliedBy: req.user?.id,
     }));
     const created = await Application.insertMany(docs);
 
@@ -520,10 +700,76 @@ const bulkApply = async (req, res) => {
       "application",
     );
 
+    // Notify each bulk-applied student — they didn't apply themselves,
+    // so transparency matters. Fire-and-forget, doesn't block the response.
+    setImmediate(async () => {
+      const companyName = job.companyId?.name || "Company";
+      for (const student of toBulkApply) {
+        try {
+          if (!student.userId) continue;
+
+          await Notification.create({
+            userId: student.userId._id,
+            type: "BULK_APPLIED",
+            title: `📋 Auto-applied to ${companyName}`,
+            message: `Your placement coordinator applied on your behalf for ${job.role} at ${companyName} as the deadline was approaching.`,
+            link: "/student/applications",
+            isRead: false,
+          });
+
+          if (
+            student.notificationPreferences?.emailNotifications === false ||
+            student.notificationPreferences?.applicationUpdates === false
+          ) {
+            continue;
+          }
+
+          await sendEmail({
+            to: student.userId.email,
+            subject: `You've been applied — ${companyName} | ${job.role}`,
+            html: `
+              <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+                <div style="background: linear-gradient(135deg, #1D4ED8, #3B82F6); border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px;">
+                  <img 
+                    src="https://res.cloudinary.com/saviaykm/image/upload/v1783784651/WhatsApp_Image_2026-07-11_at_18.55.23_krac4c.jpg" 
+                    alt="PlaceRise" 
+                    style="height: 40px; border-radius: 8px;"
+                  />
+                  <p style="color: white; font-size: 12px; margin: 8px 0 0 0; opacity: 0.85; font-weight: 600; letter-spacing: 1px;">
+                    PLACERISE - Connect . Grow . Succeed
+                  </p>
+                </div>
+                <h2 style="color: #1E293B;">Hi ${student.name || "Student"},</h2>
+                <div style="background: #EFF6FF; border-radius: 12px; padding: 20px; margin: 20px 0;">
+                  <h3 style="color: #3B82F6;">You've been applied to ${companyName}</h3>
+                  <p><strong>Role:</strong> ${job.role}</p>
+                  <p>Your placement coordinator submitted this application on your behalf as the deadline was approaching. If you'd like to withdraw, please contact your coordinator.</p>
+                </div>
+                <a href="https://placerise.vercel.app/student/applications"
+                   style="display: inline-block; background: #3B82F6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                  View Application
+                </a>
+                <p style="color: #94A3B8; font-size: 12px; margin-top: 24px;">
+                  PlaceRise | Dev Bhoomi Uttarakhand University
+                </p>
+              </div>
+            `,
+          });
+        } catch (err) {
+          console.error("Bulk apply notification error:", err.message);
+        }
+      }
+    });
+
     res.status(201).json({
-      message: `${created.length} students applied successfully`,
+      message: `${created.length} student(s) applied successfully${
+        skippedNoResume.length > 0
+          ? `, ${skippedNoResume.length} skipped (no resume)`
+          : ""
+      }`,
       created: created.length,
-      skipped: eligible.length - toBulkApply.length,
+      skippedNoResume: skippedNoResume.length,
+      skippedNoResumeNames: skippedNoResume.map((s) => s.name),
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -535,6 +781,7 @@ module.exports = {
   getMyApplications,
   getJobApplications,
   updateApplicationStatus,
+  withdrawApplication,
   exportJobApplications,
   bulkApply,
 };
