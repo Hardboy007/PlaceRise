@@ -63,7 +63,7 @@ const TEAM = [
   {
     number: "04",
     name: "Harsh Rathore",
-    role: "Student Experience · Documentation",
+    role: "QA Engineer · Documentation",
     quote:
       "Connects ideas, features, and documentation into one seamless experience.",
     photo: "/images/rath.jpg",
