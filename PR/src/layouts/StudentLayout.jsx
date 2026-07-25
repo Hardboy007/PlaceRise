@@ -135,6 +135,24 @@ function StudentLayout() {
       className="min-h-screen bg-background overflow-x-hidden"
       style={{ fontFamily: "Inter, sans-serif" }}
     >
+      {/* Thin, subtle scrollbar for the sidebar nav list */}
+      <style>{`
+        .sidebar-nav-scroll::-webkit-scrollbar {
+          width: 4px;
+        }
+        .sidebar-nav-scroll::-webkit-scrollbar-thumb {
+          background: #CBD5E1;
+          border-radius: 4px;
+        }
+        .sidebar-nav-scroll::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .sidebar-nav-scroll {
+          scrollbar-width: thin;
+          scrollbar-color: #CBD5E1 transparent;
+        }
+      `}</style>
+
       {/* ── Navbar ── */}
       <nav
         className="fixed top-0 left-0 right-0 z-50 h-16
@@ -257,9 +275,9 @@ function StudentLayout() {
         <aside
           onMouseEnter={() => setExpanded(true)}
           onMouseLeave={() => setExpanded(false)}
-          className={`hidden sm:flex fixed top-16 left-0 bottom-0 z-40 flex-col bg-white border-r border-[#CBD5E1] transition-all duration-300 ease-in-out overflow-hidden ${expanded ? "w-60" : "w-15"}`}
+          className={`hidden sm:flex fixed top-16 left-0 bottom-0 z-40 flex-col bg-white border-r border-[#CBD5E1] transition-all duration-300 ease-in-out overflow-hidden ${expanded ? "w-60" : "w-16"}`}
         >
-          <div className="flex-1 flex flex-col gap-1 p-2 mt-2 overflow-hidden">
+          <div className="sidebar-nav-scroll flex-1 flex flex-col gap-1 p-2 mt-2 overflow-y-auto overflow-x-hidden">
             {navLinks.map(({ to, label, icon: NavIcon }) => (
               <NavLink
                 key={to}
@@ -309,7 +327,7 @@ function StudentLayout() {
 
         {/* ── Main Content — desktop pe sidebar ke hisaab se margin, mobile pe full width ── */}
         <main
-          className={`flex-1 min-h-screen p-3 sm:p-6 pb-28 sm:pb-6 transition-all duration-300 ease-in-out ml-0 ${expanded ? "sm:ml-60" : "sm:ml-15"}`}
+          className={`flex-1 min-h-screen p-3 sm:p-6 pb-28 sm:pb-6 transition-all duration-300 ease-in-out ml-0 ${expanded ? "sm:ml-60" : "sm:ml-16"}`}
         >
           <Outlet />
         </main>
