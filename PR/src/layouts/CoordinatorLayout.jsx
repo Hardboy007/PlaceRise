@@ -44,7 +44,11 @@ const navLinks = [
   { to: "/coordinator/attendance", label: "Attendance", icon: QrCode },
   { to: "/coordinator/analytics", label: "Analytics", icon: LineChart },
   { to: "/coordinator/profile", label: "Profile & Settings", icon: User },
-  { to: "/coordinator/hr-feedback", label: "HR Feedback", icon: MessageSquareText },
+  {
+    to: "/coordinator/hr-feedback",
+    label: "HR Feedback",
+    icon: MessageSquareText,
+  },
 ];
 
 // Bottom bar pe sirf ye 4 sabse zyada use hone wale pages, 5th "More"
@@ -98,7 +102,7 @@ const moreLinks = [
     to: "/coordinator/hr-feedback",
     label: "HR Feedback",
     icon: MessageSquareText,
-    color: "indigo",   // ← naya color
+    color: "indigo", // ← naya color
   },
 ];
 
