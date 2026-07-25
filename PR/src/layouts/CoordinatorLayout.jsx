@@ -161,6 +161,16 @@ function CoordinatorLayout() {
     }
   };
 
+  const handleDeleteNotif = async (e, notifId) => {
+    e.stopPropagation();
+    try {
+      await api.delete(`/notifications/${notifId}`);
+      setNotifications(notifications.filter((n) => n._id !== notifId));
+    } catch (error) {
+      console.error("Failed to delete notification", error);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
@@ -259,12 +269,19 @@ function CoordinatorLayout() {
                     notifications.map((n) => (
                       <div
                         key={n._id}
-                        className={`px-4 py-3 border-b border-[#F8FAFC] hover:bg-[#F8FAFC] cursor-pointer ${!n.isRead ? "bg-blue-50/50" : ""}`}
+                        className={`px-4 py-3 border-b border-[#F8FAFC] hover:bg-[#F8FAFC] cursor-pointer relative group ${!n.isRead ? "bg-blue-50/50" : ""}`}
                       >
-                        <p className="text-sm font-semibold text-[#1E293B]">
+                        <p className="text-sm font-semibold text-[#1E293B] pr-6">
                           {n.title}
                         </p>
-                        <p className="text-xs text-[#64748B] mt-0.5">
+                        <button
+                          onClick={(e) => handleDeleteNotif(e, n._id)}
+                          className="absolute right-4 top-3 opacity-0 group-hover:opacity-100 transition-opacity p-1 text-[#64748B] hover:text-[#EF4444] rounded-full hover:bg-red-50"
+                          title="Delete notification"
+                        >
+                          <X size={14} />
+                        </button>
+                        <p className="text-xs text-[#64748B] mt-0.5 pr-6">
                           {n.message}
                         </p>
                         <p className="text-xs text-[#94A3B8] mt-1">
