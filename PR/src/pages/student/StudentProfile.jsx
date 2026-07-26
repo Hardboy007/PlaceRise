@@ -517,7 +517,11 @@ export default function StudentProfilePage() {
               />
             ) : student?.linkedinUrl ? (
               <a
-                href={student.linkedinUrl}
+                href={
+                  student.linkedinUrl?.startsWith("http")
+                    ? student.linkedinUrl
+                    : `https://${student.linkedinUrl}`
+                }
                 target="_blank"
                 rel="noreferrer"
                 className="text-sm font-medium text-primary hover:underline"
