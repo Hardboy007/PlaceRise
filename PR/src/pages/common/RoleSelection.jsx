@@ -506,7 +506,7 @@ function RoleSelectionPage() {
                 className="absolute -inset-0.5 rounded-3xl pointer-events-none"
                 style={{
                   background:
-                    "linear-gradient(135deg, rgba(234,179,8,0.5) 0%, rgba(239,68,68,0.35) 20%, rgba(59,130,246,0.8) 45%, rgba(96,165,250,0.6) 100%)",
+                    "repeating-linear-gradient(135deg, rgba(234,179,8,0.5) 0%, rgba(239,68,68,0.35) 15%, rgba(59,130,246,0.8) 20%, rgba(96,165,250,0.6) 100%)",
                   backgroundSize: "300% 300%",
                   animation: "dbuuGlow 4s ease infinite",
                   opacity: 0.85,
