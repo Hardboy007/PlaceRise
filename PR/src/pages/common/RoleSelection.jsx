@@ -348,7 +348,7 @@ function RoleSelectionPage() {
           alt=""
           className="absolute hidden sm:block"
           style={{
-            top: "240px",
+            top: "308px",
             right: "0px",
             width: "500px",
             height: "500px",
@@ -437,11 +437,238 @@ function RoleSelectionPage() {
           </div>
 
           {/* Eyebrow */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur border border-white/20 mb-6">
-            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-white/80 text-sm">
-              Powering placements at DBUU
-            </span>
+          {/* Institutional Badge — DBUU */}
+          {/* Mobile — simple pill */}
+          {/* Mobile — compact badge */}
+          <div className="flex sm:hidden justify-center mb-6">
+            <div
+              className="relative flex items-center gap-2.5 px-3 py-2 rounded-2xl"
+              style={{
+                background:
+                  "linear-gradient(135deg, rgba(15,23,42,0.95) 0%, rgba(30,41,59,0.95) 100%)",
+                border: "1px solid rgba(59,130,246,0.3)",
+                boxShadow: "0 0 16px rgba(59,130,246,0.15)",
+              }}
+            >
+              {/* Glow */}
+              <div
+                className="absolute -inset-0.5 rounded-2xl pointer-events-none"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(234,179,8,0.4), rgba(59,130,246,0.6), rgba(234,179,8,0.3))",
+                  backgroundSize: "300% 300%",
+                  animation: "dbuuGlow 4s ease infinite",
+                  opacity: 0.6,
+                  filter: "blur(1px)",
+                  zIndex: -1,
+                }}
+              />
+              {/* Logo */}
+              <div className="w-6 h-6 rounded-lg overflow-hidden shrink-0">
+                <img
+                  src="/images/dbuu-logo.jpeg"
+                  alt="DBUU"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              {/* Text */}
+              <span
+                className="text-white text-xs font-semibold"
+                style={{ fontFamily: "Space Grotesk, sans-serif" }}
+              >
+                DBUU
+              </span>
+              <div className="w-px h-4 bg-white/15 shrink-0" />
+              <span className="text-white/50 text-[11px]">
+                Institutional Partner
+              </span>
+              {/* Live dot */}
+              <div
+                className="flex items-center gap-1 px-2 py-0.5 rounded-full ml-1"
+                style={{
+                  background: "rgba(59,130,246,0.2)",
+                  border: "1px solid rgba(59,130,246,0.35)",
+                }}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse shrink-0" />
+                <span className="text-blue-300 text-[9px] font-bold uppercase tracking-wide">
+                  Live
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop — full institutional badge */}
+          <div className="hidden sm:flex flex-col items-center mb-8">
+            <div className="relative w-full max-w-lg">
+              {/* Animated RGB glow */}
+              <div
+                className="absolute -inset-0.5 rounded-3xl pointer-events-none"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(234,179,8,0.5) 0%, rgba(239,68,68,0.35) 20%, rgba(59,130,246,0.8) 45%, rgba(96,165,250,0.6) 100%)",
+                  backgroundSize: "300% 300%",
+                  animation: "dbuuGlow 4s ease infinite",
+                  opacity: 0.85,
+                  filter: "blur(1.5px)",
+                }}
+              />
+              {/* Card */}
+              <div
+                className="relative rounded-3xl overflow-hidden"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(15,23,42,0.95) 0%, rgba(30,41,59,0.95) 100%)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  backdropFilter: "blur(20px)",
+                }}
+              >
+                {/* Top row */}
+                <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3">
+                  <div
+                    className="w-16 h-16 sm:w-14 sm:h-14 rounded-xl overflow-hidden shrink-0"
+                    style={{
+                      boxShadow:
+                        "0 0 0 1px rgba(255,255,255,0.15), 0 4px 16px rgba(0,0,0,0.4)",
+                    }}
+                  >
+                    <img
+                      src="/images/dbuu-logo.jpeg"
+                      alt="DBUU"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div
+                    className="w-px h-14 shrink-0"
+                    style={{ background: "rgba(255,255,255,0.12)" }}
+                  />
+                  <div className="text-left">
+                    <p
+                      className="text-white font-bold text-xs sm:text-sm leading-tight"
+                      style={{ fontFamily: "Space Grotesk, sans-serif" }}
+                    >
+                      Dev Bhoomi Uttarakhand University
+                    </p>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <svg
+                        className="w-3.5 h-3.5 shrink-0"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                      >
+                        <circle cx="10" cy="10" r="9" fill="#22C55E" />
+                        <path
+                          d="M6 10l3 3 5-5"
+                          stroke="white"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                      <span className="text-white/50 text-[11px] font-medium tracking-wide">
+                        Verified Institutional Partner
+                      </span>
+                      <span className="text-white/20 text-[11px]">——</span>
+                    </div>
+                  </div>
+                  <div
+                    className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-full shrink-0"
+                    style={{
+                      background: "rgba(59,130,246,0.15)",
+                      border: "1px solid rgba(59,130,246,0.4)",
+                    }}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse shrink-0" />
+                    <span className="text-blue-300 text-[10px] font-bold tracking-wider uppercase whitespace-nowrap">
+                      Season 2026
+                    </span>
+                  </div>
+                </div>
+
+                {/* Bottom row */}
+                <div
+                  className="flex items-center justify-center gap-0 border-t"
+                  style={{ borderColor: "rgba(255,255,255,0.06)" }}
+                >
+                  {[
+                    {
+                      icon: (
+                        <svg
+                          className="w-3.5 h-3.5"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                          />
+                        </svg>
+                      ),
+                      label: "Trusted Collaboration",
+                    },
+                    {
+                      icon: (
+                        <svg
+                          className="w-3.5 h-3.5"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 14l9-5-9-5-9 5 9 5z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+                          />
+                        </svg>
+                      ),
+                      label: "Empowering Placements",
+                    },
+                    {
+                      icon: (
+                        <svg
+                          className="w-3.5 h-3.5"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                        </svg>
+                      ),
+                      label: "Building Futures",
+                    },
+                  ].map((item, i, arr) => (
+                    <div
+                      key={item.label}
+                      className="flex items-center gap-2 px-6 py-3 text-white/40 hover:text-white/70 transition-colors"
+                      style={{
+                        borderRight:
+                          i < arr.length - 1
+                            ? "1px solid rgba(255,255,255,0.06)"
+                            : "none",
+                      }}
+                    >
+                      {item.icon}
+                      <span className="text-[11px] font-medium whitespace-nowrap">
+                        {item.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* H1 */}
