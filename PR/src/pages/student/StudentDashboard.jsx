@@ -1076,10 +1076,10 @@ export default function PlacementDashboard() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 style={{ color: C.textMain }} className="text-xl font-bold">
-                  Eligible Companies
+                  Eligible Companies 
                 </h2>
                 <p style={{ color: C.textMuted }} className="text-sm">
-                  Curated openings matching your profile
+                  Curated openings matching your course
                 </p>
               </div>
               <button
