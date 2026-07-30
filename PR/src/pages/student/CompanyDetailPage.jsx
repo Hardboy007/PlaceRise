@@ -556,12 +556,12 @@ export default function CompanyDetailPage() {
         className={`w-full py-3.5 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 transition-all mb-6
           ${
             applied
-              ? "bg-white/20 text-white border border-white/30 cursor-not-allowed"
+              ? "bg-green-50 text-green-600 border border-green-200 cursor-not-allowed"
               : isExpired
-                ? "bg-white/20 text-white border border-white/30 cursor-not-allowed"
+                ? "bg-[#F1F5F9] text-[#94A3B8] border border-[#E2E8F0] cursor-not-allowed"
                 : !isEligible
-                  ? "bg-white/20 text-white border border-white/30 cursor-not-allowed"
-                  : "bg-white text-[#3B82F6] hover:bg-white/90 shadow-md"
+                  ? "bg-[#F1F5F9] text-[#94A3B8] border border-[#E2E8F0] cursor-not-allowed"
+                  : "bg-[#3B82F6] text-white hover:bg-[#2563EB] shadow-md"
           }`}
       >
         {applied ? (
