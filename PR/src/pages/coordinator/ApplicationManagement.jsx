@@ -742,9 +742,7 @@ function EligibleTab({ selectedJob, allStudents, refreshKey }) {
       if (prev.size === 0) return prev;
       const validIds = new Set(
         eligible
-          .filter(
-            (s) => !appliedIds.has(s._id?.toString?.()) && !!s.resume,
-          )
+          .filter((s) => !appliedIds.has(s._id?.toString?.()) && !!s.resume)
           .map((s) => s._id?.toString?.()),
       );
       let changed = false;
@@ -834,9 +832,7 @@ function EligibleTab({ selectedJob, allStudents, refreshKey }) {
       // slipped into selectedIds.
       const validIds = new Set(
         eligible
-          .filter(
-            (s) => !appliedIds.has(s._id?.toString?.()) && !!s.resume,
-          )
+          .filter((s) => !appliedIds.has(s._id?.toString?.()) && !!s.resume)
           .map((s) => s._id?.toString?.()),
       );
       const payloadIds = Array.from(selectedIds).filter((id) =>
@@ -860,8 +856,7 @@ function EligibleTab({ selectedJob, allStudents, refreshKey }) {
       );
       const viaMap = {};
       list.forEach((a) => {
-        const sid =
-          a.studentId?._id?.toString?.() || a.studentId?.toString?.();
+        const sid = a.studentId?._id?.toString?.() || a.studentId?.toString?.();
         if (sid) viaMap[sid] = a.appliedVia || "self";
       });
       setAppliedIds(ids);
@@ -1145,7 +1140,8 @@ function EligibleTab({ selectedJob, allStudents, refreshKey }) {
             const sid = student._id?.toString?.();
             const hasApplied = appliedIds.has(sid);
             const appliedVia = appliedViaMap[sid]; // "self" | "bulk-coordinator"
-            const isBulkApplied = hasApplied && appliedVia === "bulk-coordinator";
+            const isBulkApplied =
+              hasApplied && appliedVia === "bulk-coordinator";
             const noResume = !student.resume;
             // Already-applied rows show as ticked (still disabled) so the
             // checkbox itself communicates "already in", instead of
