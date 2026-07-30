@@ -264,40 +264,63 @@ const exportAttendancePDF = async (req, res) => {
         .stroke();
       doc.moveDown(0.5);
 
+      // ── Column layout ──
+      const COL = { name: 50, erp: 230, time: 360, mode: 440 };
+      const ROW_H = 18; // fixed row height — no wrapping surprises
+
+      // Header
       doc.fontSize(10).font("Helvetica-Bold");
-      doc.text("Name", 50, doc.y, { width: 180, continued: true });
-      doc.text("ERP ID", 230, doc.y, { width: 130, continued: true });
-      doc.text("Time", 360, doc.y, { width: 80, continued: true });
-      doc.text("Mode", 440, doc.y, { width: 110 });
-      doc.moveDown(0.5);
+      let hY = doc.y;
+      doc.text("Name", COL.name, hY, { width: 175, lineBreak: false });
+      doc.text("ERP ID", COL.erp, hY, { width: 125, lineBreak: false });
+      doc.text("Time", COL.time, hY, { width: 75, lineBreak: false });
+      doc.text("Mode", COL.mode, hY, { width: 110, lineBreak: false });
+
+      // Move past header + draw divider
+      doc.y = hY + ROW_H;
       doc
         .moveTo(50, doc.y)
         .lineTo(550, doc.y)
         .strokeColor("#CBD5E1")
         .lineWidth(0.5)
         .stroke();
-      doc.moveDown(0.5);
+      doc.y += 6;
 
-      doc.font("Helvetica").fontSize(10);
+      // Rows
+      doc.font("Helvetica").fontSize(9.5);
       records.forEach((r) => {
-        const y = doc.y;
+        // New page check — agar row page ke bahar jaaye
+        if (doc.y + ROW_H > doc.page.height - doc.page.margins.bottom) {
+          doc.addPage();
+        }
+
+        const rowY = doc.y;
         const time = new Date(r.markedAt).toLocaleTimeString("en-IN", {
           hour: "2-digit",
           minute: "2-digit",
         });
         const mode =
           r.mode === "Manual" ? (r.isLate ? "Manual (Late)" : "Manual") : "QR";
-        doc.text(r.studentId?.name || "Unknown", 50, y, {
-          width: 180,
-          continued: true,
+
+        doc.text(r.studentId?.name || "Unknown", COL.name, rowY, {
+          width: 175,
+          lineBreak: false,
         });
-        doc.text(r.studentId?.userId?.erpId || "", 230, y, {
-          width: 130,
-          continued: true,
+        doc.text(r.studentId?.userId?.erpId || "—", COL.erp, rowY, {
+          width: 125,
+          lineBreak: false,
         });
-        doc.text(time, 360, y, { width: 80, continued: true });
-        doc.text(mode, 440, y, { width: 110 });
-        doc.moveDown(0.5);
+        doc.text(time, COL.time, rowY, { width: 75, lineBreak: false });
+        doc.text(mode, COL.mode, rowY, { width: 110, lineBreak: false });
+
+        // Subtle row separator
+        doc.y = rowY + ROW_H;
+        doc
+          .moveTo(50, doc.y - 2)
+          .lineTo(550, doc.y - 2)
+          .strokeColor("#F1F5F9")
+          .lineWidth(0.3)
+          .stroke();
       });
 
       doc.end();
