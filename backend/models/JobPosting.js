@@ -12,6 +12,8 @@ const jobPostingSchema = new mongoose.Schema(
     location: { type: String, default: "" },
     lastDate: { type: Date },
     minCgpa: { type: Number, default: 0 },
+    minTenthPercentage: { type: Number, default: 0 },
+    minTwelfthPercentage: { type: Number, default: 0 },
     eligibleBranches: [String],
     eligibleCourses: [String],
     eligibleSchools: [String],

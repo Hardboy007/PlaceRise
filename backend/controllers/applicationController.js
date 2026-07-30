@@ -57,6 +57,24 @@ const createApplication = async (req, res) => {
       }
     }
 
+    // 10th percentage check — sirf tab jab company ne criteria set ki ho
+    if (job.minTenthPercentage && job.minTenthPercentage > 0) {
+      if ((student.tenthMarks ?? 0) < job.minTenthPercentage) {
+        return res.status(403).json({
+          message: `Minimum 10th percentage required: ${job.minTenthPercentage}%`,
+        });
+      }
+    }
+
+    // 12th percentage check — sirf tab jab company ne criteria set ki ho
+    if (job.minTwelfthPercentage && job.minTwelfthPercentage > 0) {
+      if ((student.twelfthMarks ?? 0) < job.minTwelfthPercentage) {
+        return res.status(403).json({
+          message: `Minimum 12th percentage required: ${job.minTwelfthPercentage}%`,
+        });
+      }
+    }
+
     // Backlogs check
     if ((student.backlogs ?? 0) > (job.maxBacklogs ?? 99)) {
       return res
@@ -803,6 +821,12 @@ const bulkApply = async (req, res) => {
       }
       if (job.minCgpa && job.minCgpa > 0) {
         if ((s.cgpa ?? 0) < job.minCgpa) return false;
+      }
+      if (job.minTenthPercentage && job.minTenthPercentage > 0) {
+        if ((s.tenthMarks ?? 0) < job.minTenthPercentage) return false;
+      }
+      if (job.minTwelfthPercentage && job.minTwelfthPercentage > 0) {
+        if ((s.twelfthMarks ?? 0) < job.minTwelfthPercentage) return false;
       }
       if ((s.backlogs ?? 0) > (job.maxBacklogs ?? 0)) return false;
       return true;

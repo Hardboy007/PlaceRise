@@ -31,6 +31,7 @@ export default function CompanyDetailPage() {
   const [existingStatus, setExistingStatus] = useState(null);
   const [applyLoading, setApplyLoading] = useState(false);
   const [isEligible, setIsEligible] = useState(true);
+  const [ineligibilityReasons, setIneligibilityReasons] = useState([]);
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [resumeConfirmed, setResumeConfirmed] = useState(false);
   const [studentProfile, setStudentProfile] = useState(null);
@@ -53,25 +54,53 @@ export default function CompanyDetailPage() {
         setCompany(data);
         setStudentProfile(studentData);
 
-        if (
-          data.eligibleBranches &&
-          !data.eligibleBranches.includes("All") &&
-          data.eligibleBranches.length > 0
-        ) {
-          const branchOk =
-            !data.eligibleBranches?.length ||
-            data.eligibleBranches.includes("All") ||
-            data.eligibleBranches.includes(studentData.course) ||
-            data.eligibleBranches.includes(studentData.branch);
+        const reasons = [];
 
-          const cgpaOk =
-            !data.minCgpa || (studentData?.cgpa ?? 0) >= data.minCgpa;
-
-          const backlogOk =
-            (studentData?.backlogs ?? 0) <= (data.maxBacklogs ?? 99);
-
-          setIsEligible(branchOk && cgpaOk && backlogOk);
+        const branchOk =
+          !data.eligibleBranches?.length ||
+          data.eligibleBranches.includes("All") ||
+          data.eligibleBranches.includes(studentData.course) ||
+          data.eligibleBranches.includes(studentData.branch);
+        if (!branchOk) {
+          reasons.push(
+            `Branch not eligible (required: ${data.eligibleBranches.join(", ")})`,
+          );
         }
+
+        const cgpaOk =
+          !data.minCgpa || (studentData?.cgpa ?? 0) >= data.minCgpa;
+        if (!cgpaOk) {
+          reasons.push(
+            `CGPA ${studentData?.cgpa ?? 0} is below required ${data.minCgpa}`,
+          );
+        }
+
+        const tenthOk =
+          !data.minTenthPercentage ||
+          (studentData?.tenthMarks ?? 0) >= data.minTenthPercentage;
+        if (!tenthOk) {
+          reasons.push(`10th marks below required ${data.minTenthPercentage}%`);
+        }
+
+        const twelfthOk =
+          !data.minTwelfthPercentage ||
+          (studentData?.twelfthMarks ?? 0) >= data.minTwelfthPercentage;
+        if (!twelfthOk) {
+          reasons.push(
+            `12th marks below required ${data.minTwelfthPercentage}%`,
+          );
+        }
+
+        const backlogOk =
+          (studentData?.backlogs ?? 0) <= (data.maxBacklogs ?? 99);
+        if (!backlogOk) {
+          reasons.push(
+            `Backlogs (${studentData?.backlogs ?? 0}) exceed max allowed (${data.maxBacklogs})`,
+          );
+        }
+
+        setIsEligible(reasons.length === 0);
+        setIneligibilityReasons(reasons);
 
         try {
           const myApps = await api.get("/applications/my");
@@ -109,7 +138,7 @@ export default function CompanyDetailPage() {
         setShowApplyModal(false);
       }
     } catch (err) {
-      alert("Something went wrong");
+      alert(err.message || "Something went wrong");
     }
     setApplyLoading(false);
   };
@@ -272,6 +301,19 @@ export default function CompanyDetailPage() {
               </>
             )}
           </button>
+          {!isEligible && ineligibilityReasons.length > 0 && (
+            <div className="mt-3 bg-white/10 border border-white/20 rounded-xl px-3 py-2.5">
+              {ineligibilityReasons.map((reason, i) => (
+                <p
+                  key={i}
+                  className="text-xs text-white/90 leading-relaxed flex items-start gap-1.5"
+                >
+                  <span>•</span>
+                  <span>{reason}</span>
+                </p>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

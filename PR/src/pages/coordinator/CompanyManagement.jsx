@@ -48,6 +48,8 @@ const emptyJD = {
   jobType: "Full Time",
   lastDate: "",
   minCgpa: "",
+  minTenthPercentage: "",
+  minTwelfthPercentage: "",
   eligibleBranches: [],
   maxBacklogs: "0",
   techStack: [],
@@ -618,7 +620,36 @@ function JDFields({ form, setForm, errors }) {
           className={inputCls}
         />
       </Field>
-
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Field label="Min 10th Percentage" optional>
+          <input
+            type="number"
+            step="0.1"
+            min="0"
+            max="100"
+            value={form.minTenthPercentage}
+            onChange={(e) =>
+              setForm({ ...form, minTenthPercentage: e.target.value })
+            }
+            placeholder="Leave blank if no requirement"
+            className={inputCls}
+          />
+        </Field>
+        <Field label="Min 12th Percentage" optional>
+          <input
+            type="number"
+            step="0.1"
+            min="0"
+            max="100"
+            value={form.minTwelfthPercentage}
+            onChange={(e) =>
+              setForm({ ...form, minTwelfthPercentage: e.target.value })
+            }
+            placeholder="Leave blank if no requirement"
+            className={inputCls}
+          />
+        </Field>
+      </div>
       {/* ── Eligible Branches — replaced with modal selector ── */}
       <Field
         label="Eligible Branches & Courses"
@@ -838,6 +869,12 @@ export default function CompanyManagementPage() {
       location: companyForm.location,
       lastDate: addJDForm.lastDate,
       minCgpa: addJDForm.minCgpa ? parseFloat(addJDForm.minCgpa) : 0,
+      minTenthPercentage: addJDForm.minTenthPercentage
+        ? parseFloat(addJDForm.minTenthPercentage)
+        : 0,
+      minTwelfthPercentage: addJDForm.minTwelfthPercentage
+        ? parseFloat(addJDForm.minTwelfthPercentage)
+        : 0,
       eligibleBranches: addJDForm.eligibleBranches,
       maxBacklogs: addJDForm.maxBacklogs ? parseInt(addJDForm.maxBacklogs) : 0,
       techStack: addJDForm.techStack,
@@ -866,6 +903,8 @@ export default function CompanyManagementPage() {
       jobType: job.jobType || "Full Time",
       lastDate: job.lastDate ? job.lastDate.split("T")[0] : "",
       minCgpa: job.minCgpa || "",
+      minTenthPercentage: job.minTenthPercentage || "",
+      minTwelfthPercentage: job.minTwelfthPercentage || "",
       eligibleBranches: job.eligibleBranches || [],
       maxBacklogs: job.maxBacklogs ?? "0",
       techStack: job.techStack || [],
@@ -907,6 +946,12 @@ export default function CompanyManagementPage() {
       location: jdTargetCompany.location,
       lastDate: jdForm.lastDate,
       minCgpa: jdForm.minCgpa ? parseFloat(jdForm.minCgpa) : 0,
+      minTenthPercentage: jdForm.minTenthPercentage
+        ? parseFloat(jdForm.minTenthPercentage)
+        : 0,
+      minTwelfthPercentage: jdForm.minTwelfthPercentage
+        ? parseFloat(jdForm.minTwelfthPercentage)
+        : 0,
       eligibleBranches: jdForm.eligibleBranches,
       maxBacklogs: jdForm.maxBacklogs ? parseInt(jdForm.maxBacklogs) : 0,
       techStack: jdForm.techStack,
