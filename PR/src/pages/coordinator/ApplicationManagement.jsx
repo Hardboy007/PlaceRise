@@ -19,8 +19,6 @@ import {
   RotateCw,
   X,
   Download,
-  ShieldOff,
-  ShieldAlert,
   FileWarning,
   Search,
   Trash2,
@@ -30,14 +28,6 @@ import {
 import { api } from "../../utils/api";
 
 const STATUS_OPTIONS = ["Applied", "Shortlisted", "Selected", "Rejected"];
-
-// Students who've hit this many "Selected" companies are the only ones the
-// Block toggle shows for — this mirrors the self-apply cap in
-// applicationController.js (createApplication blocks a 4th "Selected" at
-// selectedCount >= 3), which bulkApply intentionally does NOT enforce.
-// Block exists specifically so a coordinator can manually stop bulk-apply
-// from re-applying someone who's already past that cap.
-const BLOCK_ELIGIBLE_SELECTED_COUNT = 3;
 
 const STATUS_STYLE = {
   Applied: {
@@ -66,16 +56,40 @@ const STATUS_STYLE = {
   },
 };
 
-// A drive is "Closed" once its application deadline (lastDate) has passed —
-// this ONLY controls whether new students can apply, and which
-// Active/Closed/All tab the drive shows up under. It no longer controls
-// whether the coordinator can update student statuses — rounds (interviews,
-// tests, etc.) routinely continue well after the apply deadline.
+// Compares dates as IST (Asia/Kolkata) calendar days, not the browser's
+// local timezone — using getFullYear/getMonth/getDate on plain Date
+// objects reads the BROWSER's local timezone, which is fragile in
+// general and doesn't match the backend's own IST-based check (the
+// backend is what actually matters since hosting servers usually run in
+// UTC). en-CA locale gives YYYY-MM-DD, which sorts/compares correctly as
+// a string.
+function toISTDateString(date) {
+  return date.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+}
+
+// A drive is "Closed" once its application deadline (lastDate) DAY has
+// fully passed — this ONLY controls whether new students can apply, and
+// which Active/Closed/All tab the drive shows up under. It no longer
+// controls whether the coordinator can update student statuses — rounds
+// (interviews, tests, etc.) routinely continue well after the apply
+// deadline.
+//
+// IMPORTANT: this compares IST CALENDAR DAYS, not exact timestamps.
+// Comparing `new Date(job.lastDate) < new Date()` directly was wrong —
+// job.lastDate is normally stored at midnight (00:00:00), so the very
+// first second of the deadline day made the drive look "Closed" even
+// though students/coordinators should still have the entire day to
+// apply. Today == lastDate's day must still count as OPEN/Active; only
+// once today is AFTER that day does the drive count as Closed. This
+// mirrors getBulkApplyWindowStatus below, so "Active" tab + bulk-apply
+// window agree on what "today" means.
 function isJobClosed(job) {
   if (!job?.lastDate) return false;
   const d = new Date(job.lastDate);
   if (isNaN(d.getTime())) return false;
-  return d < new Date();
+  const lastDayStr = toISTDateString(d);
+  const todayStr = toISTDateString(new Date());
+  return todayStr > lastDayStr;
 }
 
 // Bulk-apply is intentionally tied to the SAME date as the students' own
@@ -87,17 +101,6 @@ function isJobClosed(job) {
 //                who hasn't applied (mirrors createApplication's own
 //                deadline check on the student-apply side)
 //   "unknown" -> job has no lastDate at all
-// Compares dates as IST (Asia/Kolkata) calendar days, not the browser's
-// local timezone — the earlier version used getFullYear/getMonth/getDate
-// on plain Date objects, which reads the BROWSER's local timezone. That's
-// fine for users physically in India, but is fragile in general (and
-// matches the backend's own IST-based check below, which is what
-// actually matters since hosting servers usually run in UTC).
-function toISTDateString(date) {
-  // en-CA locale gives YYYY-MM-DD, which sorts/compares correctly as a string.
-  return date.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
-}
-
 function getBulkApplyWindowStatus(job) {
   if (!job?.lastDate) return "unknown";
   const last = new Date(job.lastDate);
@@ -613,12 +616,7 @@ function BulkApplyModal({
   );
 }
 
-function EligibleTab({
-  selectedJob,
-  allStudents,
-  onStudentBlockToggled,
-  refreshKey,
-}) {
+function EligibleTab({ selectedJob, allStudents, refreshKey }) {
   // Matching against s.course (not s.branch) — eligibleBranches actually
   // stores full COURSE name strings (e.g. "B.Tech Computer Science
   // Engineering") as selected via BranchSelectorModal in
@@ -652,18 +650,22 @@ function EligibleTab({
 
   // Which eligible students have already applied to this drive
   const [appliedIds, setAppliedIds] = useState(new Set());
+  // studentId -> appliedVia ("self" | "bulk-coordinator") — lets the row
+  // show WHO applied, not just that they applied, so a coordinator can
+  // tell apart students they bulk-applied vs students who applied
+  // themselves.
+  const [appliedViaMap, setAppliedViaMap] = useState({});
   const [appliedLoading, setAppliedLoading] = useState(true);
 
   // Checkbox selection state for bulk-apply — keyed by student._id.
   // Starts EMPTY. The coordinator must explicitly tick students (or use
-  // "Select All", which itself only ticks non-applied / non-blocked /
-  // has-resume students). We deliberately do NOT pre-check anyone here —
-  // pre-checking "everyone eligible" meant a coordinator could hit
-  // "Bulk Apply" without reviewing and silently apply for students they
-  // never intended to. No-resume / blocked / already-applied students can
-  // NEVER end up in this set — enforced both in toggleStudent /
-  // toggleSelectAll below, so there's no path (including "Select All")
-  // that can sneak them in.
+  // "Select All", which itself only ticks non-applied / has-resume
+  // students). We deliberately do NOT pre-check anyone here — pre-checking
+  // "everyone eligible" meant a coordinator could hit "Bulk Apply" without
+  // reviewing and silently apply for students they never intended to.
+  // No-resume / already-applied students can NEVER end up in this set —
+  // enforced both in toggleStudent / toggleSelectAll below, so there's no
+  // path (including "Select All") that can sneak them in.
   const [selectedIds, setSelectedIds] = useState(new Set());
 
   // Name / ERP ID search — narrows what's rendered in the table only.
@@ -676,12 +678,10 @@ function EligibleTab({
   const [bulkApplyLoading, setBulkApplyLoading] = useState(false);
   const [bulkApplyResult, setBulkApplyResult] = useState(null);
 
-  // Per-row block/unblock toggle loading state
-  const [blockingId, setBlockingId] = useState(null);
-
   useEffect(() => {
     if (!selectedJob?._id) {
       setAppliedIds(new Set());
+      setAppliedViaMap({});
       setAppliedLoading(false);
       return;
     }
@@ -689,14 +689,23 @@ function EligibleTab({
       setAppliedLoading(true);
       try {
         const apps = await api.get(`/applications/job/${selectedJob._id}`);
+        const list = Array.isArray(apps) ? apps : [];
         const ids = new Set(
-          (Array.isArray(apps) ? apps : []).map(
+          list.map(
             (a) => a.studentId?._id?.toString?.() || a.studentId?.toString?.(),
           ),
         );
+        const viaMap = {};
+        list.forEach((a) => {
+          const sid =
+            a.studentId?._id?.toString?.() || a.studentId?.toString?.();
+          if (sid) viaMap[sid] = a.appliedVia || "self";
+        });
         setAppliedIds(ids);
+        setAppliedViaMap(viaMap);
       } catch {
         setAppliedIds(new Set());
+        setAppliedViaMap({});
       } finally {
         setAppliedLoading(false);
       }
@@ -713,7 +722,7 @@ function EligibleTab({
   // students could end up bulk-applied without the coordinator meaning to.
   // Within the SAME drive, selectedIds is left alone (e.g. a resume upload
   // refresh shouldn't wipe out what the coordinator already picked) —
-  // toggleStudent/toggleSelectAll already guard against no-resume/blocked
+  // toggleStudent/toggleSelectAll already guard against no-resume
   // students sneaking in.
   useEffect(() => {
     setSelectedIds(new Set());
@@ -721,24 +730,20 @@ function EligibleTab({
   }, [selectedJob?._id]);
 
   // Belt-and-suspenders: whenever the eligible list or applied set
-  // changes (resume just uploaded, someone got blocked, a fresh
-  // "applied" fetch comes back), strip out any id sitting in
-  // selectedIds that is NOT currently selectable — no resume, blocked,
-  // or already applied. toggleStudent/toggleSelectAll already prevent
-  // these from being ADDED, but this guarantees the checkbox UI can
-  // never render a no-resume/blocked student as checked even if some
-  // other code path (or stale state from a previous render) put its id
-  // in there.
+  // changes (resume just uploaded, a fresh "applied" fetch comes back),
+  // strip out any id sitting in selectedIds that is NOT currently
+  // selectable — no resume, or already applied.
+  // toggleStudent/toggleSelectAll already prevent these from being ADDED,
+  // but this guarantees the checkbox UI can never render a no-resume
+  // student as checked even if some other code path (or stale state from
+  // a previous render) put its id in there.
   useEffect(() => {
     setSelectedIds((prev) => {
       if (prev.size === 0) return prev;
       const validIds = new Set(
         eligible
           .filter(
-            (s) =>
-              !appliedIds.has(s._id?.toString?.()) &&
-              !s.placementBlocked &&
-              !!s.resume,
+            (s) => !appliedIds.has(s._id?.toString?.()) && !!s.resume,
           )
           .map((s) => s._id?.toString?.()),
       );
@@ -772,16 +777,13 @@ function EligibleTab({
   }, [eligible, searchQuery]);
 
   // Only students that are ACTUALLY selectable count toward "select all":
-  // not yet applied, not blocked, and has a resume. This is the fix for
-  // the bug where "Select All" was ticking no-resume / blocked students
-  // too — it used to just filter by "not applied" and nothing else.
+  // not yet applied and has a resume. This is the fix for the bug where
+  // "Select All" was ticking no-resume students too — it used to just
+  // filter by "not applied" and nothing else.
   const displayedSelectable = useMemo(
     () =>
       displayedEligible.filter(
-        (s) =>
-          !appliedIds.has(s._id?.toString?.()) &&
-          !s.placementBlocked &&
-          !!s.resume,
+        (s) => !appliedIds.has(s._id?.toString?.()) && !!s.resume,
       ),
     [displayedEligible, appliedIds],
   );
@@ -791,12 +793,12 @@ function EligibleTab({
 
   // Guarded here too (not just via the disabled checkbox in the UI) so
   // there's no code path — present or future — that can select a student
-  // who has no resume or is blocked.
+  // who has no resume.
   const toggleStudent = (student) => {
     if (!bulkApplyOpen) return;
     const id = student._id?.toString?.();
     if (!id) return;
-    if (student.placementBlocked || !student.resume) return;
+    if (!student.resume) return;
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -828,15 +830,12 @@ function EligibleTab({
     setBulkApplyLoading(true);
     try {
       // Re-filter right before sending — belt-and-suspenders against
-      // sending a no-resume/blocked/already-applied id even if one
-      // somehow slipped into selectedIds.
+      // sending a no-resume/already-applied id even if one somehow
+      // slipped into selectedIds.
       const validIds = new Set(
         eligible
           .filter(
-            (s) =>
-              !appliedIds.has(s._id?.toString?.()) &&
-              !s.placementBlocked &&
-              !!s.resume,
+            (s) => !appliedIds.has(s._id?.toString?.()) && !!s.resume,
           )
           .map((s) => s._id?.toString?.()),
       );
@@ -853,12 +852,20 @@ function EligibleTab({
       // Refresh applied set with whichever students actually got created
       // (skips students with no resume even if they were checked).
       const apps = await api.get(`/applications/job/${selectedJob._id}`);
+      const list = Array.isArray(apps) ? apps : [];
       const ids = new Set(
-        (Array.isArray(apps) ? apps : []).map(
+        list.map(
           (a) => a.studentId?._id?.toString?.() || a.studentId?.toString?.(),
         ),
       );
+      const viaMap = {};
+      list.forEach((a) => {
+        const sid =
+          a.studentId?._id?.toString?.() || a.studentId?.toString?.();
+        if (sid) viaMap[sid] = a.appliedVia || "self";
+      });
       setAppliedIds(ids);
+      setAppliedViaMap(viaMap);
       // The students that just got applied should no longer sit in the
       // selection set (they're now disabled/applied rows anyway, but this
       // keeps selectedCount honest if the coordinator reopens the modal).
@@ -871,40 +878,6 @@ function EligibleTab({
       setBulkApplyResult({ error: err.message });
     } finally {
       setBulkApplyLoading(false);
-    }
-  };
-
-  // Coordinator's manual "don't auto-apply this student in future bulk
-  // applies" override. Hits the student record directly — NOTE: this
-  // assumes a `PUT /students/:id` endpoint that accepts a partial update
-  // body (the pattern already used for job updates in this file, e.g.
-  // `PUT /jobs/:id`). If your studentController doesn't have that route
-  // yet, add one that accepts `{ placementBlocked }` and saves it on the
-  // Student doc — that's the field bulkApply already checks.
-  const handleToggleBlock = async (student) => {
-    const id = student._id;
-    setBlockingId(id);
-    try {
-      const updated = await api.put(`/students/${id}`, {
-        placementBlocked: !student.placementBlocked,
-      });
-      onStudentBlockToggled?.(
-        id,
-        updated.placementBlocked ?? !student.placementBlocked,
-      );
-      // If we just blocked someone who was checked, uncheck them.
-      setSelectedIds((prev) => {
-        if (!prev.has(id)) return prev;
-        const wasBlocking = !student.placementBlocked; // we're about to block
-        if (!wasBlocking) return prev;
-        const next = new Set(prev);
-        next.delete(id);
-        return next;
-      });
-    } catch (err) {
-      alert(`Could not update block status: ${err.message}`);
-    } finally {
-      setBlockingId(null);
     }
   };
 
@@ -1131,7 +1104,7 @@ function EligibleTab({
             title={
               !bulkApplyOpen
                 ? "Selection is locked until the drive's apply deadline day"
-                : "Select / deselect all visible (skips no-resume & blocked students)"
+                : "Select / deselect all visible (skips no-resume students)"
             }
           />
           {["Name", "ERP ID", "Course", "CGPA", "Backlogs", "Status"].map(
@@ -1171,27 +1144,21 @@ function EligibleTab({
           displayedEligible.map((student, idx) => {
             const sid = student._id?.toString?.();
             const hasApplied = appliedIds.has(sid);
-            const isBlocked = !!student.placementBlocked;
+            const appliedVia = appliedViaMap[sid]; // "self" | "bulk-coordinator"
+            const isBulkApplied = hasApplied && appliedVia === "bulk-coordinator";
             const noResume = !student.resume;
             // Already-applied rows show as ticked (still disabled) so the
             // checkbox itself communicates "already in", instead of
             // looking unticked/empty next to an easy-to-miss badge.
-            // IMPORTANT: no-resume / blocked rows are FORCED unchecked
-            // here, regardless of what selectedIds contains — this is
-            // the actual source of truth for the checkbox, not just a
-            // guard on how selectedIds gets populated. Even if a stray
-            // id ever ends up in selectedIds, the box itself can never
-            // render as ticked for a student who isn't selectable.
+            // IMPORTANT: no-resume rows are FORCED unchecked here,
+            // regardless of what selectedIds contains — this is the
+            // actual source of truth for the checkbox, not just a guard
+            // on how selectedIds gets populated. Even if a stray id ever
+            // ends up in selectedIds, the box itself can never render as
+            // ticked for a student who isn't selectable.
             const checked = hasApplied
               ? true
-              : !isBlocked && !noResume && selectedIds.has(sid);
-            // Block toggle is only relevant for students who've already
-            // hit the selected-companies cap that bulkApply skips — for
-            // everyone else there's nothing to override, so hide the
-            // clutter.
-            const showBlockToggle =
-              isBlocked ||
-              (student.selectedCount ?? 0) >= BLOCK_ELIGIBLE_SELECTED_COUNT;
+              : !noResume && selectedIds.has(sid);
             return (
               <div
                 key={student._id}
@@ -1213,12 +1180,10 @@ function EligibleTab({
                   type="checkbox"
                   checked={checked}
                   onChange={() => toggleStudent(student)}
-                  disabled={
-                    hasApplied || isBlocked || noResume || !bulkApplyOpen
-                  }
+                  disabled={hasApplied || noResume || !bulkApplyOpen}
                   className="w-3.5 h-3.5 accent-[#3B82F6]"
                   title={
-                    !hasApplied && !isBlocked && !noResume && !bulkApplyOpen
+                    !hasApplied && !noResume && !bulkApplyOpen
                       ? "Selection is locked until the drive's apply deadline day"
                       : undefined
                   }
@@ -1264,9 +1229,20 @@ function EligibleTab({
                   {(student.backlogs ?? 0) === 0 ? "—" : student.backlogs}
                 </span>
 
-                {/* Status column: applied badge / no-resume warning / block toggle */}
+                {/* Status column: applied badge / no-resume warning.
+                    Bulk-applied students get a distinct purple badge so
+                    the coordinator can tell them apart from students who
+                    applied themselves. */}
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  {hasApplied && (
+                  {isBulkApplied && (
+                    <span
+                      className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-200"
+                      title="This student was applied by the coordinator via Bulk Apply"
+                    >
+                      Applied by you
+                    </span>
+                  )}
+                  {hasApplied && !isBulkApplied && (
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200">
                       Applied
                     </span>
@@ -1278,36 +1254,6 @@ function EligibleTab({
                     >
                       <FileWarning size={10} /> No resume
                     </span>
-                  )}
-                  {showBlockToggle && (
-                    <button
-                      onClick={() => handleToggleBlock(student)}
-                      disabled={blockingId === student._id}
-                      title={
-                        isBlocked
-                          ? "Unblock — allow this student in future bulk applies"
-                          : `Selected in ${student.selectedCount} companies already — block from future bulk applies`
-                      }
-                      className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all ${
-                        blockingId === student._id
-                          ? "opacity-50 cursor-not-allowed"
-                          : ""
-                      } ${
-                        isBlocked
-                          ? "bg-red-50 text-red-600 border-red-200"
-                          : "bg-slate-50 text-slate-500 border-slate-200 hover:text-slate-700"
-                      }`}
-                    >
-                      {isBlocked ? (
-                        <>
-                          <ShieldOff size={10} /> Blocked
-                        </>
-                      ) : (
-                        <>
-                          <ShieldAlert size={10} /> Block
-                        </>
-                      )}
-                    </button>
                   )}
                 </div>
               </div>
@@ -2094,14 +2040,6 @@ export default function ApplicationsManagementPage() {
     }
   };
 
-  // Keep the local student list in sync after a block/unblock toggle,
-  // without needing a full re-fetch of /students.
-  const handleStudentBlockToggled = (studentId, placementBlocked) => {
-    setAllStudents((prev) =>
-      prev.map((s) => (s._id === studentId ? { ...s, placementBlocked } : s)),
-    );
-  };
-
   // Drive counts for the Active/Closed/All tabs, computed from the full
   // (unfiltered) job list so the numbers stay accurate regardless of which
   // tab is currently active.
@@ -2199,9 +2137,9 @@ export default function ApplicationsManagementPage() {
           </p>
         </div>
 
-        {/* Refresh — re-fetches jobs + students (resumes, block status,
-            eligibility fields) so the page doesn't go stale between the
-            time it was opened and now. */}
+        {/* Refresh — re-fetches jobs + students (resumes, eligibility
+            fields) so the page doesn't go stale between the time it was
+            opened and now. */}
         <button
           onClick={handleRefresh}
           disabled={refreshing}
@@ -2258,7 +2196,6 @@ export default function ApplicationsManagementPage() {
             <EligibleTab
               selectedJob={selectedJob}
               allStudents={allStudents}
-              onStudentBlockToggled={handleStudentBlockToggled}
               refreshKey={refreshKey}
             />
           ) : (

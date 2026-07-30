@@ -17,6 +17,13 @@ const notificationSchema = new mongoose.Schema(
         "NOC_REQUEST",
         "NOC_STATUS",
         "HR_FEEDBACK",
+        // Added for ApplicationsManagementPage coordinator actions —
+        // without these, Notification.create() was throwing a validation
+        // error (silently swallowed by the caller's try/catch) every time
+        // a coordinator bulk-applied a student or removed an application,
+        // so those two notification types were never actually being saved.
+        "BULK_APPLIED",
+        "APPLICATION_REMOVED",
       ],
       required: true,
     },

@@ -39,6 +39,24 @@ const applicationSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+
+    // Who actually created this application — student applied themselves,
+    // or a coordinator applied on their behalf via Bulk Apply.
+    // Without this field, Mongoose (strict mode by default) silently
+    // drops the `appliedVia` value the controller sets on create(), so
+    // every application looked identical regardless of who applied.
+    appliedVia: {
+      type: String,
+      enum: ["self", "bulk-coordinator"],
+      default: "self",
+    },
+
+    // Which coordinator (User) triggered a bulk-apply for this
+    // application — undefined/null for self-applied ones.
+    appliedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
   {
     timestamps: true,
