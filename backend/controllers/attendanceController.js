@@ -204,16 +204,19 @@ const exportAttendancePDF = async (req, res) => {
 
     const job = session.jobId;
     const startTime = session.createdAt.toLocaleTimeString("en-IN", {
+      timeZone: "Asia/Kolkata",
       hour: "2-digit",
       minute: "2-digit",
     });
     const endTime = session.closedAt
       ? session.closedAt.toLocaleTimeString("en-IN", {
+          timeZone: "Asia/Kolkata",
           hour: "2-digit",
           minute: "2-digit",
         })
       : "Active";
     const dateStr = session.createdAt.toLocaleDateString("en-IN", {
+      timeZone: "Asia/Kolkata",
       day: "2-digit",
       month: "long",
       year: "numeric",
@@ -296,6 +299,7 @@ const exportAttendancePDF = async (req, res) => {
 
         const rowY = doc.y;
         const time = new Date(r.markedAt).toLocaleTimeString("en-IN", {
+          timeZone: "Asia/Kolkata",
           hour: "2-digit",
           minute: "2-digit",
         });
