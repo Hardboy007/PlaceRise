@@ -568,6 +568,24 @@ export default function StudentProfilePage() {
               </span>
             )}
           </div>
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-widest text-[#64748B] block mb-1.5">
+              Parent / Guardian Name
+            </span>
+            {editing ? (
+              <input
+                name="parentName"
+                value={form?.parentName || ""}
+                onChange={handleChange}
+                placeholder="Parent's Name"
+                className="w-full px-3 py-2 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] bg-[#F8FAFC] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+              />
+            ) : (
+              <span className="text-sm font-medium text-[#1E293B]">
+                {student?.parentName || "—"}
+              </span>
+            )}
+          </div>
         </SectionCard>
       </div>
 
