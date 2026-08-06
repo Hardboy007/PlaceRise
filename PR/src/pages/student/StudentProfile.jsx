@@ -17,6 +17,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { getCurrentYear } from "../../utils/courseDuration";
+import { getSemester } from "../../utils/semester";
 
 function Field({ label, name, value, editing, form, onChange, type = "text" }) {
   return (
@@ -424,6 +425,17 @@ export default function StudentProfilePage() {
                 : "—"
             }
             {...fieldProps}
+          />
+          <Field
+            label="Current Semester"
+            name="semester"
+            value={
+              student.batch
+                ? `Semester ${getSemester(student.batch, student.course) || "—"}`
+                : "—"
+            }
+            {...fieldProps}
+            editing={false}
           />
           <Field
             label="CGPA"

@@ -3,6 +3,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { api } from "../../utils/api";
 import universityStructure from "../../data/universityStructure";
 import { Download, Upload } from "lucide-react";
+import { getSemester } from "../../utils/semester";
 // ── Design Tokens ─────────────────────────────────────────────
 const C = {
   primary: "#3B82F6",
@@ -27,6 +28,7 @@ const COURSE_GROUPS = universityStructure.map((s) => ({
 }));
 
 const BATCHES = ["All", "2024", "2025", "2026", "2027"];
+const SEMESTERS = ["All", "1", "2", "3", "4", "5", "6", "7", "8"];
 const CGPA_RANGES = [
   { label: "All", min: 0, max: 10 },
   { label: "9+", min: 9, max: 10 },
@@ -789,6 +791,29 @@ function StudentModal({ student, onClose }) {
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              }
+              label="Current Semester"
+              value={
+                getSemester(student.batch, student.course)
+                  ? `Semester ${getSemester(student.batch, student.course)}`
+                  : "—"
+              }
+            />
+            <InfoRow
+              icon={
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                     d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                   />
                 </svg>
@@ -796,6 +821,7 @@ function StudentModal({ student, onClose }) {
               label="CGPA"
               value={(student.cgpa ?? 0).toFixed(1)}
             />
+
             <InfoRow
               icon={
                 <svg
@@ -952,6 +978,7 @@ export default function StudentDatabasePage() {
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [semester, setSemester] = useState("All");
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -1038,6 +1065,11 @@ export default function StudentDatabasePage() {
       }
 
       if (batch !== "All" && String(s.batch) !== batch) return false;
+      if (
+        semester !== "All" &&
+        String(getSemester(s.batch, s.course)) !== semester
+      )
+        return false;
 
       const numericCgpa = Number(s.cgpa);
       if (cgpaRange !== "All") {
@@ -1065,6 +1097,7 @@ export default function StudentDatabasePage() {
     search,
     selectedCourses,
     batch,
+    semester,
     cgpaOpt,
     placement,
     selectedIn,
@@ -1083,6 +1116,7 @@ export default function StudentDatabasePage() {
     search ||
     selectedCourses.length > 0 ||
     batch !== "All" ||
+    semester !== "All" ||
     cgpaRange !== "All" ||
     placement !== "All" ||
     selectedIn !== "All";
@@ -1091,6 +1125,7 @@ export default function StudentDatabasePage() {
     setSearch("");
     setSelectedCourses([]);
     setBatch("All");
+    setSemester("All");
     setCgpaRange("All");
     setPlacement("All");
     setSelectedIn("All");
@@ -1283,6 +1318,12 @@ export default function StudentDatabasePage() {
               onChange={setBatch}
             />
             <FilterSelect
+              label="Semester"
+              value={semester}
+              options={SEMESTERS}
+              onChange={setSemester}
+            />
+            <FilterSelect
               label="CGPA"
               value={cgpaRange}
               options={CGPA_RANGES.map((r) => r.label)}
@@ -1366,7 +1407,7 @@ export default function StudentDatabasePage() {
               style={{
                 display: "grid",
                 gridTemplateColumns:
-                  "2fr 1fr 1.4fr 0.8fr 0.7fr 0.7fr 1.2fr 1.2fr",
+                  "2fr 1fr 1.4fr 0.8fr 0.6fr 0.8fr 0.7fr 1.2fr 1.2fr",
                 columnGap: "12px",
                 padding: "14px 24px",
                 borderBottom: `1px solid ${C.border}`,
@@ -1378,6 +1419,7 @@ export default function StudentDatabasePage() {
                 "ERP ID",
                 "Course",
                 "Batch",
+                "Semester",
                 "CGPA",
                 "Backlogs",
                 "Selected In",
@@ -1442,7 +1484,7 @@ export default function StudentDatabasePage() {
                     style={{
                       display: "grid",
                       gridTemplateColumns:
-                        "2fr 1fr 1.4fr 0.8fr 0.7fr 0.7fr 1.2fr 1.2fr",
+                        "2fr 1fr 1.4fr 0.8fr 0.6fr 0.8fr 0.7fr 1.2fr 1.2fr",
                       alignItems: "center",
                       columnGap: "12px",
                       padding: "16px 24px",
@@ -1497,6 +1539,13 @@ export default function StudentDatabasePage() {
                     {/* Batch */}
                     <span style={{ color: C.textMuted }} className="text-sm">
                       {student.batch}
+                    </span>
+
+                    {/* Semester */}
+                    <span style={{ color: C.textMuted }} className="text-sm">
+                      {getSemester(student.batch, student.course)
+                        ? `Sem ${getSemester(student.batch, student.course)}`
+                        : "—"}
                     </span>
 
                     {/* CGPA */}
