@@ -752,71 +752,144 @@ function AboutPage() {
                   />
                 </div>
 
-                <div
-                  style={{
-                    backgroundColor: D.bgPanel,
-                    border: `1px solid ${D.borderStrong}`,
-                  }}
-                  className="relative rounded-2xl p-10 overflow-hidden flex flex-col sm:flex-row items-center sm:items-start gap-8 max-w-2xl mx-auto"
-                >
-                  <span
-                    style={{
-                      fontFamily: SERIF,
-                      color: "rgba(76, 141, 255, 0.08)",
-                      fontSize: "6rem",
-                      fontWeight: 600,
-                    }}
-                    className="absolute -top-3 -right-1 select-none pointer-events-none"
-                    aria-hidden="true"
-                  >
-                    05
-                  </span>
-
+                <div className="max-w-5xl mx-auto w-full grid gap-8 md:grid-cols-2">
+                  {/* Dhjvir — Mentor 04 */}
                   <div
                     style={{
-                      backgroundColor: D.accentSoft,
-                      border: `1px solid ${D.border}`,
-                      color: D.accent,
-                      overflow: "hidden",
+                      backgroundColor: D.bgPanel,
+                      border: `1px solid ${D.borderStrong}`,
                     }}
-                    className="w-37 h-37 rounded-full flex items-center justify-center font-semibold text-3xl mb-0 shrink-0 relative z-10"
+                    className="relative rounded-2xl p-10 overflow-hidden flex items-center gap-8"
                   >
-                    <img
-                      src="/images/mukesh.png"
-                      alt="Mukesh Kumar"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-
-                  <div className="relative z-10 text-center sm:text-left">
-                    <h3
+                    <span
                       style={{
                         fontFamily: SERIF,
-                        color: D.text,
+                        color: "rgba(76, 141, 255, 0.08)",
+                        fontSize: "6rem",
                         fontWeight: 600,
                       }}
-                      className="text-3xl mb-1.5"
+                      className="absolute -top-3 -right-1 select-none pointer-events-none"
+                      aria-hidden="true"
                     >
-                      Mukesh Kumar
-                    </h3>
-                    <p
-                      style={{ color: D.accent, letterSpacing: "0.08em" }}
-                      className="text-[13px] uppercase font-semibold mb-5"
+                      04
+                    </span>
+
+                    <div
+                      style={{
+                        backgroundColor: D.accentSoft,
+                        border: `1px solid ${D.border}`,
+                        color: D.accent,
+                        overflow: "hidden",
+                      }}
+                      className="w-40 h-40 rounded-full flex items-center justify-center font-semibold text-3xl mb-0 shrink-0 relative z-10"
                     >
-                      Mentor · Idea to Execution
-                    </p>
-                    <p
+                      <img
+                        src="/images/Dhjvir.png"
+                        alt="Dhjvir"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+
+                    <div className="relative z-10 text-center sm:text-left">
+                      <h3
+                        style={{
+                          fontFamily: SERIF,
+                          color: D.text,
+                          fontWeight: 600,
+                        }}
+                        className="text-3xl mb-1"
+                      >
+                        Dhajvir Singh Rai
+
+                      </h3>
+                      <p
+                        style={{ color: D.accent, letterSpacing: "0.08em" }}
+                        className="text-[13px] uppercase font-semibold mb-5"
+                      >
+                        Advisor · Student Mentor
+                      </p>
+                      <p
+                        style={{
+                          fontFamily: SERIF,
+                          color: D.textMuted,
+                          fontStyle: "italic",
+                          fontSize: "21px",
+                          lineHeight: 1.8,
+                        }}
+                      >
+                        "Guides early-stage thinking and connects students to
+                        opportunities."
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Mukesh — Mentor 05 */}
+                  <div
+                    style={{
+                      backgroundColor: D.bgPanel,
+                      border: `1px solid ${D.borderStrong}`,
+                    }}
+                    className="relative rounded-2xl p-10 overflow-hidden flex items-center gap-8"
+                  >
+                    <span
                       style={{
                         fontFamily: SERIF,
-                        color: D.textMuted,
-                        fontStyle: "italic",
-                        fontSize: "19px",
-                        lineHeight: 1.8,
+                        color: "rgba(76, 141, 255, 0.08)",
+                        fontSize: "6rem",
+                        fontWeight: 600,
                       }}
+                      className="absolute -top-3 -right-1 select-none pointer-events-none"
+                      aria-hidden="true"
                     >
-                      "Shaped the idea, laid the foundation, guided every
-                      feature that followed."
-                    </p>
+                      05
+                    </span>
+
+                    <div
+                      style={{
+                        backgroundColor: D.accentSoft,
+                        border: `1px solid ${D.border}`,
+                        color: D.accent,
+                        overflow: "hidden",
+                      }}
+                      className="w-40 h-40 rounded-full flex items-center justify-center font-semibold text-3xl mb-0 shrink-0 relative z-10"
+                    >
+                      <img
+                        src="/images/mukesh.png"
+                        alt="Mukesh Kumar"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+
+                    <div className="relative z-10 text-center sm:text-left">
+                      <h3
+                        style={{
+                          fontFamily: SERIF,
+                          color: D.text,
+                          fontWeight: 600,
+                        }}
+                        className="text-3xl mb-1"
+                      >
+                        Mukesh Kumar
+                      </h3>
+                      <p
+                        style={{ color: D.accent, letterSpacing: "0.08em" }}
+                        className="text-[13px] uppercase font-semibold mb-5"
+                      >
+                        Mentor · Idea to Execution
+                      </p>
+                      <p
+                        style={{
+                          fontFamily: SERIF,
+                          color: D.textMuted,
+                          fontStyle: "italic",
+                          fontSize: "21px",
+                          lineHeight: 1.8,
+                        }}
+                      >
+                        "Shaped the idea, laid the foundation, guided every
+                        feature that followed."
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
