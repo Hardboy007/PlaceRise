@@ -800,7 +800,6 @@ function AboutPage() {
                         className="text-3xl mb-1"
                       >
                         Dhajvir Singh Rai
-
                       </h3>
                       <p
                         style={{ color: D.accent, letterSpacing: "0.08em" }}
