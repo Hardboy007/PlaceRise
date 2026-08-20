@@ -753,7 +753,7 @@ function AboutPage() {
                 </div>
 
                 <div className="max-w-5xl mx-auto w-full grid gap-8 md:grid-cols-2">
-                  {/* Dhjvir — Mentor 04 */}
+                  {/* Dhjvir — Mentor */}
                   <div
                     style={{
                       backgroundColor: D.bgPanel,
@@ -771,7 +771,7 @@ function AboutPage() {
                       className="absolute -top-3 -right-1 select-none pointer-events-none"
                       aria-hidden="true"
                     >
-                      04
+                      05
                     </span>
 
                     <div
@@ -822,7 +822,7 @@ function AboutPage() {
                     </div>
                   </div>
 
-                  {/* Mukesh — Mentor 05 */}
+                  {/* Mukesh — Mentor */}
                   <div
                     style={{
                       backgroundColor: D.bgPanel,
@@ -840,7 +840,7 @@ function AboutPage() {
                       className="absolute -top-3 -right-1 select-none pointer-events-none"
                       aria-hidden="true"
                     >
-                      05
+                      06
                     </span>
 
                     <div
