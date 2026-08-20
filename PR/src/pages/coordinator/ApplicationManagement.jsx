@@ -26,6 +26,7 @@ import {
   Info,
 } from "lucide-react";
 import { api } from "../../utils/api";
+import { getSemester } from "../../utils/semester";
 
 const STATUS_OPTIONS = ["Applied", "Shortlisted", "Selected", "Rejected"];
 
@@ -876,7 +877,7 @@ function EligibleTab({ selectedJob, allStudents, refreshKey }) {
     }
   };
 
-  const cols = "34px 2fr 1.2fr 1.4fr 0.8fr 0.8fr 1.4fr";
+  const cols = "34px 2fr 1.2fr 1.4fr 0.8fr 0.8fr 0.8fr 1.4fr";
   const jobName = `${selectedJob?.companyId?.name || "Company"} — ${selectedJob?.role || "Role"}`;
 
   return (
@@ -1102,17 +1103,23 @@ function EligibleTab({ selectedJob, allStudents, refreshKey }) {
                 : "Select / deselect all visible (skips no-resume students)"
             }
           />
-          {["Name", "ERP ID", "Course", "CGPA", "Backlogs", "Status"].map(
-            (h) => (
-              <span
-                key={h}
-                className="text-[10px] font-bold uppercase tracking-wider"
-                style={{ color: "#64748B" }}
-              >
-                {h}
-              </span>
-            ),
-          )}
+          {[
+            "Name",
+            "ERP ID",
+            "Course",
+            "Sem",
+            "CGPA",
+            "Backlogs",
+            "Status",
+          ].map((h) => (
+            <span
+              key={h}
+              className="text-[10px] font-bold uppercase tracking-wider"
+              style={{ color: "#64748B" }}
+            >
+              {h}
+            </span>
+          ))}
         </div>
 
         {appliedLoading ? (
@@ -1200,6 +1207,12 @@ function EligibleTab({ selectedJob, allStudents, refreshKey }) {
                   }}
                 >
                   {student.course || "—"}
+                </span>
+                <span
+                  className="text-xs font-semibold"
+                  style={{ color: "#0F172A" }}
+                >
+                  {getSemester(student.batch, student.course) ?? "—"}
                 </span>
                 <span
                   className="text-sm font-bold"
@@ -1748,6 +1761,12 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
                   {student?.course || "—"}
                 </span>
                 <span
+                  className="text-xs font-semibold"
+                  style={{ color: "#0F172A" }}
+                >
+                  {getSemester(student?.batch, student?.course) ?? "—"}
+                </span>
+                <span
                   className="text-sm font-bold"
                   style={{
                     color:
@@ -1920,6 +1939,14 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
                   {[
                     { label: "Course", value: selectedStudent.course },
                     { label: "Batch", value: selectedStudent.batch },
+                    {
+                      label: "Current Semester",
+                      value:
+                        getSemester(
+                          selectedStudent.batch,
+                          selectedStudent.course,
+                        ) ?? "—",
+                    },
                     {
                       label: "CGPA",
                       value: (selectedStudent.cgpa ?? 0).toFixed(1),
