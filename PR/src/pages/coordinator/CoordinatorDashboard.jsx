@@ -178,19 +178,25 @@ export default function CoordinatorDashboard() {
                          radial-gradient(circle at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 40%)`,
           }} 
         />
-        <div className="relative z-10 p-5 sm:p-8">
-          <div className="flex items-center justify-between gap-3 mb-4 sm:mb-5">
+        <div className="relative z-10 p-4 sm:p-8">
+          {/* FIXED: this row used to be a single `flex justify-between` row.
+              On narrow screens (~360-412px) the university-name text and the
+              "Placement Season Active" pill couldn't both fit on one line,
+              so the badge got squeezed/wrapped into a broken two-line pill.
+              Now it stacks (logo+name on top, badge below) on mobile and
+              goes back to one row from `sm:` up. */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5">
             <div className="flex items-center gap-2.5 min-w-0">
               <img
                 src="/images/dbuu-logo.jpeg"
                 alt="University Logo"
                 className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-contain bg-white/10 p-0.5 shrink-0"
               />
-              <span className="text-white/80 text-xs sm:text-sm font-medium leading-tight">
+              <span className="text-white/80 text-xs sm:text-sm font-medium leading-tight min-w-0">
                 Dev Bhoomi Uttarakhand University
               </span>
             </div>
-            <span className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/20 border border-white/30 text-white text-xs sm:text-sm font-semibold whitespace-nowrap shrink-0">
+            <span className="inline-flex w-fit items-center gap-2 self-start sm:self-auto px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/20 border border-white/30 text-white text-[11px] sm:text-sm font-semibold whitespace-nowrap">
               <span className="w-2 h-2 rounded-full bg-[#f59e0b] animate-pulse shrink-0" />
               Placement Season 2025-26 Active
             </span>
@@ -208,9 +214,12 @@ export default function CoordinatorDashboard() {
             <p className="text-sm text-white/60">{formatDate(today)}</p>
           </div>
         </div>
+        {/* FIXED: was a fixed 260x130 px box that overlapped the greeting
+            text on small phones. Now scales down on mobile and grows back
+            up at sm/md, and sits behind the text (z-0) so it never overlaps
+            the name/date even if the card is short. */}
         <svg
-          className="absolute bottom-0 right-0 pointer-events-none"
-          style={{ width: "260px", height: "130px" }}
+          className="absolute bottom-0 right-0 pointer-events-none z-0 w-[150px] h-[75px] sm:w-[220px] sm:h-[110px] md:w-[260px] md:h-[130px]"
           viewBox="0 0 260 130"
           fill="none"
           aria-hidden="true"
