@@ -520,73 +520,75 @@ function AnnouncementItem({ a, isLast }) {
     Date.now() - new Date(a.createdAt).getTime() < 24 * 60 * 60 * 1000;
   const tc = ANN_TYPE_CONFIG[a.type] || ANN_TYPE_CONFIG.General;
   return (
-    <div
-      style={!isLast ? { borderColor: C.border } : {}}
-      className={`flex gap-3 ${!isLast ? "pb-5 border-b" : ""}`}
-    >
-      <div
-        style={{ backgroundColor: C.background }}
-        className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-      >
-        {announcementIconPool[0]}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-          <span
-            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${tc.badge}`}
-          >
-            {a.type || "General"}
-          </span>
-          {isNew && (
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-600 text-white animate-pulse">
-              New
-            </span>
-          )}
-          <span
-            style={{
-              color: C.textMuted,
-              backgroundColor: C.background,
-            }}
-            className="text-[10px] font-medium px-2 py-0.5 rounded-full"
-          >
-            {targetLabel(a.target)}
-          </span>
-        </div>
-
-        <p
-          style={{ color: C.textMain }}
-          className="font-semibold text-sm leading-tight mb-1"
+    <div className={`flex flex-col ${!isLast ? "pb-5" : ""}`}>
+      {/* Content row */}
+      <div className="flex gap-3">
+        <div
+          style={{ backgroundColor: C.background }}
+          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
         >
-          {a.title}
-        </p>
+          {announcementIconPool[0]}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+            <span
+              className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${tc.badge}`}
+            >
+              {a.type || "General"}
+            </span>
+            {isNew && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-600 text-white animate-pulse">
+                New
+              </span>
+            )}
+            <span
+              style={{
+                color: C.textMuted,
+                backgroundColor: C.background,
+              }}
+              className="text-[10px] font-medium px-2 py-0.5 rounded-full"
+            >
+              {targetLabel(a.target)}
+            </span>
+          </div>
 
-        {a.description && (
           <p
-            style={{ color: C.textMuted }}
-            className="text-xs leading-relaxed mb-1.5"
+            style={{ color: C.textMain }}
+            className="font-semibold text-sm leading-tight mb-1"
           >
-            {a.description}
+            {a.title}
           </p>
-        )}
 
-        {a.room && (
-          <p
-            style={{ color: C.textMuted }}
-            className="text-xs leading-relaxed mb-1"
-          >
-            📍 {a.room}
+          {a.description && (
+            <p
+              style={{ color: C.textMuted }}
+              className="text-xs leading-relaxed mb-1.5"
+            >
+              {a.description}
+            </p>
+          )}
+
+          {a.room && (
+            <p
+              style={{ color: C.textMuted }}
+              className="text-xs leading-relaxed mb-1"
+            >
+              📍 {a.room}
+            </p>
+          )}
+
+          <p style={{ color: C.textMuted }} className="text-[11px] font-medium">
+            {formatDayDate(a.date)}
+            {a.time ? ` · ${a.time}` : ""}
           </p>
-        )}
-
-        <p style={{ color: C.textMuted }} className="text-[11px] font-medium">
-          {formatDayDate(a.date)}
-          {a.time ? ` · ${a.time}` : ""}
-        </p>
+        </div>
       </div>
+      {!isLast && (
+        <div style={{ borderColor: C.border }} className="border-b mt-3" />
+      )}
     </div>
   );
 }
-
 // ─── Main Component ───────────────────────────────────────────
 export default function PlacementDashboard() {
   const navigate = useNavigate();
@@ -779,56 +781,113 @@ export default function PlacementDashboard() {
         <div
           style={{
             background:
-              "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
+              "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
           }}
-          className="relative overflow-hidden rounded-2xl sm:rounded-3xl mb-6 px-4 py-6 sm:px-6 sm:py-7 md:px-8 md:py-8 shadow-lg shadow-blue-900/10"
+          className="relative overflow-hidden rounded-2xl sm:rounded-3xl mb-6 px-4 py-6 sm:px-6 sm:py-7 md:px-8 md:py-8 shadow-xl shadow-purple-900/30"
         >
-          {/* Subtle dot-grid pattern — professional, low-opacity texture */}
+          {/* Subtle dot-grid pattern */}
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
               backgroundImage:
-                "radial-gradient(circle, rgba(255,255,255,0.35) 1px, transparent 1px)",
+                "radial-gradient(circle, rgba(255,255,255,0.12) 1px, transparent 1px)",
               backgroundSize: "22px 22px",
-              opacity: 0.35,
+              opacity: 0.4,
             }}
           />
-          {/* Soft diagonal line accent, bottom-right */}
+
+          {/* Red/orange curved accent — bottom right, mirrors Image 2 */}
           <svg
-            className="absolute bottom-0 right-0 w-72 h-72 pointer-events-none opacity-[0.08]"
-            viewBox="0 0 200 200"
+            className="absolute bottom-0 right-0 pointer-events-none"
+            style={{ width: "260px", height: "130px" }}
+            viewBox="0 0 260 130"
             fill="none"
+            xmlns="http://www.w3.org/2000/svg"
           >
-            <path d="M0 150 L200 0" stroke="white" strokeWidth="1" />
-            <path d="M0 170 L200 20" stroke="white" strokeWidth="1" />
-            <path d="M0 190 L200 40" stroke="white" strokeWidth="1" />
-            <path d="M0 130 L180 0" stroke="white" strokeWidth="1" />
-          </svg>
-          <div className="relative z-10">
-            <span className="inline-flex items-center gap-1.5 bg-white/20 text-white text-[10px] sm:text-xs font-medium px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full mb-3 sm:mb-4">
-              <svg
-                className="w-3.5 h-3.5"
-                fill="currentColor"
-                viewBox="0 0 24 24"
+            <path
+              d="M260 130 Q180 60 80 100 Q20 120 0 130"
+              stroke="url(#redOrangeGrad)"
+              strokeWidth="3.5"
+              fill="none"
+              strokeLinecap="round"
+            />
+            <path
+              d="M260 110 Q190 50 100 85 Q40 105 10 115"
+              stroke="url(#redOrangeGrad)"
+              strokeWidth="2"
+              fill="none"
+              strokeLinecap="round"
+              opacity="0.5"
+            />
+            <defs>
+              <linearGradient
+                id="redOrangeGrad"
+                x1="0"
+                y1="0"
+                x2="260"
+                y2="0"
+                gradientUnits="userSpaceOnUse"
               >
-                <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-              </svg>
-              Placement Season {currentYear}
-            </span>
+                <stop offset="0%" stopColor="#ff4e00" stopOpacity="0" />
+                <stop offset="50%" stopColor="#ff4e00" stopOpacity="0.8" />
+                <stop offset="100%" stopColor="#ff9d00" stopOpacity="1" />
+              </linearGradient>
+            </defs>
+          </svg>
+
+          <div className="relative z-10">
+            {/* Top row — University logo left, SEASON pill right */}
+            <div className="flex items-center justify-between mb-4 sm:mb-5">
+              <div className="flex items-center gap-2.5">
+                {/* Replace src with your actual logo import/path */}
+                <img
+                  src="/images/dbuu-logo.jpeg"
+                  alt="University Logo"
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-contain bg-white/10 p-0.5"
+                />
+                <span className="text-white/80 text-xs sm:text-sm font-medium leading-tight">
+                  Dev Bhoomi Uttarakhand University
+                </span>
+              </div>
+              <span
+                style={{
+                  background: "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                }}
+                className="text-white/90 text-[10px] sm:text-xs font-bold px-3 py-1.5 rounded-full tracking-widest uppercase flex items-center gap-1.5"
+              >
+                <span
+                  style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: "50%",
+                    backgroundColor: "#F59E0B",
+                    display: "inline-block",
+                  }}
+                />
+                Season {currentYear}
+              </span>
+            </div>
+
+            {/* Greeting + date */}
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-1">
               {greeting}, {student.name}
             </h1>
-            <p className="text-white/70 text-sm mb-3">{todayLabel}</p>
-            <p className="text-white/90 text-sm sm:text-base md:text-lg mb-6">
-              <span className="font-semibold">
+            <p className="text-white/60 text-sm mb-3">{todayLabel}</p>
+
+            {/* Company count — yellow, matches Image 2 */}
+            <p className="text-sm sm:text-base md:text-lg mb-6">
+              <span style={{ color: "#F59E0B" }} className="font-semibold">
                 {eligibleJobs.length} companies
               </span>{" "}
-              are open for you right now
+              <span className="text-white/80">are open for you right now</span>
             </p>
+
+            {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={() => navigate("/student/companies")}
-                style={{ backgroundColor: C.white, color: C.primary }}
+                style={{ backgroundColor: C.white, color: "#1a1060" }}
                 className="font-semibold cursor-pointer px-6 py-2.5 rounded-full text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity whitespace-nowrap w-full sm:w-auto"
               >
                 Browse Companies
@@ -848,16 +907,17 @@ export default function PlacementDashboard() {
               </button>
               <button
                 onClick={() => navigate("/student/applications")}
-                className="bg-white/20 cursor-pointer border border-white/40 text-white font-semibold px-6 py-2.5 rounded-full text-sm hover:bg-white/30 transition-colors whitespace-nowrap w-full sm:w-auto"
+                className="bg-white/10 cursor-pointer border border-white/25 text-white font-semibold px-6 py-2.5 rounded-full text-sm hover:bg-white/20 transition-colors whitespace-nowrap w-full sm:w-auto"
               >
                 My Applications
               </button>
             </div>
 
+            {/* Selected badge — same as before */}
             {!applicationsLoading && selectedCount > 0 && (
               <button
                 onClick={() => navigate("/student/applications")}
-                className="mt-4 flex items-center gap-2.5 bg-white/15 hover:bg-white/25 border border-white/25 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors cursor-pointer w-fit"
+                className="mt-4 flex items-center gap-2.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors cursor-pointer w-fit"
               >
                 <svg
                   className="w-4 h-4 shrink-0"
@@ -875,24 +935,30 @@ export default function PlacementDashboard() {
             )}
           </div>
 
-          <div className="absolute right-8 top-1/2 -translate-y-1/2 hidden md:block">
-            <div className="w-28 h-28 bg-white/10 rounded-2xl flex items-center justify-center">
-              <svg
-                className="w-14 h-14 text-white/70"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={1.5}
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5"
-                />
-              </svg>
-            </div>
+          {/* Graduation cap — gold outlined, top right, desktop only */}
+          <div
+            className="absolute right-8 top-1/2 -translate-y-1/2 hidden md:flex items-center justify-center w-28 h-28 rounded-2xl"
+            style={{
+              background: "rgba(255,255,255,0.07)",
+              border: "1px solid rgba(255,255,255,0.12)",
+            }}
+          >
+            <svg
+              className="w-14 h-14"
+              fill="none"
+              stroke="#F59E0B"
+              strokeWidth={1.5}
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5"
+              />
+            </svg>
           </div>
 
+          {/* Decorative circles */}
           <div className="absolute top-0 right-48 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2" />
           <div className="absolute bottom-0 left-64 w-24 h-24 bg-white/5 rounded-full translate-y-1/2" />
         </div>
@@ -1076,7 +1142,7 @@ export default function PlacementDashboard() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 style={{ color: C.textMain }} className="text-xl font-bold">
-                  Eligible Companies 
+                  Eligible Companies
                 </h2>
                 <p style={{ color: C.textMuted }} className="text-sm">
                   Curated openings matching your course
@@ -1185,7 +1251,7 @@ export default function PlacementDashboard() {
 
             <div
               style={{ backgroundColor: C.white, borderColor: C.border }}
-              className="rounded-2xl shadow-sm border p-5 mb-4"
+              className="rounded-2xl shadow-sm border p-5 mb-4 overflow-hidden"
             >
               {announcementsLoading && (
                 <p
@@ -1242,6 +1308,13 @@ export default function PlacementDashboard() {
                   View all {visibleAnnouncements.length} announcements
                 </button>
               )}
+
+              {/* DBUU brand strip — card ke bilkul bottom mein ek baar */}
+              <div className="flex h-[3px] -mx-5 -mb-5 mt-4 rounded-b-2xl overflow-hidden">
+                <div style={{ backgroundColor: "#1a3a8f", flex: 1 }} />
+                <div style={{ backgroundColor: "#c0392b", flex: 1 }} />
+                <div style={{ backgroundColor: "#f59e0b", flex: 1 }} />
+              </div>
             </div>
             <div
               style={{ backgroundColor: "#FFFBEB", borderColor: "#FDE68A" }}

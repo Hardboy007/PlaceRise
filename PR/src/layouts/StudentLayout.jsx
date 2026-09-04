@@ -250,11 +250,18 @@ function StudentLayout() {
               <p className="text-xs sm:text-sm font-semibold text-[#1E293B] leading-tight truncate">
                 {student.name || "Student"}
               </p>
-              <p className="text-[10px] sm:text-xs text-text-muted mt-0.5 truncate whitespace-nowrap">
-                {student.branch || ""}
-                {student.branch && student.erpId ? " · " : ""}
-                {student.erpId || ""}
-              </p>
+              <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+                {student.branch && (
+                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-blue-50 text-primary border border-blue-100 truncate max-w-[120px]">
+                    {student.branch}
+                  </span>
+                )}
+                {student.erpId && (
+                  <span className="text-[10px] font-medium text-text-muted truncate">
+                    {student.erpId}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -342,8 +349,8 @@ function StudentLayout() {
             to={to}
             onClick={() => setShowMore(false)}
             className={({ isActive }) =>
-              `flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-[10px] font-medium rounded-2xl ${
-                isActive ? "text-primary" : "text-text-muted"
+              `flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-[10px] font-medium rounded-2xl relative ${
+                isActive ? "text-[#0d1b5e]" : "text-text-muted"
               }`
             }
           >
