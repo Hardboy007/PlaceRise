@@ -168,7 +168,7 @@ export default function CoordinatorDashboard() {
         className="relative rounded-3xl overflow-hidden mb-6 border border-white/10"
         style={{
           background:
-            "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
+            "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
         }}
       >
         <div
@@ -178,7 +178,23 @@ export default function CoordinatorDashboard() {
                          radial-gradient(circle at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 40%)`,
           }}
         />
-        <div className="relative z-10 p-5 sm:p-8 flex flex-wrap items-center justify-between gap-4">
+        <div className="relative z-10 p-5 sm:p-8">
+          <div className="flex items-center justify-between gap-3 mb-4 sm:mb-5">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <img
+                src="/images/dbuu-logo.jpeg"
+                alt="University Logo"
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-contain bg-white/10 p-0.5 shrink-0"
+              />
+              <span className="text-white/80 text-xs sm:text-sm font-medium leading-tight">
+                Dev Bhoomi Uttarakhand University
+              </span>
+            </div>
+            <span className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/20 border border-white/30 text-white text-xs sm:text-sm font-semibold whitespace-nowrap shrink-0">
+              <span className="w-2 h-2 rounded-full bg-[#f59e0b] animate-pulse shrink-0" />
+              Placement Season 2025-26 Active
+            </span>
+          </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-white/70 mb-1">
               {getGreeting(now)}
@@ -191,11 +207,44 @@ export default function CoordinatorDashboard() {
             </h1>
             <p className="text-sm text-white/60">{formatDate(today)}</p>
           </div>
-          <span className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-white/20 border border-white/30 text-white text-xs sm:text-sm font-semibold whitespace-nowrap">
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse shrink-0" />
-            Placement Season 2025-26 Active
-          </span>
         </div>
+        <svg
+          className="absolute bottom-0 right-0 pointer-events-none"
+          style={{ width: "260px", height: "130px" }}
+          viewBox="0 0 260 130"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M260 130 Q180 60 80 100 Q20 120 0 130"
+            stroke="url(#redOrangeGrad)"
+            strokeWidth="3.5"
+            fill="none"
+            strokeLinecap="round"
+          />
+          <path
+            d="M260 110 Q190 50 100 85 Q40 105 10 115"
+            stroke="url(#redOrangeGrad)"
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+            opacity="0.5"
+          />
+          <defs>
+            <linearGradient
+              id="redOrangeGrad"
+              x1="0"
+              y1="0"
+              x2="260"
+              y2="0"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0%" stopColor="#ff4e00" stopOpacity="0" />
+              <stop offset="50%" stopColor="#ff4e00" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#ff9d00" stopOpacity="1" />
+            </linearGradient>
+          </defs>
+        </svg>
       </div>
       {recentJobPostings.length > 0 && (
         <div className="flex items-start sm:items-center gap-2 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 mb-6 text-xs sm:text-sm text-blue-800">
@@ -234,7 +283,7 @@ export default function CoordinatorDashboard() {
             icon: Building2,
             color: "border-t-[#F59E0B]",
             bg: "bg-amber-50",
-            iconColor: "text-[#F59E0B]",
+            iconColor: "text-[#f59e0b]",
           },
           {
             label: "Highest Package",

@@ -6,8 +6,8 @@ import { Download, Upload } from "lucide-react";
 import { getSemester } from "../../utils/semester";
 // ── Design Tokens ─────────────────────────────────────────────
 const C = {
-  primary: "#3B82F6",
-  accent: "#60A5FA",
+  primary: "#1a3a8f",
+  accent: "#3d1a6e",
   background: "#F1F5F9",
   textMain: "#0F172A",
   textMuted: "#64748B",
@@ -1141,12 +1141,46 @@ export default function StudentDatabasePage() {
         className="relative overflow-hidden rounded-3xl p-5 sm:p-8 text-white"
         style={{
           background:
-            "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
+            "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
         }}
       >
-        {/* Decorative glow orbs */}
-        <div className="absolute -top-10 -right-10 w-56 h-56 rounded-full bg-white/10 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-16 -left-10 w-56 h-56 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+        <svg
+          className="absolute bottom-0 right-0 pointer-events-none"
+          style={{ width: "260px", height: "130px" }}
+          viewBox="0 0 260 130"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M260 130 Q180 60 80 100 Q20 120 0 130"
+            stroke="url(#studentDatabaseRedOrangeGrad)"
+            strokeWidth="3.5"
+            fill="none"
+            strokeLinecap="round"
+          />
+          <path
+            d="M260 110 Q190 50 100 85 Q40 105 10 115"
+            stroke="url(#studentDatabaseRedOrangeGrad)"
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+            opacity="0.5"
+          />
+          <defs>
+            <linearGradient
+              id="studentDatabaseRedOrangeGrad"
+              x1="0"
+              y1="0"
+              x2="260"
+              y2="0"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0%" stopColor="#ff4e00" stopOpacity="0" />
+              <stop offset="50%" stopColor="#ff4e00" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#ff9d00" stopOpacity="1" />
+            </linearGradient>
+          </defs>
+        </svg>
 
         <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
           {/* Left — icon + title */}
@@ -1155,7 +1189,7 @@ export default function StudentDatabasePage() {
               <svg
                 className="w-5 h-5 sm:w-6 sm:h-6"
                 fill="none"
-                stroke="white"
+                stroke="#f59e0b"
                 strokeWidth={2}
                 viewBox="0 0 24 24"
               >
@@ -1205,7 +1239,7 @@ export default function StudentDatabasePage() {
         ${
           importing
             ? "bg-white/20 text-white/50 cursor-not-allowed"
-            : "bg-white text-[#1D4ED8] hover:bg-blue-50"
+            : "bg-white text-[#1a3a8f] hover:bg-[#F1F5F9]"
         }`}
               >
                 <Upload size={14} />

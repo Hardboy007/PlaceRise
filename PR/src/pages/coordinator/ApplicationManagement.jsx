@@ -24,6 +24,7 @@ import {
   Trash2,
   AlertTriangle,
   Info,
+  LoaderCircle,
 } from "lucide-react";
 import { api } from "../../utils/api";
 import { getSemester } from "../../utils/semester";
@@ -32,10 +33,10 @@ const STATUS_OPTIONS = ["Applied", "Shortlisted", "Selected", "Rejected"];
 
 const STATUS_STYLE = {
   Applied: {
-    color: "#1D4ED8",
-    bg: "#EFF6FF",
-    border: "#BFDBFE",
-    dot: "#3B82F6",
+    color: "#1a3a8f",
+    bg: "#EFF3FA",
+    border: "#B8C6E3",
+    dot: "#1a3a8f",
   },
   Shortlisted: {
     color: "#92400E",
@@ -153,7 +154,7 @@ function NameCell({ student }) {
     <div className="flex items-center gap-2.5 min-w-0">
       <div
         className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0"
-        style={{ background: "linear-gradient(135deg,#3B82F6,#60A5FA)" }}
+        style={{ background: "linear-gradient(135deg,#1a3a8f,#3d1a6e)" }}
       >
         {student.name?.charAt(0) || "?"}
       </div>
@@ -227,7 +228,7 @@ function DriveFilterTabs({ value, onChange, counts }) {
           onClick={() => onChange(opt.key)}
           className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
             value === opt.key
-              ? "bg-[#3B82F6] text-white"
+              ? "bg-[#1a3a8f] text-white"
               : "text-[#64748B] hover:text-[#0F172A]"
           }`}
         >
@@ -258,24 +259,25 @@ function JDBanner({
 
   return (
     <div
-      className="rounded-2xl border p-3 sm:p-4 flex flex-col gap-4"
+      className="relative overflow-hidden rounded-2xl border p-3 sm:p-4 flex flex-col gap-4"
       style={{
-        background: "linear-gradient(135deg,#EFF6FF,#F0F9FF)",
-        borderColor: "#BFDBFE",
+        background:
+          "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
+        borderColor: "rgba(255,255,255,0.12)",
       }}
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: "linear-gradient(135deg,#3B82F6,#60A5FA)" }}
+            style={{ background: "linear-gradient(135deg,#1a3a8f,#3d1a6e)" }}
           >
             <Briefcase size={18} color="white" />
           </div>
           <div className="min-w-0 w-full sm:w-auto">
             <p
               className="text-[10px] font-semibold uppercase tracking-widest mb-1"
-              style={{ color: "#64748B" }}
+              style={{ color: "rgba(255,255,255,0.7)" }}
             >
               Select Drive
             </p>
@@ -289,7 +291,7 @@ function JDBanner({
                 <select
                   value={selectedJobId || ""}
                   onChange={(e) => setSelectedJobId(e.target.value)}
-                  className="text-sm font-bold border border-blue-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:border-blue-400 w-full sm:w-auto sm:max-w-xs truncate"
+                  className="text-sm font-bold border border-[#B8C6E3] rounded-lg px-2 py-1 bg-white focus:outline-none focus:border-[#1a3a8f] w-full sm:w-auto sm:max-w-xs truncate"
                   style={{ color: "#0F172A" }}
                 >
                   {jobs.map((j) => (
@@ -343,9 +345,9 @@ function JDBanner({
             <div
               key={label}
               className="rounded-xl px-3 py-1.5 border flex items-start gap-1.5 shrink-0"
-              style={{ backgroundColor: "#fff", borderColor: "#BFDBFE" }}
+              style={{ backgroundColor: "#fff", borderColor: "#B8C6E3" }}
             >
-              <span className="mt-0.5" style={{ color: "#3B82F6" }}>
+              <span className="mt-0.5" style={{ color: "#1a3a8f" }}>
                 {icon}
               </span>
               <div>
@@ -355,7 +357,7 @@ function JDBanner({
                 >
                   {label}
                 </p>
-                <p className="text-xs font-bold" style={{ color: "#1D4ED8" }}>
+                <p className="text-xs font-bold" style={{ color: "#1a3a8f" }}>
                   {value}
                 </p>
               </div>
@@ -365,9 +367,9 @@ function JDBanner({
           {/* Eligible courses - own row, wraps as individual pills */}
           <div
             className="rounded-xl px-3 py-1.5 border flex items-start gap-1.5 flex-1 min-w-[240px]"
-            style={{ backgroundColor: "#fff", borderColor: "#BFDBFE" }}
+            style={{ backgroundColor: "#fff", borderColor: "#B8C6E3" }}
           >
-            <span className="mt-0.5 shrink-0" style={{ color: "#3B82F6" }}>
+            <span className="mt-0.5 shrink-0" style={{ color: "#f59e0b" }}>
               <GraduationCap size={12} />
             </span>
             <div className="min-w-0">
@@ -381,7 +383,7 @@ function JDBanner({
                 {branchList.length === 0 ? (
                   <span
                     className="text-xs font-bold"
-                    style={{ color: "#1D4ED8" }}
+                    style={{ color: "#1a3a8f" }}
                   >
                     —
                   </span>
@@ -390,7 +392,7 @@ function JDBanner({
                     <span
                       key={b}
                       className="text-[11px] font-bold px-2 py-0.5 rounded-full"
-                      style={{ color: "#1D4ED8", backgroundColor: "#EFF6FF" }}
+                      style={{ color: "#1a3a8f", backgroundColor: "#EFF3FA" }}
                     >
                       {b}
                     </span>
@@ -462,7 +464,10 @@ function BulkApplyModal({
         {/* Header */}
         <div
           className="px-6 py-5 flex items-center gap-3"
-          style={{ background: "linear-gradient(135deg, #1D4ED8, #3B82F6)" }}
+          style={{
+            background:
+              "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
+          }}
         >
           <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
             <Users size={20} color="white" />
@@ -482,20 +487,7 @@ function BulkApplyModal({
             style={{ backgroundColor: "#FFFBEB", borderColor: "#FDE68A" }}
           >
             <div className="flex items-center gap-2">
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#F59E0B"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                <line x1="12" y1="9" x2="12" y2="13" />
-                <line x1="12" y1="17" x2="12.01" y2="17" />
-              </svg>
+              <AlertTriangle size={18} color="#F59E0B" strokeWidth={2.5} />
               <span className="text-sm font-bold" style={{ color: "#92400E" }}>
                 Are you sure?
               </span>
@@ -530,8 +522,8 @@ function BulkApplyModal({
                   key={label}
                   className={`rounded-xl border px-3 py-2.5 ${full ? "col-span-2" : ""}`}
                   style={{
-                    backgroundColor: highlight ? "#EFF6FF" : "#F8FAFC",
-                    borderColor: highlight ? "#BFDBFE" : "#E2E8F0",
+                    backgroundColor: highlight ? "#EFF3FA" : "#F8FAFC",
+                    borderColor: highlight ? "#B8C6E3" : "#E2E8F0",
                   }}
                 >
                   <p
@@ -542,7 +534,7 @@ function BulkApplyModal({
                   </p>
                   <p
                     className="text-sm font-bold truncate"
-                    style={{ color: highlight ? "#1D4ED8" : "#0F172A" }}
+                    style={{ color: highlight ? "#1a3a8f" : "#0F172A" }}
                   >
                     {value}
                   </p>
@@ -568,33 +560,13 @@ function BulkApplyModal({
             style={{
               background: loading
                 ? "#94A3B8"
-                : "linear-gradient(135deg, #1D4ED8, #3B82F6)",
-              boxShadow: loading ? "none" : "0 2px 10px rgba(59,130,246,0.35)",
+                : "linear-gradient(135deg, #1a3a8f, #3d1a6e)",
+              boxShadow: loading ? "none" : "0 2px 10px rgba(26,58,143,0.35)",
             }}
           >
             {loading ? (
               <>
-                <svg
-                  className="animate-spin"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="white"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="white"
-                    d="M4 12a8 8 0 018-8v8z"
-                  />
-                </svg>
+                <LoaderCircle size={14} className="animate-spin" />
                 Applying...
               </>
             ) : (
@@ -884,7 +856,7 @@ function EligibleTab({ selectedJob, allStudents, refreshKey }) {
     <div className="space-y-4">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard
-          icon={<Users size={20} color="#3B82F6" />}
+          icon={<Users size={20} color="#1a3a8f" />}
           label="Total Eligible"
           value={eligible.length}
           bg="#EFF6FF"
@@ -919,7 +891,7 @@ function EligibleTab({ selectedJob, allStudents, refreshKey }) {
         <div className="flex items-start gap-3 min-w-0">
           <div
             className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: "linear-gradient(135deg, #1D4ED8, #3B82F6)" }}
+            style={{ background: "linear-gradient(135deg, #1a3a8f, #3d1a6e)" }}
           >
             <Users size={16} color="white" />
           </div>
@@ -987,7 +959,7 @@ function EligibleTab({ selectedJob, allStudents, refreshKey }) {
             background:
               selectedCount === 0 || !bulkApplyOpen
                 ? "#94A3B8"
-                : "linear-gradient(135deg, #1D4ED8, #3B82F6)",
+                : "linear-gradient(135deg, #1a3a8f, #3d1a6e)",
             boxShadow:
               selectedCount === 0 || !bulkApplyOpen
                 ? "none"
@@ -1096,7 +1068,7 @@ function EligibleTab({ selectedJob, allStudents, refreshKey }) {
             checked={allDisplayedChecked}
             onChange={toggleSelectAll}
             disabled={displayedSelectable.length === 0 || !bulkApplyOpen}
-            className="w-3.5 h-3.5 accent-[#3B82F6]"
+            className="w-3.5 h-3.5 accent-[#1a3a8f]"
             title={
               !bulkApplyOpen
                 ? "Selection is locked until the drive's apply deadline day"
@@ -1184,7 +1156,7 @@ function EligibleTab({ selectedJob, allStudents, refreshKey }) {
                   checked={checked}
                   onChange={() => toggleStudent(student)}
                   disabled={hasApplied || noResume || !bulkApplyOpen}
-                  className="w-3.5 h-3.5 accent-[#3B82F6]"
+                  className="w-3.5 h-3.5 accent-[#1a3a8f]"
                   title={
                     !hasApplied && !noResume && !bulkApplyOpen
                       ? "Selection is locked until the drive's apply deadline day"
@@ -1201,9 +1173,9 @@ function EligibleTab({ selectedJob, allStudents, refreshKey }) {
                 <span
                   className="border text-xs font-semibold px-2.5 py-0.5 rounded-full w-fit"
                   style={{
-                    color: "#3B82F6",
-                    backgroundColor: "#EFF6FF",
-                    borderColor: "#BFDBFE",
+                    color: "#1a3a8f",
+                    backgroundColor: "#EFF3FA",
+                    borderColor: "#B8C6E3",
                   }}
                 >
                   {student.course || "—"}
@@ -1252,7 +1224,7 @@ function EligibleTab({ selectedJob, allStudents, refreshKey }) {
                     </span>
                   )}
                   {hasApplied && !isBulkApplied && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EFF3FA] text-[#1a3a8f] border border-[#B8C6E3]">
                       Applied
                     </span>
                   )}
@@ -1346,27 +1318,7 @@ function RemoveApplicationModal({ application, onClose, onConfirm, loading }) {
           >
             {loading ? (
               <>
-                <svg
-                  className="animate-spin"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="white"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="white"
-                    d="M4 12a8 8 0 018-8v8z"
-                  />
-                </svg>
+                <LoaderCircle size={14} className="animate-spin" />
                 Removing...
               </>
             ) : (
@@ -1514,14 +1466,14 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
 
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3">
         <StatCard
-          icon={<Users size={20} color="#3B82F6" />}
+          icon={<Users size={20} color="#1a3a8f" />}
           label="Total Applied"
           value={counts.total}
           bg="#EFF6FF"
           borderColor="#BFDBFE"
         />
         <StatCard
-          icon={<ClipboardList size={20} color="#3B82F6" />}
+          icon={<ClipboardList size={20} color="#1a3a8f" />}
           label="Applied"
           value={counts.applied}
           bg="#EFF6FF"
@@ -1566,7 +1518,7 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
               onClick={() => setFilterStatus(opt)}
               className="text-xs font-semibold px-3 py-1.5 rounded-full border transition-all"
               style={{
-                color: active ? (s ? s.color : "#1D4ED8") : "#64748B",
+                color: active ? (s ? s.color : "#1a3a8f") : "#64748B",
                 backgroundColor: active ? (s ? s.bg : "#EFF6FF") : "#F8FAFC",
                 borderColor: active ? (s ? s.border : "#BFDBFE") : "#E2E8F0",
               }}
@@ -1592,7 +1544,7 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
           style={{
             background: exporting
               ? "#94A3B8"
-              : "linear-gradient(135deg, #1D4ED8, #3B82F6)",
+              : "linear-gradient(135deg, #1a3a8f, #3d1a6e)",
             color: "white",
             borderColor: "transparent",
             boxShadow: exporting ? "none" : "0 2px 8px rgba(59,130,246,0.3)",
@@ -1601,27 +1553,7 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
         >
           {exporting ? (
             <>
-              <svg
-                className="animate-spin"
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="white"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="white"
-                  d="M4 12a8 8 0 018-8v8z"
-                />
-              </svg>
+              <LoaderCircle size={13} className="animate-spin" />
               Preparing Excel...
             </>
           ) : (
@@ -1727,7 +1659,7 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
                 <div className="flex flex-col gap-0.5 min-w-0">
                   <NameCell student={student} />
                   {app.appliedVia === "bulk-coordinator" && (
-                    <span className="text-[10px] font-medium text-[#3B82F6] ml-10 truncate block max-w-[140px] sm:max-w-none">
+                    <span className="text-[10px] font-medium text-[#1a3a8f] ml-10 truncate block max-w-[140px] sm:max-w-none">
                       Applied by coordinator
                     </span>
                   )}
@@ -1753,7 +1685,7 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
                 <span
                   className="border text-xs font-semibold px-2.5 py-0.5 rounded-full w-fit"
                   style={{
-                    color: "#3B82F6",
+                    color: "#1a3a8f",
                     backgroundColor: "#EFF6FF",
                     borderColor: "#BFDBFE",
                   }}
@@ -1862,7 +1794,7 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
                 <div
                   className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-lg shrink-0"
                   style={{
-                    background: "linear-gradient(135deg, #3B82F6, #60A5FA)",
+                    background: "linear-gradient(135deg, #1a3a8f, #3d1a6e)",
                   }}
                 >
                   {selectedStudent.name?.charAt(0) || "?"}
@@ -1997,7 +1929,7 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
                     (selectedStudent.skills || []).map((skill) => (
                       <span
                         key={skill}
-                        className="border text-xs font-semibold px-3 py-1.5 rounded-full text-[#3B82F6] bg-[#EFF6FF] border-[#BFDBFE]"
+                        className="border text-xs font-semibold px-3 py-1.5 rounded-full text-[#1a3a8f] bg-[#EFF3FA] border-[#B8C6E3]"
                       >
                         {skill}
                       </span>
@@ -2201,7 +2133,7 @@ export default function ApplicationsManagementPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
                   style={{
-                    backgroundColor: active ? "#3B82F6" : "transparent",
+                    backgroundColor: active ? "#1a3a8f" : "transparent",
                     color: active ? "#fff" : "#64748B",
                     boxShadow: active
                       ? "0 1px 6px rgba(59,130,246,0.3)"

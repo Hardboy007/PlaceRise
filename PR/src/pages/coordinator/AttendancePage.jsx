@@ -308,14 +308,51 @@ export default function AttendancePage() {
       style={{ fontFamily: "Inter, sans-serif" }}
     >
       <div
-        className="rounded-2xl px-4 sm:px-6 py-6 sm:py-8 mb-6 shadow-lg"
+        className="relative overflow-hidden rounded-2xl px-4 sm:px-6 py-6 sm:py-8 mb-6 shadow-lg"
         style={{
           background:
-            "linear-gradient(135deg, #3B82F6 0%, #60A5FA 60%, #818CF8 100%)",
+            "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
         }}
       >
-        <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5">
-          <QrCode size={22} className="shrink-0" /> QR Attendance
+        <svg
+          className="absolute bottom-0 right-0 pointer-events-none"
+          style={{ width: "260px", height: "130px" }}
+          viewBox="0 0 260 130"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M260 130 Q180 60 80 100 Q20 120 0 130"
+            stroke="url(#attendanceRedOrangeGrad)"
+            strokeWidth="3.5"
+            fill="none"
+            strokeLinecap="round"
+          />
+          <path
+            d="M260 110 Q190 50 100 85 Q40 105 10 115"
+            stroke="url(#attendanceRedOrangeGrad)"
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+            opacity="0.5"
+          />
+          <defs>
+            <linearGradient
+              id="attendanceRedOrangeGrad"
+              x1="0"
+              y1="0"
+              x2="260"
+              y2="0"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0%" stopColor="#ff4e00" stopOpacity="0" />
+              <stop offset="50%" stopColor="#ff4e00" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#ff9d00" stopOpacity="1" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <h1 className="relative z-10 text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5">
+          <QrCode size={22} className="shrink-0 text-[#f59e0b]" /> QR Attendance
         </h1>
         <p className="text-sm text-white/80 mt-1">
           Start a session, let students scan in, and export the final sheet.
@@ -371,7 +408,7 @@ export default function AttendancePage() {
                         }}
                         className={`w-full text-left px-4 py-2.5 text-sm transition-colors border-b border-[#F1F5F9] last:border-b-0 ${
                           j._id === selectedJobId
-                            ? "bg-primary/10 text-primary font-semibold"
+                            ? "bg-[#EFF3FA] text-[#1a3a8f] font-semibold"
                             : "text-[#1E293B] hover:bg-[#F8FAFC]"
                         }`}
                       >
@@ -386,7 +423,7 @@ export default function AttendancePage() {
               <button
                 onClick={handleStartSession}
                 disabled={!selectedJobId || starting || checkingSession}
-                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#1a3a8f] text-white text-sm font-semibold hover:bg-[#0d1b5e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
               >
                 <PlayCircle size={16} />
                 {checkingSession
@@ -530,7 +567,7 @@ export default function AttendancePage() {
               <button
                 onClick={handleManualMark}
                 disabled={!selectedStudentId || marking || isClosed}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#1E293B] text-white text-sm font-semibold hover:bg-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#1a3a8f] text-white text-sm font-semibold hover:bg-[#0d1b5e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <CheckCircle2 size={15} />
                 {marking ? "Marking..." : "Mark Attendance"}
@@ -544,7 +581,7 @@ export default function AttendancePage() {
               <h2 className="text-sm font-bold text-[#1E293B] flex items-center gap-2">
                 <Users size={16} /> Live Attendance
               </h2>
-              <span className="text-xs font-bold text-primary bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-lg shrink-0">
+              <span className="text-xs font-bold text-[#1a3a8f] bg-[#EFF3FA] border border-[#B8C6E3] px-2.5 py-1 rounded-lg shrink-0">
                 {records.length} present
               </span>
             </div>
@@ -604,7 +641,7 @@ export default function AttendancePage() {
                             className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
                               r.mode === "Manual"
                                 ? "bg-amber-100 text-amber-700 border border-amber-300"
-                                : "bg-blue-100 text-blue-700 border border-blue-300"
+                                : "bg-[#EFF3FA] text-[#1a3a8f] border border-[#B8C6E3]"
                             }`}
                           >
                             {r.mode === "Manual" && r.isLate
@@ -635,7 +672,7 @@ export default function AttendancePage() {
             <button
               onClick={handleDownloadPDF}
               disabled={downloading}
-              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-blue-600 transition-colors disabled:opacity-50"
+              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#1a3a8f] text-white text-sm font-semibold hover:bg-[#0d1b5e] transition-colors disabled:opacity-50"
             >
               <Download size={16} />
               {downloading ? "Downloading..." : "Download PDF"}

@@ -24,9 +24,9 @@ const TYPE_CONFIG = {
     ),
   },
   General: {
-    border: "border-l-sky-500",
-    badge: "bg-sky-100 text-sky-700",
-    glow: "#0ea5e9",
+    border: "border-l-[#1a3a8f]",
+    badge: "bg-[#EFF3FA] text-[#1a3a8f]",
+    glow: "#1a3a8f",
     icon: (
       <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 2a10 10 0 110 20A10 10 0 0112 2zm1 6h-2v6h2V8zm0 8h-2v2h2v-2z" />
@@ -462,7 +462,7 @@ export default function AnnouncementManagementPage() {
           className="max-w-4xl mx-auto rounded-2xl sm:rounded-3xl overflow-hidden relative"
           style={{
             background:
-              "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
+              "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
           }}
         >
           <div
@@ -489,7 +489,7 @@ export default function AnnouncementManagementPage() {
             </div>
             <button
               onClick={openCreate}
-              className="flex items-center gap-1.5 sm:gap-2 bg-white text-[#1D4ED8] text-[12px] sm:text-[13px] font-bold px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl hover:bg-blue-50 transition-colors shadow-lg shrink-0"
+              className="flex items-center gap-1.5 sm:gap-2 bg-white text-[#1a3a8f] text-[12px] sm:text-[13px] font-bold px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl hover:bg-[#F1F5F9] transition-colors shadow-lg shrink-0"
             >
               <svg
                 className="w-4 h-4"
@@ -561,7 +561,7 @@ export default function AnnouncementManagementPage() {
               onClick={() => setTypeFilter(t)}
               className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-all whitespace-nowrap ${
                 typeFilter === t
-                  ? "bg-slate-900 text-white"
+                  ? "bg-[#1a3a8f] text-white"
                   : "text-slate-500 hover:text-slate-900"
               }`}
             >
@@ -603,7 +603,7 @@ export default function AnnouncementManagementPage() {
             return (
               <div
                 key={id ?? `${ann.title}-${ann.date}-${ann.time}`}
-                className={`group bg-white rounded-2xl border border-slate-100 border-l-4 ${tc.border} shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${isDeleting ? "opacity-40" : ""}`}
+                className={`group bg-white rounded-2xl border border-slate-100 border-l-4 ${tc.border} shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden ${isDeleting ? "opacity-40" : ""}`}
               >
                 <div className="flex items-stretch gap-0 px-4 sm:px-5 py-4">
                   {/* Content */}
@@ -618,7 +618,7 @@ export default function AnnouncementManagementPage() {
                         {targetLabel(ann.target)}
                       </span>
                       {ann.room && (
-                        <span className="text-[11px] font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+                        <span className="text-[11px] font-medium text-[#1a3a8f] bg-[#EFF3FA] px-2 py-0.5 rounded-full">
                           📍 {ann.room}
                         </span>
                       )}
@@ -648,7 +648,7 @@ export default function AnnouncementManagementPage() {
                   <div className="flex flex-col justify-center gap-2 ml-2 sm:ml-4 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-150 shrink-0">
                     <button
                       onClick={() => openEdit(ann)}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-500 transition-colors"
+                      className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#EFF3FA] hover:bg-[#E2E8F0] text-[#1a3a8f] transition-colors"
                     >
                       <svg
                         className="w-4 h-4"
@@ -683,6 +683,11 @@ export default function AnnouncementManagementPage() {
                       </svg>
                     </button>
                   </div>
+                </div>
+                <div className="flex h-[3px] -mx-0 mt-0 rounded-b-2xl overflow-hidden">
+                  <div style={{ backgroundColor: "#1a3a8f", flex: 1 }} />
+                  <div style={{ backgroundColor: "#c0392b", flex: 1 }} />
+                  <div style={{ backgroundColor: "#f59e0b", flex: 1 }} />
                 </div>
               </div>
             );
@@ -1026,7 +1031,7 @@ function TargetAudience({ targetAll, targetSelections, onChange }) {
             <button
               type="button"
               onClick={selectAllSchools}
-              className="text-[11px] font-semibold text-indigo-500 hover:underline shrink-0"
+              className="text-[11px] font-semibold text-[#1a3a8f] hover:underline shrink-0"
             >
               Select all
             </button>
@@ -1054,7 +1059,7 @@ function TargetAudience({ targetAll, targetSelections, onChange }) {
                     >
                       {s.school}
                       {partial && (
-                        <span className="ml-1.5 text-[10.5px] font-semibold text-indigo-500">
+                        <span className="ml-1.5 text-[10.5px] font-semibold text-[#1a3a8f]">
                           ({selectedCourses.length}/
                           {allCoursesOfSchool(s).length})
                         </span>

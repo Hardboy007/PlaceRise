@@ -17,10 +17,10 @@ import {
 
 // ---- Consistent color palette across whole dashboard ----
 const COLORS = {
-  selected: "#3B82F6",
+  selected: "#1a3a8f",
   placed: "#10B981",
   notPlaced: "#EF4444",
-  applied: "#3B82F6",
+  applied: "#1a3a8f",
   shortlisted: "#F59E0B",
 };
 
@@ -31,7 +31,7 @@ const COMPANY_PALETTE = [
   "#EC4899", // pink
   "#F59E0B", // amber
   "#10B981", // emerald
-  "#3B82F6", // blue
+  "#1a3a8f", // primary blue
   "#8B5CF6", // violet
   "#EF4444", // red
   "#14B8A6", // teal
@@ -287,7 +287,7 @@ const AnalyticsDashboardPage = () => {
           <p className="text-red-500 mb-3">{error}</p>
           <button
             onClick={() => fetchAnalytics(appliedFilters)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm"
+            className="px-4 py-2 bg-[#1a3a8f] text-white rounded-lg text-sm hover:bg-[#0d1b5e]"
           >
             Retry
           </button>
@@ -326,7 +326,7 @@ const AnalyticsDashboardPage = () => {
           label: "Total Students",
           value: analytics.summary.totalStudents,
           icon: icons.students,
-          gradient: "from-blue-500 to-indigo-500",
+          gradient: "from-[#1a3a8f] to-[#3d1a6e]",
           glow: "shadow-blue-200",
         },
         {
@@ -413,19 +413,36 @@ const AnalyticsDashboardPage = () => {
 
       {/* ---- Hero Section ---- */}
       <div
-        className="rounded-b-2xl px-4 sm:px-6 py-6 sm:py-8 mb-6"
+        className="relative overflow-hidden rounded-b-2xl px-4 sm:px-6 py-6 sm:py-8 mb-6"
         style={{
           background:
-            "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
+            "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
         }}
       >
-        <p className="text-blue-100 text-xs font-medium tracking-wide uppercase mb-1">
+        <svg
+          className="absolute bottom-0 right-0 pointer-events-none"
+          style={{ width: "260px", height: "130px" }}
+          viewBox="0 0 260 130"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path d="M260 130 Q180 60 80 100 Q20 120 0 130" stroke="url(#analyticsRedOrangeGrad)" strokeWidth="3.5" strokeLinecap="round" />
+          <path d="M260 110 Q190 50 100 85 Q40 105 10 115" stroke="url(#analyticsRedOrangeGrad)" strokeWidth="2" strokeLinecap="round" opacity="0.5" />
+          <defs>
+            <linearGradient id="analyticsRedOrangeGrad" x1="0" y1="0" x2="260" y2="0" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#ff4e00" stopOpacity="0" />
+              <stop offset="50%" stopColor="#ff4e00" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#ff9d00" stopOpacity="1" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <p className="relative z-10 text-white/70 text-xs font-medium tracking-wide uppercase mb-1">
           Placement Insights
         </p>
         <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">
           Analytics Dashboard
         </h1>
-        <p className="text-blue-100 text-sm">
+        <p className="relative z-10 text-white/70 text-sm">
           Track placement performance, company trends, and CTC breakdown — all
           in one place.
         </p>
@@ -482,7 +499,7 @@ const AnalyticsDashboardPage = () => {
 
             <button
               onClick={handleApply}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 flex-1 sm:flex-none"
+              className="px-4 py-2 bg-[#1a3a8f] text-white rounded-lg text-sm font-medium hover:bg-[#0d1b5e] flex-1 sm:flex-none"
             >
               Apply
             </button>
@@ -521,12 +538,12 @@ const AnalyticsDashboardPage = () => {
               {activeFilterChips.map((chip) => (
                 <span
                   key={chip.key}
-                  className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs font-medium px-2.5 py-1 rounded-full"
+                  className="inline-flex items-center gap-1 bg-[#EFF3FA] text-[#1a3a8f] text-xs font-medium px-2.5 py-1 rounded-full"
                 >
                   {chip.label}
                   <button
                     onClick={() => removeFilterChip(chip.key)}
-                    className="hover:text-blue-900"
+                    className="hover:text-[#0d1b5e]"
                   >
                     ×
                   </button>
@@ -564,7 +581,7 @@ const AnalyticsDashboardPage = () => {
 
             {/* ---- Insight line ---- */}
             {topBranch && (
-              <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-2.5 text-sm text-blue-800">
+              <div className="bg-[#EFF3FA] border border-[#B8C6E3] rounded-lg px-4 py-2.5 text-sm text-[#1a3a8f]">
                 💡 <span className="font-medium">{topBranch.name}</span> has the
                 highest placement rate at{" "}
                 <span className="font-semibold">{topBranch.rate}%</span> in the
@@ -680,7 +697,7 @@ const AnalyticsDashboardPage = () => {
                             />
                             <stop
                               offset="100%"
-                              stopColor="#3B82F6"
+                              stopColor="#1a3a8f"
                               stopOpacity={0.8}
                             />
                           </linearGradient>
@@ -874,7 +891,7 @@ const DrilldownModal = ({ drilldown, onClose }) => {
                   key={i}
                   className="flex items-center gap-3 py-2 border-b border-background last:border-0"
                 >
-                  <span className="w-7 h-7 shrink-0 rounded-full bg-blue-50 text-blue-600 text-xs font-medium flex items-center justify-center">
+                  <span className="w-7 h-7 shrink-0 rounded-full bg-[#EFF3FA] text-[#1a3a8f] text-xs font-medium flex items-center justify-center">
                     {i + 1}
                   </span>
                   <div className="min-w-0 flex-1">

@@ -56,7 +56,7 @@ function FeedbackCard({ item }) {
           <span
             className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
               isIndividual
-                ? "bg-blue-50 text-primary border border-blue-200"
+                ? "bg-[#EFF3FA] text-primary border border-[#B8C6E3]"
                 : "bg-purple-50 text-purple-600 border border-purple-200"
             }`}
           >
@@ -393,7 +393,7 @@ export default function HRFeedbackManagementPage() {
         className="relative rounded-2xl overflow-hidden mb-6 p-4 sm:p-6"
         style={{
           background:
-            "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
+            "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
         }}
       >
         <div
@@ -403,9 +403,46 @@ export default function HRFeedbackManagementPage() {
             transform: "translate(35%,-45%)",
           }}
         />
+        <svg
+          className="absolute bottom-0 right-0 pointer-events-none"
+          style={{ width: "260px", height: "130px" }}
+          viewBox="0 0 260 130"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M260 130 Q180 60 80 100 Q20 120 0 130"
+            stroke="url(#hrFeedbackRedOrangeGrad)"
+            strokeWidth="3.5"
+            fill="none"
+            strokeLinecap="round"
+          />
+          <path
+            d="M260 110 Q190 50 100 85 Q40 105 10 115"
+            stroke="url(#hrFeedbackRedOrangeGrad)"
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+            opacity="0.5"
+          />
+          <defs>
+            <linearGradient
+              id="hrFeedbackRedOrangeGrad"
+              x1="0"
+              y1="0"
+              x2="260"
+              y2="0"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0%" stopColor="#ff4e00" stopOpacity="0" />
+              <stop offset="50%" stopColor="#ff4e00" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#ff9d00" stopOpacity="1" />
+            </linearGradient>
+          </defs>
+        </svg>
         <div className="relative flex items-center gap-2 mb-1.5">
           <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center">
-            <MessageSquareText size={13} className="text-white" />
+            <MessageSquareText size={13} className="text-[#f59e0b]" />
           </div>
           <span className="text-white/60 text-[10px] font-bold uppercase tracking-widest">
             Placement Portal
@@ -534,7 +571,7 @@ export default function HRFeedbackManagementPage() {
 
                 <button
                   onClick={copyShareMessage}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-blue-600 transition-colors"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#1a3a8f] text-white text-sm font-semibold hover:bg-[#0d1b5e] transition-colors"
                 >
                   <Copy size={14} />
                   {copied ? "Copied!" : "Copy message"}

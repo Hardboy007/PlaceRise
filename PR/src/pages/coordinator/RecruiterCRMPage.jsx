@@ -28,10 +28,10 @@ const STATUS_CONFIG = {
     dot: "#22C55E",
   },
   "In Talk": {
-    color: "#1D4ED8",
-    bg: "#EFF6FF",
-    border: "#BFDBFE",
-    dot: "#3B82F6",
+    color: "#1a3a8f",
+    bg: "#EFF3FA",
+    border: "#B8C6E3",
+    dot: "#1a3a8f",
   },
   "Confirmation Required": {
     color: "#92400E",
@@ -180,7 +180,8 @@ function POCModal({ poc, onClose, onSave }) {
         <div
           className="px-4 sm:px-6 py-4 sm:py-5 border-b border-background flex items-center justify-between"
           style={{
-            background: "linear-gradient(135deg, #1E293B 0%, #3B82F6 100%)",
+            background:
+              "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
           }}
         >
           <div>
@@ -308,7 +309,7 @@ function POCModal({ poc, onClose, onSave }) {
             <button
               onClick={() => isValid && onSave(form)}
               disabled={!isValid}
-              className="px-5 py-2 rounded-xl bg-[#1E293B] hover:bg-primary text-white text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-5 py-2 rounded-xl bg-[#1a3a8f] hover:bg-[#0d1b5e] text-white text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
             >
               <Check size={14} /> {poc ? "Save Changes" : "Add POC"}
             </button>
@@ -417,28 +418,51 @@ export default function RecruiterCRMPage() {
         className="relative rounded-3xl overflow-hidden mb-6 p-4 sm:p-6"
         style={{
           background:
-            "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
+            "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
         }}
       >
-        <div
-          className="absolute top-0 right-0 w-72 h-72 rounded-full pointer-events-none"
-          style={{
-            background: "rgba(255,255,255,0.08)",
-            transform: "translate(35%,-45%)",
-          }}
-        />
-        <div
-          className="absolute bottom-0 left-0 w-52 h-52 rounded-full pointer-events-none"
-          style={{
-            background: "rgba(255,255,255,0.06)",
-            transform: "translate(-30%,40%)",
-          }}
-        />
+        <svg
+          className="absolute bottom-0 right-0 pointer-events-none"
+          style={{ width: "260px", height: "130px" }}
+          viewBox="0 0 260 130"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M260 130 Q180 60 80 100 Q20 120 0 130"
+            stroke="url(#recruiterCrmRedOrangeGrad)"
+            strokeWidth="3.5"
+            fill="none"
+            strokeLinecap="round"
+          />
+          <path
+            d="M260 110 Q190 50 100 85 Q40 105 10 115"
+            stroke="url(#recruiterCrmRedOrangeGrad)"
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+            opacity="0.5"
+          />
+          <defs>
+            <linearGradient
+              id="recruiterCrmRedOrangeGrad"
+              x1="0"
+              y1="0"
+              x2="260"
+              y2="0"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0%" stopColor="#ff4e00" stopOpacity="0" />
+              <stop offset="50%" stopColor="#ff4e00" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#ff9d00" stopOpacity="1" />
+            </linearGradient>
+          </defs>
+        </svg>
         <div className="relative flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center">
-                <Users size={13} className="text-white" />
+                <Users size={13} className="text-[#f59e0b]" />
               </div>
               <span className="text-white/60 text-[10px] font-bold uppercase tracking-widest">
                 Recruiter CRM
@@ -466,7 +490,7 @@ export default function RecruiterCRMPage() {
                 setEditingPoc(null);
                 setShowModal(true);
               }}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[#1E293B] text-sm font-bold hover:bg-blue-50 transition-colors shadow-lg flex-1 sm:flex-none"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[#1a3a8f] text-sm font-bold hover:bg-[#F1F5F9] transition-colors shadow-lg flex-1 sm:flex-none"
             >
               <Plus size={15} /> Add POC
             </button>
@@ -528,7 +552,7 @@ export default function RecruiterCRMPage() {
               onClick={() => setStatusFilter(s)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
                 statusFilter === s
-                  ? "bg-[#1E293B] text-white"
+                  ? "bg-[#1a3a8f] text-white"
                   : "text-text-muted hover:text-[#1E293B]"
               }`}
             >

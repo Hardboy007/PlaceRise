@@ -208,7 +208,7 @@ function CoordinatorLayout() {
       `}</style>
 
       {/* ── Navbar ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-white/80 backdrop-blur border-b border-[#CBD5E1] px-3 sm:px-6 flex items-center justify-between gap-2">
+      <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-white/80 backdrop-blur px-3 sm:px-6 flex items-center justify-between gap-2">
         <Link
           to="/"
           className="flex items-center gap-2 sm:gap-2.5 min-w-0 shrink-0"
@@ -304,6 +304,9 @@ function CoordinatorLayout() {
             <span className="hidden md:block">Logout</span>
           </button>
         </div>
+        <div className="absolute bottom-0 left-0 right-0 flex h-[0.5px] overflow-hidden">
+          <div style={{ backgroundColor: "#CBD5E1", flex: 1 }} />
+        </div>
       </nav>
 
       {/* ── Body ── */}
@@ -370,7 +373,7 @@ function CoordinatorLayout() {
                               `flex items-center px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 whitespace-nowrap
                     ${
                       isActive
-                        ? "bg-primary text-white shadow-[0_4px_12px_rgba(59,130,246,0.3)]"
+                        ? "bg-[#1a3a8f] text-white border-l-4 border-white shadow-[0_4px_12px_rgba(26,58,143,0.3)]"
                         : "text-text-muted hover:bg-background hover:text-[#1E293B]"
                     }`
                             }
@@ -391,8 +394,8 @@ function CoordinatorLayout() {
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap
           ${
-            isActive
-              ? "bg-primary text-white shadow-[0_4px_12px_rgba(59,130,246,0.3)]"
+              isActive
+              ? "bg-[#1a3a8f] text-white border-l-4 border-white shadow-[0_4px_12px_rgba(26,58,143,0.3)]"
               : "text-text-muted hover:bg-background hover:text-[#1E293B]"
           }`
                   }

@@ -31,7 +31,7 @@ import CompanyLogo from "../../components/common/CompanyLogo";
 //  CONSTANTS
 // ─────────────────────────────────────────────────────────────
 const inputCls =
-  "w-full px-3 py-2 text-sm text-[#1E293B] border border-[#E2E8F0] rounded-xl bg-[#F8FAFC] focus:outline-none focus:border-[#3B82F6] transition-colors placeholder:text-[#94A3B8]";
+  "w-full px-3 py-2 text-sm text-[#1E293B] border border-[#E2E8F0] rounded-xl bg-[#F8FAFC] focus:outline-none focus:border-[#1a3a8f] transition-colors placeholder:text-[#94A3B8]";
 
 const emptyCompany = {
   name: "",
@@ -232,8 +232,8 @@ function BranchSelectorModal({ selected, onChange }) {
         onClick={openModal}
         className={`cursor-pointer border rounded-xl p-3 transition-all ${
           selected.length > 0
-            ? "border-[#3B82F6] bg-blue-50/30"
-            : "border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#3B82F6]"
+            ? "border-[#1a3a8f] bg-[#EFF3FA]"
+            : "border-[#E2E8F0] bg-[#F8FAFC] hover:border-[#1a3a8f]"
         }`}
       >
         <div className="flex items-center justify-between gap-2">
@@ -242,17 +242,17 @@ function BranchSelectorModal({ selected, onChange }) {
               size={15}
               className={
                 selected.length > 0
-                  ? "text-[#3B82F6] flex-shrink-0"
+                  ? "text-[#1a3a8f] flex-shrink-0"
                   : "text-[#94A3B8] flex-shrink-0"
               }
             />
             <span
-              className={`text-sm truncate ${selected.length > 0 ? "text-[#3B82F6] font-medium" : "text-[#94A3B8]"}`}
+              className={`text-sm truncate ${selected.length > 0 ? "text-[#1a3a8f] font-medium" : "text-[#94A3B8]"}`}
             >
               {triggerLabel}
             </span>
           </div>
-          <span className="flex items-center gap-1 text-xs text-[#3B82F6] flex-shrink-0 font-medium">
+          <span className="flex items-center gap-1 text-xs text-[#1a3a8f] flex-shrink-0 font-medium">
             <Pencil size={11} />
             {selected.length > 0 ? "Edit" : "Select"}
           </span>
@@ -263,7 +263,7 @@ function BranchSelectorModal({ selected, onChange }) {
             {selected.map((c) => (
               <span
                 key={c}
-                className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-[#3B82F6] border border-blue-200"
+                className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#EFF3FA] text-[#1a3a8f] border border-[#B8C6E3]"
               >
                 {c.length > 30 ? c.slice(0, 28) + "…" : c}
               </span>
@@ -275,7 +275,7 @@ function BranchSelectorModal({ selected, onChange }) {
             {selected.slice(0, 3).map((c) => (
               <span
                 key={c}
-                className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-[#3B82F6] border border-blue-200"
+                className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#EFF3FA] text-[#1a3a8f] border border-[#B8C6E3]"
               >
                 {c.length > 30 ? c.slice(0, 28) + "…" : c}
               </span>
@@ -301,7 +301,7 @@ function BranchSelectorModal({ selected, onChange }) {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                    <GraduationCap size={14} className="text-[#3B82F6]" />
+                    <GraduationCap size={14} className="text-[#f59e0b]" />
                   </div>
                   <div>
                     <h3
@@ -335,8 +335,8 @@ function BranchSelectorModal({ selected, onChange }) {
                     onClick={() => quickSel(key)}
                     className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
                       activeQuick === key
-                        ? "bg-[#3B82F6] text-white border-[#3B82F6]"
-                        : "bg-[#F8FAFC] text-[#64748B] border-[#E2E8F0] hover:border-[#3B82F6] hover:text-[#3B82F6]"
+                        ? "bg-[#1a3a8f] text-white border-[#1a3a8f]"
+                        : "bg-[#F8FAFC] text-[#64748B] border-[#E2E8F0] hover:border-[#1a3a8f] hover:text-[#1a3a8f]"
                     }`}
                   >
                     {label}
@@ -344,7 +344,7 @@ function BranchSelectorModal({ selected, onChange }) {
                 ))}
               </div>
 
-              <div className="flex items-center gap-2 border border-[#E2E8F0] rounded-xl px-3 py-2 bg-[#F8FAFC] focus-within:border-[#3B82F6] transition-colors">
+              <div className="flex items-center gap-2 border border-[#E2E8F0] rounded-xl px-3 py-2 bg-[#F8FAFC] focus-within:border-[#1a3a8f] transition-colors">
                 <Search size={13} className="text-[#94A3B8] flex-shrink-0" />
                 <input
                   value={search}
@@ -397,7 +397,7 @@ function BranchSelectorModal({ selected, onChange }) {
                           }}
                           onChange={() => toggleSchool(schoolCourses)}
                           onClick={(e) => e.stopPropagation()}
-                          className="w-4 h-4 accent-[#3B82F6] flex-shrink-0 cursor-pointer"
+                          className="w-4 h-4 accent-[#1a3a8f] flex-shrink-0 cursor-pointer"
                         />
                         <span className="flex-1 text-xs font-semibold text-[#1E293B]">
                           {school.school}
@@ -430,7 +430,7 @@ function BranchSelectorModal({ selected, onChange }) {
                                         el.indeterminate = dState === "partial";
                                     }}
                                     onChange={() => toggleDept(dept.courses)}
-                                    className="w-3.5 h-3.5 accent-[#3B82F6] flex-shrink-0 cursor-pointer"
+                                    className="w-3.5 h-3.5 accent-[#1a3a8f] flex-shrink-0 cursor-pointer"
                                   />
                                   <span className="text-xs font-medium text-[#64748B]">
                                     {dept.name}
@@ -449,7 +449,7 @@ function BranchSelectorModal({ selected, onChange }) {
                                         type="checkbox"
                                         checked={tempSel.includes(course)}
                                         onChange={() => toggleCourse(course)}
-                                        className="w-3 h-3 accent-[#3B82F6] flex-shrink-0 mt-0.5 cursor-pointer"
+                                        className="w-3 h-3 accent-[#1a3a8f] flex-shrink-0 mt-0.5 cursor-pointer"
                                       />
                                       <span className="text-[11px] text-[#1E293B] leading-snug">
                                         {course}
@@ -487,7 +487,7 @@ function BranchSelectorModal({ selected, onChange }) {
                 </button>
                 <button
                   onClick={confirm}
-                  className="px-4 py-1.5 rounded-xl bg-[#3B82F6] text-white text-xs font-semibold hover:bg-[#2563EB] transition-colors flex items-center gap-1.5"
+                  className="px-4 py-1.5 rounded-xl bg-[#1a3a8f] text-white text-xs font-semibold hover:bg-[#0d1b5e] transition-colors flex items-center gap-1.5"
                 >
                   <Check size={13} /> Confirm Selection
                 </button>
@@ -1016,29 +1016,52 @@ export default function CompanyManagementPage() {
         className="relative rounded-2xl overflow-hidden mb-6 p-4 sm:p-6"
         style={{
           background:
-            "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
+            "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
         }}
       >
-        <div
-          className="absolute top-0 right-0 w-72 h-72 rounded-full pointer-events-none"
-          style={{
-            background: "rgba(255,255,255,0.08)",
-            transform: "translate(35%,-45%)",
-          }}
-        />
-        <div
-          className="absolute bottom-0 left-0 w-52 h-52 rounded-full pointer-events-none"
-          style={{
-            background: "rgba(255,255,255,0.06)",
-            transform: "translate(-30%,40%)",
-          }}
-        />
+        <svg
+          className="absolute bottom-0 right-0 pointer-events-none"
+          style={{ width: "260px", height: "130px" }}
+          viewBox="0 0 260 130"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M260 130 Q180 60 80 100 Q20 120 0 130"
+            stroke="url(#companyManagementRedOrangeGrad)"
+            strokeWidth="3.5"
+            fill="none"
+            strokeLinecap="round"
+          />
+          <path
+            d="M260 110 Q190 50 100 85 Q40 105 10 115"
+            stroke="url(#companyManagementRedOrangeGrad)"
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+            opacity="0.5"
+          />
+          <defs>
+            <linearGradient
+              id="companyManagementRedOrangeGrad"
+              x1="0"
+              y1="0"
+              x2="260"
+              y2="0"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0%" stopColor="#ff4e00" stopOpacity="0" />
+              <stop offset="50%" stopColor="#ff4e00" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#ff9d00" stopOpacity="1" />
+            </linearGradient>
+          </defs>
+        </svg>
 
         <div className="relative flex flex-col sm:flex-row items-start sm:items-start justify-between gap-4 mb-6">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center">
-                <Building2 size={13} className="text-white" />
+                <Building2 size={13} className="text-[#f59e0b]" />
               </div>
               <span className="text-white/60 text-[10px] font-bold uppercase tracking-widest">
                 Placement Portal
@@ -1056,7 +1079,7 @@ export default function CompanyManagementPage() {
           </div>
           <button
             onClick={openAddCompany}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[#1D4ED8] text-sm font-bold hover:bg-blue-50 transition-colors shadow-lg shrink-0 mt-1 w-full sm:w-auto justify-center"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[#1a3a8f] text-sm font-bold hover:bg-[#F1F5F9] transition-colors shadow-lg shrink-0 mt-1 w-full sm:w-auto justify-center"
           >
             <Plus size={15} /> Add Company
           </button>
@@ -1258,7 +1281,7 @@ export default function CompanyManagementPage() {
                     ) : (
                       <button
                         onClick={() => openPostJD(company)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#3B82F6] text-white text-xs font-semibold hover:bg-[#2563EB] transition-colors"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1a3a8f] text-white text-xs font-semibold hover:bg-[#0d1b5e] transition-colors"
                       >
                         <FileText size={12} /> Post JD
                       </button>
@@ -1337,7 +1360,7 @@ export default function CompanyManagementPage() {
                     href={viewingCompany.company.website}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-1 text-xs text-[#3B82F6] hover:underline"
+                    className="flex items-center gap-1 text-xs text-[#1a3a8f] hover:underline"
                   >
                     <ExternalLink size={11} /> {viewingCompany.company.website}
                   </a>
@@ -1428,7 +1451,7 @@ export default function CompanyManagementPage() {
                         {viewingCompany.job.eligibleBranches.map((b) => (
                           <span
                             key={b}
-                            className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-blue-50 text-[#3B82F6] border border-blue-200"
+                            className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#EFF3FA] text-[#1a3a8f] border border-[#B8C6E3]"
                           >
                             {b}
                           </span>
@@ -1446,7 +1469,7 @@ export default function CompanyManagementPage() {
                         {viewingCompany.job.selectionProcess.map((s, i) => (
                           <span
                             key={i}
-                            className="px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-[#3B82F6] border border-blue-200"
+                            className="px-3 py-1 rounded-full text-xs font-medium bg-[#EFF3FA] text-[#1a3a8f] border border-[#B8C6E3]"
                           >
                             Round {i + 1}: {s}
                           </span>
@@ -1543,7 +1566,7 @@ export default function CompanyManagementPage() {
                       setShowViewModal(false);
                       openPostJD(viewingCompany.company);
                     }}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-medium text-[#64748B] hover:border-[#3B82F6] hover:text-[#3B82F6] transition-all"
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-medium text-[#64748B] hover:border-[#1a3a8f] hover:text-[#1a3a8f] transition-all"
                   >
                     <FileText size={13} /> Post JD
                   </button>
@@ -1573,7 +1596,7 @@ export default function CompanyManagementPage() {
             <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[#F1F5F9] gap-2">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                  <Building2 size={15} className="text-[#3B82F6]" />
+                  <Building2 size={15} className="text-[#f59e0b]" />
                 </div>
                 <div className="min-w-0">
                   <h2
@@ -1594,13 +1617,13 @@ export default function CompanyManagementPage() {
               </div>
               <div className="hidden sm:flex items-center gap-2 mr-3 flex-shrink-0">
                 <div
-                  className={`w-6 h-6 rounded-full text-[10px] font-bold flex items-center justify-center ${addStep === 1 ? "bg-[#3B82F6] text-white" : "bg-green-500 text-white"}`}
+                  className={`w-6 h-6 rounded-full text-[10px] font-bold flex items-center justify-center ${addStep === 1 ? "bg-[#1a3a8f] text-white" : "bg-green-500 text-white"}`}
                 >
                   {addStep > 1 ? <Check size={11} /> : "1"}
                 </div>
                 <div className="w-5 h-px bg-[#E2E8F0]" />
                 <div
-                  className={`w-6 h-6 rounded-full text-[10px] font-bold flex items-center justify-center ${addStep === 2 ? "bg-[#3B82F6] text-white" : "bg-[#E2E8F0] text-[#94A3B8]"}`}
+                  className={`w-6 h-6 rounded-full text-[10px] font-bold flex items-center justify-center ${addStep === 2 ? "bg-[#1a3a8f] text-white" : "bg-[#E2E8F0] text-[#94A3B8]"}`}
                 >
                   2
                 </div>
@@ -1711,7 +1734,7 @@ export default function CompanyManagementPage() {
                       size={14}
                       className="text-blue-400 flex-shrink-0 mt-0.5"
                     />
-                    <p className="text-xs text-blue-600 leading-relaxed">
+                    <p className="text-xs text-[#1a3a8f] leading-relaxed">
                       You can skip this and add JD details later from the
                       company card.
                     </p>
@@ -1757,7 +1780,7 @@ export default function CompanyManagementPage() {
                     )}
                     <button
                       onClick={goToStep2}
-                      className="px-4 py-2 rounded-xl bg-[#3B82F6] text-white text-sm font-semibold hover:bg-[#2563EB] transition-colors flex items-center gap-2"
+                      className="px-4 py-2 rounded-xl bg-[#1a3a8f] text-white text-sm font-semibold hover:bg-[#0d1b5e] transition-colors flex items-center gap-2"
                     >
                       {createdCompanyId ? "Next: Edit JD" : "Next: Add JD"}{" "}
                       <ChevronRight size={14} />
@@ -1782,7 +1805,7 @@ export default function CompanyManagementPage() {
                     </button>
                     <button
                       onClick={saveCompanyWithJD}
-                      className="px-4 py-2 rounded-xl bg-[#3B82F6] text-white text-sm font-semibold hover:bg-[#2563EB] transition-colors flex items-center gap-2"
+                      className="px-4 py-2 rounded-xl bg-[#1a3a8f] text-white text-sm font-semibold hover:bg-[#0d1b5e] transition-colors flex items-center gap-2"
                     >
                       <FileText size={14} /> Save with JD
                     </button>
@@ -1807,7 +1830,7 @@ export default function CompanyManagementPage() {
             <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[#F1F5F9]">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                  <FileText size={15} className="text-[#3B82F6]" />
+                  <FileText size={15} className="text-[#f59e0b]" />
                 </div>
                 <div>
                   <h2
@@ -1842,7 +1865,7 @@ export default function CompanyManagementPage() {
                       href={jdTargetJob.jdPdfUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex items-center gap-1.5 text-xs text-[#3B82F6] hover:underline mb-2"
+                      className="flex items-center gap-1.5 text-xs text-[#1a3a8f] hover:underline mb-2"
                     >
                       <FileText size={12} />
                       View current PDF
@@ -1850,7 +1873,7 @@ export default function CompanyManagementPage() {
                   )}
 
                   <label className="flex items-center gap-3 cursor-pointer">
-                    <span className="px-3 py-1.5 rounded-lg bg-blue-50 text-[#3B82F6] text-xs font-semibold border border-blue-200 hover:bg-blue-100 transition-colors flex-shrink-0">
+                    <span className="px-3 py-1.5 rounded-lg bg-[#EFF3FA] text-[#1a3a8f] text-xs font-semibold border border-[#B8C6E3] hover:bg-[#E2E8F0] transition-colors flex-shrink-0">
                       Choose File
                     </span>
                     <span className="text-xs text-[#94A3B8] truncate">
@@ -1882,7 +1905,7 @@ export default function CompanyManagementPage() {
               <button
                 onClick={submitJD}
                 disabled={savingJD}
-                className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-[#2563EB] transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded-xl bg-[#1a3a8f] text-white text-sm font-semibold hover:bg-[#0d1b5e] transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <FileText size={14} />
                 {savingJD ? "Saving..." : jdTargetJob ? "Save JD" : "Post JD"}

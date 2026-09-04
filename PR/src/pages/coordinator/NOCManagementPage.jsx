@@ -117,7 +117,7 @@ function StatusBadge({ status, createdAt }) {
 
 function TypeBadge({ type }) {
   return (
-    <span className="px-2.5 py-1 rounded-full ring-1 ring-inset ring-blue-600/20 text-xs font-semibold tracking-wide bg-blue-50 text-blue-700 whitespace-nowrap">
+    <span className="px-2.5 py-1 rounded-full ring-1 ring-inset ring-[#1a3a8f]/20 text-xs font-semibold tracking-wide bg-[#EFF3FA] text-[#1a3a8f] whitespace-nowrap">
       {type}
     </span>
   );
@@ -161,7 +161,7 @@ function DocumentCell({ request, onDownload }) {
     <button
       onClick={() => onDownload(request)}
       disabled={!request.pdfUrl}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 shadow-sm shadow-blue-600/25 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#1a3a8f] hover:bg-[#0d1b5e] active:scale-95 shadow-sm shadow-[#1a3a8f]/25 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
     >
       <Download size={14} />
       PDF
@@ -331,7 +331,7 @@ function ViewModal({ open, request, onClose }) {
               href={request.proofUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:underline"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-[#1a3a8f] hover:underline"
             >
               <ExternalLink size={14} /> View Proof
             </a>
@@ -352,7 +352,7 @@ function ViewModal({ open, request, onClose }) {
             href={request.pdfUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 mt-2 text-sm font-medium text-blue-600 hover:underline"
+              className="inline-flex items-center gap-1.5 mt-2 text-sm font-medium text-[#1a3a8f] hover:underline"
           >
             <Download size={14} /> Download PDF
           </a>
@@ -417,7 +417,7 @@ function ApproveModal({
               href={request.proofUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:underline"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-[#1a3a8f] hover:underline"
             >
               <ExternalLink size={14} /> View Proof
             </a>
@@ -512,7 +512,7 @@ function RejectModal({
               href={request.proofUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:underline"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-[#1a3a8f] hover:underline"
             >
               <ExternalLink size={14} /> View Proof
             </a>
@@ -802,7 +802,7 @@ export default function NOCManagementPage() {
         className="relative overflow-hidden rounded-2xl px-4 py-6 sm:px-6 sm:py-8 mb-6 shadow-lg shadow-blue-900/10"
         style={{
           background:
-            "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #4F46E5 100%)",
+            "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
         }}
       >
         {/* Faint corner glow — subtle texture instead of a flat fill */}
@@ -813,6 +813,43 @@ export default function NOCManagementPage() {
           }}
           aria-hidden="true"
         />
+        <svg
+          className="absolute bottom-0 right-0 pointer-events-none"
+          style={{ width: "260px", height: "130px" }}
+          viewBox="0 0 260 130"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M260 130 Q180 60 80 100 Q20 120 0 130"
+            stroke="url(#nocLorRedOrangeGrad)"
+            strokeWidth="3.5"
+            fill="none"
+            strokeLinecap="round"
+          />
+          <path
+            d="M260 110 Q190 50 100 85 Q40 105 10 115"
+            stroke="url(#nocLorRedOrangeGrad)"
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+            opacity="0.5"
+          />
+          <defs>
+            <linearGradient
+              id="nocLorRedOrangeGrad"
+              x1="0"
+              y1="0"
+              x2="260"
+              y2="0"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0%" stopColor="#ff4e00" stopOpacity="0" />
+              <stop offset="50%" stopColor="#ff4e00" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#ff9d00" stopOpacity="1" />
+            </linearGradient>
+          </defs>
+        </svg>
         <h1 className="relative text-xl sm:text-2xl font-bold text-white tracking-tight">
           NOC / LOR Requests
         </h1>
@@ -862,7 +899,7 @@ export default function NOCManagementPage() {
                 onClick={() => handleSchoolFilterChange("All")}
                 className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   schoolFilter === "All"
-                    ? "bg-slate-900 text-white shadow-sm"
+                    ? "bg-[#1a3a8f] text-white shadow-sm"
                     : "bg-white text-gray-600 ring-1 ring-inset ring-gray-200 hover:ring-gray-300 hover:text-gray-900"
                 }`}
               >
@@ -875,7 +912,7 @@ export default function NOCManagementPage() {
                   title={school}
                   className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                     schoolFilter === school
-                      ? "bg-slate-900 text-white shadow-sm"
+                      ? "bg-[#1a3a8f] text-white shadow-sm"
                       : "bg-white text-gray-600 ring-1 ring-inset ring-gray-200 hover:ring-gray-300 hover:text-gray-900"
                   }`}
                 >
@@ -895,7 +932,7 @@ export default function NOCManagementPage() {
               onClick={() => setActiveFilter(f)}
               className={`px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all ${
                 activeFilter === f
-                  ? "bg-blue-600 text-white shadow-sm shadow-blue-600/25"
+                  ? "bg-[#1a3a8f] text-white shadow-sm shadow-[#1a3a8f]/25"
                   : "bg-white text-gray-600 ring-1 ring-inset ring-gray-200 hover:ring-gray-300 hover:text-gray-900"
               }`}
             >
@@ -914,7 +951,7 @@ export default function NOCManagementPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search name or ERP ID..."
-              className="pl-8 pr-7 py-1.5 rounded-lg text-sm bg-white text-gray-700 ring-1 ring-inset ring-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow w-full sm:w-56"
+              className="pl-8 pr-7 py-1.5 rounded-lg text-sm bg-white text-gray-700 ring-1 ring-inset ring-gray-200 focus:outline-none focus:ring-2 focus:ring-[#1a3a8f] transition-shadow w-full sm:w-56"
             />
             {searchQuery && (
               <button
@@ -936,7 +973,7 @@ export default function NOCManagementPage() {
             <select
               value={courseFilter}
               onChange={(e) => setCourseFilter(e.target.value)}
-              className="w-full sm:w-auto px-3 py-1.5 rounded-lg text-sm bg-gray-50 text-gray-600 ring-1 ring-inset ring-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+              className="w-full sm:w-auto px-3 py-1.5 rounded-lg text-sm bg-gray-50 text-gray-600 ring-1 ring-inset ring-gray-200 focus:outline-none focus:ring-2 focus:ring-[#1a3a8f] focus:bg-white transition-all"
             >
               <option value="All">
                 {schoolFilter === "All"
@@ -1037,7 +1074,7 @@ export default function NOCManagementPage() {
                   paginatedRequests.map((req) => (
                     <tr
                       key={req._id}
-                      className="hover:bg-blue-50/40 transition-colors"
+                      className="hover:bg-[#EFF3FA] transition-colors"
                     >
                       <td
                         className="px-2 sm:px-3 py-2.5 font-medium text-gray-800 max-w-[120px] truncate"
@@ -1060,7 +1097,7 @@ export default function NOCManagementPage() {
                       <td className="px-2 sm:px-3 py-2.5 text-gray-600 max-w-28 sm:max-w-40">
                         <button
                           onClick={() => setViewTarget(req)}
-                          className="truncate block w-full text-left hover:text-blue-600 hover:underline"
+                          className="truncate block w-full text-left hover:text-[#1a3a8f] hover:underline"
                           title="Click to read full purpose"
                         >
                           {req.purpose}

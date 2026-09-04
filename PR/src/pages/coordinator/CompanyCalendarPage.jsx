@@ -71,7 +71,7 @@ const PERK_ICONS = {
   Transport: Briefcase,
 };
 
-const getAvatarColors = () => ({ bg: "bg-blue-50", text: "text-blue-700" });
+const getAvatarColors = () => ({ bg: "bg-[#EFF3FA]", text: "text-[#1a3a8f]" });
 const dateKey = (d) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 const initials = (name) => (name || "??").slice(0, 2).toUpperCase();
 const daysUntil = (date, ref) => Math.ceil((date - ref) / 86400000);
@@ -147,7 +147,7 @@ function JobTypeBadge({ type }) {
       className={`text-[10px] px-2 py-0.5 rounded-md border font-medium ${
         type === "Internship"
           ? "bg-violet-50 text-violet-700 border-violet-200"
-          : "bg-blue-50 text-blue-700 border-blue-200"
+          : "bg-[#EFF3FA] text-[#1a3a8f] border-[#B8C6E3]"
       }`}
     >
       {type === "Internship" ? "Internship" : "Full Time"}
@@ -192,7 +192,7 @@ function JobDetailModal({ job, onClose }) {
           className="px-4 sm:px-6 pt-5 sm:pt-6 pb-5 relative overflow-hidden shrink-0"
           style={{
             background:
-              "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
+              "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
             boxShadow: "inset 0 -20px 40px -20px rgba(0,0,0,0.15)",
           }}
         >
@@ -245,7 +245,7 @@ function JobDetailModal({ job, onClose }) {
               onClick={() => setActiveTab(t)}
               className={`px-3 sm:px-4 py-3 text-[12px] font-medium capitalize transition-colors border-b-2 -mb-px ${
                 activeTab === t
-                  ? "border-blue-500 text-blue-600"
+                  ? "border-[#1a3a8f] text-[#1a3a8f]"
                   : "border-transparent text-gray-400 hover:text-gray-600"
               }`}
             >
@@ -267,7 +267,7 @@ function JobDetailModal({ job, onClose }) {
                 {
                   label: "Tech Stack",
                   items: job.techStack || [],
-                  cls: "bg-blue-50 text-blue-700 border-blue-100 font-medium",
+                  cls: "bg-[#EFF3FA] text-[#1a3a8f] border-[#B8C6E3] font-medium",
                 },
                 {
                   label: "Required Skills",
@@ -357,7 +357,7 @@ function JobDetailModal({ job, onClose }) {
                 job.selectionProcess.map((step, i) => (
                   <div key={i} className="flex gap-3">
                     <div className="flex flex-col items-center">
-                      <div className="w-7 h-7 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center text-[11px] font-semibold border border-blue-200 shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-[#EFF3FA] text-[#1a3a8f] flex items-center justify-center text-[11px] font-semibold border border-[#B8C6E3] shrink-0">
                         {i + 1}
                       </div>
                       {i < job.selectionProcess.length - 1 && (
@@ -390,7 +390,7 @@ function JobDetailModal({ job, onClose }) {
                       className="bg-gray-50 border border-gray-100 rounded-xl p-3 flex items-center gap-2.5"
                     >
                       <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-gray-200 shrink-0">
-                        <Icon size={15} className="text-blue-500" />
+                        <Icon size={15} className="text-[#1a3a8f]" />
                       </div>
                       <span className="text-[12px] text-gray-700 font-medium">
                         {perk}
@@ -426,7 +426,7 @@ function DayPopupModal({
           className="px-4 sm:px-5 py-4 border-b border-gray-100 flex items-start justify-between"
           style={{
             background:
-              "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
+              "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
           }}
         >
           <div>
@@ -452,7 +452,7 @@ function DayPopupModal({
                 onClose();
                 onSelectJob(j);
               }}
-              className="bg-gray-50 border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 hover:shadow-sm rounded-xl p-3 text-left transition-all duration-150 group"
+              className="bg-gray-50 border border-gray-100 hover:border-[#B8C6E3] hover:bg-[#EFF3FA] hover:shadow-sm rounded-xl p-3 text-left transition-all duration-150 group"
             >
               <div className="flex items-center gap-2.5 mb-2.5">
                 <CompanyAvatar
@@ -478,7 +478,7 @@ function DayPopupModal({
                   CGPA {j.minCgpa || 0}+
                 </span>
               </div>
-              <p className="text-[10px] text-blue-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity font-medium">
+              <p className="text-[10px] text-[#1a3a8f] mt-2 opacity-0 group-hover:opacity-100 transition-opacity font-medium">
                 Click to view details →
               </p>
             </button>
@@ -608,7 +608,7 @@ export default function CompanyCalendarPage() {
           className="h-44 rounded-2xl mx-0"
           style={{
             background:
-              "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
+              "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
             opacity: 0.25,
           }}
         />
@@ -632,30 +632,52 @@ export default function CompanyCalendarPage() {
         className="relative overflow-hidden rounded-2xl mx-2 sm:mx-4 mt-2 sm:mt-4 p-4 sm:p-6"
         style={{
           background:
-            "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
+            "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
           boxShadow: "inset 0 -20px 40px -20px rgba(0,0,0,0.15)",
         }}
       >
-        <div
-          className="absolute top-0 right-0 w-72 h-72 rounded-full pointer-events-none"
-          style={{
-            background: "rgba(255,255,255,0.08)",
-            transform: "translate(35%,-45%)",
-          }}
-        />
-        <div
-          className="absolute bottom-0 left-0 w-52 h-52 rounded-full pointer-events-none"
-          style={{
-            background: "rgba(255,255,255,0.06)",
-            transform: "translate(-30%,40%)",
-          }}
-        />
-
+        <svg
+          className="absolute bottom-0 right-0 pointer-events-none"
+          style={{ width: "260px", height: "130px" }}
+          viewBox="0 0 260 130"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M260 130 Q180 60 80 100 Q20 120 0 130"
+            stroke="url(#calendarRedOrangeGrad)"
+            strokeWidth="3.5"
+            fill="none"
+            strokeLinecap="round"
+          />
+          <path
+            d="M260 110 Q190 50 100 85 Q40 105 10 115"
+            stroke="url(#calendarRedOrangeGrad)"
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+            opacity="0.5"
+          />
+          <defs>
+            <linearGradient
+              id="calendarRedOrangeGrad"
+              x1="0"
+              y1="0"
+              x2="260"
+              y2="0"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0%" stopColor="#ff4e00" stopOpacity="0" />
+              <stop offset="50%" stopColor="#ff4e00" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#ff9d00" stopOpacity="1" />
+            </linearGradient>
+          </defs>
+        </svg>
         <div className="relative z-10 flex items-start justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-1.5">
               <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center shrink-0">
-                <CalendarDays size={13} className="text-white" />
+                <CalendarDays size={13} className="text-[#f59e0b]" />
               </div>
               <span className="text-white/60 text-[10px] font-bold uppercase tracking-widest">
                 Placement Tracker
@@ -676,7 +698,7 @@ export default function CompanyCalendarPage() {
               setCurYear(today.getFullYear());
               setCurMonth(today.getMonth());
             }}
-            className="flex items-center gap-1.5 bg-white text-[#1D4ED8] rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold hover:bg-blue-50 transition-colors shadow-lg shrink-0 mt-1"
+            className="flex items-center gap-1.5 bg-white text-[#1a3a8f] rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold hover:bg-[#F1F5F9] transition-colors shadow-lg shrink-0 mt-1"
           >
             <Calendar size={14} /> Today
           </button>
@@ -797,12 +819,12 @@ export default function CompanyCalendarPage() {
                       }
                       className={`min-h-12 sm:min-h-17 p-1 sm:p-2 transition-all duration-200 ${mobileTint} ${
                         dayJobs.length
-                          ? "cursor-pointer hover:bg-blue-50/50 hover:-translate-y-0.5 hover:shadow-sm hover:z-10 relative rounded-lg"
+                          ? "cursor-pointer hover:bg-[#EFF3FA] hover:-translate-y-0.5 hover:shadow-sm hover:z-10 relative rounded-lg"
                           : "cursor-default"
-                      } ${isToday ? "bg-blue-50 ring-1 ring-inset ring-blue-300 rounded-lg" : ""}`}
+                      } ${isToday ? "bg-[#EFF3FA] ring-1 ring-inset ring-[#B8C6E3] rounded-lg" : ""}`}
                     >
                       <span
-                        className={`text-[10px] sm:text-[12px] block mb-1 sm:mb-1.5 leading-none font-medium tabular-nums ${isToday ? "text-blue-600" : "text-gray-400"}`}
+                        className={`text-[10px] sm:text-[12px] block mb-1 sm:mb-1.5 leading-none font-medium tabular-nums ${isToday ? "text-[#1a3a8f]" : "text-gray-400"}`}
                       >
                         {day}
                       </span>
@@ -856,7 +878,7 @@ export default function CompanyCalendarPage() {
                 7 days or fewer left
               </div>
               <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-gray-400">
-                <div className="w-2.5 h-2.5 rounded-sm bg-blue-50 border border-blue-300 shrink-0" />{" "}
+                <div className="w-2.5 h-2.5 rounded-sm bg-[#EFF3FA] border border-[#B8C6E3] shrink-0" />{" "}
                 Today
               </div>
             </div>
@@ -874,7 +896,7 @@ export default function CompanyCalendarPage() {
                   <button
                     key={f}
                     onClick={() => setFilter(f)}
-                    className={`px-2.5 py-1 rounded-md text-[10px] font-medium capitalize transition-colors ${filter === f ? "bg-white text-blue-600 shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+                    className={`px-2.5 py-1 rounded-md text-[10px] font-medium capitalize transition-colors ${filter === f ? "bg-white text-[#1a3a8f] shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
                   >
                     {f}
                   </button>
@@ -927,7 +949,7 @@ export default function CompanyCalendarPage() {
                       className={`px-4 py-3 flex items-start gap-3 hover:bg-gray-50 hover:shadow-sm transition-all duration-150 cursor-pointer group ${
                         j._id ===
                         sortedJobs.find((x) => x.parsedDate >= todayMid)?._id
-                          ? "border-l-2 border-blue-500 bg-blue-50/30"
+                          ? "border-l-2 border-[#1a3a8f] bg-[#EFF3FA]"
                           : ""
                       }`}
                     >
@@ -937,7 +959,7 @@ export default function CompanyCalendarPage() {
                         size="sm"
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="text-[12px] font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                        <p className="text-[12px] font-semibold text-gray-900 truncate group-hover:text-[#1a3a8f] transition-colors">
                           {j.companyId?.name || "—"}
                         </p>
                         <p className="text-[11px] text-gray-500 truncate mt-0.5">

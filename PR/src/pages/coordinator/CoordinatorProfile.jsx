@@ -129,7 +129,7 @@ function PasswordModal({ onClose, onSave }) {
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md border border-[#E2E8F0]">
         <div className="flex items-center justify-between px-4 sm:px-6 pt-6 pb-4 border-b border-background">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-[#EFF3FA] flex items-center justify-center">
               <Lock size={16} className="text-primary" />
             </div>
             <div>
@@ -423,7 +423,7 @@ export default function CoordinatorProfile() {
         className="relative rounded-3xl overflow-hidden mb-6 border border-white/10"
         style={{
           background:
-            "linear-gradient(135deg, #3B82F6 0%, #60A5FA 60%, #818CF8 100%)",
+            "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
         }}
       >
         <div
@@ -433,16 +433,53 @@ export default function CoordinatorProfile() {
                          radial-gradient(circle at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 40%)`,
           }}
         />
+        <svg
+          className="absolute bottom-0 right-0 pointer-events-none"
+          style={{ width: "260px", height: "130px" }}
+          viewBox="0 0 260 130"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M260 130 Q180 60 80 100 Q20 120 0 130"
+            stroke="url(#profileRedOrangeGrad)"
+            strokeWidth="3.5"
+            fill="none"
+            strokeLinecap="round"
+          />
+          <path
+            d="M260 110 Q190 50 100 85 Q40 105 10 115"
+            stroke="url(#profileRedOrangeGrad)"
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+            opacity="0.5"
+          />
+          <defs>
+            <linearGradient
+              id="profileRedOrangeGrad"
+              x1="0"
+              y1="0"
+              x2="260"
+              y2="0"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0%" stopColor="#ff4e00" stopOpacity="0" />
+              <stop offset="50%" stopColor="#ff4e00" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#ff9d00" stopOpacity="1" />
+            </linearGradient>
+          </defs>
+        </svg>
         <div className="relative z-10 p-5 sm:p-8 flex flex-col sm:flex-row items-center sm:items-center gap-3 sm:gap-6 text-center sm:text-left">
           <div
             className="w-20 h-20 rounded-full shrink-0"
             style={{
-              background: "linear-gradient(135deg, white, #E0E7FF)",
+              background: "linear-gradient(135deg, white, #f59e0b)",
               padding: "3px",
             }}
           >
             <div
-              className="w-full h-full rounded-full bg-primary flex items-center justify-center text-2xl font-bold text-white"
+              className="w-full h-full rounded-full bg-[#1a3a8f] flex items-center justify-center text-2xl font-bold text-white"
               style={{ fontFamily: "Space Grotesk, sans-serif" }}
             >
               {coordinator.name?.charAt(0)}
@@ -510,7 +547,7 @@ export default function CoordinatorProfile() {
             value: totalDrives,
             icon: Building2,
             color: "border-t-primary",
-            bg: "bg-blue-50",
+            bg: "bg-[#EFF3FA]",
             iconColor: "text-primary",
           },
           {
@@ -563,7 +600,7 @@ export default function CoordinatorProfile() {
       {/* Profile Details */}
       <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-primary p-4 sm:p-6 shadow-sm mb-5">
         <div className="flex items-center gap-2 mb-5 pb-4 border-b border-background">
-          <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
+          <div className="w-7 h-7 rounded-lg bg-[#EFF3FA] flex items-center justify-center">
             <Users size={14} className="text-primary" />
           </div>
           <h3
@@ -720,7 +757,7 @@ export default function CoordinatorProfile() {
       {/* Security */}
       <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm mb-5">
         <div className="flex items-center gap-3 px-4 sm:px-6 pt-6 pb-4 border-b border-background">
-          <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-[#EFF3FA] flex items-center justify-center">
             <Shield size={15} className="text-primary" />
           </div>
           <div>
@@ -756,7 +793,7 @@ export default function CoordinatorProfile() {
       {/* Signature Upload */}
       <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-sm mb-5">
         <div className="flex items-center gap-3 px-4 sm:px-6 pt-6 pb-4 border-b border-background">
-          <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-[#EFF3FA] flex items-center justify-center">
             <FileText size={15} className="text-primary" />
           </div>
           <div>
@@ -794,7 +831,7 @@ export default function CoordinatorProfile() {
           ) : (
             <label
               className={`flex flex-col items-center justify-center p-6 sm:p-8 rounded-2xl border-2 border-dashed cursor-pointer transition-all
-        ${signatureUploading ? "border-[#CBD5E1] opacity-50" : "border-primary bg-blue-50/50 hover:bg-blue-50"}`}
+        ${signatureUploading ? "border-[#CBD5E1] opacity-50" : "border-primary bg-[#EFF3FA] hover:bg-[#E2E8F0]"}`}
             >
               <FileText size={28} className="text-primary mb-2" />
               <p className="text-sm font-medium text-[#1E293B] text-center">
@@ -831,7 +868,7 @@ export default function CoordinatorProfile() {
               </p>
             </div>
           </div>
-          <span className="text-xs font-bold text-primary bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-lg self-start sm:self-auto">
+          <span className="text-xs font-bold text-primary bg-[#EFF3FA] border border-[#B8C6E3] px-2.5 py-1 rounded-lg self-start sm:self-auto">
             {Object.values(toggles).filter(Boolean).length} Active
           </span>
         </div>
