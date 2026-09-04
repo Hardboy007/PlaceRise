@@ -5,22 +5,6 @@ import { Link } from "react-router-dom";
 const SUPPORT_EMAIL = "placerise.notifications@gmail.com";
 const LAST_UPDATED = "18 July 2026";
 
-const SparklesIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-  </svg>
-);
-
 const SECTIONS = [
   { id: "collect", title: "Information we collect" },
   { id: "use", title: "How we use it" },
@@ -33,9 +17,9 @@ const SECTIONS = [
   { id: "contact", title: "Contact us" },
 ];
 
-function Section({ id, title, children }) {
+function Section({ id, title, children, sectionRef }) {
   return (
-    <section id={id} className="scroll-mt-28 mb-12">
+    <section ref={sectionRef} id={id} className="scroll-mt-28 mb-12">
       <h2
         className="text-xl md:text-2xl font-bold text-[#1E293B] mb-4"
         style={{ fontFamily: "Space Grotesk, sans-serif" }}
@@ -96,8 +80,13 @@ function PrivacyPolicyPage() {
         className="border-b bg-white/70 backdrop-blur sticky top-0 z-30 px-6 py-4 md:px-12 flex items-center justify-between"
       >
         <Link to="/" className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
-            <SparklesIcon />
+          <div className="relative w-9 h-9 rounded-xl bg-white flex items-center justify-center shadow-[0_12px_32px_-10px_rgba(59,130,246,0.4)] overflow-hidden">
+            <img
+              src="/images/logo-transparent.png"
+              alt="PlaceRise"
+              className="w-full h-full object-contain"
+            />
+            <div className="absolute inset-0 rounded-xl border-2 border-primary animate-pulse-ring" />
           </div>
           <span
             className="text-lg font-bold text-[#1E293B]"
@@ -157,7 +146,7 @@ function PrivacyPolicyPage() {
 
         {/* Content */}
         <div>
-          <Section id="collect" title="Information we collect">
+          <Section sectionRef={setSectionRef("collect")} id="collect" title="Information we collect">
             <p>
               To create and run your account, we collect the details you provide
               during onboarding and use of the platform — your name, ERP ID,
@@ -172,7 +161,7 @@ function PrivacyPolicyPage() {
             </p>
           </Section>
 
-          <Section id="use" title="How we use it">
+          <Section sectionRef={setSectionRef("use")} id="use" title="How we use it">
             <p>
               We use your information to match you with eligible job postings,
               keep your application status up to date, send you relevant
@@ -185,7 +174,7 @@ function PrivacyPolicyPage() {
             </p>
           </Section>
 
-          <Section id="sharing" title="Information sharing">
+          <Section sectionRef={setSectionRef("sharing")} id="sharing" title="Information sharing">
             <p>
               Your academic and application details are visible to your
               placement coordinators, since they manage the drives you apply to.
@@ -200,7 +189,7 @@ function PrivacyPolicyPage() {
             </p>
           </Section>
 
-          <Section id="storage" title="Data storage and security">
+          <Section sectionRef={setSectionRef("storage")} id="storage" title="Data storage and security">
             <p>
               Your data is stored in a managed database with access restricted
               to authorized platform administrators and coordinators. We use
@@ -215,7 +204,7 @@ function PrivacyPolicyPage() {
             </p>
           </Section>
 
-          <Section id="cookies" title="Cookies and local storage">
+          <Section sectionRef={setSectionRef("cookies")} id="cookies" title="Cookies and local storage">
             <p>
               PlaceRise uses your browser's local storage to keep you logged in
               and to remember light preferences (like your last-seen
@@ -224,7 +213,7 @@ function PrivacyPolicyPage() {
             </p>
           </Section>
 
-          <Section id="rights" title="Your rights and choices">
+          <Section sectionRef={setSectionRef("rights")} id="rights" title="Your rights and choices">
             <p>
               You can view and update most of your profile information directly
               from your dashboard. If you'd like a copy of your data, want a
@@ -234,7 +223,7 @@ function PrivacyPolicyPage() {
             </p>
           </Section>
 
-          <Section id="retention" title="Data retention">
+          <Section sectionRef={setSectionRef("retention")} id="retention" title="Data retention">
             <p>
               We retain your account and application data for as long as you're
               an active student on the platform, and for a reasonable period
@@ -244,7 +233,7 @@ function PrivacyPolicyPage() {
             </p>
           </Section>
 
-          <Section id="changes" title="Changes to this policy">
+          <Section sectionRef={setSectionRef("changes")} id="changes" title="Changes to this policy">
             <p>
               We may update this policy as the platform evolves. If we make
               material changes, we'll update the "Last updated" date above and,
@@ -252,7 +241,7 @@ function PrivacyPolicyPage() {
             </p>
           </Section>
 
-          <Section id="contact" title="Contact us">
+          <Section sectionRef={setSectionRef("contact")} id="contact" title="Contact us">
             <p>
               If you have questions about this policy or how your information is
               handled, reach out at{" "}
@@ -294,8 +283,13 @@ function PrivacyPolicyPage() {
           className="bg-white/70 backdrop-blur rounded-3xl border px-8 py-5 flex flex-col md:flex-row items-center justify-between gap-4"
         >
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
-              <SparklesIcon />
+            <div className="relative w-8 h-8 rounded-xl bg-white flex items-center justify-center shadow-[0_12px_32px_-10px_rgba(59,130,246,0.4)] overflow-hidden">
+              <img
+                src="/images/logo-transparent.png"
+                alt="PlaceRise"
+                className="w-full h-full object-contain"
+              />
+              <div className="absolute inset-0 rounded-xl border-2 border-primary animate-pulse-ring" />
             </div>
             <div>
               <span
