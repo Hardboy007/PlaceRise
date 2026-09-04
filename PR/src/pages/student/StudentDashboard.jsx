@@ -6,8 +6,8 @@ import ContactCellModal from "../../components/student/ContactCellModal";
 
 // ─── Design Tokens ───────────────────────────────────────────
 const C = {
-  primary: "#3B82F6",
-  accent: "#60A5FA",
+  primary: "#1a3a8f",
+  accent: "#2a52be",
   background: "#F1F5F9",
   textMain: "#0F172A",
   textMuted: "#64748B",
@@ -77,8 +77,8 @@ const announcementIconPool = [
 // Colors cycled for company avatar tiles since job postings usually
 // don't carry a hex color from the backend.
 const companyColorPool = [
-  "#3B82F6",
-  "#0EA5E9",
+  "#1a3a8f",
+  "#1e40af",
   "#F59E0B",
   "#6366F1",
   "#EF4444",
@@ -537,7 +537,7 @@ function AnnouncementItem({ a, isLast }) {
               {a.type || "General"}
             </span>
             {isNew && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-600 text-white animate-pulse">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#1a3a8f] text-white animate-pulse">
                 New
               </span>
             )}
@@ -1205,9 +1205,9 @@ export default function PlacementDashboard() {
                     <span
                       key={skill}
                       style={{
-                        backgroundColor: "#EFF6FF",
+                        backgroundColor: "#eff4ff",
                         color: C.primary,
-                        borderColor: "#BFDBFE",
+                        borderColor: "#c7d7f5",
                       }}
                       className="text-xs font-semibold px-3 py-1.5 rounded-full border flex items-center gap-1.5"
                     >
@@ -1339,7 +1339,7 @@ export default function PlacementDashboard() {
 
             {/* Need Help */}
             <div
-              style={{ backgroundColor: "#EFF6FF", borderColor: "#BFDBFE" }}
+              style={{ backgroundColor: "#eff4ff", borderColor: "#c7d7f5" }}
               className="border rounded-2xl p-5"
             >
               <div className="flex items-center gap-2 mb-2">

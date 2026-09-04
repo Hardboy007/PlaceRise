@@ -48,10 +48,10 @@ const notificationOptions = [
 
 const colorTokens = {
   blue: {
-    solid: "bg-[#3B82F6]",
+    solid: "bg-[#1a3a8f]",
     ring: "ring-blue-100",
     grad: "from-blue-50 to-blue-100/40",
-    text: "text-[#3B82F6]",
+    text: "text-[#1a3a8f]",
     glow: "shadow-blue-200/60",
   },
   green: {
@@ -76,7 +76,7 @@ function Toggle({ active, onToggle, color = "blue" }) {
     <button
       onClick={onToggle}
       aria-pressed={active}
-      className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#3B82F6]
+      className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#1a3a8f]
         ${active ? `${c.solid} shadow-md ${c.glow}` : "bg-[#CBD5E1]"}`}
     >
       <span
@@ -106,12 +106,12 @@ function PasswordInput({ label, name, value, onChange, show, onToggleShow }) {
           value={value}
           onChange={onChange}
           placeholder="••••••••"
-          className="w-full bg-[#F8FAFC] border border-[#CBD5E1] text-[#1E293B] rounded-xl px-4 py-2.5 text-sm pr-14 outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/20 placeholder:text-[#94A3B8]"
+          className="w-full bg-[#F8FAFC] border border-[#CBD5E1] text-[#1E293B] rounded-xl px-4 py-2.5 text-sm pr-14 outline-none transition focus:border-[#1a3a8f] focus:ring-2 focus:ring-[#1a3a8f]/20 placeholder:text-[#94A3B8]"
         />
         <button
           type="button"
           onClick={onToggleShow}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#64748B] hover:text-[#3B82F6] transition-colors"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#64748B] hover:text-[#1a3a8f] transition-colors"
         >
           {show ? "Hide" : "Show"}
         </button>
@@ -154,7 +154,7 @@ function ChangePasswordModal({ onClose, onSave }) {
   const strengthColors = [
     "bg-[#EF4444]",
     "bg-[#F59E0B]",
-    "bg-[#3B82F6]",
+    "bg-[#1a3a8f]",
     "bg-[#22C55E]",
   ];
 
@@ -209,7 +209,7 @@ function ChangePasswordModal({ onClose, onSave }) {
         <div className="flex items-center justify-between px-4 pt-5 pb-4 sm:px-6 sm:pt-6 border-b border-[#F1F5F9]">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/40 ring-1 ring-blue-100 flex items-center justify-center">
-              <Lock size={16} className="text-[#3B82F6]" />
+              <Lock size={16} className="text-[#1a3a8f]" />
             </div>
             <div>
               <h2 className="text-sm font-bold text-[#1E293B]">
@@ -274,7 +274,7 @@ function ChangePasswordModal({ onClose, onSave }) {
                   Strength
                 </span>
                 <span
-                  className={`text-xs font-semibold ${strength <= 1 ? "text-[#EF4444]" : strength <= 2 ? "text-[#F59E0B]" : strength <= 3 ? "text-[#3B82F6]" : "text-[#22C55E]"}`}
+                  className={`text-xs font-semibold ${strength <= 1 ? "text-[#EF4444]" : strength <= 2 ? "text-[#F59E0B]" : strength <= 3 ? "text-[#1a3a8f]" : "text-[#22C55E]"}`}
                 >
                   {strengthLabel}
                 </span>
@@ -320,7 +320,7 @@ function ChangePasswordModal({ onClose, onSave }) {
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="flex items-center gap-1 sm:gap-2 bg-[#1E293B] hover:bg-[#3B82F6] text-white text-sm font-semibold px-3 sm:px-6 py-2.5 rounded-xl shadow-md transition-all disabled:opacity-60"
+            className="flex items-center gap-1 sm:gap-2 bg-[#1E293B] hover:bg-[#1a3a8f] text-white text-sm font-semibold px-3 sm:px-6 py-2.5 rounded-xl shadow-md transition-all disabled:opacity-60"
           >
             <Key size={14} /> {submitting ? "Updating..." : "Update Password"}
           </button>
@@ -421,7 +421,7 @@ export default function StudentSettingsPage() {
   if (loading) {
     return (
       <div className="max-w-3xl mx-auto px-4 md:px-0 py-24 flex flex-col items-center gap-3">
-        <div className="w-8 h-8 rounded-full border-2 border-[#E2E8F0] border-t-[#3B82F6] animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-[#E2E8F0] border-t-[#1a3a8f] animate-spin" />
         <p className="text-sm text-[#94A3B8]">Loading your settings…</p>
       </div>
     );
@@ -437,13 +437,12 @@ export default function StudentSettingsPage() {
         className="relative overflow-hidden rounded-2xl sm:rounded-3xl mb-5 sm:mb-6 px-5 py-6 sm:px-8 sm:py-8 shadow-lg shadow-blue-900/10"
         style={{
           background:
-            "linear-gradient(135deg, #1D4ED8 0%, #2563EB 45%, #0EA5E9 100%)",
+            "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
         }}
       >
         {/* Decorative ambient glows — restrained, not busy */}
         <div className="pointer-events-none absolute -top-12 -right-8 w-48 h-48 rounded-full bg-white/10 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-16 -left-10 w-56 h-56 rounded-full bg-white/10 blur-3xl" />
-
         <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-5">
           <div className="flex items-center gap-3.5">
             <div className="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur-sm ring-1 ring-white/25 flex items-center justify-center">
@@ -481,7 +480,7 @@ export default function StudentSettingsPage() {
                 ref={(el) => (tabRefs.current[tab.id] = el)}
                 onClick={() => setActiveTab(tab.id)}
                 className={`relative z-10 flex flex-1 sm:flex-none justify-center items-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-colors duration-200
-                  ${activeTab === tab.id ? "text-[#1D4ED8]" : "text-white/85 hover:text-white"}`}
+                  ${activeTab === tab.id ? "text-[#1a3a8f]" : "text-white/85 hover:text-white"}`}
               >
                 {tab.icon}
                 {tab.label}
@@ -495,7 +494,7 @@ export default function StudentSettingsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-5 sm:mb-6">
         {[
           {
-            icon: <Shield size={18} className="text-[#3B82F6]" />,
+            icon: <Shield size={18} className="text-[#1a3a8f]" />,
             label: "Password",
             value: "Protected",
             color: "blue",
@@ -550,7 +549,7 @@ export default function StudentSettingsPage() {
         >
           <div className="flex items-center gap-3 px-4 pt-5 pb-4 sm:px-6 sm:pt-6 border-b border-[#F1F5F9]">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100/40 ring-1 ring-blue-100 flex items-center justify-center">
-              <Lock size={15} className="text-[#3B82F6]" />
+              <Lock size={15} className="text-[#1a3a8f]" />
             </div>
             <div>
               <h2 className="text-sm font-bold text-[#1E293B]">
@@ -578,7 +577,7 @@ export default function StudentSettingsPage() {
               </div>
               <button
                 onClick={() => setShowPassModal(true)}
-                className="flex w-full sm:w-auto justify-center items-center gap-2 bg-[#1E293B] hover:bg-[#3B82F6] text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all"
+                className="flex w-full sm:w-auto justify-center items-center gap-2 bg-[#1E293B] hover:bg-[#1a3a8f] text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm hover:shadow-md transition-all"
               >
                 <Key size={13} /> Change Password
               </button>
@@ -607,7 +606,7 @@ export default function StudentSettingsPage() {
                 </p>
               </div>
             </div>
-            <span className="text-xs font-bold text-[#3B82F6] bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-lg">
+            <span className="text-xs font-bold text-[#1a3a8f] bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-lg">
               {activeNotifs} Active
             </span>
           </div>
@@ -676,7 +675,7 @@ export default function StudentSettingsPage() {
           </div>
           <button
             onClick={handleSave}
-            className="flex shrink-0 items-center gap-1 sm:gap-2 bg-[#1E293B] hover:bg-[#3B82F6] text-white text-sm font-semibold px-3 sm:px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all"
+            className="flex shrink-0 items-center gap-1 sm:gap-2 bg-[#1E293B] hover:bg-[#1a3a8f] text-white text-sm font-semibold px-3 sm:px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all"
           >
             <Save size={14} /> Save Changes
           </button>

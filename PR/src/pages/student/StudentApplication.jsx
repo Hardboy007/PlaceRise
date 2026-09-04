@@ -5,7 +5,7 @@ import CompanyLogo from "../../components/common/CompanyLogo";
 
 // ── Design Tokens ─────────────────────────────────────────────
 const C = {
-  primary: "#3B82F6",
+  primary: "#1a3a8f",
   accent: "#60A5FA",
   background: "#F1F5F9",
   textMain: "#0F172A",
@@ -22,14 +22,14 @@ const C = {
 // had no matching config and would render undefined styles.
 const statusConfig = {
   Applied: {
-    color: "#1D4ED8",
+    color: "#1a3a8f",
     bg: "#EFF6FF",
     border: "#BFDBFE",
     Icon: () => (
       <svg
         className="w-3.5 h-3.5 shrink-0"
         fill="none"
-        stroke="#1D4ED8"
+        stroke="#1a3a8f"
         strokeWidth={2}
         viewBox="0 0 24 24"
       >
@@ -299,7 +299,7 @@ export default function StudentApplication() {
         {/* Left: icon + title */}
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           <div
-            style={{ backgroundColor: C.textMain }}
+            style={{ backgroundColor: "#1a3a8f" }}
             className="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl flex items-center justify-center shrink-0 shadow-sm"
           >
             <BriefcaseIcon />
@@ -442,7 +442,7 @@ export default function StudentApplication() {
                     website={app.jobId.companyId.website}
                     size={40}
                   />
-                  <span className="font-bold text-[15px] text-[#0F172A] group-hover:text-[#1D4ED8] group-hover:underline transition-colors break-words">
+                  <span className="font-bold text-[15px] text-[#0F172A] group-hover:text-[#1a3a8f] group-hover:underline transition-colors break-words">
                     {app.jobId.companyId.name}
                   </span>
                 </div>

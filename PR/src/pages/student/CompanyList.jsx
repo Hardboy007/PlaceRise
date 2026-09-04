@@ -82,7 +82,7 @@ function BranchSearchDropdown({ value, onChange }) {
           setOpen((o) => !o);
           setQuery("");
         }}
-        className="w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl border border-[#CBD5E1] bg-white text-sm hover:border-[#3B82F6] transition focus:outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/20"
+        className="w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl border border-[#CBD5E1] bg-white text-sm hover:border-[#1a3a8f] transition focus:outline-none focus:border-[#1a3a8f] focus:ring-2 focus:ring-[#1a3a8f]/20"
       >
         <span
           className={`truncate max-w-[160px] ${displayLabel ? "text-[#1E293B] font-medium text-xs" : "text-[#94A3B8]"}`}
@@ -124,7 +124,7 @@ function BranchSearchDropdown({ value, onChange }) {
                 placeholder="Search branch or course..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="w-full pl-7 pr-3 py-1.5 rounded-lg border border-[#E2E8F0] text-xs text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-[#3B82F6]"
+                className="w-full pl-7 pr-3 py-1.5 rounded-lg border border-[#E2E8F0] text-xs text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-[#1a3a8f]"
               />
             </div>
           </div>
@@ -140,7 +140,7 @@ function BranchSearchDropdown({ value, onChange }) {
               }}
               className={`w-full text-left px-4 py-2 text-xs font-semibold border-b border-[#F1F5F9] transition-colors ${
                 value === "All"
-                  ? "bg-blue-50 text-[#3B82F6]"
+                  ? "bg-[#eef1fb] text-[#1a3a8f]"
                   : "text-[#1E293B] hover:bg-[#F8FAFC]"
               }`}
             >
@@ -172,7 +172,7 @@ function BranchSearchDropdown({ value, onChange }) {
                       }}
                       className={`w-full text-left px-4 py-2 text-xs transition-colors ${
                         value === course
-                          ? "bg-blue-50 text-[#3B82F6] font-semibold"
+                          ? "bg-[#eef1fb] text-[#1a3a8f] font-semibold"
                           : "text-[#475569] hover:bg-[#F8FAFC] hover:text-[#1E293B]"
                       }`}
                     >
@@ -220,7 +220,7 @@ function RoleDropdown({ value, onChange, options }) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl border border-[#CBD5E1] bg-white text-sm text-[#1E293B] hover:border-[#3B82F6] transition focus:outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/20"
+        className="w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl border border-[#CBD5E1] bg-white text-sm text-[#1E293B] hover:border-[#1a3a8f] transition focus:outline-none focus:border-[#1a3a8f] focus:ring-2 focus:ring-[#1a3a8f]/20"
       >
         <span className="truncate">
           {value === "All" ? "All Roles" : value}
@@ -244,7 +244,7 @@ function RoleDropdown({ value, onChange, options }) {
                 }}
                 className={`w-full text-left px-4 py-2 text-sm transition-colors border-b border-[#F1F5F9] last:border-b-0 ${
                   value === r
-                    ? "bg-blue-50 text-[#3B82F6] font-semibold"
+                    ? "bg-[#eef1fb] text-[#1a3a8f] font-semibold"
                     : "text-[#1E293B] hover:bg-[#F8FAFC]"
                 }`}
               >
@@ -264,7 +264,7 @@ function BranchChips({ branches }) {
 
   if (branches.includes("All"))
     return (
-      <span className="text-xs px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100 font-medium">
+      <span className="text-xs px-2 py-0.5 rounded-md bg-[#eef1fb] text-[#1a3a8f] border-[#c7d0f0] border font-medium">
         All Branches
       </span>
     );
@@ -347,8 +347,8 @@ function CompanyCard({ company, onViewDetails, isSaved, onToggleSave }) {
             onClick={onToggleSave}
             className={`p-1.5 rounded-lg border transition-all duration-200 hover:scale-110 active:scale-95 ${
               isSaved
-                ? "bg-[#EFF6FF] border-[#3B82F6] text-[#3B82F6]"
-                : "bg-white border-[#E2E8F0] text-[#94A3B8] hover:border-[#3B82F6] hover:text-[#3B82F6]"
+                ? "bg-[#eef1fb] border-[#1a3a8f] text-[#1a3a8f]"
+                : "bg-white border-[#E2E8F0] text-[#94A3B8] hover:border-[#1a3a8f] hover:text-[#1a3a8f]"
             }`}
           >
             <svg
@@ -407,7 +407,7 @@ function CompanyCard({ company, onViewDetails, isSaved, onToggleSave }) {
 
       <button
         onClick={() => onViewDetails(company._id)}
-        className="mt-4 w-full h-12 rounded-[14px] cursor-pointer text-base font-semibold text-white bg-[#2563EB] hover:bg-[#1D4ED8] shadow-[0_4px_12px_rgba(37,99,235,0.25)] hover:shadow-[0_6px_18px_rgba(37,99,235,0.35)] hover:-translate-y-0.5 transition-all duration-[250ms] flex items-center justify-center gap-2"
+        className="mt-4 w-full h-12 rounded-[14px] cursor-pointer text-base font-semibold text-white bg-[#1a3a8f] hover:bg-[#152d73] shadow-[0_4px_12px_rgba(26,58,143,0.25)] hover:shadow-[0_6px_18px_rgba(26,58,143,0.35)] hover:-translate-y-0.5 transition-all duration-[250ms] flex items-center justify-center gap-2"
       >
         View Details
         <ChevronRight
@@ -510,7 +510,7 @@ export default function CompanyListPage() {
         className="relative rounded-3xl overflow-hidden mb-6 border border-white/10"
         style={{
           background:
-            "linear-gradient(135deg, #1D4ED8 0%, #3B82F6 45%, #818CF8 100%)",
+            "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
         }}
       >
         <div
@@ -571,6 +571,42 @@ export default function CompanyListPage() {
               </div>
             ))}
           </div>
+          <svg
+            className="absolute bottom-0 right-0 pointer-events-none"
+            style={{ width: "260px", height: "130px" }}
+            viewBox="0 0 260 130"
+            fill="none"
+          >
+            <path
+              d="M260 130 Q180 60 80 100 Q20 120 0 130"
+              stroke="url(#redOrangeGrad)"
+              strokeWidth="3.5"
+              fill="none"
+              strokeLinecap="round"
+            />
+            <path
+              d="M260 110 Q190 50 100 85 Q40 105 10 115"
+              stroke="url(#redOrangeGrad)"
+              strokeWidth="2"
+              fill="none"
+              strokeLinecap="round"
+              opacity="0.5"
+            />
+            <defs>
+              <linearGradient
+                id="redOrangeGrad"
+                x1="0"
+                y1="0"
+                x2="260"
+                y2="0"
+                gradientUnits="userSpaceOnUse"
+              >
+                <stop offset="0%" stopColor="#ff4e00" stopOpacity="0" />
+                <stop offset="50%" stopColor="#ff4e00" stopOpacity="0.8" />
+                <stop offset="100%" stopColor="#ff9d00" stopOpacity="1" />
+              </linearGradient>
+            </defs>
+          </svg>
         </div>
       </div>
       {/* Tabs */}
@@ -584,8 +620,8 @@ export default function CompanyListPage() {
             onClick={() => setActiveTab(tab.id)}
             className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
               activeTab === tab.id
-                ? "bg-[#1E293B] text-white shadow-md scale-[1.02]"
-                : "bg-white border border-[#E2E8F0] text-[#64748B] hover:border-[#3B82F6] hover:-translate-y-0.5"
+                ? "bg-[#1a3a8f] text-white shadow-md scale-[1.02]"
+                : "bg-white border border-[#E2E8F0] text-[#64748B] hover:border-[#1a3a8f] hover:-translate-y-0.5"
             }`}
           >
             {tab.label}
@@ -611,7 +647,7 @@ export default function CompanyListPage() {
               placeholder="Search company or role..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/20 transition"
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-[#1a3a8f] focus:ring-2 focus:ring-[#1a3a8f]/20 transition"
             />
           </div>
 

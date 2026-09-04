@@ -186,7 +186,7 @@ export default function StudentProfilePage() {
         className="relative rounded-2xl sm:rounded-3xl overflow-hidden mb-5 sm:mb-6 border border-white/10"
         style={{
           background:
-            "linear-gradient(135deg, #3B82F6 0%, #60A5FA 60%, #818CF8 100%)",
+            "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
         }}
       >
         <div
@@ -206,7 +206,7 @@ export default function StudentProfilePage() {
             }}
           >
             <div
-              className="w-full h-full rounded-full bg-[#3B82F6] flex items-center justify-center text-2xl font-bold text-white"
+              className="w-full h-full rounded-full bg-[#1a3a8f] flex items-center justify-center text-2xl font-bold text-white"
               style={{ fontFamily: "Space Grotesk, sans-serif" }}
             >
               {student.name?.charAt(0)}
@@ -255,7 +255,7 @@ export default function StudentProfilePage() {
             ) : (
               <button
                 onClick={handleEdit}
-                className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white text-[#3B82F6] hover:bg-white/90 text-sm font-semibold transition-colors shadow-md"
+                className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white text-[#1a3a8f] hover:bg-white/90 text-sm font-semibold transition-colors shadow-md"
               >
                 <Edit3 size={14} /> Edit Profile
               </button>
@@ -267,6 +267,42 @@ export default function StudentProfilePage() {
             )}
           </div>
         </div>
+        <svg
+          className="absolute bottom-0 right-0 pointer-events-none"
+          style={{ width: "260px", height: "130px" }}
+          viewBox="0 0 260 130"
+          fill="none"
+        >
+          <path
+            d="M260 130 Q180 60 80 100 Q20 120 0 130"
+            stroke="url(#redOrangeGrad3)"
+            strokeWidth="3.5"
+            fill="none"
+            strokeLinecap="round"
+          />
+          <path
+            d="M260 110 Q190 50 100 85 Q40 105 10 115"
+            stroke="url(#redOrangeGrad3)"
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+            opacity="0.5"
+          />
+          <defs>
+            <linearGradient
+              id="redOrangeGrad3"
+              x1="0"
+              y1="0"
+              x2="260"
+              y2="0"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0%" stopColor="#ff4e00" stopOpacity="0" />
+              <stop offset="50%" stopColor="#ff4e00" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#ff9d00" stopOpacity="1" />
+            </linearGradient>
+          </defs>
+        </svg>
       </div>
 
       {/* Stats Row */}
@@ -276,7 +312,7 @@ export default function StudentProfilePage() {
             label: "CGPA Score",
             value: student.cgpa,
             color: "border-t-primary",
-            bg: "bg-blue-50",
+            bg: "bg-[#eef1fb]",
             icon: Target,
             iconColor: "text-primary",
           },
@@ -337,7 +373,7 @@ export default function StudentProfilePage() {
         <SectionCard
           icon={User}
           title="Personal Information"
-          iconBg="bg-blue-50 text-primary"
+          iconBg="bg-[#eef1fb] text-primary"
           borderColor="border-l-primary"
         >
           <Field
@@ -399,7 +435,7 @@ export default function StudentProfilePage() {
         <SectionCard
           icon={GraduationCap}
           title="Academic Information"
-          iconBg="bg-blue-50 text-primary"
+          iconBg="bg-[#eef1fb] text-primary"
           borderColor="border-l-[#22C55E]"
         >
           <Field
@@ -476,7 +512,7 @@ export default function StudentProfilePage() {
                   className="h-full rounded-full transition-all duration-1000"
                   style={{
                     width: `${cgpaPercent}%`,
-                    background: "linear-gradient(90deg, #3B82F6, #22C55E)",
+                    background: "linear-gradient(90deg, #1a3a8f, #22C55E)",
                   }}
                 />
               </div>
@@ -494,7 +530,7 @@ export default function StudentProfilePage() {
         <SectionCard
           icon={User}
           title="About & Links"
-          iconBg="bg-blue-50 text-primary"
+          iconBg="bg-[#eef1fb] text-primary"
           borderColor="border-l-primary"
         >
           <div className="mb-4">
@@ -612,7 +648,7 @@ export default function StudentProfilePage() {
           {skills.map((skill) => (
             <span
               key={skill}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-primary border border-blue-200"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-[#eef1fb] text-primary border border-blue-200"
             >
               {skill}
               {editing && (
@@ -661,7 +697,7 @@ export default function StudentProfilePage() {
         >
           {displayData?.resume ? (
             <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-[#eef1fb] border border-blue-100 flex items-center justify-center shrink-0">
                 <FileText size={18} className="text-primary" />
               </div>
               <div className="flex-1 min-w-0">
@@ -685,7 +721,7 @@ export default function StudentProfilePage() {
                 {student.resumeData && (
                   <button
                     onClick={() => setShowResumeBuilder(true)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-primary border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1"
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#eef1fb] text-primary border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1"
                   >
                     <Sparkles size={12} /> Edit
                   </button>
@@ -712,13 +748,13 @@ export default function StudentProfilePage() {
                 <button
                   onClick={() => resumeInputRef.current.click()}
                   disabled={uploadingResume}
-                  className="px-4 py-2 rounded-xl bg-[#3B82F6] text-white text-sm font-semibold hover:bg-[#2563EB] transition-colors disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl bg-[#1a3a8f] text-white text-sm font-semibold hover:bg-[#152d73] transition-colors disabled:opacity-50"
                 >
                   {uploadingResume ? "Uploading..." : "Upload My Resume"}
                 </button>
                 <button
                   onClick={() => setShowResumeBuilder(true)}
-                  className="px-4 py-2 rounded-xl bg-white text-[#3B82F6] border border-[#3B82F6] text-sm font-semibold hover:bg-blue-50 transition-colors flex items-center justify-center gap-1.5"
+                  className="px-4 py-2 rounded-xl bg-white text-[#1a3a8f] border border-[#1a3a8f] text-sm font-semibold hover:bg-[#eef1fb] transition-colors flex items-center justify-center gap-1.5"
                 >
                   <Sparkles size={14} /> Build My Resume
                 </button>
