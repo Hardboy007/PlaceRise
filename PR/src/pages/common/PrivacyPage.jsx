@@ -46,24 +46,27 @@ function PrivacyPolicyPage() {
   );
 
   useEffect(() => {
-  const handleScroll = () => {
-    const referenceLine = window.scrollY + window.innerHeight * 0.25;
-    let current = SECTIONS[0].id;
+    const handleScroll = () => {
+      const referenceLine = window.scrollY + window.innerHeight * 0.25;
+      let current = SECTIONS[0].id;
 
-    for (const s of SECTIONS) {
-      const node = sectionRefs.current.get(s.id);
-      if (!node) continue;
-      if (node.getBoundingClientRect().top + window.scrollY <= referenceLine) {
-        current = s.id;
+      for (const s of SECTIONS) {
+        const node = sectionRefs.current.get(s.id);
+        if (!node) continue;
+        if (
+          node.getBoundingClientRect().top + window.scrollY <=
+          referenceLine
+        ) {
+          current = s.id;
+        }
       }
-    }
-    setActiveSection(current);
-  };
+      setActiveSection(current);
+    };
 
-  handleScroll(); // set correct state on mount too
-  window.addEventListener("scroll", handleScroll, { passive: true });
-  return () => window.removeEventListener("scroll", handleScroll);
-}, []);
+    handleScroll(); // set correct state on mount too
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const scrollToSection = (id) => {
     sectionRefs.current.get(id)?.scrollIntoView({ behavior: "smooth" });
@@ -146,7 +149,11 @@ function PrivacyPolicyPage() {
 
         {/* Content */}
         <div>
-          <Section sectionRef={setSectionRef("collect")} id="collect" title="Information we collect">
+          <Section
+            sectionRef={setSectionRef("collect")}
+            id="collect"
+            title="Information we collect"
+          >
             <p>
               To create and run your account, we collect the details you provide
               during onboarding and use of the platform — your name, ERP ID,
@@ -161,7 +168,11 @@ function PrivacyPolicyPage() {
             </p>
           </Section>
 
-          <Section sectionRef={setSectionRef("use")} id="use" title="How we use it">
+          <Section
+            sectionRef={setSectionRef("use")}
+            id="use"
+            title="How we use it"
+          >
             <p>
               We use your information to match you with eligible job postings,
               keep your application status up to date, send you relevant
@@ -174,7 +185,11 @@ function PrivacyPolicyPage() {
             </p>
           </Section>
 
-          <Section sectionRef={setSectionRef("sharing")} id="sharing" title="Information sharing">
+          <Section
+            sectionRef={setSectionRef("sharing")}
+            id="sharing"
+            title="Information sharing"
+          >
             <p>
               Your academic and application details are visible to your
               placement coordinators, since they manage the drives you apply to.
@@ -189,7 +204,11 @@ function PrivacyPolicyPage() {
             </p>
           </Section>
 
-          <Section sectionRef={setSectionRef("storage")} id="storage" title="Data storage and security">
+          <Section
+            sectionRef={setSectionRef("storage")}
+            id="storage"
+            title="Data storage and security"
+          >
             <p>
               Your data is stored in a managed database with access restricted
               to authorized platform administrators and coordinators. We use
@@ -204,7 +223,11 @@ function PrivacyPolicyPage() {
             </p>
           </Section>
 
-          <Section sectionRef={setSectionRef("cookies")} id="cookies" title="Cookies and local storage">
+          <Section
+            sectionRef={setSectionRef("cookies")}
+            id="cookies"
+            title="Cookies and local storage"
+          >
             <p>
               PlaceRise uses your browser's local storage to keep you logged in
               and to remember light preferences (like your last-seen
@@ -213,7 +236,11 @@ function PrivacyPolicyPage() {
             </p>
           </Section>
 
-          <Section sectionRef={setSectionRef("rights")} id="rights" title="Your rights and choices">
+          <Section
+            sectionRef={setSectionRef("rights")}
+            id="rights"
+            title="Your rights and choices"
+          >
             <p>
               You can view and update most of your profile information directly
               from your dashboard. If you'd like a copy of your data, want a
@@ -223,7 +250,11 @@ function PrivacyPolicyPage() {
             </p>
           </Section>
 
-          <Section sectionRef={setSectionRef("retention")} id="retention" title="Data retention">
+          <Section
+            sectionRef={setSectionRef("retention")}
+            id="retention"
+            title="Data retention"
+          >
             <p>
               We retain your account and application data for as long as you're
               an active student on the platform, and for a reasonable period
@@ -233,7 +264,11 @@ function PrivacyPolicyPage() {
             </p>
           </Section>
 
-          <Section sectionRef={setSectionRef("changes")} id="changes" title="Changes to this policy">
+          <Section
+            sectionRef={setSectionRef("changes")}
+            id="changes"
+            title="Changes to this policy"
+          >
             <p>
               We may update this policy as the platform evolves. If we make
               material changes, we'll update the "Last updated" date above and,
@@ -241,7 +276,11 @@ function PrivacyPolicyPage() {
             </p>
           </Section>
 
-          <Section sectionRef={setSectionRef("contact")} id="contact" title="Contact us">
+          <Section
+            sectionRef={setSectionRef("contact")}
+            id="contact"
+            title="Contact us"
+          >
             <p>
               If you have questions about this policy or how your information is
               handled, reach out at{" "}

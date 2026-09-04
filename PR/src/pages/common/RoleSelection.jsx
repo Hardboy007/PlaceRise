@@ -1170,7 +1170,7 @@ function RoleSelectionPage() {
                 <button
                   onClick={handleLogin}
                   disabled={loading}
-                  className="w-full mt-4 py-3 rounded-xl bg-primary hover:bg-blue-600 text-white font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                  className="w-full mt-4 py-3 rounded-xl bg-primary hover:bg-[#15307a] text-white font-semibold transition-colors cursor-pointer disabled:opacity-50"
                   style={{ fontFamily: "Space Grotesk, sans-serif" }}
                 >
                   {loading ? "Logging in..." : "Login →"}

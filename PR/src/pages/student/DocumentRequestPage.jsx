@@ -144,7 +144,13 @@ const DocumentRequestPage = () => {
 
       <div className="relative max-w-4xl mx-auto space-y-6 sm:space-y-8">
         {/* Hero */}
-        <div className="animate-slide-up relative overflow-hidden rounded-2xl px-4 sm:px-6 py-7 sm:py-9 md:py-10 shadow-lg shadow-primary/20 bg-gradient-to-br from-primary via-primary to-accent">
+        <div
+          className="animate-slide-up relative overflow-hidden rounded-2xl px-4 sm:px-6 py-7 sm:py-9 md:py-10 shadow-lg shadow-primary/20"
+          style={{
+            background:
+              "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
+          }}
+        >
           <div
             className="pointer-events-none absolute -top-24 -right-24 w-72 h-72 rounded-full opacity-20 blur-3xl"
             style={{

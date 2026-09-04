@@ -193,9 +193,9 @@ function StudentOnboardingPage() {
       style={{ fontFamily: "Inter, sans-serif" }}
     >
       {/* Background Orbs */}
-      <div className="absolute top-4 right-0 w-40 h-40 sm:top-10 sm:right-10 sm:w-72 sm:h-72 rounded-full bg-blue-400/10 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-4 left-0 w-36 h-36 sm:bottom-10 sm:left-10 sm:w-56 sm:h-56 rounded-full bg-blue-300/10 blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 left-1/4 w-24 h-24 sm:w-40 sm:h-40 rounded-full bg-indigo-400/10 blur-2xl pointer-events-none" />
+      <div className="absolute top-4 right-0 w-40 h-40 sm:top-10 sm:right-10 sm:w-72 sm:h-72 rounded-full bg-[#1a3a8f]/10 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-4 left-0 w-36 h-36 sm:bottom-10 sm:left-10 sm:w-56 sm:h-56 rounded-full bg-[#c0392b]/8 blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/4 w-24 h-24 sm:w-40 sm:h-40 rounded-full bg-[#1a3a8f]/8 blur-2xl pointer-events-none" />
       {/* Logo */}
       <div className="mb-6 sm:mb-8 text-center">
         <span
@@ -213,14 +213,18 @@ function StudentOnboardingPage() {
       {/* Card */}
       <div className="w-full max-w-2xl bg-white rounded-2xl sm:rounded-3xl shadow-[0_10px_40px_-10px_rgba(15,23,42,0.15)] border border-[#CBD5E1] overflow-hidden">
         {/* Top Color Strip */}
-        <div className="h-1.5 w-full bg-linear-to-r from-[#1E293B] via-primary to-accent" />
+        <div className="flex h-[3px] w-full overflow-hidden">
+          <div style={{ backgroundColor: "#0d1b5e", flex: 1 }} />
+          <div style={{ backgroundColor: "#c0392b", flex: 1 }} />
+          <div style={{ backgroundColor: "#f59e0b", flex: 1 }} />
+        </div>
         {/* Progress Header */}
         <div className="px-4 pt-5 pb-4 sm:px-8 sm:pt-8 sm:pb-6 border-b border-background">
           <div className="flex items-center justify-between relative">
             {/* Line behind steps */}
             <div className="absolute left-0 right-0 top-4 sm:top-5 h-0.5 bg-[#E2E8F0] z-0" />
             <div
-              className="absolute left-0 top-4 sm:top-5 h-0.5 bg-primary z-0 transition-all duration-500"
+              className="absolute left-0 top-4 sm:top-5 h-0.5 bg-[#1a3a8f] z-0 transition-all duration-500"
               style={{ width: `${((currentStep - 1) / 2) * 100}%` }}
             />
 
@@ -631,7 +635,7 @@ function StudentOnboardingPage() {
                         .map((skill) => (
                           <span
                             key={skill}
-                            className="px-3 py-1 rounded-full text-xs font-medium bg-[#EFF6FF] text-primary border border-[#BFDBFE]"
+                            className="px-3 py-1 rounded-full text-xs font-medium bg-[#eef1f9] text-[#1a3a8f] border border-[#c7d2ee]"
                           >
                             {skill}
                           </span>
@@ -647,7 +651,7 @@ function StudentOnboardingPage() {
                   </label>
                   <label
                     className={`flex flex-col items-center justify-center w-full h-32 sm:h-36 rounded-2xl border-2 border-dashed cursor-pointer transition-all
-                    ${resumeFile ? "border-primary bg-[#EFF6FF]" : "border-[#CBD5E1] bg-[#F8FAFC] hover:border-primary hover:bg-[#EFF6FF]"}
+                    ${resumeFile ? "border-[#1a3a8f] bg-[#eef1f9]" : "border-[#CBD5E1] bg-[#F8FAFC] hover:border-[#1a3a8f] hover:bg-[#eef1f9]"}
                   `}
                   >
                     <input
@@ -726,8 +730,8 @@ function StudentOnboardingPage() {
             <button
               onClick={handleNext}
               disabled={!isCurrentStepValid()}
-              className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2.5 rounded-xl text-white text-sm font-medium transition-colors shadow-[0_4px_12px_rgba(59,130,246,0.3)]
-      ${isCurrentStepValid() ? "bg-primary hover:bg-blue-600" : "bg-[#CBD5E1] cursor-not-allowed"}`}
+              className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2.5 rounded-xl text-white text-sm font-medium transition-colors shadow-[0_4px_12px_rgba(26,58,143,0.3)]
+      ${isCurrentStepValid() ? "bg-[#1a3a8f] hover:bg-[#15307a]" : "bg-[#CBD5E1] cursor-not-allowed"}`}
             >
               Next
               <ChevronRight size={16} />
@@ -736,8 +740,8 @@ function StudentOnboardingPage() {
             <button
               onClick={handleSubmit}
               disabled={!isCurrentStepValid() || submitting}
-              className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2.5 rounded-xl text-white text-sm font-medium transition-colors shadow-[0_4px_12px_rgba(59,130,246,0.3)]
-      ${isCurrentStepValid() && !submitting ? "bg-primary hover:bg-blue-600" : "bg-[#CBD5E1] cursor-not-allowed"}`}
+              className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2.5 rounded-xl text-white text-sm font-medium transition-colors shadow-[0_4px_12px_rgba(26,58,143,0.3)]
+      ${isCurrentStepValid() && !submitting ? "bg-[#1a3a8f] hover:bg-[#15307a]" : "bg-[#CBD5E1] cursor-not-allowed"}`}
             >
               {submitting ? "Saving..." : "Complete Setup"}
               {!submitting && <Check size={16} />}
