@@ -20,7 +20,7 @@ import {
   FileText,
 } from "lucide-react";
 import { api } from "../../utils/api";
-
+ 
 const notificationOptions = [
   {
     key: "emailNotifications",

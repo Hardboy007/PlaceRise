@@ -320,7 +320,6 @@ export default function AnnouncementManagementPage() {
         targetSelections[school] = allCoursesOfSchool(schoolObj);
       }
     });
-
     setForm({
       title: ann.title || "",
       description: ann.description || "",

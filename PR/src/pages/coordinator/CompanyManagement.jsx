@@ -893,7 +893,6 @@ export default function CompanyManagementPage() {
     setJdErrors({});
     setShowJDModal(true);
   };
-
   const openEditJD = (company, job) => {
     setJdTargetCompany(company);
     setJdTargetJob(job);

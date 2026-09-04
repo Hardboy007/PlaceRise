@@ -213,7 +213,6 @@ export default function AttendancePage() {
         console.error("Failed to rotate QR token:", err);
       }
     };
-
     const qrInterval = setInterval(rotateQR, 20000);
     return () => clearInterval(qrInterval);
   }, [sessionId, isClosed]);

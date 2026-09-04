@@ -19,7 +19,7 @@ import {
   Download,
 } from "lucide-react";
 import CompanyLogo from "../../components/common/CompanyLogo";
-
+ 
 const STATUS_CONFIG = {
   Visited: {
     color: "#15803D",

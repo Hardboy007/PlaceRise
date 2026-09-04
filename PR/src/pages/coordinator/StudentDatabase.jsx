@@ -1143,7 +1143,7 @@ export default function StudentDatabasePage() {
           background:
             "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
         }}
-      >
+      > 
         <svg
           className="absolute bottom-0 right-0 pointer-events-none"
           style={{ width: "260px", height: "130px" }}
