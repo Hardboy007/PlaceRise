@@ -684,11 +684,6 @@ export default function AnnouncementManagementPage() {
                     </button>
                   </div>
                 </div>
-                <div className="flex h-[3px] -mx-0 mt-0 rounded-b-2xl overflow-hidden">
-                  <div style={{ backgroundColor: "#1a3a8f", flex: 1 }} />
-                  <div style={{ backgroundColor: "#c0392b", flex: 1 }} />
-                  <div style={{ backgroundColor: "#f59e0b", flex: 1 }} />
-                </div>
               </div>
             );
           })}

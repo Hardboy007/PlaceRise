@@ -221,15 +221,15 @@ function DriveFilterTabs({ value, onChange, counts }) {
     { key: "All", label: "All", count: counts.all },
   ];
   return (
-    <div className="flex items-center gap-1 bg-white border border-[#E2E8F0] rounded-xl p-1 w-fit">
+    <div className="flex items-center gap-1 bg-white/10 border border-white/20 rounded-xl p-1 w-fit">
       {options.map((opt) => (
         <button
           key={opt.key}
           onClick={() => onChange(opt.key)}
           className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
             value === opt.key
-              ? "bg-[#1a3a8f] text-white"
-              : "text-[#64748B] hover:text-[#0F172A]"
+              ? "bg-white text-[#1a3a8f]"
+              : "text-white/75 hover:text-white"
           }`}
         >
           {opt.label} ({opt.count})
@@ -291,23 +291,26 @@ function JDBanner({
                 <select
                   value={selectedJobId || ""}
                   onChange={(e) => setSelectedJobId(e.target.value)}
-                  className="text-sm font-bold border border-[#B8C6E3] rounded-lg px-2 py-1 bg-white focus:outline-none focus:border-[#1a3a8f] w-full sm:w-auto sm:max-w-xs truncate"
-                  style={{ color: "#0F172A" }}
+                  className="text-sm font-bold border border-white/25 rounded-lg px-2 py-1 bg-white/10 text-white focus:outline-none focus:border-white/50 w-full sm:w-auto sm:max-w-xs truncate"
                 >
                   {jobs.map((j) => (
-                    <option key={j._id} value={j._id}>
+                    <option
+                      key={j._id}
+                      value={j._id}
+                      style={{ color: "#0F172A", backgroundColor: "#fff" }}
+                    >
                       {j.companyId?.name || "Unknown"} — {j.role}
                       {isJobClosed(j) ? " (Closed)" : ""}
                     </option>
                   ))}
                 </select>
                 {applicationsClosed && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/15 text-white/75">
                     <Lock size={10} /> Applications Closed
                   </span>
                 )}
                 {resultsFinalized && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/15 text-white">
                     <ShieldCheck size={10} /> Results Finalized
                   </span>
                 )}
@@ -344,20 +347,18 @@ function JDBanner({
           ].map(({ label, value, icon }) => (
             <div
               key={label}
-              className="rounded-xl px-3 py-1.5 border flex items-start gap-1.5 shrink-0"
-              style={{ backgroundColor: "#fff", borderColor: "#B8C6E3" }}
+              className="rounded-xl px-3 py-1.5 border border-white/25 bg-white/10 flex items-start gap-1.5 shrink-0"
             >
               <span className="mt-0.5" style={{ color: "#1a3a8f" }}>
                 {icon}
               </span>
               <div>
                 <p
-                  className="text-[10px] font-semibold uppercase tracking-wide"
-                  style={{ color: "#64748B" }}
+                  className="text-[10px] font-semibold uppercase tracking-wide text-white/65"
                 >
                   {label}
                 </p>
-                <p className="text-xs font-bold" style={{ color: "#1a3a8f" }}>
+                <p className="text-xs font-bold text-white">
                   {value}
                 </p>
               </div>
@@ -366,24 +367,21 @@ function JDBanner({
 
           {/* Eligible courses - own row, wraps as individual pills */}
           <div
-            className="rounded-xl px-3 py-1.5 border flex items-start gap-1.5 flex-1 min-w-[240px]"
-            style={{ backgroundColor: "#fff", borderColor: "#B8C6E3" }}
+            className="rounded-xl px-3 py-1.5 border border-white/25 bg-white/10 flex items-start gap-1.5 flex-1 min-w-[240px]"
           >
             <span className="mt-0.5 shrink-0" style={{ color: "#f59e0b" }}>
               <GraduationCap size={12} />
             </span>
             <div className="min-w-0">
               <p
-                className="text-[10px] font-semibold uppercase tracking-wide mb-1"
-                style={{ color: "#64748B" }}
+                className="text-[10px] font-semibold uppercase tracking-wide mb-1 text-white/65"
               >
                 Eligible Courses
               </p>
               <div className="flex flex-wrap gap-1">
                 {branchList.length === 0 ? (
                   <span
-                    className="text-xs font-bold"
-                    style={{ color: "#1a3a8f" }}
+                    className="text-xs font-bold text-white"
                   >
                     —
                   </span>
@@ -391,8 +389,7 @@ function JDBanner({
                   branchList.map((b) => (
                     <span
                       key={b}
-                      className="text-[11px] font-bold px-2 py-0.5 rounded-full"
-                      style={{ color: "#1a3a8f", backgroundColor: "#EFF3FA" }}
+                      className="text-[11px] font-bold px-2 py-0.5 rounded-full text-white bg-white/15"
                     >
                       {b}
                     </span>
@@ -412,8 +409,8 @@ function JDBanner({
               finalizing ? "opacity-60 cursor-not-allowed" : ""
             } ${
               resultsFinalized
-                ? "bg-white border-[#BFDBFE] text-[#64748B] hover:text-[#0F172A]"
-                : "bg-[#0F172A] border-[#0F172A] text-white hover:opacity-90"
+                ? "bg-white/10 border-white/25 text-white/75 hover:text-white"
+                : "bg-emerald-500 border-emerald-300 text-white hover:bg-emerald-600"
             }`}
           >
             {resultsFinalized ? (
