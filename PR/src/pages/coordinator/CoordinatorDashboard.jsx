@@ -176,7 +176,7 @@ export default function CoordinatorDashboard() {
           style={{
             background: `radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
                          radial-gradient(circle at 80% 20%, rgba(255,255,255,0.05) 0%, transparent 40%)`,
-          }} 
+          }}
         />
         <div className="relative z-10 p-4 sm:p-8">
           {/* FIXED: this row used to be a single `flex justify-between` row.
