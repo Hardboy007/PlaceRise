@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import { api } from "../../utils/api";
 import universityStructure from "../../data/universityStructure";
-
 // Flatten universityStructure once into a course -> school lookup,
 // so we can group/roll up NOC/LOR requests by school without
 // re-walking the nested structure on every render.

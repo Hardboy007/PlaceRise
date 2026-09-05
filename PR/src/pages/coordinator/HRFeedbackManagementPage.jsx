@@ -46,7 +46,6 @@ function StarRow({ value }) {
     </div>
   );
 }
-
 function FeedbackCard({ item }) {
   const isIndividual = item.feedbackType === "Individual";
   return (

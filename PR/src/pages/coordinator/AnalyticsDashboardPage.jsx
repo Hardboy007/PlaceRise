@@ -426,10 +426,28 @@ const AnalyticsDashboardPage = () => {
           fill="none"
           aria-hidden="true"
         >
-          <path d="M260 130 Q180 60 80 100 Q20 120 0 130" stroke="url(#analyticsRedOrangeGrad)" strokeWidth="3.5" strokeLinecap="round" />
-          <path d="M260 110 Q190 50 100 85 Q40 105 10 115" stroke="url(#analyticsRedOrangeGrad)" strokeWidth="2" strokeLinecap="round" opacity="0.5" />
+          <path
+            d="M260 130 Q180 60 80 100 Q20 120 0 130"
+            stroke="url(#analyticsRedOrangeGrad)"
+            strokeWidth="3.5"
+            strokeLinecap="round"
+          />
+          <path
+            d="M260 110 Q190 50 100 85 Q40 105 10 115"
+            stroke="url(#analyticsRedOrangeGrad)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            opacity="0.5"
+          />
           <defs>
-            <linearGradient id="analyticsRedOrangeGrad" x1="0" y1="0" x2="260" y2="0" gradientUnits="userSpaceOnUse">
+            <linearGradient
+              id="analyticsRedOrangeGrad"
+              x1="0"
+              y1="0"
+              x2="260"
+              y2="0"
+              gradientUnits="userSpaceOnUse"
+            >
               <stop offset="0%" stopColor="#ff4e00" stopOpacity="0" />
               <stop offset="50%" stopColor="#ff4e00" stopOpacity="0.8" />
               <stop offset="100%" stopColor="#ff9d00" stopOpacity="1" />
