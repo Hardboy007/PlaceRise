@@ -305,7 +305,7 @@ export default function AnnouncementManagementPage() {
       minute: dt.minute,
       period: dt.period,
     };
-
+ 
     // Rebuild the { school: [courses] } selection map from whatever the
     // server stored. Legacy / whole-school entries (no explicit course
     // list) are expanded to every course under that school so the UI

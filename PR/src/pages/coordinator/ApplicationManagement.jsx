@@ -1940,7 +1940,7 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
       )}
     </div>
   );
-}
+} 
 export default function ApplicationsManagementPage() {
   const [activeTab, setActiveTab] = useState("eligible");
   const [jobs, setJobs] = useState([]);
