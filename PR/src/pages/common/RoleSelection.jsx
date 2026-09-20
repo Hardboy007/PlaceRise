@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -201,6 +201,24 @@ function RoleSelectionPage() {
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotMessage, setForgotMessage] = useState("");
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showIOSGuide, setShowIOSGuide] = useState(false);
+
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") setDeferredPrompt(null);
+  };
 
   const handleRoleSelect = (role) => {
     setModalRole(role);
@@ -1030,6 +1048,89 @@ function RoleSelectionPage() {
                 </p>
               </div>
             </div>
+          </div>
+        </section>
+        {/* PWA Install Banner */}
+        <section className="relative z-10 max-w-4xl mx-auto px-6 mt-6 mb-2">
+          <div
+            className="sm:hidden relative overflow-hidden rounded-2xl px-5 py-4 flex flex-wrap items-center gap-4"
+            style={{
+              background:
+                "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 80%, #1e2d8a 100%)",
+            }}
+          >
+            {/* Glow orb */}
+            <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+
+            {/* App Icon */}
+            <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-lg">
+              <img
+                src="/images/logo-transparent.png"
+                alt="PlaceRise"
+                className="w-9 h-9 object-contain"
+              />
+            </div>
+
+            {/* Text */}
+            <div className="flex-1 min-w-0">
+              <p
+                className="text-white font-bold text-sm"
+                style={{ fontFamily: "Space Grotesk, sans-serif" }}
+              >
+                Get the App Experience
+              </p>
+              <p className="text-white/60 text-xs mt-0.5 leading-snug">
+                Tap{" "}
+                <span className="text-white font-semibold">
+                  ⋮ → Add to Home Screen
+                </span>{" "}
+                in your browser
+              </p>
+            </div>
+
+            {/* CTA chip */}
+            <div
+              onClick={() => {
+                if (deferredPrompt) {
+                  handleInstall();
+                } else {
+                  setShowIOSGuide(true);
+                }
+              }}
+              className="shrink-0 flex flex-col items-center gap-1 cursor-pointer"
+            >
+              <div className="px-3 py-1.5 rounded-xl bg-white/15 border border-white/20 text-white text-[11px] font-semibold whitespace-nowrap active:scale-95 transition-transform">
+                {deferredPrompt ? "Install Free" : "See How ↓"}
+              </div>
+              <span className="text-white/40 text-[9px] uppercase tracking-widest">
+                No App Store
+              </span>
+            </div>
+
+            {showIOSGuide && (
+              <div className="mt-3 w-full rounded-xl bg-white/10 border border-white/20 px-4 py-3 flex items-start gap-3">
+                <span className="text-lg shrink-0">📱</span>
+                <div>
+                  <p className="text-white text-xs font-semibold mb-1">
+                    Install on iPhone
+                  </p>
+                  <p className="text-white/60 text-[11px] leading-relaxed">
+                    Open in Safari → tap the{" "}
+                    <span className="text-white font-semibold">Share</span> icon
+                    (□↑) at the bottom → select{" "}
+                    <span className="text-white font-semibold">
+                      "Add to Home Screen"
+                    </span>
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowIOSGuide(false)}
+                  className="text-white/40 text-xs shrink-0"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
           </div>
         </section>
         {/* Footer */}

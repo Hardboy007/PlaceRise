@@ -647,7 +647,7 @@ function AboutPage() {
                       backgroundColor: D.bgPanel,
                       border: `1px solid ${D.border}`,
                     }}
-                    className="relative rounded-2xl p-10 overflow-hidden h-full max-w-2xl mx-auto"
+                    className="relative rounded-2xl p-6 sm:p-10 overflow-hidden h-full max-w-2xl mx-auto"
                   >
                     <span
                       style={{
@@ -703,7 +703,7 @@ function AboutPage() {
                           fontFamily: SERIF,
                           color: D.textMuted,
                           fontStyle: "italic",
-                          fontSize: "21px",
+                          fontSize: "18px",
                           lineHeight: 1.8,
                         }}
                       >
@@ -754,13 +754,13 @@ function AboutPage() {
                 </div>
 
                 <div className="max-w-5xl mx-auto w-full grid gap-8 md:grid-cols-2">
-                  {/* Dhjvir — Mentor */}
+                  {/* Dhajvir — Mentor */}
                   <div
                     style={{
                       backgroundColor: D.bgPanel,
                       border: `1px solid ${D.borderStrong}`,
                     }}
-                    className="relative rounded-2xl p-10 overflow-hidden flex items-center gap-8"
+                    className="relative rounded-2xl p-8 overflow-hidden flex flex-col sm:flex-row items-center gap-6"
                   >
                     <span
                       style={{
@@ -829,7 +829,7 @@ function AboutPage() {
                       backgroundColor: D.bgPanel,
                       border: `1px solid ${D.borderStrong}`,
                     }}
-                    className="relative rounded-2xl p-10 overflow-hidden flex items-center gap-8"
+                    className="relative rounded-2xl p-8 overflow-hidden flex flex-col sm:flex-row items-center gap-6"
                   >
                     <span
                       style={{
