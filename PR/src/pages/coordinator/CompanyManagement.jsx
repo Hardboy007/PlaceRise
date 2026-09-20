@@ -756,6 +756,7 @@ export default function CompanyManagementPage() {
   };
 
   useEffect(() => {
+    document.title = "Manage Companies — PlaceRise"
     fetchData();
   }, []);
 

@@ -207,6 +207,7 @@ export default function StudentApplication() {
   };
 
   useEffect(() => {
+    document.title = "Your Applications — PlaceRise"
     fetchApplications();
 
     // FIXED: live update — poll every 6s in the background (no loading

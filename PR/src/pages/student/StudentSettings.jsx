@@ -356,6 +356,7 @@ export default function StudentSettingsPage() {
   }, [activeTab, loading]);
 
   useEffect(() => {
+    document.title = "Settings"
     const fetchSettings = async () => {
       try {
         const student = await api.get("/students/me");

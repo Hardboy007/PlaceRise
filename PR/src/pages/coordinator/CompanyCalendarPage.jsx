@@ -507,6 +507,7 @@ export default function CompanyCalendarPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    document.title = "Placement Calendar"
     const fetchJobs = async () => {
       const data = await api.get("/companies/jobs");
       const valid = (Array.isArray(data) ? data : []).filter(

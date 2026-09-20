@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 // ── TODO: replace with your real support contact details ──
@@ -162,6 +162,9 @@ export default function SupportPage() {
     window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`;
   };
 
+  useEffect(() => {
+    document.title = "Support Center — PlaceRise";
+  }, []);
   return (
     <div
       className="min-h-screen bg-background relative overflow-hidden"

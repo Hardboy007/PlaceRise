@@ -607,6 +607,7 @@ export default function NOCManagementPage() {
   rejectTargetRef.current = rejectTarget;
 
   useEffect(() => {
+    document.title = "Manage NOCs & LORs"
     fetchRequests(true);
 
     // Live polling every 6 seconds so new student requests show up

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Lock, Key, Check, Eye, EyeOff } from "lucide-react";
 import { api } from "../../utils/api";
@@ -61,6 +61,10 @@ export default function ChangePasswordPage() {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+  document.title = "Set your own password — PlaceRise"
+}, [])
 
   return (
     <div

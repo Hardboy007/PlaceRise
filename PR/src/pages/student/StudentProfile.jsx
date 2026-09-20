@@ -83,6 +83,7 @@ export default function StudentProfilePage() {
   const [showResumeBuilder, setShowResumeBuilder] = useState(false);
 
   useEffect(() => {
+    document.title = "Your Profile — PlaceRise"
     const fetchProfile = async () => {
       const storedStudent = JSON.parse(localStorage.getItem("student") || "{}");
       const data = await api.get("/students/me");

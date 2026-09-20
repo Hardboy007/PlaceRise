@@ -693,6 +693,7 @@ export default function PlacementDashboard() {
   }, []);
 
   useEffect(() => {
+    document.title = "Dashboard — PlaceRise"
     fetchAll();
     const interval = setInterval(() => {
       if (!document.hidden) fetchAll();

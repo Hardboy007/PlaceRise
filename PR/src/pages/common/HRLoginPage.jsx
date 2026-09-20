@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const SparklesIcon = () => (
@@ -63,6 +63,10 @@ function HRLoginPage() {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+  document.title = "HR Login — PlaceRise"
+}, [])
 
   return (
     <div

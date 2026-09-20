@@ -272,6 +272,7 @@ export default function CoordinatorProfile() {
   const [signatureUploading, setSignatureUploading] = useState(false);
   const [signatureUrl, setSignatureUrl] = useState("");
   useEffect(() => {
+    document.title = "Coordinator's Profile — PlaceRise"
     const fetchProfile = async () => {
       try {
         const coordData = await api.get("/coordinators/me");

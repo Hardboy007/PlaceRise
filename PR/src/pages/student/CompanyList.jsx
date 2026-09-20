@@ -430,6 +430,7 @@ export default function CompanyListPage() {
   const [activeTab, setActiveTab] = useState("all"); // "all" | "saved"
 
   useEffect(() => {
+    document.title = "Companies List — PlaceRise"
     const fetchData = async () => {
       const [jobsData, savedData] = await Promise.all([
         api.get("/companies/jobs"),

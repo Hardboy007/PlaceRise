@@ -211,6 +211,7 @@ const AnalyticsDashboardPage = () => {
   };
 
   useEffect(() => {
+    document.title = "Analytics Dashboard"
     fetchAnalytics(appliedFilters);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

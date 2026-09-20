@@ -287,6 +287,7 @@ export default function AnnouncementManagementPage() {
   }, []);
 
   useEffect(() => {
+    document.title = "Announcements — PlaceRise"
     fetchAnnouncements();
   }, [fetchAnnouncements]);
 

@@ -287,6 +287,7 @@ export default function HRFeedbackManagementPage() {
   // the moment it comes in — without this, a feedback submitted after the
   // page was loaded would never appear until a manual reload.
   useEffect(() => {
+    document.title = "Manage HR Feedbacks"
     fetchData();
     const interval = setInterval(() => {
       if (!document.hidden) fetchData();

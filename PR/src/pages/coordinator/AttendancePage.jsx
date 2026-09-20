@@ -64,6 +64,7 @@ export default function AttendancePage() {
 
   // ── Fetch active jobs for the dropdown ──
   useEffect(() => {
+    document.title = "Attendance — PlaceRise"
     const fetchJobs = async () => {
       try {
         setJobsLoading(true);

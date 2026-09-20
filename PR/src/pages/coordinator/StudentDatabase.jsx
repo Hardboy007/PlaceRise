@@ -981,6 +981,7 @@ export default function StudentDatabasePage() {
   const [semester, setSemester] = useState("All");
 
   useEffect(() => {
+    document.title = "Manage Students Database — PlaceRise"
     const fetchStudents = async () => {
       const data = await api.get("/students");
       setStudents(Array.isArray(data) ? data : []);

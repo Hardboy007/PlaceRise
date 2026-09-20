@@ -65,6 +65,7 @@ export default function HRFeedbackFormPage() {
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
+    document.title = "HR Feedback — PlaceRise"
     const token = sessionStorage.getItem("hrGuestToken");
     const company = sessionStorage.getItem("hrGuestCompany");
     if (!token || !company) {

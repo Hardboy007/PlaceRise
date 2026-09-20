@@ -46,6 +46,7 @@ function PrivacyPolicyPage() {
   );
 
   useEffect(() => {
+    document.title = "Privacy Policy — PlaceRise"
     const handleScroll = () => {
       const referenceLine = window.scrollY + window.innerHeight * 0.25;
       let current = SECTIONS[0].id;

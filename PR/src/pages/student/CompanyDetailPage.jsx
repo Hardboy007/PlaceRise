@@ -45,6 +45,7 @@ export default function CompanyDetailPage() {
   };
 
   useEffect(() => {
+    document.title = "Job Details"
     const fetchJob = async () => {
       try {
         const [data, studentData] = await Promise.all([

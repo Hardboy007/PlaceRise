@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Search,
   Plus,
@@ -19,7 +19,7 @@ import {
   Download,
 } from "lucide-react";
 import CompanyLogo from "../../components/common/CompanyLogo";
- 
+
 const STATUS_CONFIG = {
   Visited: {
     color: "#15803D",
@@ -408,6 +408,9 @@ export default function RecruiterCRMPage() {
     setOpenMenu(null);
   };
 
+  useEffect(() => {
+    document.title = "Recruiter CRM — PlaceRise";
+  }, []);
   return (
     <div
       className="max-w-7xl mx-auto"

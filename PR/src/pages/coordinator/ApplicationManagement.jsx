@@ -1973,6 +1973,7 @@ export default function ApplicationsManagementPage() {
   };
 
   useEffect(() => {
+    document.title = "Applications Management"
     const init = async () => {
       await fetchData();
       setLoading(false);

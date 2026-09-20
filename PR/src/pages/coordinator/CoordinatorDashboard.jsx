@@ -56,6 +56,7 @@ export default function CoordinatorDashboard() {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
+    document.title = "Coordinator Dashboard"
     const timer = setInterval(() => setNow(new Date()), 60 * 1000);
     return () => clearInterval(timer);
   }, []);

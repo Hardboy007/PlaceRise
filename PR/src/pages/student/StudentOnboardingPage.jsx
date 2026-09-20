@@ -47,6 +47,7 @@ function StudentOnboardingPage() {
   });
 
   useEffect(() => {
+    document.title = "Fill your details — PlaceRise"
     const fetchStudentData = async () => {
       try {
         const data = await api.get("/students/me");

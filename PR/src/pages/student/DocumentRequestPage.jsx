@@ -78,6 +78,7 @@ const DocumentRequestPage = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    document.title = "Request your NOC/LOR"
     const fetchRequests = async () => {
       try {
         setLoading(true);

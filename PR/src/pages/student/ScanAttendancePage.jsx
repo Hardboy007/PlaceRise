@@ -31,6 +31,7 @@ const ScanAttendancePage = () => {
   };
 
   useEffect(() => {
+    document.title = "Mark your attendance — PlaceRise"
     if (!token) return;
 
     const savedToken = localStorage.getItem("token");

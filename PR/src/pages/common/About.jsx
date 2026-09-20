@@ -213,6 +213,7 @@ function AboutPage() {
 
   // Inject the two display/body faces once, remove on unmount.
   useEffect(() => {
+    document.title = "About — PlaceRise"
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href =
