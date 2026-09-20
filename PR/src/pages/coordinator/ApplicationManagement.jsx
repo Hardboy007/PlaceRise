@@ -1687,7 +1687,7 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
   const handleMouseDown = (appId, e) => {
     if (e.button !== 0) return;
     e.preventDefault();
-    setIsDragging(true);
+    setIsDragging(false);
     setDragStartId(appId);
     setSelectedAppIds((prev) => {
       const next = new Set(prev);
@@ -1699,6 +1699,7 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
 
   const handleMouseEnter = (appId) => {
     if (!isDragging) return;
+    setIsDragging(true);  // sirf tab true ho jab actually drag hua
     setSelectedAppIds((prev) => {
       const next = new Set(prev);
       next.add(appId);
@@ -2412,7 +2413,10 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
                 key={app._id}
                 onMouseDown={(e) => !readOnly && handleMouseDown(app._id, e)}
                 onMouseEnter={() => !readOnly && handleMouseEnter(app._id)}
-                onClick={() => setSelectedStudent(student)}
+                onMouseUp={(e) => {
+                  if (isDragging && dragStartId !== app._id) return;
+                  setSelectedStudent(student);
+                }}
                 style={{
                   display: "grid",
                   gridTemplateColumns: cols,
@@ -2430,7 +2434,7 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
               >
                 {/* Checkbox */}
                 <div
-                  onClick={(e) => {
+                  onMouseDown={(e) => {
                     e.stopPropagation();
                     if (readOnly) return;
                     setSelectedAppIds((prev) => {
