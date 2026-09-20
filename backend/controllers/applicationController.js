@@ -967,6 +967,310 @@ const bulkApply = async (req, res) => {
   }
 };
 
+// Round ka status update karo — single application
+const updateRoundStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { roundIndex, roundName, status } = req.body;
+
+    const validStatuses = ["Pending", "Cleared", "Eliminated"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid round status" });
+    }
+
+    const application = await Application.findById(id);
+    if (!application) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    const existingRoundIdx = application.roundStatuses.findIndex(
+      (r) => r.roundIndex === roundIndex,
+    );
+
+    if (existingRoundIdx !== -1) {
+      application.roundStatuses[existingRoundIdx].status = status;
+      application.roundStatuses[existingRoundIdx].updatedAt = new Date();
+    } else {
+      application.roundStatuses.push({
+        roundIndex,
+        roundName,
+        status,
+        updatedAt: new Date(),
+      });
+    }
+
+    const job = await JobPosting.findById(application.jobId).populate(
+      "companyId",
+      "name",
+    );
+    const totalRounds = job?.selectionProcess?.length || 0;
+
+    const hasEliminated = application.roundStatuses.some(
+      (r) => r.status === "Eliminated",
+    );
+    const clearedRounds = application.roundStatuses.filter(
+      (r) => r.status === "Cleared",
+    );
+    const lastRoundCleared =
+      totalRounds > 0 &&
+      clearedRounds.some((r) => r.roundIndex === totalRounds - 1);
+
+    if (hasEliminated) {
+      application.status = "Rejected";
+    } else if (lastRoundCleared) {
+      application.status = "Selected";
+    } else if (clearedRounds.length > 0) {
+      application.status = "Shortlisted";
+    }
+
+    await application.save();
+
+    // PlacementStatus update
+    if (application.status === "Selected") {
+      await Student.findByIdAndUpdate(application.studentId, {
+        placementStatus: "Placed",
+      });
+    } else if (application.status === "Rejected") {
+      const anySelected = await Application.findOne({
+        studentId: application.studentId,
+        status: "Selected",
+        _id: { $ne: id },
+      });
+      if (!anySelected) {
+        await Student.findByIdAndUpdate(application.studentId, {
+          placementStatus: "Not Placed",
+        });
+      }
+    }
+
+    // Notification — har Cleared pe aur Eliminated pe
+    if (status === "Cleared" || status === "Eliminated") {
+      setImmediate(async () => {
+        try {
+          const student = await Student.findById(
+            application.studentId,
+          ).populate("userId", "email");
+          if (!student?.userId) return;
+
+          const companyName = job?.companyId?.name || "Company";
+          const role = job?.role || "Role";
+
+          const isEliminated = status === "Eliminated";
+          const isSelected = lastRoundCleared;
+
+          const title = isSelected
+            ? `🎉 Congratulations! Selected at ${companyName}`
+            : isEliminated
+              ? `❌ Not selected — ${companyName} Round ${roundIndex + 1}`
+              : `✅ Round ${roundIndex + 1} Cleared — ${companyName}`;
+
+          const message = isSelected
+            ? `You have been selected for ${role} at ${companyName}. Congratulations!`
+            : isEliminated
+              ? `You were not selected in Round ${roundIndex + 1} (${roundName}) for ${role} at ${companyName}.`
+              : `You have cleared Round ${roundIndex + 1} (${roundName}) for ${role} at ${companyName}. Next round details will follow.`;
+
+          await Notification.create({
+            userId: student.userId._id,
+            type: "STATUS_CHANGED",
+            title,
+            message,
+            link: "/student/applications",
+            isRead: false,
+          });
+
+          if (
+            student.notificationPreferences?.emailNotifications === false ||
+            student.notificationPreferences?.applicationUpdates === false
+          ) {
+            return;
+          }
+
+          const bgColor = isSelected
+            ? "#F0FDF4"
+            : isEliminated
+              ? "#FEF2F2"
+              : "#EFF6FF";
+          const headingColor = isSelected
+            ? "#22C55E"
+            : isEliminated
+              ? "#EF4444"
+              : "#3B82F6";
+
+          await sendEmail({
+            to: student.userId.email,
+            subject: `${title} | PlaceRise`,
+            html: `
+              <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+                <div style="background: linear-gradient(135deg, #1D4ED8, #3B82F6); border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px;">
+                  <img
+                    src="https://res.cloudinary.com/saviaykm/image/upload/v1783784651/WhatsApp_Image_2026-07-11_at_18.55.23_krac4c.jpg"
+                    alt="PlaceRise"
+                    style="height: 40px; border-radius: 8px;"
+                  />
+                  <p style="color: white; font-size: 12px; margin: 8px 0 0 0; opacity: 0.85; font-weight: 600; letter-spacing: 1px;">
+                    PLACERISE — Connect. Grow. Succeed.
+                  </p>
+                </div>
+                <h2 style="color: #1E293B;">Hi ${student.name || "Student"},</h2>
+                <div style="background: ${bgColor}; border-radius: 12px; padding: 20px; margin: 20px 0;">
+                  <h3 style="color: ${headingColor};">${title}</h3>
+                  <p style="color: #475569;">${message}</p>
+                  <table style="width: 100%; border-collapse: collapse; font-size: 14px; color: #1E293B; margin-top: 12px;">
+                    <tr><td style="padding: 6px 0; color: #64748B; width: 40%;">Company</td><td style="padding: 6px 0; font-weight: 600;">${companyName}</td></tr>
+                    <tr><td style="padding: 6px 0; color: #64748B;">Role</td><td style="padding: 6px 0; font-weight: 600;">${role}</td></tr>
+                    <tr><td style="padding: 6px 0; color: #64748B;">Round</td><td style="padding: 6px 0; font-weight: 600;">Round ${roundIndex + 1} — ${roundName}</td></tr>
+                    <tr><td style="padding: 6px 0; color: #64748B;">Status</td><td style="padding: 6px 0; font-weight: 600; color: ${headingColor};">${isSelected ? "Selected 🎉" : isEliminated ? "Eliminated" : "Cleared ✅"}</td></tr>
+                  </table>
+                </div>
+                <a href="https://placerise.vercel.app/student/applications"
+                   style="display: inline-block; background: #3B82F6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                  View Applications
+                </a>
+                <p style="color: #94A3B8; font-size: 12px; margin-top: 24px; border-top: 1px solid #F1F5F9; padding-top: 16px;">
+                  PlaceRise | Dev Bhoomi Uttarakhand University
+                </p>
+              </div>
+            `,
+          });
+
+          // Parent email — sirf Selected ya Eliminated pe
+          if ((isSelected || isEliminated) && student.parentEmail) {
+            const parentSubject = isSelected
+              ? `PlaceRise — Great News! ${student.name} has been Selected at ${companyName}`
+              : `PlaceRise — Application Update for ${student.name} — ${companyName}`;
+
+            const parentIntro = isSelected
+              ? `We are delighted to inform you that <strong>${student.name}</strong> has been <strong>selected</strong> by <strong>${companyName}</strong> for the role of <strong>${role}</strong>.`
+              : `We would like to inform you that <strong>${student.name}</strong> was not selected in Round ${roundIndex + 1} (${roundName}) for <strong>${role}</strong> at <strong>${companyName}</strong>.`;
+
+            await sendEmail({
+              to: student.parentEmail,
+              subject: parentSubject,
+              html: `
+                <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+                  <div style="background: linear-gradient(135deg, #1D4ED8, #3B82F6); border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px;">
+                    <img
+                      src="https://res.cloudinary.com/saviaykm/image/upload/v1783784651/WhatsApp_Image_2026-07-11_at_18.55.23_krac4c.jpg"
+                      alt="PlaceRise"
+                      style="height: 40px; border-radius: 8px;"
+                    />
+                    <p style="color: white; font-size: 12px; margin: 8px 0 0 0; opacity: 0.85; font-weight: 600; letter-spacing: 1px;">
+                      PLACERISE — Connect. Grow. Succeed.
+                    </p>
+                  </div>
+                  <h2 style="color: #1E293B;">Dear Parent / Guardian,</h2>
+                  <p style="color: #475569; font-size: 15px; line-height: 1.6;">${parentIntro}</p>
+                  <p style="color: #94A3B8; font-size: 12px; margin-top: 32px; border-top: 1px solid #F1F5F9; padding-top: 16px;">
+                    This is an automated notification from PlaceRise · Dev Bhoomi Uttarakhand University.<br/>
+                    Please do not reply to this email.
+                  </p>
+                </div>
+              `,
+            });
+          }
+        } catch (err) {
+          console.error("Round status notification error:", err.message);
+        }
+      });
+    }
+
+    res.json(application);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Bulk round status update — drag select ya Excel import ke baad
+const bulkUpdateRoundStatus = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    const { applicationIds, roundIndex, roundName, status } = req.body;
+
+    const validStatuses = ["Pending", "Cleared", "Eliminated"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    if (!Array.isArray(applicationIds) || applicationIds.length === 0) {
+      return res.status(400).json({ message: "No applications selected" });
+    }
+
+    const job = await JobPosting.findById(jobId).populate("companyId", "name");
+    const totalRounds = job?.selectionProcess?.length || 0;
+
+    const applications = await Application.find({
+      _id: { $in: applicationIds },
+      jobId,
+    });
+
+    await Promise.all(
+      applications.map(async (application) => {
+        const existingRoundIdx = application.roundStatuses.findIndex(
+          (r) => r.roundIndex === roundIndex,
+        );
+
+        if (existingRoundIdx !== -1) {
+          application.roundStatuses[existingRoundIdx].status = status;
+          application.roundStatuses[existingRoundIdx].updatedAt = new Date();
+        } else {
+          application.roundStatuses.push({
+            roundIndex,
+            roundName,
+            status,
+            updatedAt: new Date(),
+          });
+        }
+
+        const hasEliminated = application.roundStatuses.some(
+          (r) => r.status === "Eliminated",
+        );
+        const clearedRounds = application.roundStatuses.filter(
+          (r) => r.status === "Cleared",
+        );
+        const lastRoundCleared =
+          totalRounds > 0 &&
+          clearedRounds.some((r) => r.roundIndex === totalRounds - 1);
+
+        if (hasEliminated) {
+          application.status = "Rejected";
+        } else if (lastRoundCleared) {
+          application.status = "Selected";
+        } else if (clearedRounds.length > 0) {
+          application.status = "Shortlisted";
+        }
+
+        await application.save();
+
+        // PlacementStatus update
+        if (application.status === "Selected") {
+          await Student.findByIdAndUpdate(application.studentId, {
+            placementStatus: "Placed",
+          });
+        } else if (application.status === "Rejected") {
+          const anySelected = await Application.findOne({
+            studentId: application.studentId,
+            status: "Selected",
+            _id: { $ne: application._id },
+          });
+          if (!anySelected) {
+            await Student.findByIdAndUpdate(application.studentId, {
+              placementStatus: "Not Placed",
+            });
+          }
+        }
+      }),
+    );
+
+    res.json({
+      message: `${applications.length} applications updated for Round ${roundIndex + 1}`,
+      updated: applications.length,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createApplication,
   getMyApplications,
@@ -975,4 +1279,6 @@ module.exports = {
   withdrawApplication,
   exportJobApplications,
   bulkApply,
+  updateRoundStatus,
+  bulkUpdateRoundStatus,
 };

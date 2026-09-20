@@ -1,7 +1,8 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import {
   Users,
   CheckCircle,
+  Check,
   Clock,
   XCircle,
   Filter,
@@ -305,12 +306,12 @@ function JDBanner({
                   ))}
                 </select>
                 {applicationsClosed && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/15 text-white/75">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/15 text-white/75">
                     <Lock size={10} /> Applications Closed
                   </span>
                 )}
                 {resultsFinalized && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/15 text-white">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/15 text-white">
                     <ShieldCheck size={10} /> Results Finalized
                   </span>
                 )}
@@ -353,38 +354,26 @@ function JDBanner({
                 {icon}
               </span>
               <div>
-                <p
-                  className="text-[10px] font-semibold uppercase tracking-wide text-white/65"
-                >
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-white/65">
                   {label}
                 </p>
-                <p className="text-xs font-bold text-white">
-                  {value}
-                </p>
+                <p className="text-xs font-bold text-white">{value}</p>
               </div>
             </div>
           ))}
 
           {/* Eligible courses - own row, wraps as individual pills */}
-          <div
-            className="rounded-xl px-3 py-1.5 border border-white/25 bg-white/10 flex items-start gap-1.5 flex-1 min-w-[240px]"
-          >
+          <div className="rounded-xl px-3 py-1.5 border border-white/25 bg-white/10 flex items-start gap-1.5 flex-1 min-w-[240px]">
             <span className="mt-0.5 shrink-0" style={{ color: "#f59e0b" }}>
               <GraduationCap size={12} />
             </span>
             <div className="min-w-0">
-              <p
-                className="text-[10px] font-semibold uppercase tracking-wide mb-1 text-white/65"
-              >
+              <p className="text-[10px] font-semibold uppercase tracking-wide mb-1 text-white/65">
                 Eligible Courses
               </p>
               <div className="flex flex-wrap gap-1">
                 {branchList.length === 0 ? (
-                  <span
-                    className="text-xs font-bold text-white"
-                  >
-                    —
-                  </span>
+                  <span className="text-xs font-bold text-white">—</span>
                 ) : (
                   branchList.map((b) => (
                     <span
@@ -1331,18 +1320,213 @@ function RemoveApplicationModal({ application, onClose, onConfirm, loading }) {
   );
 }
 
-function AppliedTab({ selectedJobId, readOnly, jobName }) {
+function ImportPreviewModal({ data, onConfirm, onClose }) {
+  const [resolvedPossible, setResolvedPossible] = useState({});
+
+  const handleConfirm = () => {
+    const confidentIds = data.confident.map((c) => c.app._id);
+    const resolvedIds = Object.values(resolvedPossible);
+    onConfirm([...confidentIds, ...resolvedIds]);
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{
+        backgroundColor: "rgba(15,23,42,0.55)",
+        backdropFilter: "blur(6px)",
+      }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div
+        className="bg-white rounded-3xl shadow-2xl border border-[#E2E8F0] w-full max-w-lg overflow-hidden flex flex-col"
+        style={{ maxHeight: "85vh" }}
+      >
+        <div className="px-6 py-5 border-b border-[#F1F5F9]">
+          <h3 className="text-sm font-bold text-[#1E293B]">Import Preview</h3>
+          <div className="flex gap-4 mt-2">
+            <span className="text-xs font-semibold text-green-600">
+              ✓ {data.confident.length} confident
+            </span>
+            <span className="text-xs font-semibold text-amber-600">
+              ⚠ {data.possible.length} review needed
+            </span>
+            <span className="text-xs font-semibold text-red-500">
+              ✕ {data.notFound.length} not found
+            </span>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          {data.confident.length > 0 && (
+            <div>
+              <p className="text-xs font-bold text-green-700 mb-2">
+                Confident Matches — will be auto-selected
+              </p>
+              <div className="space-y-1.5">
+                {data.confident.map(({ app }, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-green-50 border border-green-100"
+                  >
+                    <span className="text-[10px] font-bold text-green-600">
+                      ✓
+                    </span>
+                    <span className="text-xs font-semibold text-[#1E293B]">
+                      {app.studentId?.name}
+                    </span>
+                    <span className="text-[10px] text-[#64748B]">
+                      {app.studentId?.userId?.erpId}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {data.possible.length > 0 && (
+            <div>
+              <p className="text-xs font-bold text-amber-700 mb-2">
+                Review Needed — select the correct student
+              </p>
+              <div className="space-y-3">
+                {data.possible.map(({ matches, rowData }, i) => (
+                  <div
+                    key={i}
+                    className="p-3 rounded-xl bg-amber-50 border border-amber-100"
+                  >
+                    <p className="text-[10px] text-[#64748B] mb-2">
+                      File says: <strong>{rowData.nameVal}</strong>
+                      {rowData.erpVal && ` (${rowData.erpVal})`}
+                    </p>
+                    <div className="space-y-1">
+                      {matches.map((app) => (
+                        <label
+                          key={app._id}
+                          className="flex items-center gap-2 cursor-pointer"
+                        >
+                          <input
+                            type="radio"
+                            name={`possible-${i}`}
+                            value={app._id}
+                            checked={resolvedPossible[i] === app._id}
+                            onChange={() =>
+                              setResolvedPossible((prev) => ({
+                                ...prev,
+                                [i]: app._id,
+                              }))
+                            }
+                            className="accent-[#1a3a8f]"
+                          />
+                          <span className="text-xs font-semibold text-[#1E293B]">
+                            {app.studentId?.name}
+                          </span>
+                          <span className="text-[10px] text-[#64748B]">
+                            {app.studentId?.course}
+                          </span>
+                          <span className="text-[10px] font-mono text-[#94A3B8]">
+                            {app.studentId?.userId?.erpId}
+                          </span>
+                        </label>
+                      ))}
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name={`possible-${i}`}
+                          value=""
+                          checked={
+                            resolvedPossible[i] === "" ||
+                            resolvedPossible[i] === undefined
+                          }
+                          onChange={() =>
+                            setResolvedPossible((prev) => ({
+                              ...prev,
+                              [i]: "",
+                            }))
+                          }
+                          className="accent-[#1a3a8f]"
+                        />
+                        <span className="text-xs text-[#94A3B8]">
+                          Skip this entry
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {data.notFound.length > 0 && (
+            <div>
+              <p className="text-xs font-bold text-red-600 mb-2">
+                Not Found — will be skipped
+              </p>
+              <div className="space-y-1.5">
+                {data.notFound.map(({ rowData }, i) => (
+                  <div
+                    key={i}
+                    className="px-3 py-2 rounded-xl bg-red-50 border border-red-100"
+                  >
+                    <span className="text-xs text-[#64748B]">
+                      {rowData.nameVal || rowData.erpVal || "Unknown entry"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="px-6 py-4 border-t border-[#F1F5F9] flex gap-3 justify-end">
+          <button
+            onClick={onClose}
+            className="px-5 py-2.5 rounded-xl border border-[#E2E8F0] text-sm font-medium text-[#64748B] hover:bg-[#F8FAFC]"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleConfirm}
+            className="px-5 py-2.5 rounded-xl text-sm font-bold text-white"
+            style={{ background: "linear-gradient(135deg, #1a3a8f, #3d1a6e)" }}
+          >
+            Select{" "}
+            {data.confident.length +
+              Object.values(resolvedPossible).filter(Boolean).length}{" "}
+            Students
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
+  const rounds = selectedJob?.selectionProcess || [];
+
   const [applications, setApplications] = useState([]);
+  const [activeRound, setActiveRound] = useState(0);
   const [filterStatus, setFilterStatus] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [exporting, setExporting] = useState(false);
-
-  // Remove-application flow — for the "I applied by mistake" case. Holds
-  // the application currently pending confirmation (or null when closed).
   const [removeTarget, setRemoveTarget] = useState(null);
   const [removing, setRemoving] = useState(false);
+
+  // Drag select state
+  const [selectedAppIds, setSelectedAppIds] = useState(new Set());
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartId, setDragStartId] = useState(null);
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
+  const [bulkConfirm, setBulkConfirm] = useState(null); // { status, count }
+
+  // Excel import state
+  const [importLoading, setImportLoading] = useState(false);
+  const [importResult, setImportResult] = useState(null);
+  const [showImportPreview, setShowImportPreview] = useState(false);
+  const [importPreviewData, setImportPreviewData] = useState(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (!selectedJobId) return;
@@ -1355,21 +1539,117 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
     fetchApps();
   }, [selectedJobId]);
 
-  const filtered = useMemo(() => {
-    const byStatus =
-      filterStatus === "All"
-        ? applications
-        : applications.filter((a) => a.status === filterStatus);
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return byStatus;
-    return byStatus.filter((a) => {
-      const student = a.studentId;
-      const name = (student?.name || "").toLowerCase();
-      const erp = (student?.userId?.erpId || "").toLowerCase();
-      return name.includes(q) || erp.includes(q);
-    });
-  }, [applications, filterStatus, searchQuery]);
+  // Round change hone pe selection clear karo
+  useEffect(() => {
+    setSelectedAppIds(new Set());
+    setFilterStatus("All");
+    setSearchQuery("");
+  }, [activeRound]);
 
+  // Is round mein har application ka status
+  const getRoundStatus = (app, roundIndex) => {
+    const rs = app.roundStatuses?.find((r) => r.roundIndex === roundIndex);
+    return rs?.status || "Pending";
+  };
+
+  // Current round ke hisaab se filtered applications
+  const roundApplications = useMemo(() => {
+    if (rounds.length === 0) return applications;
+
+    // Round 0 — saare applied students
+    if (activeRound === 0) return applications;
+
+    // Round N — sirf woh jo pichle saare rounds clear kar chuke hain
+    return applications.filter((app) => {
+      for (let i = 0; i < activeRound; i++) {
+        const rs = app.roundStatuses?.find((r) => r.roundIndex === i);
+        if (!rs || rs.status !== "Cleared") return false;
+      }
+      return true;
+    });
+  }, [applications, activeRound, rounds]);
+
+  const filtered = useMemo(() => {
+    let result = roundApplications;
+
+    if (filterStatus !== "All") {
+      result = result.filter((app) => {
+        if (rounds.length === 0) return app.status === filterStatus;
+        const rs = getRoundStatus(app, activeRound);
+        const statusMap = {
+          Shortlisted: "Cleared",
+          Selected: "Cleared",
+          Rejected: "Eliminated",
+          Applied: "Pending",
+        };
+        return rs === (statusMap[filterStatus] || filterStatus);
+      });
+    }
+
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      result = result.filter((app) => {
+        const name = (app.studentId?.name || "").toLowerCase();
+        const erp = (app.studentId?.userId?.erpId || "").toLowerCase();
+        return name.includes(q) || erp.includes(q);
+      });
+    }
+
+    return result;
+  }, [roundApplications, filterStatus, searchQuery, activeRound, rounds]);
+
+  // Round stats
+  const roundStats = useMemo(() => {
+    const apps = roundApplications;
+    return {
+      total: apps.length,
+      pending: apps.filter((a) => getRoundStatus(a, activeRound) === "Pending")
+        .length,
+      cleared: apps.filter((a) => getRoundStatus(a, activeRound) === "Cleared")
+        .length,
+      eliminated: apps.filter(
+        (a) => getRoundStatus(a, activeRound) === "Eliminated",
+      ).length,
+    };
+  }, [roundApplications, activeRound]);
+
+  const counts = useMemo(
+    () => ({
+      total: applications.length,
+      applied: applications.filter((a) => a.status === "Applied").length,
+      shortlisted: applications.filter((a) => a.status === "Shortlisted")
+        .length,
+      selected: applications.filter((a) => a.status === "Selected").length,
+      rejected: applications.filter((a) => a.status === "Rejected").length,
+    }),
+    [applications],
+  );
+
+  // Single round status update
+  const updateRoundStatus = async (appId, roundIndex, roundName, status) => {
+    try {
+      const updated = await api.put(`/applications/${appId}/round-status`, {
+        roundIndex,
+        roundName,
+        status,
+      });
+      setApplications((prev) =>
+        prev.map((a) =>
+          a._id === appId
+            ? {
+                ...a,
+                roundStatuses: updated.roundStatuses,
+                status: updated.status,
+              }
+            : a,
+        ),
+      );
+    } catch (err) {
+      alert("Failed to update round status");
+    }
+  };
+
+  // Overall status update — rounds nahi hain tab use hoga
   const updateStatus = async (appId, newStatus) => {
     const updated = await api.put(`/applications/${appId}/status`, {
       status: newStatus,
@@ -1379,7 +1659,189 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
     );
   };
 
-  // Permanently deletes a mistaken/duplicate application.
+  // Bulk round status update
+  const handleBulkAction = async (status) => {
+    if (selectedAppIds.size === 0) return;
+    setBulkActionLoading(true);
+    try {
+      const roundName = rounds[activeRound] || `Round ${activeRound + 1}`;
+      await api.put(`/applications/job/${selectedJobId}/bulk-round-status`, {
+        applicationIds: Array.from(selectedAppIds),
+        roundIndex: activeRound,
+        roundName,
+        status,
+      });
+      // Refresh applications
+      const data = await api.get(`/applications/job/${selectedJobId}`);
+      setApplications(Array.isArray(data) ? data : []);
+      setSelectedAppIds(new Set());
+      setBulkConfirm(null);
+    } catch (err) {
+      alert("Bulk update failed");
+    } finally {
+      setBulkActionLoading(false);
+    }
+  };
+
+  // Drag select handlers
+  const handleMouseDown = (appId, e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    setIsDragging(true);
+    setDragStartId(appId);
+    setSelectedAppIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(appId)) next.delete(appId);
+      else next.add(appId);
+      return next;
+    });
+  };
+
+  const handleMouseEnter = (appId) => {
+    if (!isDragging) return;
+    setSelectedAppIds((prev) => {
+      const next = new Set(prev);
+      next.add(appId);
+      return next;
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setDragStartId(null);
+  };
+
+  useEffect(() => {
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => window.removeEventListener("mouseup", handleMouseUp);
+  }, []);
+
+  // Excel import — smart matching
+  const handleFileImport = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    e.target.value = "";
+
+    setImportLoading(true);
+    try {
+      const XLSX = await import("xlsx");
+      const buffer = await file.arrayBuffer();
+      const wb = XLSX.read(buffer, { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+      // Header row dhundho
+      const headerRow =
+        rows[0]?.map((h) =>
+          String(h || "")
+            .toLowerCase()
+            .trim(),
+        ) || [];
+
+      const erpCol = headerRow.findIndex(
+        (h) => h.includes("erp") || h.includes("enrollment"),
+      );
+      const nameCol = headerRow.findIndex((h) => h.includes("name"));
+      const branchCol = headerRow.findIndex(
+        (h) =>
+          h.includes("branch") || h.includes("course") || h.includes("dept"),
+      );
+
+      const dataRows = rows.slice(1).filter((r) => r.some((c) => c));
+
+      const confident = [];
+      const possible = [];
+      const notFound = [];
+
+      dataRows.forEach((row) => {
+        const erpVal = erpCol >= 0 ? String(row[erpCol] || "").trim() : "";
+        const nameVal =
+          nameCol >= 0
+            ? String(row[nameCol] || "")
+                .trim()
+                .toLowerCase()
+            : "";
+        const branchVal =
+          branchCol >= 0
+            ? String(row[branchCol] || "")
+                .trim()
+                .toLowerCase()
+            : "";
+
+        // ERP ID match — 100% confident
+        if (erpVal) {
+          const matched = applications.find(
+            (app) =>
+              (app.studentId?.userId?.erpId || "").toLowerCase() ===
+              erpVal.toLowerCase(),
+          );
+          if (matched) {
+            confident.push({
+              app: matched,
+              rowData: { erpVal, nameVal, branchVal },
+            });
+            return;
+          }
+        }
+
+        // Naam + branch match — possible
+        if (nameVal) {
+          const nameMatches = applications.filter(
+            (app) =>
+              (app.studentId?.name || "").toLowerCase().includes(nameVal) ||
+              nameVal.includes((app.studentId?.name || "").toLowerCase()),
+          );
+
+          if (nameMatches.length === 1) {
+            if (branchVal) {
+              const branchMatch = (nameMatches[0].studentId?.course || "")
+                .toLowerCase()
+                .includes(branchVal);
+              if (branchMatch) {
+                confident.push({
+                  app: nameMatches[0],
+                  rowData: { erpVal, nameVal, branchVal },
+                });
+              } else {
+                possible.push({
+                  matches: nameMatches,
+                  rowData: { erpVal, nameVal, branchVal },
+                });
+              }
+            } else {
+              possible.push({
+                matches: nameMatches,
+                rowData: { erpVal, nameVal, branchVal },
+              });
+            }
+          } else if (nameMatches.length > 1) {
+            possible.push({
+              matches: nameMatches,
+              rowData: { erpVal, nameVal, branchVal },
+            });
+          } else {
+            notFound.push({ rowData: { erpVal, nameVal, branchVal } });
+          }
+        } else {
+          notFound.push({ rowData: { erpVal, nameVal, branchVal } });
+        }
+      });
+
+      setImportPreviewData({ confident, possible, notFound });
+      setShowImportPreview(true);
+    } catch (err) {
+      alert("Failed to read file: " + err.message);
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
+  const confirmImport = (finalAppIds) => {
+    setSelectedAppIds(new Set(finalAppIds));
+    setShowImportPreview(false);
+    setImportPreviewData(null);
+  };
+
   const handleRemoveApplication = async () => {
     if (!removeTarget) return;
     setRemoving(true);
@@ -1400,25 +1862,20 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
       const token = localStorage.getItem("token");
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/applications/job/${selectedJobId}/export`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       if (!response.ok) throw new Error("Export failed");
-
-      // Backend se filename lo Content-Disposition header se
       const disposition = response.headers.get("Content-Disposition");
       let filename = "Applications.xlsx";
       if (disposition) {
         const match = disposition.match(/filename=(.+)/);
         if (match) filename = match[1];
       }
-
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = filename; // backend wala filename use karo
+      a.download = filename;
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (err) {
@@ -1428,21 +1885,9 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
     }
   };
 
-  const counts = useMemo(
-    () => ({
-      total: applications.length,
-      applied: applications.filter((a) => a.status === "Applied").length,
-      shortlisted: applications.filter((a) => a.status === "Shortlisted")
-        .length,
-      selected: applications.filter((a) => a.status === "Selected").length,
-      rejected: applications.filter((a) => a.status === "Rejected").length,
-    }),
-    [applications],
-  );
-
   const cols = readOnly
-    ? "2fr 1.2fr 1.4fr 0.8fr 1.1fr 1fr"
-    : "2fr 1.2fr 1.4fr 0.8fr 1.1fr 1.8fr";
+    ? "26px 2fr 1.2fr 1fr 0.8fr 1fr"
+    : "26px 2fr 1.2fr 1fr 0.8fr 1.6fr";
 
   if (loading)
     return (
@@ -1452,15 +1897,16 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
     );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" onMouseUp={handleMouseUp}>
       {readOnly && (
         <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5">
           <Lock size={13} />
           Results for this drive have been finalized — status changes are
-          disabled, showing final results only.
+          disabled.
         </div>
       )}
 
+      {/* Overall stats */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3">
         <StatCard
           icon={<Users size={20} color="#1a3a8f" />}
@@ -1499,32 +1945,316 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
         />
       </div>
 
+      {/* Round Tabs — sirf tab dikhao jab selectionProcess defined ho */}
+      {rounds.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#64748B] mb-2.5 px-1">
+            Selection Rounds
+          </p>
+          <div className="flex gap-2 flex-wrap">
+            {rounds.map((roundName, idx) => {
+              const isActive = activeRound === idx;
+              // Is round mein kitne cleared/eliminated
+              const appsInRound =
+                idx === 0
+                  ? applications
+                  : applications.filter((app) => {
+                      for (let i = 0; i < idx; i++) {
+                        const rs = app.roundStatuses?.find(
+                          (r) => r.roundIndex === i,
+                        );
+                        if (!rs || rs.status !== "Cleared") return false;
+                      }
+                      return true;
+                    });
+              const clearedCount = appsInRound.filter(
+                (a) =>
+                  a.roundStatuses?.find((r) => r.roundIndex === idx)?.status ===
+                  "Cleared",
+              ).length;
+              const eliminatedCount = appsInRound.filter(
+                (a) =>
+                  a.roundStatuses?.find((r) => r.roundIndex === idx)?.status ===
+                  "Eliminated",
+              ).length;
+
+              return (
+                <button
+                  key={idx}
+                  onClick={() => setActiveRound(idx)}
+                  className="flex flex-col items-start px-4 py-2.5 rounded-xl border text-left transition-all"
+                  style={{
+                    backgroundColor: isActive ? "#1a3a8f" : "#F8FAFC",
+                    borderColor: isActive ? "#1a3a8f" : "#E2E8F0",
+                    color: isActive ? "white" : "#64748B",
+                  }}
+                >
+                  <span className="text-[10px] font-bold uppercase tracking-wider opacity-70">
+                    Round {idx + 1}
+                  </span>
+                  <span className="text-xs font-semibold mt-0.5">
+                    {roundName}
+                  </span>
+                  <div className="flex gap-2 mt-1.5">
+                    <span
+                      className="text-[10px]"
+                      style={{
+                        color: isActive ? "rgba(255,255,255,0.7)" : "#22C55E",
+                      }}
+                    >
+                      ✓ {clearedCount}
+                    </span>
+                    <span
+                      className="text-[10px]"
+                      style={{
+                        color: isActive ? "rgba(255,255,255,0.7)" : "#EF4444",
+                      }}
+                    >
+                      ✕ {eliminatedCount}
+                    </span>
+                    <span
+                      className="text-[10px]"
+                      style={{
+                        color: isActive ? "rgba(255,255,255,0.7)" : "#64748B",
+                      }}
+                    >
+                      · {appsInRound.length} appearing
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Current round stats */}
+          <div className="flex gap-3 mt-3 flex-wrap">
+            {[
+              { label: "Appearing", value: roundStats.total, color: "#1a3a8f" },
+              { label: "Pending", value: roundStats.pending, color: "#64748B" },
+              { label: "Cleared", value: roundStats.cleared, color: "#22C55E" },
+              {
+                label: "Eliminated",
+                value: roundStats.eliminated,
+                color: "#EF4444",
+              },
+            ].map(({ label, value, color }) => (
+              <div key={label} className="flex items-center gap-1.5">
+                <span className="text-lg font-bold" style={{ color }}>
+                  {value}
+                </span>
+                <span className="text-xs text-[#64748B]">{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Bulk actions bar — drag select ke baad dikhega */}
+      {!readOnly && selectedAppIds.size > 0 && (
+        <div
+          className="flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border flex-wrap"
+          style={{ backgroundColor: "#EFF3FA", borderColor: "#B8C6E3" }}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold" style={{ color: "#1a3a8f" }}>
+              {selectedAppIds.size} selected
+            </span>
+            <button
+              onClick={() => setSelectedAppIds(new Set())}
+              className="text-xs text-[#64748B] hover:text-[#1a3a8f] transition-colors"
+            >
+              Clear
+            </button>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {rounds.length > 0 ? (
+              <>
+                <button
+                  onClick={() =>
+                    setBulkConfirm({
+                      status: "Cleared",
+                      count: selectedAppIds.size,
+                    })
+                  }
+                  disabled={bulkActionLoading}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white transition-all disabled:opacity-50"
+                  style={{ backgroundColor: "#22C55E" }}
+                >
+                  ✓ Advance to Round {activeRound + 2}
+                </button>
+                <button
+                  onClick={() =>
+                    setBulkConfirm({
+                      status: "Eliminated",
+                      count: selectedAppIds.size,
+                    })
+                  }
+                  disabled={bulkActionLoading}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white transition-all disabled:opacity-50"
+                  style={{ backgroundColor: "#EF4444" }}
+                >
+                  ✕ Eliminate
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() =>
+                    setBulkConfirm({
+                      status: "Shortlisted",
+                      count: selectedAppIds.size,
+                    })
+                  }
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 text-white"
+                >
+                  Shortlist All
+                </button>
+                <button
+                  onClick={() =>
+                    setBulkConfirm({
+                      status: "Selected",
+                      count: selectedAppIds.size,
+                    })
+                  }
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-green-500 text-white"
+                >
+                  Select All
+                </button>
+                <button
+                  onClick={() =>
+                    setBulkConfirm({
+                      status: "Rejected",
+                      count: selectedAppIds.size,
+                    })
+                  }
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-red-500 text-white"
+                >
+                  Reject All
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Bulk confirm modal */}
+      {bulkConfirm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{
+            backgroundColor: "rgba(15,23,42,0.55)",
+            backdropFilter: "blur(6px)",
+          }}
+          onClick={(e) => e.target === e.currentTarget && setBulkConfirm(null)}
+        >
+          <div className="bg-white rounded-3xl shadow-2xl border border-[#E2E8F0] w-full max-w-sm p-6 flex flex-col gap-4">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center text-white text-xl font-bold"
+                style={{
+                  backgroundColor:
+                    bulkConfirm.status === "Cleared" ||
+                    bulkConfirm.status === "Shortlisted" ||
+                    bulkConfirm.status === "Selected"
+                      ? "#22C55E"
+                      : "#EF4444",
+                }}
+              >
+                {bulkConfirm.status === "Cleared" ||
+                bulkConfirm.status === "Shortlisted" ||
+                bulkConfirm.status === "Selected"
+                  ? "✓"
+                  : "✕"}
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-[#1E293B]">
+                  Confirm Bulk Action
+                </h3>
+                <p className="text-xs text-[#64748B] mt-1">
+                  {bulkConfirm.status === "Cleared"
+                    ? `Advance ${bulkConfirm.count} students to Round ${activeRound + 2}?`
+                    : bulkConfirm.status === "Eliminated"
+                      ? `Eliminate ${bulkConfirm.count} students from this drive?`
+                      : `Mark ${bulkConfirm.count} students as ${bulkConfirm.status}?`}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setBulkConfirm(null)}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-[#E2E8F0] text-sm font-medium text-[#64748B] hover:bg-[#F8FAFC]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleBulkAction(bulkConfirm.status)}
+                disabled={bulkActionLoading}
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-50"
+                style={{
+                  backgroundColor:
+                    bulkConfirm.status === "Cleared" ||
+                    bulkConfirm.status === "Shortlisted" ||
+                    bulkConfirm.status === "Selected"
+                      ? "#22C55E"
+                      : "#EF4444",
+                }}
+              >
+                {bulkActionLoading ? "Processing..." : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Filter + Export + Import bar */}
       <div className="bg-white rounded-2xl border border-gray-100 p-3 sm:p-4 shadow-sm flex items-center gap-2 flex-wrap">
         <div
           className="flex items-center gap-1.5 text-sm font-medium mr-1"
           style={{ color: "#64748B" }}
         >
-          <Filter size={14} /> Filter by Status
+          <Filter size={14} /> Filter
         </div>
-        {["All", ...STATUS_OPTIONS].map((opt) => {
+        {["All", "Pending", "Cleared", "Eliminated"].map((opt) => {
+          if (rounds.length === 0) return null;
           const active = filterStatus === opt;
-          const s = opt !== "All" ? STATUS_STYLE[opt] : null;
           return (
             <button
               key={opt}
               onClick={() => setFilterStatus(opt)}
               className="text-xs font-semibold px-3 py-1.5 rounded-full border transition-all"
               style={{
-                color: active ? (s ? s.color : "#1a3a8f") : "#64748B",
-                backgroundColor: active ? (s ? s.bg : "#EFF6FF") : "#F8FAFC",
-                borderColor: active ? (s ? s.border : "#BFDBFE") : "#E2E8F0",
+                color: active ? "#1a3a8f" : "#64748B",
+                backgroundColor: active ? "#EFF6FF" : "#F8FAFC",
+                borderColor: active ? "#BFDBFE" : "#E2E8F0",
               }}
             >
-              {opt} (
-              {opt === "All" ? counts.total : (counts[opt.toLowerCase()] ?? 0)})
+              {opt}
             </button>
           );
         })}
+        {rounds.length === 0 &&
+          ["All", ...STATUS_OPTIONS].map((opt) => {
+            const active = filterStatus === opt;
+            const s = opt !== "All" ? STATUS_STYLE[opt] : null;
+            return (
+              <button
+                key={opt}
+                onClick={() => setFilterStatus(opt)}
+                className="text-xs font-semibold px-3 py-1.5 rounded-full border transition-all"
+                style={{
+                  color: active ? (s ? s.color : "#1a3a8f") : "#64748B",
+                  backgroundColor: active ? (s ? s.bg : "#EFF6FF") : "#F8FAFC",
+                  borderColor: active ? (s ? s.border : "#BFDBFE") : "#E2E8F0",
+                }}
+              >
+                {opt} (
+                {opt === "All"
+                  ? counts.total
+                  : (counts[opt.toLowerCase()] ?? 0)}
+                )
+              </button>
+            );
+          })}
 
         <span
           className="w-full sm:w-auto sm:ml-auto text-sm"
@@ -1532,37 +2262,68 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
         >
           Showing{" "}
           <strong style={{ color: "#0F172A" }}>{filtered.length}</strong> of{" "}
-          {counts.total}
+          {roundStats.total}
         </span>
+
+        {/* Excel Import button */}
+        {!readOnly && (
+          <>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              onChange={handleFileImport}
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={importLoading}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border transition-all"
+              style={{
+                backgroundColor: "#F8FAFC",
+                borderColor: "#E2E8F0",
+                color: "#1a3a8f",
+              }}
+            >
+              {importLoading ? (
+                <>
+                  <LoaderCircle size={13} className="animate-spin" /> Reading...
+                </>
+              ) : (
+                <>
+                  <Download size={13} style={{ transform: "rotate(180deg)" }} />{" "}
+                  Import Shortlist
+                </>
+              )}
+            </button>
+          </>
+        )}
+
         <button
           onClick={handleExport}
           disabled={exporting}
-          className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all border w-full sm:w-auto"
+          className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all border"
           style={{
             background: exporting
               ? "#94A3B8"
               : "linear-gradient(135deg, #1a3a8f, #3d1a6e)",
             color: "white",
             borderColor: "transparent",
-            boxShadow: exporting ? "none" : "0 2px 8px rgba(59,130,246,0.3)",
-            cursor: exporting ? "not-allowed" : "pointer",
           }}
         >
           {exporting ? (
             <>
-              <LoaderCircle size={13} className="animate-spin" />
-              Preparing Excel...
+              <LoaderCircle size={13} className="animate-spin" /> Preparing...
             </>
           ) : (
             <>
-              <Download size={13} />
-              Ready to share with Company? — Download Excel
+              <Download size={13} /> Download Excel
             </>
           )}
         </button>
       </div>
 
-      {/* Name / ERP ID search */}
+      {/* Search */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 flex items-center gap-2">
         <Search size={15} color="#94A3B8" className="shrink-0" />
         <input
@@ -1583,6 +2344,7 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
         )}
       </div>
 
+      {/* Table */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
         <div
           className="border-b border-gray-100"
@@ -1596,12 +2358,16 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
           }}
         >
           {[
+            "",
             "Name",
             "ERP ID",
             "Course",
             "CGPA",
-            "Applied Date",
-            readOnly ? "Final Status" : "Status",
+            rounds.length > 0
+              ? `Round ${activeRound + 1} Status`
+              : readOnly
+                ? "Final Status"
+                : "Status",
           ].map((h) => (
             <span
               key={h}
@@ -1615,30 +2381,37 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
 
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center py-14 gap-2">
-            {applications.length === 0 ? (
-              <>
-                <ClipboardList size={36} color="#E2E8F0" />
-                <p className="text-sm" style={{ color: "#64748B" }}>
-                  No applications found.
-                </p>
-              </>
-            ) : (
-              <>
-                <Search size={36} color="#E2E8F0" />
-                <p className="text-sm" style={{ color: "#64748B" }}>
-                  No students match "{searchQuery}"
-                  {filterStatus !== "All" ? ` in ${filterStatus}` : ""}.
-                </p>
-              </>
-            )}
+            <ClipboardList size={36} color="#E2E8F0" />
+            <p className="text-sm" style={{ color: "#64748B" }}>
+              {applications.length === 0
+                ? "No applications found."
+                : `No students match current filter.`}
+            </p>
           </div>
         ) : (
           filtered.map((app, idx) => {
             const student = app.studentId;
             const s = STATUS_STYLE[app.status] || STATUS_STYLE.Applied;
+            const roundStatus = getRoundStatus(app, activeRound);
+            const isSelected = selectedAppIds.has(app._id);
+
+            const roundStatusStyle = {
+              Pending: { color: "#64748B", bg: "#F8FAFC", border: "#E2E8F0" },
+              Cleared: { color: "#15803D", bg: "#F0FDF4", border: "#86EFAC" },
+              Eliminated: {
+                color: "#991B1B",
+                bg: "#FFF1F2",
+                border: "#FECDD3",
+              },
+            };
+            const rStyle =
+              roundStatusStyle[roundStatus] || roundStatusStyle.Pending;
+
             return (
               <div
                 key={app._id}
+                onMouseDown={(e) => !readOnly && handleMouseDown(app._id, e)}
+                onMouseEnter={() => !readOnly && handleMouseEnter(app._id)}
                 onClick={() => setSelectedStudent(student)}
                 style={{
                   display: "grid",
@@ -1650,35 +2423,58 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
                     idx !== filtered.length - 1 ? "1px solid #F1F5F9" : "none",
                   minWidth: "850px",
                   cursor: "pointer",
+                  userSelect: "none",
+                  backgroundColor: isSelected ? "#EFF3FA" : "transparent",
                 }}
                 className="hover:bg-[#F8FAFC] transition-colors"
               >
+                {/* Checkbox */}
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (readOnly) return;
+                    setSelectedAppIds((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(app._id)) next.delete(app._id);
+                      else next.add(app._id);
+                      return next;
+                    });
+                  }}
+                  className="w-4 h-4 rounded border flex items-center justify-center shrink-0 cursor-pointer transition-all"
+                  style={{
+                    backgroundColor: isSelected ? "#1a3a8f" : "white",
+                    borderColor: isSelected ? "#1a3a8f" : "#CBD5E1",
+                  }}
+                >
+                  {isSelected && (
+                    <Check size={10} color="white" strokeWidth={3} />
+                  )}
+                </div>
+
                 <div className="flex flex-col gap-0.5 min-w-0">
                   <NameCell student={student} />
                   {app.appliedVia === "bulk-coordinator" && (
-                    <span className="text-[10px] font-medium text-[#1a3a8f] ml-10 truncate block max-w-[140px] sm:max-w-none">
+                    <span className="text-[10px] font-medium text-[#1a3a8f] ml-10 truncate block">
                       Applied by coordinator
                     </span>
                   )}
-                  {(student?.selectedCount ?? 0) > 0 ? (
+                  {(student?.selectedCount ?? 0) > 0 && (
                     <span
-                      className="text-[10px] font-semibold text-success ml-10 truncate max-w-[140px] sm:max-w-55 block"
+                      className="text-[10px] font-semibold text-success ml-10 truncate block"
                       title={student.selectedCompanies?.join(", ")}
                     >
                       ✓ Selected in: {student.selectedCompanies?.join(", ")}
                     </span>
-                  ) : (
-                    <span className="text-[10px] font-medium text-[#94A3B8] ml-10 truncate block max-w-[140px] sm:max-w-none">
-                      Not selected anywhere yet
-                    </span>
                   )}
                 </div>
+
                 <span
                   className="text-xs font-mono"
                   style={{ color: "#64748B" }}
                 >
                   {student?.userId?.erpId || "—"}
                 </span>
+
                 <span
                   className="border text-xs font-semibold px-2.5 py-0.5 rounded-full w-fit"
                   style={{
@@ -1689,12 +2485,7 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
                 >
                   {student?.course || "—"}
                 </span>
-                <span
-                  className="text-xs font-semibold"
-                  style={{ color: "#0F172A" }}
-                >
-                  {getSemester(student?.batch, student?.course) ?? "—"}
-                </span>
+
                 <span
                   className="text-sm font-bold"
                   style={{
@@ -1708,17 +2499,70 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
                 >
                   {(student?.cgpa ?? 0).toFixed(1)}
                 </span>
-                <div
-                  className="flex items-center gap-1.5 text-sm"
-                  style={{ color: "#64748B" }}
-                >
-                  <CalendarDays size={13} />
-                  {app.appliedDate
-                    ? new Date(app.appliedDate).toLocaleDateString()
-                    : "—"}
-                </div>
 
-                {readOnly ? (
+                {/* Status column */}
+                {rounds.length > 0 ? (
+                  readOnly ? (
+                    <span
+                      className="text-xs font-semibold px-2.5 py-1 rounded-full w-fit border"
+                      style={{
+                        color: rStyle.color,
+                        backgroundColor: rStyle.bg,
+                        borderColor: rStyle.border,
+                      }}
+                    >
+                      {roundStatus}
+                    </span>
+                  ) : (
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex items-center gap-1.5 flex-wrap"
+                    >
+                      {["Cleared", "Eliminated"].map((st) => (
+                        <button
+                          key={st}
+                          onClick={() =>
+                            updateRoundStatus(
+                              app._id,
+                              activeRound,
+                              rounds[activeRound],
+                              st,
+                            )
+                          }
+                          className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all"
+                          style={{
+                            backgroundColor:
+                              roundStatus === st
+                                ? st === "Cleared"
+                                  ? "#22C55E"
+                                  : "#EF4444"
+                                : st === "Cleared"
+                                  ? "#F0FDF4"
+                                  : "#FFF1F2",
+                            color:
+                              roundStatus === st
+                                ? "white"
+                                : st === "Cleared"
+                                  ? "#15803D"
+                                  : "#991B1B",
+                            border: `1px solid ${st === "Cleared" ? "#86EFAC" : "#FECDD3"}`,
+                          }}
+                        >
+                          {st === "Cleared" ? "✓ Clear" : "✕ Eliminate"}
+                        </button>
+                      ))}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRemoveTarget(app);
+                        }}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  )
+                ) : readOnly ? (
                   <span
                     className="text-xs font-semibold px-2.5 py-1 rounded-full w-fit border"
                     style={{
@@ -1739,8 +2583,10 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
                       onChange={(val) => updateStatus(app._id, val)}
                     />
                     <button
-                      onClick={() => setRemoveTarget(app)}
-                      title="Remove this application (e.g. applied by mistake)"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setRemoveTarget(app);
+                      }}
                       className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all"
                     >
                       <Trash2 size={13} />
@@ -1753,6 +2599,18 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
         )}
       </div>
 
+      {/* Excel Import Preview Modal */}
+      {showImportPreview && importPreviewData && (
+        <ImportPreviewModal
+          data={importPreviewData}
+          onConfirm={confirmImport}
+          onClose={() => {
+            setShowImportPreview(false);
+            setImportPreviewData(null);
+          }}
+        />
+      )}
+
       <RemoveApplicationModal
         application={removeTarget ? { ...removeTarget, jobName } : null}
         onClose={() => setRemoveTarget(null)}
@@ -1760,7 +2618,7 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
         loading={removing}
       />
 
-      {/* Student Detail Modal */}
+      {/* Student Detail Modal — same as before */}
       {selectedStudent && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
@@ -1776,16 +2634,12 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
             className="rounded-3xl border shadow-2xl w-full max-w-2xl overflow-y-auto bg-white border-[#E2E8F0] flex flex-col relative"
             style={{ maxHeight: "90vh" }}
           >
-            {/* Close button — pinned to the top-right corner so it never
-                wraps down next to the status badges on narrower widths. */}
             <button
               onClick={() => setSelectedStudent(null)}
               className="absolute top-4 right-4 sm:top-5 sm:right-7 w-9 h-9 rounded-xl flex items-center justify-center bg-[#F1F5F9] text-[#64748B] hover:opacity-80 transition z-10"
             >
               <X size={16} />
             </button>
-
-            {/* Header */}
             <div className="flex items-center flex-wrap justify-between gap-3 px-4 sm:px-7 py-4 sm:py-5 border-b border-[#E2E8F0] sticky top-0 bg-white rounded-t-3xl z-0">
               <div className="flex items-center gap-3 sm:gap-4 min-w-0 pr-10 sm:pr-12">
                 <div
@@ -1809,10 +2663,7 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
               </div>
               <div className="flex items-center gap-3 pr-10 sm:pr-0">
                 {(selectedStudent.selectedCount ?? 0) > 0 ? (
-                  <span
-                    className="text-xs font-semibold px-3 py-1.5 rounded-full bg-green-50 text-green-700 border border-green-200"
-                    title={selectedStudent.selectedCompanies?.join(", ")}
-                  >
+                  <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-green-50 text-green-700 border border-green-200">
                     ✓ Selected in:{" "}
                     {selectedStudent.selectedCompanies?.join(", ")}
                   </span>
@@ -1822,20 +2673,13 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
                   </span>
                 )}
                 <span
-                  className={`text-xs font-semibold px-3 py-1.5 rounded-full border ${
-                    selectedStudent.placementStatus === "Placed"
-                      ? "bg-green-50 text-green-700 border-green-200"
-                      : "bg-amber-50 text-amber-700 border-amber-200"
-                  }`}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-full border ${selectedStudent.placementStatus === "Placed" ? "bg-green-50 text-green-700 border-green-200" : "bg-amber-50 text-amber-700 border-amber-200"}`}
                 >
                   {selectedStudent.placementStatus || "Not Placed"}
                 </span>
               </div>
             </div>
-
-            {/* Body */}
             <div className="px-4 sm:px-7 py-5 sm:py-6 space-y-6 sm:space-y-7">
-              {/* Personal */}
               <div>
                 <h4 className="text-xs font-bold uppercase tracking-widest mb-4 pb-2 border-b border-[#E2E8F0] text-[#0F172A]">
                   Personal Information
@@ -1858,8 +2702,6 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
                   ))}
                 </div>
               </div>
-
-              {/* Academic */}
               <div>
                 <h4 className="text-xs font-bold uppercase tracking-widest mb-4 pb-2 border-b border-[#E2E8F0] text-[#0F172A]">
                   Academic Details
@@ -1911,8 +2753,6 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
                   ))}
                 </div>
               </div>
-
-              {/* Skills */}
               <div>
                 <h4 className="text-xs font-bold uppercase tracking-widest mb-4 pb-2 border-b border-[#E2E8F0] text-[#0F172A]">
                   Skills
@@ -1940,7 +2780,8 @@ function AppliedTab({ selectedJobId, readOnly, jobName }) {
       )}
     </div>
   );
-} 
+}
+
 export default function ApplicationsManagementPage() {
   const [activeTab, setActiveTab] = useState("eligible");
   const [jobs, setJobs] = useState([]);
@@ -1973,7 +2814,7 @@ export default function ApplicationsManagementPage() {
   };
 
   useEffect(() => {
-    document.title = "Applications Management"
+    document.title = "Applications Management";
     const init = async () => {
       await fetchData();
       setLoading(false);
@@ -2153,6 +2994,7 @@ export default function ApplicationsManagementPage() {
           ) : (
             <AppliedTab
               selectedJobId={selectedJobId}
+              selectedJob={selectedJob}
               readOnly={resultsFinalized}
               jobName={`${selectedJob?.companyId?.name || "Company"} — ${selectedJob?.role || "Role"}`}
             />

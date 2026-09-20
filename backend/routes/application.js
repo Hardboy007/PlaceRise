@@ -8,13 +8,14 @@ const {
   withdrawApplication,
   exportJobApplications,
   bulkApply,
+  updateRoundStatus,
+  bulkUpdateRoundStatus,
 } = require("../controllers/applicationController");
 const { protect, coordinatorOnly } = require("../middleware/auth");
 
 router.post("/", protect, createApplication);
 router.get("/my", protect, getMyApplications);
 router.get("/job/:jobId", protect, coordinatorOnly, getJobApplications);
-router.put("/:id/status", protect, coordinatorOnly, updateApplicationStatus);
 // "I applied by mistake" fix — coordinator can permanently remove an
 // application (not just change its status). See withdrawApplication for
 // the resultsFinalized guard + placementStatus recompute + notification.
@@ -25,6 +26,9 @@ router.get(
   coordinatorOnly,
   exportJobApplications,
 );
+router.put("/job/:jobId/bulk-round-status", protect, coordinatorOnly, bulkUpdateRoundStatus);
+router.put("/:id/round-status", protect, coordinatorOnly, updateRoundStatus);
+router.put("/:id/status", protect, coordinatorOnly, updateApplicationStatus);
 router.post("/job/:jobId/bulk-apply", protect, coordinatorOnly, bulkApply);
 
 module.exports = router;
