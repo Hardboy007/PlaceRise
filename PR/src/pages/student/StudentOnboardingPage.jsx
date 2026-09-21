@@ -31,7 +31,12 @@ const ALLOWED_DOC_TYPES = [
 ];
 
 const isValidPercent = (v) =>
-  v !== "" && v !== null && v !== undefined && !isNaN(Number(v)) && Number(v) >= 0 && Number(v) <= 100;
+  v !== "" &&
+  v !== null &&
+  v !== undefined &&
+  !isNaN(Number(v)) &&
+  Number(v) >= 0 &&
+  Number(v) <= 100;
 
 const buildCertFormData = (data) => {
   const fd = new FormData();
@@ -130,7 +135,7 @@ function MarksheetUpload({
           value={percentValue}
           onChange={onPercentChange}
           inputMode="decimal"
-          placeholder="Marksheet ke according apna percentage likho, e.g. 85.4"
+          placeholder="Enter your percentage according to the marksheet only, e.g. 85.4"
           className={inputCls}
         />
         {percentValue !== "" && !isValidPercent(percentValue) && (
@@ -497,38 +502,36 @@ function StudentOnboardingPage() {
               className="absolute left-0 top-4 sm:top-5 h-0.5 bg-[#1a3a8f] z-0 transition-all duration-500"
               style={{ width: `${((currentStep - 1) / 2) * 100}%` }}
             />
-
-            // eslint-disable-next-line no-unused-vars
             {steps.map(({ id, label, icon: StepIcon }) => {
-  const isCompleted = currentStep > id;
-  const isActive = currentStep === id;
-  return (
-    <div
-      key={id}
-      className="flex flex-col items-center gap-1.5 sm:gap-2 z-10"
-    >
-      <div
-        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-300
+              const isCompleted = currentStep > id;
+              const isActive = currentStep === id;
+              return (
+                <div
+                  key={id}
+                  className="flex flex-col items-center gap-1.5 sm:gap-2 z-10"
+                >
+                  <div
+                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-300
         ${isCompleted ? "bg-primary" : isActive ? "bg-primary" : "bg-[#E2E8F0]"}
       `}
-      >
-        {isCompleted ? (
-          <Check size={16} className="text-white" />
-        ) : (
-          <StepIcon
-            size={16}
-            className={isActive ? "text-white" : "text-[#94A3B8]"}
-          />
-        )}
-      </div>
-      <span
-        className={`text-[10px] sm:text-xs font-medium text-center whitespace-nowrap ${isActive || isCompleted ? "text-[#1E293B]" : "text-[#94A3B8]"}`}
-      >
-        {label}
-      </span>
-    </div>
-  );
-})}
+                  >
+                    {isCompleted ? (
+                      <Check size={16} className="text-white" />
+                    ) : (
+                      <StepIcon
+                        size={16}
+                        className={isActive ? "text-white" : "text-[#94A3B8]"}
+                      />
+                    )}
+                  </div>
+                  <span
+                    className={`text-[10px] sm:text-xs font-medium text-center whitespace-nowrap ${isActive || isCompleted ? "text-[#1E293B]" : "text-[#94A3B8]"}`}
+                  >
+                    {label}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -1010,8 +1013,8 @@ function StudentOnboardingPage() {
 
                   {certifications.length === 0 ? (
                     <p className="text-xs text-[#94A3B8] italic">
-                      Koi certification add nahi hui. Skills add karne se
-                      pehle chaho to yahan se add kar sakte ho.
+                      Koi certification add nahi hui. Skills add karne se pehle
+                      chaho to yahan se add kar sakte ho.
                     </p>
                   ) : (
                     <div className="flex flex-col gap-2">

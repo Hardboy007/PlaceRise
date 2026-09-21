@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { getCurrentYear } from "../../utils/courseDuration";
 import { getSemester } from "../../utils/semester";
+import CertificationModal from "../../components/student/CertificationModal";
 
 function Field({ label, name, value, editing, form, onChange, type = "text" }) {
   return (
@@ -43,8 +44,8 @@ function Field({ label, name, value, editing, form, onChange, type = "text" }) {
 }
 
 function SectionCard({
-  
   title,
+  icon: IconComponent,
   iconBg,
   borderColor = "border-l-primary",
   children,
@@ -57,7 +58,7 @@ function SectionCard({
         <div
           className={`w-8 h-8 rounded-lg flex items-center justify-center ${iconBg}`}
         >
-          <Icon size={16} />
+          {IconComponent && <IconComponent size={16} />}
         </div>
         <h3
           className="text-sm font-bold text-[#1E293B]"
@@ -85,12 +86,16 @@ export default function StudentProfilePage() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const photoInputRef = useRef(null);
   const [removingPhoto, setRemovingPhoto] = useState(false);
+  const [showCertModal, setShowCertModal] = useState(false);
+  const [savingCert, setSavingCert] = useState(false);
+  const [certifications, setCertifications] = useState([]);
 
   useEffect(() => {
     document.title = "Your Profile — PlaceRise";
     const fetchProfile = async () => {
       const data = await api.get("/students/me");
       setStudent(data);
+      setCertifications(data.certifications || []);
       // localStorage bhi update karo taaki layout mein photo dikhe
       const stored = JSON.parse(localStorage.getItem("student") || "{}");
       localStorage.setItem(
@@ -140,6 +145,30 @@ export default function StudentProfilePage() {
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
+
+  const handleCertSave = async (data) => {
+  setSavingCert(true);
+  try {
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, val]) => {
+      if (key === "file") {
+        if (val) formData.append("file", val);
+      } else if (key === "skills") {
+        formData.append("skills", JSON.stringify(val));
+      } else {
+        formData.append(key, val ?? "");
+      }
+    });
+
+    const updated = await api.post("/students/me/certifications", formData);
+    setCertifications(updated);
+    setSavingCert(false);
+    return true;
+  } catch (err) {
+    setSavingCert(false);
+    return false;
+  }
+};
 
   const handleCancel = () => {
     setForm(null);
@@ -694,6 +723,68 @@ export default function StudentProfilePage() {
             )}
           </div>
           <div>
+            <span className="text-xs font-semibold uppercase tracking-widest text-[#64748B] block mb-1.5">
+              GitHub URL
+            </span>
+            {editing ? (
+              <input
+                name="githubUrl"
+                value={form?.githubUrl || ""}
+                onChange={handleChange}
+                placeholder="https://github.com/username"
+                className="w-full px-3 py-2 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] bg-[#F8FAFC] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+              />
+            ) : student?.githubUrl ? (
+              <a
+                href={
+                  student.githubUrl?.startsWith("http")
+                    ? student.githubUrl
+                    : `https://${student.githubUrl}`
+                }
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm font-medium text-primary hover:underline"
+              >
+                View GitHub Profile
+              </a>
+            ) : (
+              <span className="text-sm font-medium text-[#1E293B]">—</span>
+            )}
+          </div>
+
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-widest text-[#64748B] block mb-1.5">
+              Coding Profile URL
+            </span>
+            <p className="text-xs text-[#94A3B8] mb-1.5">
+              LeetCode, CodeChef, Codeforces, etc.
+            </p>
+            {editing ? (
+              <input
+                name="codingProfileUrl"
+                value={form?.codingProfileUrl || ""}
+                onChange={handleChange}
+                placeholder="https://leetcode.com/username"
+                className="w-full px-3 py-2 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] bg-[#F8FAFC] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+              />
+            ) : student?.codingProfileUrl ? (
+              <a
+                href={
+                  student.codingProfileUrl?.startsWith("http")
+                    ? student.codingProfileUrl
+                    : `https://${student.codingProfileUrl}`
+                }
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm font-medium text-primary hover:underline"
+              >
+                View Coding Profile
+              </a>
+            ) : (
+              <span className="text-sm font-medium text-[#1E293B]">—</span>
+            )}
+          </div>
+          <div>
             <span className="text-xs mt-6 font-semibold uppercase tracking-widest text-[#64748B] block mb-1.5">
               Parent / Guardian Email
             </span>
@@ -798,6 +889,50 @@ export default function StudentProfilePage() {
             </button>
           </div>
         )}
+
+        {/* Certifications */}
+        <div className="mt-5 pt-4 border-t border-[#E2E8F0]">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[#64748B] mb-3">
+            Licenses & Certifications
+          </p>
+          {certifications.length === 0 ? (
+            <p className="text-sm text-[#64748B] italic">
+              No certifications added yet.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-3 mb-3">
+              {certifications.map((cert, i) => (
+                <div
+                  key={i}
+                  className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]"
+                >
+                  <p className="text-sm font-semibold text-[#1E293B]">
+                    {cert.name}
+                  </p>
+                  <p className="text-xs text-[#64748B]">
+                    {cert.issuingOrganization}
+                  </p>
+                  {cert.credentialUrl && (
+                    <a
+                      href={cert.credentialUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-primary hover:underline mt-1 inline-block"
+                    >
+                      View Certificate →
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          <button
+            onClick={() => setShowCertModal(true)}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#eef1fb] text-primary text-sm font-semibold hover:bg-blue-100 transition-colors"
+          >
+            <Plus size={14} /> Add Certification
+          </button>
+        </div>
       </SectionCard>
 
       {/* Resume */}
@@ -950,16 +1085,11 @@ export default function StudentProfilePage() {
         />
       )}
       <CertificationModal
-  isOpen={open}
-  // eslint-disable-next-line no-undef
-  onClose={() => setOpen(false)}
-  // eslint-disable-next-line no-undef
-  saving={saving}
-  // eslint-disable-next-line no-unused-vars
-  onSave={async (data) => { /* api.post('/student/certifications', ...) */ }}
-/>
+        isOpen={showCertModal}
+        onClose={() => setShowCertModal(false)}
+        saving={savingCert}
+        onSave={handleCertSave}
+      />
     </div>
-
-  
   );
 }

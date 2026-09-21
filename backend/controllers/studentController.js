@@ -407,98 +407,25 @@ const uploadMarksheet = async (req, res) => {
 const addCertification = async (req, res) => {
   try {
     const student = await Student.findOne({ userId: req.user.id });
-    if (!student) {
-      removeTempFile(req.file);
-      return res.status(404).json({ message: "Student not found" });
-    }
-
-    const {
-      name,
-      issuingOrganization,
-      issueMonth,
-      issueYear,
-      expMonth,
-      expYear,
-      credentialId,
-      credentialUrl,
-    } = req.body;
-
-    let skills = [];
-    try {
-      skills = JSON.parse(req.body.skills || "[]");
-    } catch {
-      skills = [];
-    }
-    skills = Array.isArray(skills)
-      ? skills.map((s) => String(s).trim()).filter(Boolean)
-      : [];
-
-    if (!name?.trim() || !issuingOrganization?.trim()) {
-      removeTempFile(req.file);
-      return res
-        .status(400)
-        .json({ message: "Certification name and issuing organization are required" });
-    }
-    if (skills.length < 1) {
-      removeTempFile(req.file);
-      return res.status(400).json({ message: "Add at least 1 skill" });
-    }
-    if (credentialUrl && !/^https?:\/\//i.test(credentialUrl)) {
-      removeTempFile(req.file);
-      return res
-        .status(400)
-        .json({ message: "Credential URL must start with http:// or https://" });
-    }
-    if (credentialId && credentialId.length > 80) {
-      removeTempFile(req.file);
-      return res.status(400).json({ message: "Credential ID max 80 characters" });
-    }
+    if (!student) return res.status(404).json({ message: "Student not found" });
 
     let fileUrl = "";
     if (req.file) {
-      if (!isValidDoc(req.file)) {
-        removeTempFile(req.file);
-        return res
-          .status(400)
-          .json({ message: "Only PDF/JPG/PNG/WEBP up to 5MB allowed" });
-      }
-      fileUrl = await uploadDocument(req.file, "placerise/certifications");
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "placerise/certifications",
+        resource_type: "auto",
+      });
+      fs.unlink(req.file.path, () => {});
+      fileUrl = result.secure_url;
     }
 
-    student.certifications.push({
-      name: name.trim(),
-      issuingOrganization: issuingOrganization.trim(),
-      issueMonth: Number(issueMonth) || undefined,
-      issueYear: Number(issueYear) || undefined,
-      expMonth: Number(expMonth) || undefined,
-      expYear: Number(expYear) || undefined,
-      credentialId: credentialId || "",
-      credentialUrl: credentialUrl || "",
-      skills,
-      fileUrl,
-    });
-
-    // Skills auto-merge (case-insensitive dedupe)
-    const existing = new Set((student.skills || []).map((s) => s.toLowerCase()));
-    skills.forEach((s) => {
-      if (!existing.has(s.toLowerCase())) {
-        student.skills.push(s);
-        existing.add(s.toLowerCase());
-      }
-    });
-
+    const skillsParsed = req.body.skills ? JSON.parse(req.body.skills) : [];
+    student.certifications.push({ ...req.body, skills: skillsParsed, fileUrl });
     await student.save();
 
-    const populated = await Student.findById(student._id).populate(
-      "userId",
-      "erpId email",
-    );
-    res.status(201).json({
-      student: await enrichStudentWithPlacementData(populated),
-    });
-  } catch (error) {
-    removeTempFile(req.file);
-    res.status(500).json({ message: error.message });
+    res.json(student.certifications);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -965,7 +892,7 @@ const bulkCgpaUpdate = async (req, res) => {
       const student = await Student.findByIdAndUpdate(
         studentId,
         { cgpa: Number(cgpa) },
-        { new: true }
+        { new: true },
       );
 
       if (student) updated++;

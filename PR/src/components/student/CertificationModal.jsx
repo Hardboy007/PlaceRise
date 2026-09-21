@@ -1,8 +1,18 @@
 import { useState } from "react";
 
 const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 const currentYear = new Date().getFullYear();
@@ -51,7 +61,10 @@ const CertificationModal = ({ isOpen, onClose, onSave, saving = false }) => {
   };
 
   const removeSkill = (s) =>
-    set("skills", form.skills.filter((x) => x !== s));
+    set(
+      "skills",
+      form.skills.filter((x) => x !== s),
+    );
 
   const validate = () => {
     const e = {};
@@ -63,13 +76,13 @@ const CertificationModal = ({ isOpen, onClose, onSave, saving = false }) => {
     if (form.credentialUrl && !/^https?:\/\//i.test(form.credentialUrl))
       e.credentialUrl = "URL must start with http:// or https://";
     if (
-  form.issueYear &&
-  form.expYear &&
-  Number(form.expYear) * 12 + Number(form.expMonth || 1) <
-    Number(form.issueYear) * 12 + Number(form.issueMonth || 1)
-) {
-  e.expYear = "Expiration date cannot be before issue date";
-}
+      form.issueYear &&
+      form.expYear &&
+      Number(form.expYear) * 12 + Number(form.expMonth || 1) <
+        Number(form.issueYear) * 12 + Number(form.issueMonth || 1)
+    ) {
+      e.expYear = "Expiration date cannot be before issue date";
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -97,7 +110,9 @@ const CertificationModal = ({ isOpen, onClose, onSave, saving = false }) => {
       <div className="flex max-h-[90vh] w-full max-w-lg flex-col rounded-lg bg-white shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b px-5 py-4">
-          <h2 className="text-lg font-semibold">Add license or certification</h2>
+          <h2 className="text-lg font-semibold">
+            Add license or certification
+          </h2>
           <button
             type="button"
             onClick={handleClose}
@@ -149,7 +164,9 @@ const CertificationModal = ({ isOpen, onClose, onSave, saving = false }) => {
               >
                 <option value="">Month</option>
                 {MONTHS.map((m, i) => (
-                  <option key={m} value={i + 1}>{m}</option>
+                  <option key={m} value={i + 1}>
+                    {m}
+                  </option>
                 ))}
               </select>
               <select
@@ -159,7 +176,9 @@ const CertificationModal = ({ isOpen, onClose, onSave, saving = false }) => {
               >
                 <option value="">Year</option>
                 {YEARS.map((y) => (
-                  <option key={y} value={y}>{y}</option>
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
                 ))}
               </select>
             </div>
@@ -178,7 +197,9 @@ const CertificationModal = ({ isOpen, onClose, onSave, saving = false }) => {
               >
                 <option value="">Month</option>
                 {MONTHS.map((m, i) => (
-                  <option key={m} value={i + 1}>{m}</option>
+                  <option key={m} value={i + 1}>
+                    {m}
+                  </option>
                 ))}
               </select>
               <select
@@ -188,7 +209,9 @@ const CertificationModal = ({ isOpen, onClose, onSave, saving = false }) => {
               >
                 <option value="">Year</option>
                 {YEARS.map((y) => (
-                  <option key={y} value={y}>{y}</option>
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
                 ))}
               </select>
             </div>
@@ -196,7 +219,9 @@ const CertificationModal = ({ isOpen, onClose, onSave, saving = false }) => {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium">Credential ID</label>
+            <label className="mb-1 block text-sm font-medium">
+              Credential ID
+            </label>
             <input
               className={inputCls}
               maxLength={80}
@@ -209,7 +234,9 @@ const CertificationModal = ({ isOpen, onClose, onSave, saving = false }) => {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium">Credential URL</label>
+            <label className="mb-1 block text-sm font-medium">
+              Credential URL
+            </label>
             <input
               className={`${inputCls} ${errors.credentialUrl ? "border-red-500" : ""}`}
               placeholder="https://"
@@ -223,8 +250,8 @@ const CertificationModal = ({ isOpen, onClose, onSave, saving = false }) => {
           <div>
             <h3 className="text-base font-semibold">Skills</h3>
             <p className="mb-2 text-sm text-gray-600">
-              Associate at least 1 skill to this certification. It'll also appear
-              in your Skills section.
+              Associate at least 1 skill to this certification. It'll also
+              appear in your Skills section.
             </p>
             <div className="flex gap-2">
               <input
@@ -274,21 +301,34 @@ const CertificationModal = ({ isOpen, onClose, onSave, saving = false }) => {
           <div>
             <h3 className="text-base font-semibold">Media (optional)</h3>
             <p className="mb-2 text-sm text-gray-600">
-              Certificate ki image ya PDF (max 5MB).
+              image or pdf of certifications (max 5MB).
             </p>
-            <input
-              type="file"
-              accept="image/*,application/pdf"
-              onChange={(e) => {
-                const f = e.target.files?.[0] || null;
-                if (f && f.size > 5 * 1024 * 1024) {
-                  setErrors((er) => ({ ...er, file: "File must be under 5MB" }));
-                  return;
-                }
-                set("file", f);
-              }}
-              className="text-sm"
-            />
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 px-4 py-2 rounded-full border border-blue-600 text-sm font-medium text-blue-600 hover:bg-blue-50 cursor-pointer transition-colors">
+                📎 Choose File
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0] || null;
+                    if (f && f.size > 5 * 1024 * 1024) {
+                      setErrors((er) => ({
+                        ...er,
+                        file: "File must be under 5MB",
+                      }));
+                      return;
+                    }
+                    set("file", f);
+                  }}
+                />
+              </label>
+              {form.file && (
+                <span className="text-sm text-gray-600 truncate max-w-[180px]">
+                  {form.file.name}
+                </span>
+              )}
+            </div>
             <FieldError msg={errors.file} />
           </div>
         </div>
