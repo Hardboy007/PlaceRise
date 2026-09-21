@@ -1525,6 +1525,7 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
   const touchStartIdRef = useRef(null);
   const touchDragActiveRef = useRef(false);
   const longPressTimerRef = useRef(null);
+  const touchScrolledRef = useRef(false);
 
   // Excel import state
   const [importLoading, setImportLoading] = useState(false);
@@ -1711,6 +1712,7 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
   const handleTouchStart = (appId, e) => {
     touchStartIdRef.current = appId;
     touchDragActiveRef.current = false;
+    touchScrolledRef.current = false;
     hasDraggedRef.current = false;
     touchStartPosRef.current = {
       x: e.touches[0].clientX,
@@ -1734,9 +1736,11 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
       const dy = Math.abs(e.touches[0].clientY - touchStartPosRef.current.y);
       if (dx > 5 || dy > 5) {
         clearTimeout(longPressTimerRef.current);
+        touchScrolledRef.current = true; // scroll hua — modal mat kholo
       }
       return;
     }
+
     e.preventDefault();
     const touch = e.touches[0];
     const el = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -1745,7 +1749,6 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
     const currentAppId = row.dataset.appid;
     if (!currentAppId) return;
 
-    // Start aur current ke beech ki saari rows select karo
     const startIdx = filtered.findIndex(
       (a) => a._id === touchStartIdRef.current,
     );
@@ -1766,13 +1769,14 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
 
   const handleTouchEnd = (appId, e) => {
     clearTimeout(longPressTimerRef.current);
-    if (!touchDragActiveRef.current && !hasDraggedRef.current) {
+    if (!touchDragActiveRef.current && !touchScrolledRef.current) {
       setSelectedStudent(
         filtered.find((a) => a._id === appId)?.studentId || null,
       );
     }
     touchDragActiveRef.current = false;
     touchStartIdRef.current = null;
+    touchScrolledRef.current = false;
     hasDraggedRef.current = false;
   };
 
