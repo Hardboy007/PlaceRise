@@ -44,9 +44,37 @@ const enrichStudentWithPlacementData = async (student) => {
 const getAllStudents = async (req, res) => {
   try {
     const students = await Student.find().populate("userId", "erpId email");
-    const studentsWithPlacement = await Promise.all(
-      students.map((student) => enrichStudentWithPlacementData(student)),
-    );
+
+    // Saare student IDs ek baar mein
+    const studentIds = students.map((s) => s._id);
+
+    // Single query — sab selected applications ek saath
+    const allSelectedApps = await Application.find({
+      studentId: { $in: studentIds },
+      status: "Selected",
+    }).populate({
+      path: "jobId",
+      populate: { path: "companyId" },
+    });
+
+    // Map banao studentId -> applications[]
+    const appMap = {};
+    allSelectedApps.forEach((app) => {
+      const sid = app.studentId.toString();
+      if (!appMap[sid]) appMap[sid] = [];
+      appMap[sid].push(app.jobId);
+    });
+
+    const studentsWithPlacement = students.map((student) => {
+      const studentObject = student.toObject();
+      const selectedJobs = appMap[student._id.toString()] || [];
+      return {
+        ...studentObject,
+        placementStatus: selectedJobs.length > 0 ? "Placed" : "Not Placed",
+        selectedCompanies: selectedJobs,
+      };
+    });
+
     res.json(studentsWithPlacement);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -494,67 +522,93 @@ const bulkImportStudents = async (req, res) => {
         .on("error", reject);
     });
 
-    let imported = 0;
-    let skipped = 0;
+    fs.unlink(req.file.path, () => {});
 
-    for (const row of results) {
-      try {
-        const erpId = row["ERP ID"];
-        const name = row["Student Name"];
-        const email = row["Email"];
-        const course = row["Course"];
+    // Pehle saare existing ERPs ek baar fetch kar lo
+    const allErpIds = results.map((r) => r["ERP ID"]).filter(Boolean);
+
+    const existingUsers = await User.find(
+      { erpId: { $in: allErpIds } },
+      { erpId: 1 },
+    );
+    const existingErpSet = new Set(existingUsers.map((u) => u.erpId));
+
+    // Valid rows filter karo
+    const validRows = results.filter((row) => {
+      const erpId = row["ERP ID"];
+      const dobRaw = row["Date of Birth"];
+      return erpId && dobRaw && !existingErpSet.has(erpId);
+    });
+
+    const skipped = results.length - validRows.length;
+
+    // Bcrypt hash sab ke liye parallel mein
+    const SALT_ROUNDS = 10;
+    const preparedUsers = await Promise.all(
+      validRows.map(async (row) => {
         const dobRaw = row["Date of Birth"];
-
-        if (!erpId || !dobRaw) {
-          skipped++;
-          continue;
-        }
-
-        const existingUser = await User.findOne({ erpId });
-        if (existingUser) {
-          skipped++;
-          continue;
-        }
-
         const dobParts = dobRaw.split(/[-\/]/);
         const day = dobParts[0].padStart(2, "0");
         const month = dobParts[1].padStart(2, "0");
         const year = dobParts[2];
         const defaultPassword = `${day}${month}${year}`;
+        const hashedPassword = await bcrypt.hash(defaultPassword, SALT_ROUNDS);
 
-        const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+        return {
+          row,
+          dobRaw,
+          hashedPassword,
+        };
+      }),
+    );
 
-        const newUser = await User.create({
-          erpId,
-          email,
-          password: hashedPassword,
-          role: "student",
-          isFirstLogin: true,
-        });
+    // Bulk User insert
+    const userDocs = preparedUsers.map(({ row, hashedPassword }) => ({
+      erpId: row["ERP ID"],
+      email: row["Email"],
+      password: hashedPassword,
+      role: "student",
+      isFirstLogin: true,
+    }));
 
+    const insertedUsers = await User.insertMany(userDocs, { ordered: false });
+
+    // ERP -> _id map banao
+    const erpToUserId = {};
+    insertedUsers.forEach((u) => {
+      erpToUserId[u.erpId] = u._id;
+    });
+
+    // Bulk Student insert
+    const studentDocs = preparedUsers
+      .map(({ row, dobRaw }) => {
+        const erpId = row["ERP ID"];
+        const userId = erpToUserId[erpId];
+        if (!userId) return null;
+
+        const course = row["Course"];
         const { school, department } = findSchoolAndDept(course);
 
-        await Student.create({
-          userId: newUser._id,
-          name,
-          email,
+        return {
+          userId,
+          name: row["Student Name"],
+          email: row["Email"],
           course,
           dob: dobRaw,
           school,
           branch: department,
-        });
+        };
+      })
+      .filter(Boolean);
 
-        imported++;
-      } catch (rowError) {
-        console.error("Row error:", rowError.message);
-        skipped++;
-      }
-    }
+    await Student.insertMany(studentDocs, { ordered: false });
 
-    fs.unlink(req.file.path, () => {});
-
-    res.status(200).json({ imported, skipped });
+    res.status(200).json({
+      imported: studentDocs.length,
+      skipped: results.length - studentDocs.length,
+    });
   } catch (error) {
+    console.error("Bulk import error:", error.message);
     res.status(500).json({ message: error.message });
   }
 };
