@@ -1696,18 +1696,6 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
     isDraggingRef.current = true;
   };
 
-  const handleRowMouseMove = (appId) => {
-    if (!isDraggingRef.current || !dragStartIdRef.current) return;
-    if (dragStartIdRef.current === appId) return;
-    hasDraggedRef.current = true;
-    setSelectedAppIds((prev) => {
-      const next = new Set(prev);
-      next.add(dragStartIdRef.current);
-      next.add(appId);
-      return next;
-    });
-  };
-
   const handleMouseUp = () => {
     isDraggingRef.current = false;
     dragStartIdRef.current = null;
@@ -1717,8 +1705,33 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
   };
 
   useEffect(() => {
+    const handleGlobalMouseMove = (e) => {
+      if (!isDraggingRef.current || !dragStartIdRef.current) return;
+      if (e.buttons !== 1) {
+        isDraggingRef.current = false;
+        dragStartIdRef.current = null;
+        return;
+      }
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const row = el?.closest("[data-appid]");
+      if (!row) return;
+      const appId = row.dataset.appid;
+      if (appId === dragStartIdRef.current) return;
+      hasDraggedRef.current = true;
+      setSelectedAppIds((prev) => {
+        const next = new Set(prev);
+        next.add(dragStartIdRef.current);
+        next.add(appId);
+        return next;
+      });
+    };
+
+    window.addEventListener("mousemove", handleGlobalMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
-    return () => window.removeEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleGlobalMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
   }, []);
 
   // Excel import — smart matching
@@ -2415,8 +2428,8 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
             return (
               <div
                 key={app._id}
+                data-appid={app._id}
                 onMouseDown={(e) => !readOnly && handleMouseDown(app._id, e)}
-                onMouseMove={() => !readOnly && handleRowMouseMove(app._id)}
                 onMouseUp={() => {
                   if (hasDraggedRef.current) return;
                   setSelectedStudent(student);
