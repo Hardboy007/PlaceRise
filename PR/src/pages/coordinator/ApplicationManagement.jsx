@@ -1518,6 +1518,7 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
   const [selectedAppIds, setSelectedAppIds] = useState(new Set());
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartId, setDragStartId] = useState(null);
+  const [hasDragged, setHasDragged] = useState(false);
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const [bulkConfirm, setBulkConfirm] = useState(null); // { status, count }
 
@@ -1544,6 +1545,9 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
     setSelectedAppIds(new Set());
     setFilterStatus("All");
     setSearchQuery("");
+    setHasDragged(false);
+    setIsDragging(false);
+    setDragStartId(null);
   }, [activeRound]);
 
   // Is round mein har application ka status
@@ -1687,19 +1691,14 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
   const handleMouseDown = (appId, e) => {
     if (e.button !== 0) return;
     e.preventDefault();
-    setIsDragging(false);
     setDragStartId(appId);
-    setSelectedAppIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(appId)) next.delete(appId);
-      else next.add(appId);
-      return next;
-    });
+    setHasDragged(false);
+    setIsDragging(true);
   };
 
   const handleMouseEnter = (appId) => {
-    if (!isDragging) return;
-    setIsDragging(true);  // sirf tab true ho jab actually drag hua
+    if (!isDragging || !dragStartId) return;
+    setHasDragged(true);
     setSelectedAppIds((prev) => {
       const next = new Set(prev);
       next.add(appId);
@@ -2414,7 +2413,7 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
                 onMouseDown={(e) => !readOnly && handleMouseDown(app._id, e)}
                 onMouseEnter={() => !readOnly && handleMouseEnter(app._id)}
                 onMouseUp={(e) => {
-                  if (isDragging && dragStartId !== app._id) return;
+                  if (hasDragged) return;
                   setSelectedStudent(student);
                 }}
                 style={{
@@ -2436,7 +2435,11 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
                 <div
                   onMouseDown={(e) => {
                     e.stopPropagation();
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
                     if (readOnly) return;
+                    setHasDragged(true);
                     setSelectedAppIds((prev) => {
                       const next = new Set(prev);
                       if (next.has(app._id)) next.delete(app._id);
