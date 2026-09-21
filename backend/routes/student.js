@@ -30,12 +30,7 @@ router.post(
   upload.single("file"),
   bulkImportStudents,
 );
-router.patch(
-  "/bulk-cgpa-update",
-  protect,
-  coordinatorOnly,
-  bulkCgpaUpdate,
-);
+router.patch("/bulk-cgpa-update", protect, coordinatorOnly, bulkCgpaUpdate);
 // Student own profile
 router.get("/me", protect, getMyProfile);
 router.put("/me", protect, updateStudent);

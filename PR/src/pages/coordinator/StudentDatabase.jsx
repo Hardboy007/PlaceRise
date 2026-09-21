@@ -49,8 +49,8 @@ const getStudentErpId = (student) =>
   student?.userId?.erpId || student?.erpId || "";
 const getPlacementStatus = (student) =>
   student?.placementStatus === "Placed" ||
-    (Array.isArray(student?.selectedCompanies) &&
-      student.selectedCompanies.length > 0)
+  (Array.isArray(student?.selectedCompanies) &&
+    student.selectedCompanies.length > 0)
     ? "Placed"
     : "Not Placed";
 const getSelectedCompanyCount = (student) =>
@@ -1009,8 +1009,8 @@ function StudentModal({ student, onClose }) {
                         >
                           {offer?.lastDate
                             ? new Date(offer.lastDate).toLocaleDateString(
-                              "en-GB",
-                            )
+                                "en-GB",
+                              )
                             : "—"}
                         </p>
                       </div>
@@ -1024,64 +1024,142 @@ function StudentModal({ student, onClose }) {
     </div>
   );
 }
-function CgpaImportModal({ matches, setMatches, students, onClose, onConfirm, updating, updateResult }) {
+function CgpaImportModal({
+  matches,
+  setMatches,
+  students,
+  onClose,
+  onConfirm,
+  updating,
+  updateResult,
+}) {
   const confident = matches.filter((m) => m.status === "confident");
   const review = matches.filter((m) => m.status === "review");
 
   const handleManualSelect = (idx, studentId) => {
     setMatches((prev) =>
-      prev.map((m, i) => i === idx ? { ...m, selectedStudentId: studentId } : m)
+      prev.map((m, i) =>
+        i === idx ? { ...m, selectedStudentId: studentId } : m,
+      ),
     );
   };
 
   const selectedCount = matches.filter(
-    (m) => m.status === "confident" || (m.status === "review" && m.selectedStudentId)
+    (m) =>
+      m.status === "confident" ||
+      (m.status === "review" && m.selectedStudentId),
   ).length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
-      style={{ backgroundColor: "rgba(15,23,42,0.6)", backdropFilter: "blur(4px)" }}
-      onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div style={{ backgroundColor: C.white, borderColor: C.border, maxHeight: "90vh" }}
-        className="rounded-3xl border shadow-2xl w-full max-w-3xl flex flex-col overflow-hidden">
-
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
+      style={{
+        backgroundColor: "rgba(15,23,42,0.6)",
+        backdropFilter: "blur(4px)",
+      }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div
+        style={{
+          backgroundColor: C.white,
+          borderColor: C.border,
+          maxHeight: "90vh",
+        }}
+        className="rounded-3xl border shadow-2xl w-full max-w-3xl flex flex-col overflow-hidden"
+      >
         {/* Header */}
-        <div style={{ borderColor: C.border }} className="flex items-center justify-between px-6 py-4 border-b shrink-0">
+        <div
+          style={{ borderColor: C.border }}
+          className="flex items-center justify-between px-6 py-4 border-b shrink-0"
+        >
           <div>
-            <h2 style={{ color: C.textMain }} className="text-lg font-bold">CGPA Import Preview</h2>
-            <p style={{ color: C.textMuted }} className="text-xs mt-0.5">Review matches before applying changes to the database.</p>
+            <h2 style={{ color: C.textMain }} className="text-lg font-bold">
+              CGPA Import Preview
+            </h2>
+            <p style={{ color: C.textMuted }} className="text-xs mt-0.5">
+              Review matches before applying changes to the database.
+            </p>
           </div>
-          <button onClick={onClose} style={{ color: C.textMuted, backgroundColor: C.background }}
-            className="w-9 h-9 rounded-xl flex items-center justify-center hover:opacity-80 transition">
+          <button
+            onClick={onClose}
+            style={{ color: C.textMuted, backgroundColor: C.background }}
+            className="w-9 h-9 rounded-xl flex items-center justify-center hover:opacity-80 transition"
+          >
             {Icon.close}
           </button>
         </div>
 
         {/* Body */}
         <div className="overflow-y-auto flex-1 px-6 py-5 space-y-6">
-
           {/* Confident Matches */}
           {confident.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <span style={{ backgroundColor: "#F0FDF4", borderColor: "#86EFAC", color: "#15803D" }}
-                  className="border text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
-                  <span style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: C.success, display: "inline-block" }} />
+                <span
+                  style={{
+                    backgroundColor: "#F0FDF4",
+                    borderColor: "#86EFAC",
+                    color: "#15803D",
+                  }}
+                  className="border text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5"
+                >
+                  <span
+                    style={{
+                      width: 7,
+                      height: 7,
+                      borderRadius: "50%",
+                      backgroundColor: C.success,
+                      display: "inline-block",
+                    }}
+                  />
                   Confident Matches — {confident.length}
                 </span>
-                <span style={{ color: C.textMuted }} className="text-xs">Auto-selected · will update directly</span>
+                <span style={{ color: C.textMuted }} className="text-xs">
+                  Auto-selected · will update directly
+                </span>
               </div>
-              <div style={{ borderColor: C.border }} className="rounded-2xl border overflow-hidden">
+              <div
+                style={{ borderColor: C.border }}
+                className="rounded-2xl border overflow-hidden"
+              >
                 {confident.map((m, i) => (
-                  <div key={i} style={{ borderColor: C.border, backgroundColor: i % 2 === 0 ? C.white : C.background }}
-                    className="grid grid-cols-4 gap-3 px-4 py-3 text-sm border-b last:border-b-0 items-center">
-                    <span style={{ color: C.textMain }} className="font-semibold truncate">{m.student.name}</span>
-                    <span style={{ color: C.textMuted }} className="font-mono text-xs">{getStudentErpId(m.student)}</span>
-                    <span style={{ color: C.textMuted }} className="text-xs truncate">{getStudentCourse(m.student)}</span>
+                  <div
+                    key={i}
+                    style={{
+                      borderColor: C.border,
+                      backgroundColor: i % 2 === 0 ? C.white : C.background,
+                    }}
+                    className="grid grid-cols-4 gap-3 px-4 py-3 text-sm border-b last:border-b-0 items-center"
+                  >
+                    <span
+                      style={{ color: C.textMain }}
+                      className="font-semibold truncate"
+                    >
+                      {m.student.name}
+                    </span>
+                    <span
+                      style={{ color: C.textMuted }}
+                      className="font-mono text-xs"
+                    >
+                      {getStudentErpId(m.student)}
+                    </span>
+                    <span
+                      style={{ color: C.textMuted }}
+                      className="text-xs truncate"
+                    >
+                      {getStudentCourse(m.student)}
+                    </span>
                     <div className="flex items-center gap-2">
-                      <span style={{ color: C.textMuted }} className="text-xs line-through">{(m.student.cgpa ?? 0).toFixed(2)}</span>
+                      <span
+                        style={{ color: C.textMuted }}
+                        className="text-xs line-through"
+                      >
+                        {(m.student.cgpa ?? 0).toFixed(2)}
+                      </span>
                       <span>→</span>
-                      <span style={{ color: "#15803D", fontWeight: 700 }}>{Number(m.row.cgpa).toFixed(2)}</span>
+                      <span style={{ color: "#15803D", fontWeight: 700 }}>
+                        {Number(m.row.cgpa).toFixed(2)}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -1093,40 +1171,106 @@ function CgpaImportModal({ matches, setMatches, students, onClose, onConfirm, up
           {review.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <span style={{ backgroundColor: "#FFFBEB", borderColor: "#FDE68A", color: "#B45309" }}
-                  className="border text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
-                  <span style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: C.warning, display: "inline-block" }} />
+                <span
+                  style={{
+                    backgroundColor: "#FFFBEB",
+                    borderColor: "#FDE68A",
+                    color: "#B45309",
+                  }}
+                  className="border text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5"
+                >
+                  <span
+                    style={{
+                      width: 7,
+                      height: 7,
+                      borderRadius: "50%",
+                      backgroundColor: C.warning,
+                      display: "inline-block",
+                    }}
+                  />
                   Review Needed — {review.length}
                 </span>
-                <span style={{ color: C.textMuted }} className="text-xs">Select correct student manually</span>
+                <span style={{ color: C.textMuted }} className="text-xs">
+                  Select correct student manually
+                </span>
               </div>
               <div className="space-y-3">
                 {review.map((m, i) => {
                   const globalIdx = matches.findIndex((x) => x === m);
                   return (
-                    <div key={i} style={{ borderColor: "#FDE68A", backgroundColor: "#FFFBEB" }} className="rounded-2xl border p-4">
+                    <div
+                      key={i}
+                      style={{
+                        borderColor: "#FDE68A",
+                        backgroundColor: "#FFFBEB",
+                      }}
+                      className="rounded-2xl border p-4"
+                    >
                       <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
                         <div>
-                          <p style={{ color: "#B45309" }} className="text-xs font-bold uppercase tracking-wider mb-1">From Excel</p>
-                          <p style={{ color: C.textMain }} className="text-sm font-semibold">{String(m.row.name || "—")}</p>
-                          <p style={{ color: C.textMuted }} className="text-xs font-mono">{String(m.row["erp id"] || m.row.erpid || m.row.erp || "—")}</p>
+                          <p
+                            style={{ color: "#B45309" }}
+                            className="text-xs font-bold uppercase tracking-wider mb-1"
+                          >
+                            From Excel
+                          </p>
+                          <p
+                            style={{ color: C.textMain }}
+                            className="text-sm font-semibold"
+                          >
+                            {String(m.row.name || "—")}
+                          </p>
+                          <p
+                            style={{ color: C.textMuted }}
+                            className="text-xs font-mono"
+                          >
+                            {String(
+                              m.row["erp id"] ||
+                                m.row.erpid ||
+                                m.row.erp ||
+                                "—",
+                            )}
+                          </p>
                         </div>
                         <div className="text-right">
-                          <p style={{ color: C.textMuted }} className="text-xs mb-0.5">New CGPA</p>
-                          <p style={{ color: "#B45309", fontWeight: 700 }} className="text-base">{Number(m.row.cgpa).toFixed(2)}</p>
+                          <p
+                            style={{ color: C.textMuted }}
+                            className="text-xs mb-0.5"
+                          >
+                            New CGPA
+                          </p>
+                          <p
+                            style={{ color: "#B45309", fontWeight: 700 }}
+                            className="text-base"
+                          >
+                            {Number(m.row.cgpa).toFixed(2)}
+                          </p>
                         </div>
                       </div>
-                      <label style={{ color: C.textMuted }} className="text-[11px] font-semibold uppercase tracking-wider block mb-1.5">
+                      <label
+                        style={{ color: C.textMuted }}
+                        className="text-[11px] font-semibold uppercase tracking-wider block mb-1.5"
+                      >
                         Select Correct Student
                       </label>
-                      <select value={m.selectedStudentId || ""}
-                        onChange={(e) => handleManualSelect(globalIdx, e.target.value)}
-                        style={{ borderColor: C.border, color: C.textMain, backgroundColor: C.white, outline: "none" }}
-                        className="w-full border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-200 transition">
+                      <select
+                        value={m.selectedStudentId || ""}
+                        onChange={(e) =>
+                          handleManualSelect(globalIdx, e.target.value)
+                        }
+                        style={{
+                          borderColor: C.border,
+                          color: C.textMain,
+                          backgroundColor: C.white,
+                          outline: "none",
+                        }}
+                        className="w-full border rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-blue-200 transition"
+                      >
                         <option value="">— Skip this row —</option>
                         {students.map((s) => (
                           <option key={s._id} value={s._id}>
-                            {s.name} · {getStudentErpId(s)} · {getStudentCourse(s)}
+                            {s.name} · {getStudentErpId(s)} ·{" "}
+                            {getStudentCourse(s)}
                           </option>
                         ))}
                       </select>
@@ -1139,43 +1283,82 @@ function CgpaImportModal({ matches, setMatches, students, onClose, onConfirm, up
 
           {confident.length === 0 && review.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 gap-3">
-              <p style={{ color: C.textMuted }} className="text-sm font-medium">No valid rows found in the file.</p>
+              <p style={{ color: C.textMuted }} className="text-sm font-medium">
+                No valid rows found in the file.
+              </p>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div style={{ borderColor: C.border, backgroundColor: C.background }}
-          className="px-6 py-4 border-t flex items-center justify-between gap-3 flex-wrap shrink-0">
+        <div
+          style={{ borderColor: C.border, backgroundColor: C.background }}
+          className="px-6 py-4 border-t flex items-center justify-between gap-3 flex-wrap shrink-0"
+        >
           <div>
             {updateResult && (
-              <span style={{ color: updateResult.error ? C.danger : "#15803D" }} className="text-sm font-semibold">
-                {updateResult.error ? `❌ ${updateResult.error}` : `✓ ${updateResult.updated} students updated successfully`}
+              <span
+                style={{ color: updateResult.error ? C.danger : "#15803D" }}
+                className="text-sm font-semibold"
+              >
+                {updateResult.error
+                  ? `❌ ${updateResult.error}`
+                  : `✓ ${updateResult.updated} students updated successfully`}
               </span>
             )}
             {!updateResult && (
               <span style={{ color: C.textMuted }} className="text-sm">
-                <strong style={{ color: C.textMain }}>{selectedCount}</strong> students will be updated
+                <strong style={{ color: C.textMain }}>{selectedCount}</strong>{" "}
+                students will be updated
               </span>
             )}
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={onClose}
-              style={{ color: C.textMuted, borderColor: C.border, backgroundColor: C.white }}
-              className="border px-4 py-2 rounded-xl text-sm font-semibold hover:opacity-80 transition">
+            <button
+              onClick={onClose}
+              style={{
+                color: C.textMuted,
+                borderColor: C.border,
+                backgroundColor: C.white,
+              }}
+              className="border px-4 py-2 rounded-xl text-sm font-semibold hover:opacity-80 transition"
+            >
               Cancel
             </button>
-            <button onClick={onConfirm}
+            <button
+              onClick={onConfirm}
               disabled={updating || selectedCount === 0}
-              style={{ backgroundColor: selectedCount === 0 ? C.border : C.primary, color: C.white, cursor: selectedCount === 0 ? "not-allowed" : "pointer" }}
-              className="px-5 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2">
+              style={{
+                backgroundColor: selectedCount === 0 ? C.border : C.primary,
+                color: C.white,
+                cursor: selectedCount === 0 ? "not-allowed" : "pointer",
+              }}
+              className="px-5 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2"
+            >
               {updating && (
-                <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                <svg
+                  className="animate-spin w-3.5 h-3.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8z"
+                  />
                 </svg>
               )}
-              {updating ? "Updating…" : `Update ${selectedCount} Students' CGPA`}
+              {updating
+                ? "Updating…"
+                : `Update ${selectedCount} Students' CGPA`}
             </button>
           </div>
         </div>
@@ -1333,23 +1516,49 @@ export default function StudentDatabasePage() {
       // ek baar fetch karo — CGPA match total students se hona chahiye,
       // sirf page pe jitne load hain unse nahi.
       const allData = await api.get("/students?page=1&limit=100000");
-      const allStudents = Array.isArray(allData.students) ? allData.students : [];
+      const allStudents = Array.isArray(allData.students)
+        ? allData.students
+        : [];
       setCgpaAllStudents(allStudents);
 
       const matched = rows
         .filter((r) => r.cgpa !== "" && r.cgpa !== undefined)
         .map((r) => {
-          const erpFromRow = String(r["erp id"] || r.erpid || r.erp || "").trim().toLowerCase();
-          const nameFromRow = String(r.name || "").trim().toLowerCase();
+          const erpFromRow = String(r["erp id"] || r.erpid || r.erp || "")
+            .trim()
+            .toLowerCase();
+          const nameFromRow = String(r.name || "")
+            .trim()
+            .toLowerCase();
           const byErp = allStudents.find(
-            (s) => String(getStudentErpId(s)).trim().toLowerCase() === erpFromRow && erpFromRow !== ""
+            (s) =>
+              String(getStudentErpId(s)).trim().toLowerCase() === erpFromRow &&
+              erpFromRow !== "",
           );
-          if (byErp) return { row: r, student: byErp, status: "confident", selectedStudentId: byErp._id };
+          if (byErp)
+            return {
+              row: r,
+              student: byErp,
+              status: "confident",
+              selectedStudentId: byErp._id,
+            };
           const byName = allStudents.filter(
-            (s) => s.name.trim().toLowerCase() === nameFromRow && nameFromRow !== ""
+            (s) =>
+              s.name.trim().toLowerCase() === nameFromRow && nameFromRow !== "",
           );
-          if (byName.length === 1) return { row: r, student: byName[0], status: "confident", selectedStudentId: byName[0]._id };
-          return { row: r, student: null, status: "review", selectedStudentId: "" };
+          if (byName.length === 1)
+            return {
+              row: r,
+              student: byName[0],
+              status: "confident",
+              selectedStudentId: byName[0]._id,
+            };
+          return {
+            row: r,
+            student: null,
+            status: "review",
+            selectedStudentId: "",
+          };
         });
       setCgpaImportRows(rows);
       setCgpaMatches(matched);
@@ -1366,13 +1575,22 @@ export default function StudentDatabasePage() {
     try {
       const updates = cgpaMatches
         .filter((m) => m.selectedStudentId)
-        .map((m) => ({ studentId: m.selectedStudentId, cgpa: Number(m.row.cgpa) }));
+        .map((m) => ({
+          studentId: m.selectedStudentId,
+          cgpa: Number(m.row.cgpa),
+        }));
       const token = localStorage.getItem("token");
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/students/bulk-cgpa-update`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ updates }),
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/students/bulk-cgpa-update`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ updates }),
+        },
+      );
       const data = await res.json();
       setCgpaUpdateResult(data);
       const updated = await api.get("/students?page=1&limit=50");
@@ -1570,10 +1788,11 @@ export default function StudentDatabasePage() {
             <div className="flex items-center gap-2 sm:gap-3 flex-wrap w-full lg:w-auto">
               {importResult && (
                 <span
-                  className={`text-xs font-semibold px-2.5 py-1 rounded-lg backdrop-blur ${importResult.error
-                    ? "bg-red-500/20 text-red-100"
-                    : "bg-white/15 text-white"
-                    }`}
+                  className={`text-xs font-semibold px-2.5 py-1 rounded-lg backdrop-blur ${
+                    importResult.error
+                      ? "bg-red-500/20 text-red-100"
+                      : "bg-white/15 text-white"
+                  }`}
                 >
                   {importResult.error
                     ? `❌ ${importResult.error}`
@@ -1583,10 +1802,11 @@ export default function StudentDatabasePage() {
 
               <label
                 className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer transition flex-1 lg:flex-none
-        ${importing
-                    ? "bg-white/20 text-white/50 cursor-not-allowed"
-                    : "bg-white text-[#1a3a8f] hover:bg-[#F1F5F9]"
-                  }`}
+        ${
+          importing
+            ? "bg-white/20 text-white/50 cursor-not-allowed"
+            : "bg-white text-[#1a3a8f] hover:bg-[#F1F5F9]"
+        }`}
               >
                 <Upload size={14} />
                 {importing ? (
@@ -1651,19 +1871,30 @@ export default function StudentDatabasePage() {
         />
       </div>
       {/* ── CGPA Bulk Import Card ── */}
-      <div style={{ backgroundColor: C.white, borderColor: C.border }}
-        className="rounded-2xl border shadow-sm p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+      <div
+        style={{ backgroundColor: C.white, borderColor: C.border }}
+        className="rounded-2xl border shadow-sm p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-5"
+      >
         <div className="flex items-start gap-4">
-          <div style={{ backgroundColor: "#F5F3FF" }}
-            className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0">
+          <div
+            style={{ backgroundColor: "#F5F3FF" }}
+            className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+          >
             {Icon.cgpa}
           </div>
           <div>
-            <h3 style={{ color: C.textMain }} className="text-base font-bold mb-1">
+            <h3
+              style={{ color: C.textMain }}
+              className="text-base font-bold mb-1"
+            >
               Semester CGPA Update
             </h3>
-            <p style={{ color: C.textMuted }} className="text-sm leading-relaxed max-w-lg">
-              To update students' CGPA for the current semester, import an Excel file below.{" "}
+            <p
+              style={{ color: C.textMuted }}
+              className="text-sm leading-relaxed max-w-lg"
+            >
+              To update students' CGPA for the current semester, import an Excel
+              file below.{" "}
               <span className="text-xs">
                 (Required columns:{" "}
                 <strong style={{ color: C.textMain }}>Name</strong>,{" "}
@@ -1684,9 +1915,24 @@ export default function StudentDatabasePage() {
         >
           {cgpaFileLoading ? (
             <>
-              <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+              <svg
+                className="animate-spin w-3.5 h-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"
+                />
               </svg>
               Processing…
             </>
@@ -2084,7 +2330,6 @@ export default function StudentDatabasePage() {
         )}
       </div>
 
-
       {/* ── Student Detail Modal ── */}
       <StudentModal student={selected} onClose={() => setSelected(null)} />
       {cgpaImportModal && (
@@ -2092,7 +2337,10 @@ export default function StudentDatabasePage() {
           matches={cgpaMatches}
           setMatches={setCgpaMatches}
           students={cgpaAllStudents}
-          onClose={() => { setCgpaImportModal(false); setCgpaUpdateResult(null); }}
+          onClose={() => {
+            setCgpaImportModal(false);
+            setCgpaUpdateResult(null);
+          }}
           onConfirm={handleCgpaUpdate}
           updating={cgpaUpdating}
           updateResult={cgpaUpdateResult}

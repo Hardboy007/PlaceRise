@@ -11,7 +11,6 @@ const { cloudinary } = require("../config/cloudinary");
 const PDFDocument = require("pdfkit");
 const { Readable } = require("stream");
 
-
 const findSchoolAndDept = (course) => {
   for (const s of universityStructure) {
     for (const d of s.departments) {
@@ -259,7 +258,7 @@ const uploadProfilePhoto = async (req, res) => {
       ],
     });
 
-    fs.unlink(req.file.path, () => { });
+    fs.unlink(req.file.path, () => {});
 
     const student = await Student.findOneAndUpdate(
       { userId: req.user.id },
@@ -291,7 +290,7 @@ const uploadResume = async (req, res) => {
     });
 
     // Temp file delete karo
-    fs.unlink(req.file.path, () => { });
+    fs.unlink(req.file.path, () => {});
 
     // Student ka resume URL update karo. A manual/onboarding file upload
     // means any previously AI-generated resumeData is now stale (the file
@@ -536,7 +535,7 @@ const bulkImportStudents = async (req, res) => {
         .on("error", reject);
     });
 
-    fs.unlink(req.file.path, () => { });
+    fs.unlink(req.file.path, () => {});
 
     // Pehle saare existing ERPs ek baar fetch kar lo
     const allErpIds = results.map((r) => r["ERP ID"]).filter(Boolean);
@@ -745,7 +744,7 @@ const bulkCgpaUpdate = async (req, res) => {
       const student = await Student.findOneAndUpdate(
         { erpId },
         { cgpa },
-        { new: true }
+        { new: true },
       );
 
       if (student) results.updated++;
@@ -774,5 +773,5 @@ module.exports = {
   saveJob,
   unsaveJob,
   getSavedJobs,
-  bulkCgpaUpdate
+  bulkCgpaUpdate,
 };

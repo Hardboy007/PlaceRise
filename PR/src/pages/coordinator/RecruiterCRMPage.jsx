@@ -343,7 +343,9 @@ export default function RecruiterCRMPage() {
         companyName: form.companyName.trim(),
         pocName: form.pocName.trim(),
         managedBy: form.managedBy.trim(),
-        status: STATUS_OPTIONS.includes(form.status) ? form.status : "Not Contacted",
+        status: STATUS_OPTIONS.includes(form.status)
+          ? form.status
+          : "Not Contacted",
       };
 
       const companyName = normalizedForm.companyName;
@@ -359,7 +361,8 @@ export default function RecruiterCRMPage() {
       if (!workingCompany) {
         workingCompany = updatedCompanyList.find(
           (company) =>
-            company.name && company.name.toLowerCase() === companyName.toLowerCase(),
+            company.name &&
+            company.name.toLowerCase() === companyName.toLowerCase(),
         );
       }
 
@@ -369,10 +372,10 @@ export default function RecruiterCRMPage() {
             (contact) =>
               contact._id === editingPoc.contactId
                 ? {
-                  ...contact,
-                  ...normalizedForm,
-                  companyName,
-                }
+                    ...contact,
+                    ...normalizedForm,
+                    companyName,
+                  }
                 : contact,
           );
 
@@ -385,10 +388,12 @@ export default function RecruiterCRMPage() {
           const companyPayload = {
             name: companyName,
             website: "",
-            recruiterContacts: [{
-              ...normalizedForm,
-              companyName,
-            }],
+            recruiterContacts: [
+              {
+                ...normalizedForm,
+                companyName,
+              },
+            ],
           };
           await api.post("/company", companyPayload);
         }
@@ -438,7 +443,8 @@ export default function RecruiterCRMPage() {
       }
 
       const nextContacts = (company.recruiterContacts || []).filter(
-        (contact) => contact._id !== record.contactId && contact._id !== record.id,
+        (contact) =>
+          contact._id !== record.contactId && contact._id !== record.id,
       );
 
       await api.put(`/company/${company._id}`, {
@@ -644,10 +650,11 @@ export default function RecruiterCRMPage() {
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${statusFilter === s
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+                statusFilter === s
                   ? "bg-[#1a3a8f] text-white"
                   : "text-text-muted hover:text-[#1E293B]"
-                }`}
+              }`}
             >
               {s}
             </button>
@@ -687,7 +694,9 @@ export default function RecruiterCRMPage() {
         {loading ? (
           <div className="hidden sm:flex flex-col items-center py-16 gap-3">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#CBD5E1] border-t-[#1a3a8f]" />
-            <p className="text-sm text-text-muted">Loading recruiter contacts...</p>
+            <p className="text-sm text-text-muted">
+              Loading recruiter contacts...
+            </p>
           </div>
         ) : filtered.length === 0 ? (
           <div className="hidden sm:flex flex-col items-center py-16 gap-3">
@@ -743,8 +752,9 @@ export default function RecruiterCRMPage() {
                 </button>
                 {openMenu === poc.id && (
                   <div
-                    className={`absolute left-0 z-20 bg-white rounded-xl border border-[#E2E8F0] shadow-lg py-1 min-w-45 ${idx >= filtered.length - 2 ? "bottom-8" : "top-8"
-                      }`}
+                    className={`absolute left-0 z-20 bg-white rounded-xl border border-[#E2E8F0] shadow-lg py-1 min-w-45 ${
+                      idx >= filtered.length - 2 ? "bottom-8" : "top-8"
+                    }`}
                   >
                     {STATUS_OPTIONS.map((s) => (
                       <button
@@ -838,7 +848,9 @@ export default function RecruiterCRMPage() {
           {loading ? (
             <div className="flex flex-col items-center py-16 gap-3">
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#CBD5E1] border-t-[#1a3a8f]" />
-              <p className="text-sm text-text-muted">Loading recruiter contacts...</p>
+              <p className="text-sm text-text-muted">
+                Loading recruiter contacts...
+              </p>
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center py-16 gap-3">
