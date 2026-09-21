@@ -1706,9 +1706,16 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
     dragStartIdRef.current = null;
   };
 
+  const touchStartPosRef = useRef({ x: 0, y: 0 });
+
   const handleTouchStart = (appId, e) => {
     touchStartIdRef.current = appId;
     touchDragActiveRef.current = false;
+    hasDraggedRef.current = false;
+    touchStartPosRef.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    };
     longPressTimerRef.current = setTimeout(() => {
       touchDragActiveRef.current = true;
       hasDraggedRef.current = true;
@@ -1717,14 +1724,19 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
         next.add(appId);
         return next;
       });
-      // Vibrate karo — user ko feedback mile
       if (navigator.vibrate) navigator.vibrate(40);
-    }, 400); // 400ms hold = drag mode on
+    }, 400);
   };
 
   const handleTouchMove = (e) => {
     if (!touchDragActiveRef.current) {
-      clearTimeout(longPressTimerRef.current);
+      // Agar horizontal ya vertical scroll ho raha hai to long press cancel karo
+      const dx = Math.abs(e.touches[0].clientX - touchStartPosRef.current.x);
+      const dy = Math.abs(e.touches[0].clientY - touchStartPosRef.current.y);
+      if (dx > 5 || dy > 5) {
+        clearTimeout(longPressTimerRef.current);
+        hasDraggedRef.current = true; // Modal na khule scroll pe
+      }
       return;
     }
     e.preventDefault();
@@ -1756,14 +1768,14 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
 
   const handleTouchEnd = (appId, e) => {
     clearTimeout(longPressTimerRef.current);
-    if (!touchDragActiveRef.current) {
-      // Normal tap — modal kholo
+    if (!touchDragActiveRef.current && !hasDraggedRef.current) {
       setSelectedStudent(
         filtered.find((a) => a._id === appId)?.studentId || null,
       );
     }
     touchDragActiveRef.current = false;
     touchStartIdRef.current = null;
+    hasDraggedRef.current = false;
   };
 
   useEffect(() => {
@@ -2705,6 +2717,14 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
                         e.preventDefault();
                         hasDraggedRef.current = true;
                       }}
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                        clearTimeout(longPressTimerRef.current);
+                        hasDraggedRef.current = true;
+                      }}
+                      onTouchEnd={(e) => {
+                        e.stopPropagation();
+                      }}
                       className="flex items-center gap-1.5 flex-wrap"
                     >
                       {["Cleared", "Eliminated"].map((st) => (
@@ -2746,6 +2766,16 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
                           e.stopPropagation();
                           setRemoveTarget(app);
                         }}
+                        onTouchStart={(e) => {
+                          e.stopPropagation();
+                          clearTimeout(longPressTimerRef.current);
+                          hasDraggedRef.current = true;
+                        }}
+                        onTouchEnd={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          setRemoveTarget(app);
+                        }}
                         className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all"
                       >
                         <Trash2 size={13} />
@@ -2775,6 +2805,16 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
+                        setRemoveTarget(app);
+                      }}
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                        clearTimeout(longPressTimerRef.current);
+                        hasDraggedRef.current = true;
+                      }}
+                      onTouchEnd={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
                         setRemoveTarget(app);
                       }}
                       className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all"
