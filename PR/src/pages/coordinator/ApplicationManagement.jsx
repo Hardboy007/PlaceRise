@@ -1694,13 +1694,6 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
     dragStartIdRef.current = appId;
     hasDraggedRef.current = false;
     isDraggingRef.current = true;
-    // Pehle se selected hai toh deselect, nahi hai toh select
-    setSelectedAppIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(appId)) next.delete(appId);
-      else next.add(appId);
-      return next;
-    });
   };
 
   const handleMouseEnter = (appId) => {
@@ -1709,6 +1702,7 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
     hasDraggedRef.current = true;
     setSelectedAppIds((prev) => {
       const next = new Set(prev);
+      next.add(dragStartIdRef.current);
       next.add(appId);
       return next;
     });
@@ -1717,6 +1711,10 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
   const handleMouseUp = () => {
     isDraggingRef.current = false;
     dragStartIdRef.current = null;
+    // Reset hasDragged thodi der baad — taaki mouseUp pe modal check pehle ho
+    setTimeout(() => {
+      hasDraggedRef.current = false;
+    }, 0);
   };
 
   useEffect(() => {
