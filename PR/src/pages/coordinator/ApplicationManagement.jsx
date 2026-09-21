@@ -1516,9 +1516,9 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
 
   // Drag select state
   const [selectedAppIds, setSelectedAppIds] = useState(new Set());
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStartId, setDragStartId] = useState(null);
-  const [hasDragged, setHasDragged] = useState(false);
+  const isDraggingRef = useRef(false);
+  const dragStartIdRef = useRef(null);
+  const hasDraggedRef = useRef(false);
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const [bulkConfirm, setBulkConfirm] = useState(null); // { status, count }
 
@@ -1545,9 +1545,9 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
     setSelectedAppIds(new Set());
     setFilterStatus("All");
     setSearchQuery("");
-    setHasDragged(false);
-    setIsDragging(false);
-    setDragStartId(null);
+    hasDraggedRef.current = false;
+    isDraggingRef.current = false;
+    dragStartIdRef.current = null;
   }, [activeRound]);
 
   // Is round mein har application ka status
@@ -1691,14 +1691,22 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
   const handleMouseDown = (appId, e) => {
     if (e.button !== 0) return;
     e.preventDefault();
-    setDragStartId(appId);
-    setHasDragged(false);
-    setIsDragging(true);
+    dragStartIdRef.current = appId;
+    hasDraggedRef.current = false;
+    isDraggingRef.current = true;
+    // Pehle se selected hai toh deselect, nahi hai toh select
+    setSelectedAppIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(appId)) next.delete(appId);
+      else next.add(appId);
+      return next;
+    });
   };
 
   const handleMouseEnter = (appId) => {
-    if (!isDragging || !dragStartId) return;
-    setHasDragged(true);
+    if (!isDraggingRef.current || !dragStartIdRef.current) return;
+    if (dragStartIdRef.current === appId) return;
+    hasDraggedRef.current = true;
     setSelectedAppIds((prev) => {
       const next = new Set(prev);
       next.add(appId);
@@ -1707,8 +1715,8 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
   };
 
   const handleMouseUp = () => {
-    setIsDragging(false);
-    setDragStartId(null);
+    isDraggingRef.current = false;
+    dragStartIdRef.current = null;
   };
 
   useEffect(() => {
@@ -2412,8 +2420,8 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
                 key={app._id}
                 onMouseDown={(e) => !readOnly && handleMouseDown(app._id, e)}
                 onMouseEnter={() => !readOnly && handleMouseEnter(app._id)}
-                onMouseUp={(e) => {
-                  if (hasDragged) return;
+                onMouseUp={() => {
+                  if (hasDraggedRef.current) return;
                   setSelectedStudent(student);
                 }}
                 style={{
@@ -2435,11 +2443,10 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
                 <div
                   onMouseDown={(e) => {
                     e.stopPropagation();
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
+                    e.preventDefault();
                     if (readOnly) return;
-                    setHasDragged(true);
+                    hasDraggedRef.current = true;
+                    isDraggingRef.current = false;
                     setSelectedAppIds((prev) => {
                       const next = new Set(prev);
                       if (next.has(app._id)) next.delete(app._id);
