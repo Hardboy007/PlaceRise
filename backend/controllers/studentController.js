@@ -723,35 +723,28 @@ const getSavedJobs = async (req, res) => {
 };
 const bulkCgpaUpdate = async (req, res) => {
   try {
-    const file = req.file;
-    if (!file) return res.status(400).json({ message: "No file uploaded" });
-
-    const workbook = xlsx.read(file.buffer, { type: "buffer" });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows = xlsx.utils.sheet_to_json(sheet);
-
-    const results = { updated: 0, notFound: 0, errors: [] };
-
-    for (const row of rows) {
-      const erpId = row["ERP ID"] || row["erpId"] || row["erp_id"];
-      const cgpa = parseFloat(row["CGPA"] || row["cgpa"]);
-
-      if (!erpId || isNaN(cgpa)) {
-        results.errors.push({ row, reason: "Missing ERP ID or invalid CGPA" });
-        continue;
-      }
-
-      const student = await Student.findOneAndUpdate(
-        { erpId },
-        { cgpa },
-        { new: true },
-      );
-
-      if (student) results.updated++;
-      else results.notFound++;
+    const { updates } = req.body;
+    if (!updates || !Array.isArray(updates) || updates.length === 0) {
+      return res.status(400).json({ message: "No updates provided" });
     }
 
-    res.json(results);
+    let updated = 0;
+    let notFound = 0;
+
+    for (const { studentId, cgpa } of updates) {
+      if (!studentId || isNaN(cgpa)) continue;
+
+      const student = await Student.findByIdAndUpdate(
+        studentId,
+        { cgpa: Number(cgpa) },
+        { new: true }
+      );
+
+      if (student) updated++;
+      else notFound++;
+    }
+
+    res.json({ updated, notFound });
   } catch (err) {
     console.error("bulkCgpaUpdate error:", err);
     res.status(500).json({ message: "Bulk CGPA update failed" });
