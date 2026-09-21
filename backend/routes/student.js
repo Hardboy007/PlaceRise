@@ -9,6 +9,8 @@ const {
   onboardStudent,
   updateNotificationPreferences,
   uploadProfilePhoto,
+  uploadMarksheet,
+  addCertification,
   uploadResume,
   generateResume,
   bulkImportStudents,
@@ -35,6 +37,13 @@ router.put("/me", protect, updateStudent);
 router.put("/me/onboard", protect, onboardStudent);
 router.put("/me/notifications", protect, updateNotificationPreferences);
 router.post("/me/resume", protect, upload.single("file"), uploadResume);
+router.post("/me/marksheet", protect, upload.single("file"), uploadMarksheet);
+router.post(
+  "/me/certifications",
+  protect,
+  upload.single("file"),
+  addCertification,
+);
 router.post(
   "/me/profile-photo",
   protect,

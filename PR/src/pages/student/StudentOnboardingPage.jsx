@@ -1,4 +1,5 @@
-import { useState } from "react";
+/* eslint-disable no-unused-vars */
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import universityStructure from "../../data/universityStructure";
 import {
@@ -9,19 +10,147 @@ import {
   ChevronLeft,
   Upload,
   Check,
+  Award,
+  Plus,
+  X,
 } from "lucide-react";
 import { api } from "../../utils/api";
-import { useEffect } from "react";
+import CertificationModal from "../../components/student/CertificationModal";
+
 const steps = [
   { id: 1, label: "Personal", icon: User },
   { id: 2, label: "Academic", icon: GraduationCap },
   { id: 3, label: "Skills & Resume", icon: Code },
 ];
 
+const ALLOWED_DOC_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "application/pdf",
+];
+
+const isValidPercent = (v) =>
+  v !== "" && v !== null && v !== undefined && !isNaN(Number(v)) && Number(v) >= 0 && Number(v) <= 100;
+
+const buildCertFormData = (data) => {
+  const fd = new FormData();
+  fd.append("name", data.name.trim());
+  fd.append("issuingOrganization", data.issuingOrganization.trim());
+  fd.append("issueMonth", data.issueMonth || "");
+  fd.append("issueYear", data.issueYear || "");
+  fd.append("expMonth", data.expMonth || "");
+  fd.append("expYear", data.expYear || "");
+  fd.append("credentialId", data.credentialId || "");
+  fd.append("credentialUrl", data.credentialUrl || "");
+  fd.append("skills", JSON.stringify(data.skills || []));
+  if (data.file) fd.append("file", data.file);
+  return fd;
+};
+
+const inputCls =
+  "w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition";
+
+// Marksheet upload + percentage input (10th / 12th dono ke liye reuse)
+function MarksheetUpload({
+  label,
+  file,
+  onFile,
+  percentName,
+  percentValue,
+  onPercentChange,
+}) {
+  return (
+    <div className="sm:col-span-2 rounded-2xl border border-[#E2E8F0] p-4 bg-[#F8FAFC]">
+      <label className="text-xs font-medium text-[#1E293B] block mb-2">
+        {label} Marksheet <span className="text-red-500">*</span>
+      </label>
+      <label
+        className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl border-2 border-dashed cursor-pointer transition-all ${
+          file
+            ? "border-[#1a3a8f] bg-[#eef1f9]"
+            : "border-[#CBD5E1] bg-white hover:border-[#1a3a8f]"
+        }`}
+      >
+        <input
+          type="file"
+          accept=".pdf,image/jpeg,image/png,image/webp"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files[0];
+            if (!f) return;
+            if (f.size > 5 * 1024 * 1024) {
+              alert("File size must be less than 5MB");
+              e.target.value = "";
+              return;
+            }
+            if (!ALLOWED_DOC_TYPES.includes(f.type)) {
+              alert("Only PDF, JPG, PNG or WEBP files are allowed");
+              e.target.value = "";
+              return;
+            }
+            onFile(f);
+          }}
+        />
+        {file ? (
+          <>
+            <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center shrink-0">
+              <Check size={16} className="text-white" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-primary truncate">
+                {file.name}
+              </p>
+              <p className="text-xs text-text-muted">Click to change</p>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="w-9 h-9 rounded-full bg-[#E2E8F0] flex items-center justify-center shrink-0">
+              <Upload size={16} className="text-text-muted" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-[#1E293B]">
+                Upload {label} marksheet
+              </p>
+              <p className="text-xs text-text-muted">
+                PDF / JPG / PNG · Max 5MB
+              </p>
+            </div>
+          </>
+        )}
+      </label>
+
+      <div className="mt-3">
+        <label className="text-xs font-medium text-[#1E293B] block mb-1">
+          {label} Percentage (%) <span className="text-red-500">*</span>
+        </label>
+        <input
+          name={percentName}
+          value={percentValue}
+          onChange={onPercentChange}
+          inputMode="decimal"
+          placeholder="Marksheet ke according apna percentage likho, e.g. 85.4"
+          className={inputCls}
+        />
+        {percentValue !== "" && !isValidPercent(percentValue) && (
+          <p className="text-xs text-red-500 mt-1">
+            0 se 100 ke beech ki value daalo
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function StudentOnboardingPage() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [resumeFile, setResumeFile] = useState(null);
+  const [tenthFile, setTenthFile] = useState(null);
+  const [twelfthFile, setTwelfthFile] = useState(null);
+  const [certifications, setCertifications] = useState([]);
+  const [certModalOpen, setCertModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [emailInput, setEmailInput] = useState("");
   const [otpSent, setOtpSent] = useState(false);
@@ -156,8 +285,10 @@ function StudentOnboardingPage() {
       formData.course &&
       formData.batch &&
       formData.cgpa &&
-      formData.tenthMarks &&
-      formData.twelfthMarks
+      isValidPercent(formData.tenthMarks) &&
+      isValidPercent(formData.twelfthMarks) &&
+      tenthFile &&
+      twelfthFile
     );
   };
 
@@ -177,6 +308,35 @@ function StudentOnboardingPage() {
 
   const handleBack = () => {
     if (currentStep > 1) setCurrentStep(currentStep - 1);
+  };
+
+  // Certification modal -> local list (submit ke time server pe jayegi).
+  // Cert ke skills form ke skills me bhi merge ho jaate hain.
+  const handleAddCertification = async (data) => {
+    setCertifications((prev) => [...prev, data]);
+    setFormData((prev) => {
+      const existing = prev.skills
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const lower = new Set(existing.map((s) => s.toLowerCase()));
+      const extra = (data.skills || []).filter(
+        (s) => !lower.has(s.toLowerCase()),
+      );
+      return { ...prev, skills: [...existing, ...extra].join(", ") };
+    });
+    return true;
+  };
+
+  const removeCertification = (index) =>
+    setCertifications((prev) => prev.filter((_, i) => i !== index));
+
+  const uploadMarksheet = async (type, file) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("type", type);
+    const data = await api.post("/students/me/marksheet", fd);
+    if (!data?.url) throw new Error(`${type} marksheet upload failed`);
   };
 
   // Uploads the selected resume file using the same endpoint the profile page uses.
@@ -208,8 +368,29 @@ function StudentOnboardingPage() {
     }
   };
 
+  const uploadCertifications = async () => {
+    let failed = 0;
+    for (const cert of certifications) {
+      try {
+        await api.post("/students/me/certifications", buildCertFormData(cert));
+      } catch (err) {
+        console.error("Certification upload error:", err);
+        failed += 1;
+      }
+    }
+    if (failed > 0) {
+      alert(
+        `Profile saved, but ${failed} certification(s) could not be saved. You can add them again from your profile page.`,
+      );
+    }
+  };
+
   const handleSubmit = async () => {
     if (submitting) return;
+    if (!tenthFile || !twelfthFile) {
+      alert("Please upload both 10th and 12th marksheets");
+      return;
+    }
     setSubmitting(true);
 
     const payload = {
@@ -238,18 +419,38 @@ function StudentOnboardingPage() {
     };
 
     try {
+      // 1) Marksheets pehle (required) — fail hua to onboarding complete nahi hogi
+      try {
+        await uploadMarksheet("10th", tenthFile);
+        await uploadMarksheet("12th", twelfthFile);
+      } catch (err) {
+        console.error("Marksheet upload failed:", err);
+        alert(
+          err.message ||
+            "Marksheet upload failed. Please check your files and try again.",
+        );
+        return;
+      }
+
+      // 2) Profile save
       await api.put("/students/me/onboard", payload);
 
-      // Resume file was only sitting in local state until now — actually send it.
+      // 3) Resume (optional)
       if (resumeFile) {
         await uploadResume();
+      }
+
+      // 4) Certifications (optional)
+      if (certifications.length > 0) {
+        await uploadCertifications();
       }
 
       navigate("/student/dashboard");
     } catch (err) {
       console.error("Onboarding submit failed:", err);
       alert(
-        "Something went wrong while saving your profile. Please try again.",
+        err.message ||
+          "Something went wrong while saving your profile. Please try again.",
       );
     } finally {
       setSubmitting(false);
@@ -297,36 +498,37 @@ function StudentOnboardingPage() {
               style={{ width: `${((currentStep - 1) / 2) * 100}%` }}
             />
 
-            {steps.map(({ id, label, icon: Icon }) => {
-              const isCompleted = currentStep > id;
-              const isActive = currentStep === id;
-              return (
-                <div
-                  key={id}
-                  className="flex flex-col items-center gap-1.5 sm:gap-2 z-10"
-                >
-                  <div
-                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-300
-                    ${isCompleted ? "bg-primary" : isActive ? "bg-primary" : "bg-[#E2E8F0]"}
-                  `}
-                  >
-                    {isCompleted ? (
-                      <Check size={16} className="text-white" />
-                    ) : (
-                      <Icon
-                        size={16}
-                        className={isActive ? "text-white" : "text-[#94A3B8]"}
-                      />
-                    )}
-                  </div>
-                  <span
-                    className={`text-[10px] sm:text-xs font-medium text-center whitespace-nowrap ${isActive || isCompleted ? "text-[#1E293B]" : "text-[#94A3B8]"}`}
-                  >
-                    {label}
-                  </span>
-                </div>
-              );
-            })}
+            // eslint-disable-next-line no-unused-vars
+            {steps.map(({ id, label, icon: StepIcon }) => {
+  const isCompleted = currentStep > id;
+  const isActive = currentStep === id;
+  return (
+    <div
+      key={id}
+      className="flex flex-col items-center gap-1.5 sm:gap-2 z-10"
+    >
+      <div
+        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-300
+        ${isCompleted ? "bg-primary" : isActive ? "bg-primary" : "bg-[#E2E8F0]"}
+      `}
+      >
+        {isCompleted ? (
+          <Check size={16} className="text-white" />
+        ) : (
+          <StepIcon
+            size={16}
+            className={isActive ? "text-white" : "text-[#94A3B8]"}
+          />
+        )}
+      </div>
+      <span
+        className={`text-[10px] sm:text-xs font-medium text-center whitespace-nowrap ${isActive || isCompleted ? "text-[#1E293B]" : "text-[#94A3B8]"}`}
+      >
+        {label}
+      </span>
+    </div>
+  );
+})}
           </div>
         </div>
 
@@ -357,7 +559,7 @@ function StudentOnboardingPage() {
                     value={formData.fullName}
                     onChange={handleChange}
                     placeholder="Enter your full name"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+                    className={inputCls}
                   />
                 </div>
                 <div className="sm:col-span-2">
@@ -466,7 +668,7 @@ function StudentOnboardingPage() {
                     value={formData.phone}
                     onChange={handleChange}
                     placeholder="10-digit number"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+                    className={inputCls}
                   />
                 </div>
                 <div>
@@ -494,7 +696,7 @@ function StudentOnboardingPage() {
                     value={formData.address}
                     onChange={handleChange}
                     placeholder="Street address"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+                    className={inputCls}
                   />
                 </div>
                 <div>
@@ -506,7 +708,7 @@ function StudentOnboardingPage() {
                     value={formData.city}
                     onChange={handleChange}
                     placeholder="City"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+                    className={inputCls}
                   />
                 </div>
                 <div>
@@ -518,7 +720,7 @@ function StudentOnboardingPage() {
                     value={formData.state}
                     onChange={handleChange}
                     placeholder="State"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+                    className={inputCls}
                   />
                 </div>
                 <div className="sm:col-span-2">
@@ -531,7 +733,7 @@ function StudentOnboardingPage() {
                     value={formData.parentEmail}
                     onChange={handleChange}
                     placeholder="Parent's email address"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+                    className={inputCls}
                   />
                   <p className="text-[10px] text-[#94A3B8] mt-1">
                     They'll be notified when you apply or get
@@ -550,7 +752,7 @@ function StudentOnboardingPage() {
                     value={formData.parentPhone}
                     onChange={handleChange}
                     placeholder="Parent's phone number"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+                    className={inputCls}
                   />
                 </div>
                 <div className="sm:col-span-2">
@@ -565,7 +767,7 @@ function StudentOnboardingPage() {
                     value={formData.parentName}
                     onChange={handleChange}
                     placeholder="Parent's Name"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+                    className={inputCls}
                   />
                 </div>
               </div>
@@ -702,12 +904,12 @@ function StudentOnboardingPage() {
                     value={formData.cgpa}
                     onChange={handleChange}
                     placeholder="e.g. 8.5"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+                    className={inputCls}
                   />
                 </div>
 
                 {/* Backlogs */}
-                <div>
+                <div className="sm:col-span-2">
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
                     Active Backlogs
                   </label>
@@ -716,42 +918,34 @@ function StudentOnboardingPage() {
                     value={formData.backlogs}
                     onChange={handleChange}
                     placeholder="0"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+                    className={inputCls}
                   />
                 </div>
 
-                {/* 10th Marks */}
-                <div>
-                  <label className="text-xs font-medium text-[#1E293B] block mb-1">
-                    10th Marks (%)
-                  </label>
-                  <input
-                    name="tenthMarks"
-                    value={formData.tenthMarks}
-                    onChange={handleChange}
-                    placeholder="e.g. 85"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
-                  />
-                </div>
+                {/* 10th Marksheet + Percentage */}
+                <MarksheetUpload
+                  label="10th"
+                  file={tenthFile}
+                  onFile={setTenthFile}
+                  percentName="tenthMarks"
+                  percentValue={formData.tenthMarks}
+                  onPercentChange={handleChange}
+                />
 
-                {/* 12th Marks */}
-                <div>
-                  <label className="text-xs font-medium text-[#1E293B] block mb-1">
-                    12th Marks (%)
-                  </label>
-                  <input
-                    name="twelfthMarks"
-                    value={formData.twelfthMarks}
-                    onChange={handleChange}
-                    placeholder="e.g. 80"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
-                  />
-                </div>
+                {/* 12th Marksheet + Percentage */}
+                <MarksheetUpload
+                  label="12th"
+                  file={twelfthFile}
+                  onFile={setTwelfthFile}
+                  percentName="twelfthMarks"
+                  percentValue={formData.twelfthMarks}
+                  onPercentChange={handleChange}
+                />
               </div>
             </div>
           )}
 
-          {/* Step 3 - Skills & Resume */}
+          {/* Step 3 - Skills, Certifications & Resume */}
           {currentStep === 3 && (
             <div className="flex flex-col gap-4">
               <div>
@@ -777,7 +971,7 @@ function StudentOnboardingPage() {
                     value={formData.skills}
                     onChange={handleChange}
                     placeholder="e.g. React, Node.js, Python, SQL"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+                    className={inputCls}
                   />
                   {/* Skills Preview */}
                   {formData.skills && (
@@ -794,6 +988,71 @@ function StudentOnboardingPage() {
                             {skill}
                           </span>
                         ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Certifications */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-medium text-[#1E293B]">
+                      Certifications{" "}
+                      <span className="text-[#94A3B8]">(optional)</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setCertModalOpen(true)}
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold border border-[#1a3a8f] text-[#1a3a8f] hover:bg-[#eef1f9] transition-colors"
+                    >
+                      <Plus size={12} /> Add certification
+                    </button>
+                  </div>
+
+                  {certifications.length === 0 ? (
+                    <p className="text-xs text-[#94A3B8] italic">
+                      Koi certification add nahi hui. Skills add karne se
+                      pehle chaho to yahan se add kar sakte ho.
+                    </p>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {certifications.map((cert, index) => (
+                        <div
+                          key={`${cert.name}-${index}`}
+                          className="flex items-start gap-3 p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]"
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                            <Award size={16} className="text-[#F59E0B]" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-[#1E293B] truncate">
+                              {cert.name}
+                            </p>
+                            <p className="text-xs text-[#64748B] truncate">
+                              {cert.issuingOrganization}
+                            </p>
+                            {cert.skills?.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5 mt-1.5">
+                                {cert.skills.map((s) => (
+                                  <span
+                                    key={s}
+                                    className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#eef1f9] text-[#1a3a8f] border border-[#c7d2ee]"
+                                  >
+                                    {s}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeCertification(index)}
+                            className="text-[#94A3B8] hover:text-[#EF4444] transition-colors"
+                            aria-label="Remove certification"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -903,6 +1162,12 @@ function StudentOnboardingPage() {
           )}
         </div>
       </div>
+
+      <CertificationModal
+        isOpen={certModalOpen}
+        onClose={() => setCertModalOpen(false)}
+        onSave={handleAddCertification}
+      />
     </div>
   );
 }

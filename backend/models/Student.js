@@ -1,5 +1,19 @@
 const mongoose = require("mongoose");
 
+const certificationSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true },
+  issuingOrganization: { type: String, required: true, trim: true },
+  issueMonth: { type: Number, min: 1, max: 12 },
+  issueYear: { type: Number },
+  expMonth: { type: Number, min: 1, max: 12 },
+  expYear: { type: Number },
+  credentialId: { type: String, default: "", maxlength: 80 },
+  credentialUrl: { type: String, default: "" },
+  skills: [{ type: String }],
+  fileUrl: { type: String, default: "" },
+  createdAt: { type: Date, default: Date.now },
+});
+
 const studentSchema = new mongoose.Schema(
   {
     userId: {
@@ -22,6 +36,7 @@ const studentSchema = new mongoose.Schema(
     // Parent contact — used for email notifications about applications
     parentEmail: { type: String, default: "" },
     parentPhone: { type: String, default: "" },
+    parentName: { type: String, default: "" },
 
     // Academic
     college: { type: String },
@@ -33,6 +48,10 @@ const studentSchema = new mongoose.Schema(
     cgpa: { type: Number },
     tenthMarks: { type: Number },
     twelfthMarks: { type: Number },
+    // Marksheet files (Cloudinary URLs). Uploaded once during onboarding,
+    // profile page pe sirf view hota hai.
+    tenthMarksheet: { type: String, default: "" },
+    twelfthMarksheet: { type: String, default: "" },
     backlogs: { type: Number, default: 0 },
     resumeData: {
       type: mongoose.Schema.Types.Mixed,
@@ -51,6 +70,7 @@ const studentSchema = new mongoose.Schema(
 
     // Placement
     skills: [{ type: String }],
+    certifications: { type: [certificationSchema], default: [] },
     resume: { type: String },
     placementStatus: {
       type: String,

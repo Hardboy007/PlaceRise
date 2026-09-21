@@ -10,6 +10,44 @@ const { cloudinary } = require("../config/cloudinary");
 const PDFDocument = require("pdfkit");
 const { Readable } = require("stream");
 
+const ALLOWED_DOC_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "application/pdf",
+];
+const MAX_DOC_SIZE = 5 * 1024 * 1024;
+
+const removeTempFile = (file) => {
+  if (file?.path) fs.unlink(file.path, () => {});
+};
+
+const isValidDoc = (file) =>
+  ALLOWED_DOC_TYPES.includes(file.mimetype) && file.size <= MAX_DOC_SIZE;
+
+// Marksheet / certificate upload (PDF -> raw, image -> image), temp file hamesha delete
+const uploadDocument = async (file, folder) => {
+  const isPdf = file.mimetype === "application/pdf";
+  try {
+    const result = await cloudinary.uploader.upload(file.path, {
+      folder,
+      resource_type: isPdf ? "raw" : "image",
+      ...(isPdf ? { format: "pdf" } : {}),
+    });
+    return result.secure_url;
+  } finally {
+    removeTempFile(file);
+  }
+};
+
+const isValidPercent = (v) =>
+  v !== undefined &&
+  v !== null &&
+  v !== "" &&
+  !isNaN(Number(v)) &&
+  Number(v) >= 0 &&
+  Number(v) <= 100;
+
 const findSchoolAndDept = (course) => {
   for (const s of universityStructure) {
     for (const d of s.departments) {
@@ -96,7 +134,6 @@ const getAllStudents = async (req, res) => {
 // GET single student by ID
 const getStudentById = async (req, res) => {
   try {
-    const { id } = req.params;
     const student = await Student.findById(req.params.id).populate(
       "userId",
       "erpId email",
@@ -130,13 +167,12 @@ const getMyProfile = async (req, res) => {
   }
 };
 
-// UPDATE student by ID
+// UPDATE logged-in student's own profile
+// NOTE: marksheets / tenthMarks / twelfthMarks / certifications yahan allowed
+// nahi hain — profile pe view-only hain.
 const updateStudent = async (req, res) => {
   try {
-    const student = await Student.findOne({ userId: req.user.id }).populate(
-      "userId",
-      "erpId email",
-    );
+    const student = await Student.findOne({ userId: req.user.id });
     if (!student) return res.status(404).json({ message: "Student not found" });
 
     const allowedFields = [
@@ -150,36 +186,59 @@ const updateStudent = async (req, res) => {
       "linkedinUrl",
       "parentEmail",
       "parentPhone",
+      "parentName",
       "profilePhoto",
     ];
 
-    const updates = {};
+    const set = {};
     allowedFields.forEach((field) => {
-      if (req.body[field] !== undefined) updates[field] = req.body[field];
+      if (req.body[field] !== undefined) set[field] = req.body[field];
     });
 
-    // profilePhoto explicitly null set karo empty string aane pe
-    if (req.body.profilePhoto === "" || req.body.profilePhoto === null) {
-      updates.profilePhoto = null;
+    const update = {};
+
+    // profilePhoto null / "" aaye to field hata do
+    if ("profilePhoto" in set && !set.profilePhoto) {
+      delete set.profilePhoto;
+      update.$unset = { profilePhoto: "" };
     }
+    if (Object.keys(set).length > 0) update.$set = set;
 
-    console.log("REQ BODY:", req.body);
-    console.log("UPDATES:", updates);
-
-    await Student.collection.updateOne(
-      { _id: student._id },
-      { $unset: { profilePhoto: "" } },
-    );
+    if (Object.keys(update).length > 0) {
+      await Student.findByIdAndUpdate(student._id, update);
+    }
 
     const freshStudent = await Student.findById(student._id).populate(
       "userId",
       "erpId email",
     );
-    res.json(freshStudent);
+    res.json(await enrichStudentWithPlacementData(freshStudent));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
+const ONBOARD_FIELDS = [
+  "name",
+  "dob",
+  "phone",
+  "gender",
+  "address",
+  "city",
+  "state",
+  "parentEmail",
+  "parentPhone",
+  "parentName",
+  "school",
+  "branch",
+  "course",
+  "batch",
+  "cgpa",
+  "tenthMarks",
+  "twelfthMarks",
+  "backlogs",
+  "skills",
+];
 
 const onboardStudent = async (req, res) => {
   try {
@@ -193,9 +252,29 @@ const onboardStudent = async (req, res) => {
     const student = await Student.findOne({ userId: req.user.id });
     if (!student) return res.status(404).json({ message: "Student not found" });
 
+    if (
+      !isValidPercent(req.body.tenthMarks) ||
+      !isValidPercent(req.body.twelfthMarks)
+    ) {
+      return res
+        .status(400)
+        .json({ message: "10th and 12th percentage (0-100) are required" });
+    }
+
+    if (!student.tenthMarksheet || !student.twelfthMarksheet) {
+      return res
+        .status(400)
+        .json({ message: "Upload both 10th and 12th marksheets" });
+    }
+
+    const updates = {};
+    ONBOARD_FIELDS.forEach((field) => {
+      if (req.body[field] !== undefined) updates[field] = req.body[field];
+    });
+
     const updatedStudent = await Student.findByIdAndUpdate(
       student._id,
-      req.body,
+      { $set: updates },
       { new: true },
     );
 
@@ -267,6 +346,157 @@ const uploadProfilePhoto = async (req, res) => {
 
     res.json({ profilePhotoUrl: result.secure_url, student });
   } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+//=================== UPLOAD MARKSHEET (10th / 12th) =================
+// Body: type = "10th" | "12th", file = pdf/jpg/png/webp (max 5MB)
+// Onboarding ke time upload/overwrite allowed hai. Onboarding ke baad agar
+// marksheet already hai to dobara upload block (profile pe view-only).
+const uploadMarksheet = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const type = req.body.type;
+    if (!["10th", "12th"].includes(type)) {
+      removeTempFile(req.file);
+      return res.status(400).json({ message: "type must be '10th' or '12th'" });
+    }
+
+    if (!isValidDoc(req.file)) {
+      removeTempFile(req.file);
+      return res
+        .status(400)
+        .json({ message: "Only PDF/JPG/PNG/WEBP up to 5MB allowed" });
+    }
+
+    const student = await Student.findOne({ userId: req.user.id });
+    if (!student) {
+      removeTempFile(req.file);
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    const user = await User.findById(req.user.id);
+    const field = type === "10th" ? "tenthMarksheet" : "twelfthMarksheet";
+
+    if (student[field] && user && !user.isFirstLogin) {
+      removeTempFile(req.file);
+      return res
+        .status(403)
+        .json({ message: "Marksheet already uploaded and cannot be changed" });
+    }
+
+    const url = await uploadDocument(req.file, "placerise/marksheets");
+
+    await Student.findByIdAndUpdate(student._id, { $set: { [field]: url } });
+
+    res.json({ url, type });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+//=================== ADD CERTIFICATION =================
+// multipart/form-data: name, issuingOrganization, issueMonth, issueYear,
+// expMonth, expYear, credentialId, credentialUrl, skills (JSON string), file (optional)
+// Certification ke skills student.skills me auto merge hote hain (duplicate nahi).
+const addCertification = async (req, res) => {
+  try {
+    const student = await Student.findOne({ userId: req.user.id });
+    if (!student) {
+      removeTempFile(req.file);
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    const {
+      name,
+      issuingOrganization,
+      issueMonth,
+      issueYear,
+      expMonth,
+      expYear,
+      credentialId,
+      credentialUrl,
+    } = req.body;
+
+    let skills = [];
+    try {
+      skills = JSON.parse(req.body.skills || "[]");
+    } catch {
+      skills = [];
+    }
+    skills = Array.isArray(skills)
+      ? skills.map((s) => String(s).trim()).filter(Boolean)
+      : [];
+
+    if (!name?.trim() || !issuingOrganization?.trim()) {
+      removeTempFile(req.file);
+      return res
+        .status(400)
+        .json({ message: "Certification name and issuing organization are required" });
+    }
+    if (skills.length < 1) {
+      removeTempFile(req.file);
+      return res.status(400).json({ message: "Add at least 1 skill" });
+    }
+    if (credentialUrl && !/^https?:\/\//i.test(credentialUrl)) {
+      removeTempFile(req.file);
+      return res
+        .status(400)
+        .json({ message: "Credential URL must start with http:// or https://" });
+    }
+    if (credentialId && credentialId.length > 80) {
+      removeTempFile(req.file);
+      return res.status(400).json({ message: "Credential ID max 80 characters" });
+    }
+
+    let fileUrl = "";
+    if (req.file) {
+      if (!isValidDoc(req.file)) {
+        removeTempFile(req.file);
+        return res
+          .status(400)
+          .json({ message: "Only PDF/JPG/PNG/WEBP up to 5MB allowed" });
+      }
+      fileUrl = await uploadDocument(req.file, "placerise/certifications");
+    }
+
+    student.certifications.push({
+      name: name.trim(),
+      issuingOrganization: issuingOrganization.trim(),
+      issueMonth: Number(issueMonth) || undefined,
+      issueYear: Number(issueYear) || undefined,
+      expMonth: Number(expMonth) || undefined,
+      expYear: Number(expYear) || undefined,
+      credentialId: credentialId || "",
+      credentialUrl: credentialUrl || "",
+      skills,
+      fileUrl,
+    });
+
+    // Skills auto-merge (case-insensitive dedupe)
+    const existing = new Set((student.skills || []).map((s) => s.toLowerCase()));
+    skills.forEach((s) => {
+      if (!existing.has(s.toLowerCase())) {
+        student.skills.push(s);
+        existing.add(s.toLowerCase());
+      }
+    });
+
+    await student.save();
+
+    const populated = await Student.findById(student._id).populate(
+      "userId",
+      "erpId email",
+    );
+    res.status(201).json({
+      student: await enrichStudentWithPlacementData(populated),
+    });
+  } catch (error) {
+    removeTempFile(req.file);
     res.status(500).json({ message: error.message });
   }
 };
@@ -434,8 +664,8 @@ const generateResume = async (req, res) => {
               });
           }
 
-          // ── Zaroori fix: cursor ko wapas left margin pe reset karo, aur
-          // y ko title + period dono me se jo neeche ho wahan set karo ──
+          // Cursor ko wapas left margin pe reset karo, aur y ko title + period
+          // dono me se jo neeche ho wahan set karo
           doc.x = 50;
           doc.y = Math.max(afterTitleY, doc.y);
 
@@ -551,8 +781,6 @@ const bulkImportStudents = async (req, res) => {
       const dobRaw = row["Date of Birth"];
       return erpId && dobRaw && !existingErpSet.has(erpId);
     });
-
-    const skipped = results.length - validRows.length;
 
     // Bcrypt hash sab ke liye parallel mein
     const SALT_ROUNDS = 6;
@@ -729,6 +957,8 @@ module.exports = {
   onboardStudent,
   updateNotificationPreferences,
   uploadProfilePhoto,
+  uploadMarksheet,
+  addCertification,
   uploadResume,
   generateResume,
   bulkImportStudents,

@@ -43,7 +43,7 @@ function Field({ label, name, value, editing, form, onChange, type = "text" }) {
 }
 
 function SectionCard({
-  icon: Icon,
+  
   title,
   iconBg,
   borderColor = "border-l-primary",
@@ -949,6 +949,17 @@ export default function StudentProfilePage() {
           }}
         />
       )}
+      <CertificationModal
+  isOpen={open}
+  // eslint-disable-next-line no-undef
+  onClose={() => setOpen(false)}
+  // eslint-disable-next-line no-undef
+  saving={saving}
+  // eslint-disable-next-line no-unused-vars
+  onSave={async (data) => { /* api.post('/student/certifications', ...) */ }}
+/>
     </div>
+
+  
   );
 }
