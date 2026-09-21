@@ -191,6 +191,31 @@ const updateNotificationPreferences = async (req, res) => {
   }
 };
 
+const uploadProfilePhoto = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "placerise/profile-photos",
+      transformation: [{ width: 400, height: 400, crop: "fill", gravity: "face" }],
+    });
+
+    fs.unlink(req.file.path, () => {});
+
+    const student = await Student.findOneAndUpdate(
+      { userId: req.user.id },
+      { profilePhoto: result.secure_url },
+      { new: true },
+    );
+
+    res.json({ profilePhotoUrl: result.secure_url, student });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 //=================== UPLOAD RESUME =================
 const uploadResume = async (req, res) => {
   try {
@@ -617,6 +642,7 @@ module.exports = {
   updateStudent,
   onboardStudent,
   updateNotificationPreferences,
+  uploadProfilePhoto,
   uploadResume,
   generateResume,
   bulkImportStudents,

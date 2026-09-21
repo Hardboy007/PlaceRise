@@ -7,6 +7,7 @@ const {
   updateMyProfile,
   updateNotificationPreferences,
   getRecentActivity,
+  uploadProfilePhoto,
   getContactInfo,
 } = require("../controllers/coordinatorController");
 const Coordinator = require("../models/Coordinator");
@@ -55,5 +56,6 @@ router.put(
 );
 router.get("/me/activity", protect, coordinatorOnly, getRecentActivity);
 router.get('/contact', protect, getContactInfo)
+router.post("/me/profile-photo", protect, coordinatorOnly, upload.single("file"), uploadProfilePhoto);
 
 module.exports = router;

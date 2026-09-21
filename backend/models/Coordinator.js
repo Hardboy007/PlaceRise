@@ -55,6 +55,7 @@ const coordinatorSchema = new mongoose.Schema({
     default: Date.now,
   },
   signatureUrl: { type: String, default: "" },
+  profilePhoto: { type: String, default: "" },
 });
 
 module.exports = mongoose.model("Coordinator", coordinatorSchema);

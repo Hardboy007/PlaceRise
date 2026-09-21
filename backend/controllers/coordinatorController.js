@@ -2,6 +2,9 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 const Coordinator = require("../models/Coordinator");
 const Activity = require("../models/Activity");
+const { cloudinary } = require("../config/cloudinary");
+const fs = require("fs");
+const upload = require("../middleware/upload");
 
 // POST /api/coordinators
 const createCoordinator = async (req, res) => {
@@ -63,6 +66,33 @@ const getMyProfile = async (req, res) => {
       return res.status(404).json({ message: "Coordinator profile not found" });
     }
     res.status(200).json(coordinator);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const uploadProfilePhoto = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "placerise/profile-photos",
+      transformation: [
+        { width: 400, height: 400, crop: "fill", gravity: "face" },
+      ],
+    });
+
+    fs.unlink(req.file.path, () => {});
+
+    const coordinator = await Coordinator.findOneAndUpdate(
+      { userId: req.user.id },
+      { profilePhoto: result.secure_url },
+      { new: true },
+    );
+
+    res.json({ profilePhotoUrl: result.secure_url, coordinator });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -189,5 +219,6 @@ module.exports = {
   updateMyProfile,
   updateNotificationPreferences,
   getRecentActivity,
+  uploadProfilePhoto,
   getContactInfo,
 };
