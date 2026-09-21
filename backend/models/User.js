@@ -13,6 +13,9 @@ const userSchema = new mongoose.Schema(
     isFirstLogin: { type: Boolean, default: true },
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpires: { type: Date, default: null },
+    emailOtp: { type: String, default: null },
+    emailOtpExpires: { type: Date, default: null },
+    emailVerified: { type: Boolean, default: false },
   },
   { timestamps: true },
 );
