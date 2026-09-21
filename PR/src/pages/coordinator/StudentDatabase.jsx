@@ -1564,6 +1564,7 @@ export default function StudentDatabasePage() {
       setCgpaMatches(matched);
       setCgpaUpdateResult(null);
       setCgpaImportModal(true);
+      setCgpaFileLoading(false);
     } catch (err) {
       alert("Could not parse file. Please check the format.");
       setCgpaFileLoading(false);

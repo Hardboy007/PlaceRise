@@ -284,7 +284,7 @@ export default function RecruiterCRMPage() {
     try {
       setLoading(true);
       setError("");
-      const companyList = await api.get("/company");
+      const companyList = await api.get("/companies");
       const flattened = (companyList || []).flatMap((company) =>
         (company.recruiterContacts || []).map((contact, index) => ({
           ...contact,
