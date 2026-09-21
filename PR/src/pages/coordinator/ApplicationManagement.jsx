@@ -1696,7 +1696,7 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
     isDraggingRef.current = true;
   };
 
-  const handleMouseEnter = (appId) => {
+  const handleRowMouseMove = (appId) => {
     if (!isDraggingRef.current || !dragStartIdRef.current) return;
     if (dragStartIdRef.current === appId) return;
     hasDraggedRef.current = true;
@@ -1711,7 +1711,6 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
   const handleMouseUp = () => {
     isDraggingRef.current = false;
     dragStartIdRef.current = null;
-    // Reset hasDragged thodi der baad — taaki mouseUp pe modal check pehle ho
     setTimeout(() => {
       hasDraggedRef.current = false;
     }, 0);
@@ -2417,7 +2416,7 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
               <div
                 key={app._id}
                 onMouseDown={(e) => !readOnly && handleMouseDown(app._id, e)}
-                onMouseEnter={() => !readOnly && handleMouseEnter(app._id)}
+                onMouseMove={() => !readOnly && handleRowMouseMove(app._id)}
                 onMouseUp={() => {
                   if (hasDraggedRef.current) return;
                   setSelectedStudent(student);
