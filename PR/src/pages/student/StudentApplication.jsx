@@ -188,7 +188,9 @@ function getSelectionSummary(app) {
     };
   }
 
-  const clearedCount = timeline.filter((round) => round.status === "Cleared").length;
+  const clearedCount = timeline.filter(
+    (round) => round.status === "Cleared",
+  ).length;
   const eliminated = timeline.find((round) => round.status === "Eliminated");
 
   if (eliminated) {
@@ -206,7 +208,9 @@ function getSelectionSummary(app) {
   }
 
   if (clearedCount > 0) {
-    const latestCleared = [...timeline].reverse().find((round) => round.status === "Cleared");
+    const latestCleared = [...timeline]
+      .reverse()
+      .find((round) => round.status === "Cleared");
     return {
       text: `Cleared ${latestCleared?.name}. Waiting for the next round.`,
       tone: "warning",
@@ -264,7 +268,7 @@ export default function StudentApplication() {
   };
 
   useEffect(() => {
-    document.title = "Your Applications — PlaceRise"
+    document.title = "Your Applications — PlaceRise";
     fetchApplications();
 
     // FIXED: live update — poll every 6s in the background (no loading
@@ -551,7 +555,10 @@ export default function StudentApplication() {
                 {selectionSteps.length > 0 && (
                   <div
                     className="mt-4 rounded-xl border px-3 py-3 sm:px-4"
-                    style={{ backgroundColor: "#F8FAFC", borderColor: C.border }}
+                    style={{
+                      backgroundColor: "#F8FAFC",
+                      borderColor: C.border,
+                    }}
                   >
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                       <p

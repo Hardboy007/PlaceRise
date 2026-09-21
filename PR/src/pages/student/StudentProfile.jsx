@@ -72,6 +72,7 @@ function SectionCard({
 }
 
 export default function StudentProfilePage() {
+  console.log("COMPONENT LOADED - NEW VERSION");
   const [student, setStudent] = useState(null);
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -81,9 +82,12 @@ export default function StudentProfilePage() {
   const [uploadingResume, setUploadingResume] = useState(false);
   const resumeInputRef = useRef(null);
   const [showResumeBuilder, setShowResumeBuilder] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const photoInputRef = useRef(null);
+  const [removingPhoto, setRemovingPhoto] = useState(false);
 
   useEffect(() => {
-    document.title = "Your Profile — PlaceRise"
+    document.title = "Your Profile — PlaceRise";
     const fetchProfile = async () => {
       const storedStudent = JSON.parse(localStorage.getItem("student") || "{}");
       const data = await api.get("/students/me");
@@ -92,6 +96,25 @@ export default function StudentProfilePage() {
     };
     fetchProfile();
   }, []);
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
+    setUploadingPhoto(true);
+    try {
+      const data = await api.post("/students/me/profile-photo", formData);
+      if (data?.profilePhotoUrl) {
+        setStudent({ ...student, profilePhoto: data.profilePhotoUrl });
+      }
+    } catch (err) {
+      console.error("Photo upload failed:", err);
+    } finally {
+      setUploadingPhoto(false);
+      e.target.value = "";
+    }
+  };
 
   const handleEdit = () => {
     setForm({
@@ -199,19 +222,94 @@ export default function StudentProfilePage() {
         />
 
         <div className="relative z-10 p-5 sm:p-8 flex flex-wrap items-start sm:items-center gap-4 sm:gap-6">
-          <div
-            className="w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center text-white text-3xl font-bold flex-shrink-0"
-            style={{
-              background: "linear-gradient(135deg, white, #E0E7FF)",
-              padding: "3px",
-            }}
-          >
+          <div className="flex flex-col items-start">
             <div
-              className="w-full h-full rounded-full bg-[#1a3a8f] flex items-center justify-center text-2xl font-bold text-white"
-              style={{ fontFamily: "Space Grotesk, sans-serif" }}
+              className="relative w-20 h-20 rounded-full shrink-0 group"
+              style={{
+                background: "linear-gradient(135deg, white, #f59e0b)",
+                padding: "3px",
+              }}
             >
-              {student.name?.charAt(0)}
+              {student.profilePhoto && student.profilePhoto !== "" ? (
+                <img
+                  src={student.profilePhoto}
+                  alt={student.name}
+                  className="w-full h-full rounded-full object-cover"
+                />
+              ) : (
+                <div
+                  className="w-full h-full rounded-full bg-[#1a3a8f] flex items-center justify-center text-2xl font-bold text-white cursor-pointer relative"
+                  style={{ fontFamily: "Space Grotesk, sans-serif" }}
+                  onClick={() => photoInputRef.current.click()}
+                >
+                  {student.name?.charAt(0)}
+                  <div className="absolute bottom-0 right-0 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="10"
+                      height="10"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#1a3a8f"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                  </div>
+                </div>
+              )}
+              <div
+                className={`absolute inset-0 rounded-full bg-black/40 flex items-center justify-center transition-opacity cursor-pointer ${uploadingPhoto ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+                onClick={() => photoInputRef.current.click()}
+              >
+                <span className="text-white text-[10px] font-semibold">
+                  {uploadingPhoto ? "Uploading..." : "Edit"}
+                </span>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                ref={photoInputRef}
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
             </div>
+            {student.profilePhoto && !uploadingPhoto && (
+              <div className="flex items-center gap-2 mt-1.5">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    photoInputRef.current.click();
+                  }}
+                  className="text-[10px] text-white/70 hover:text-white font-medium transition-colors cursor-pointer"
+                >
+                  Change
+                </button>
+                <span className="text-white/30 text-[10px]">·</span>
+                <button
+                  type="button"
+                  onPointerDown={async (e) => {
+                    e.stopPropagation();
+                    setRemovingPhoto(true);
+                    try {
+                      await api.put("/students/me", { profilePhoto: null });
+                      setStudent((prev) => ({ ...prev, profilePhoto: null }));
+                    } catch (err) {
+                      console.error("Remove failed:", err);
+                    } finally {
+                      setRemovingPhoto(false);
+                    }
+                  }}
+                  className="text-[10px] text-red-300 hover:text-red-400 font-medium transition-colors cursor-pointer"
+                >
+                  {removingPhoto ? "Removing..." : "Remove"}
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="flex-1 min-w-0">

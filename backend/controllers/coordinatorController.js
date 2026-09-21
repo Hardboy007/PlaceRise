@@ -101,12 +101,18 @@ const uploadProfilePhoto = async (req, res) => {
 // PUT /api/coordinators/me
 const updateMyProfile = async (req, res) => {
   try {
-    const { name, phone, designation, department, college } = req.body;
+    const { name, phone, designation, department, college, profilePhoto } = req.body;
+
+    const updateFields = { name, phone, designation, department, college };
+    
+    if (profilePhoto !== undefined) {
+      updateFields.profilePhoto = profilePhoto === "" ? "" : profilePhoto;
+    }
 
     const coordinator = await Coordinator.findOneAndUpdate(
       { userId: req.user.id },
-      { name, phone, designation, department, college },
-      { new: true, runValidators: true },
+      { $set: updateFields },
+      { new: true, runValidators: true, strict: false },
     );
 
     if (!coordinator) {

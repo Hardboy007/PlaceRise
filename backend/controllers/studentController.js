@@ -110,19 +110,32 @@ const updateStudent = async (req, res) => {
       "linkedinUrl",
       "parentEmail",
       "parentPhone",
+      "profilePhoto",
     ];
+
     const updates = {};
     allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) updates[field] = req.body[field];
     });
 
-    const updatedStudent = await Student.findByIdAndUpdate(
-      student._id,
-      updates,
-      { new: true },
+    // profilePhoto explicitly null set karo empty string aane pe
+    if (req.body.profilePhoto === "" || req.body.profilePhoto === null) {
+      updates.profilePhoto = null;
+    }
+
+    console.log("REQ BODY:", req.body);
+    console.log("UPDATES:", updates);
+
+    await Student.collection.updateOne(
+      { _id: student._id },
+      { $unset: { profilePhoto: "" } },
     );
 
-    res.json(updatedStudent);
+    const freshStudent = await Student.findById(student._id).populate(
+      "userId",
+      "erpId email",
+    );
+    res.json(freshStudent);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -199,7 +212,9 @@ const uploadProfilePhoto = async (req, res) => {
 
     const result = await cloudinary.uploader.upload(req.file.path, {
       folder: "placerise/profile-photos",
-      transformation: [{ width: 400, height: 400, crop: "fill", gravity: "face" }],
+      transformation: [
+        { width: 400, height: 400, crop: "fill", gravity: "face" },
+      ],
     });
 
     fs.unlink(req.file.path, () => {});

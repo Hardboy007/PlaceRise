@@ -47,7 +47,7 @@ const studentSchema = new mongoose.Schema(
       enum: ["onboarding", "manual", null],
       default: null,
     },
-    profilePhoto: { type: String, default: "" },
+    profilePhoto: { type: String, default: null },
 
     // Placement
     skills: [{ type: String }],
