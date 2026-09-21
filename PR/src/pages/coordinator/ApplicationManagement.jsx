@@ -2596,7 +2596,21 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
                       return next;
                     });
                   }}
-                  className="w-5 h-5 rounded border flex items-center justify-center shrink-0 cursor-pointer transition-all"
+                  onTouchEnd={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    if (readOnly) return;
+                    clearTimeout(longPressTimerRef.current);
+                    touchDragActiveRef.current = false;
+                    hasDraggedRef.current = true;
+                    setSelectedAppIds((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(app._id)) next.delete(app._id);
+                      else next.add(app._id);
+                      return next;
+                    });
+                  }}
+                  className="w-6 h-6 rounded border flex items-center justify-center shrink-0 cursor-pointer transition-all"
                   style={{
                     backgroundColor: isSelected ? "#1a3a8f" : "white",
                     borderColor: isSelected ? "#1a3a8f" : "#CBD5E1",
