@@ -1727,7 +1727,7 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
         return next;
       });
       if (navigator.vibrate) navigator.vibrate(40);
-    }, 400);
+    }, 300);
   };
 
   const handleTouchMove = (e) => {
