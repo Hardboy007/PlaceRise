@@ -2253,9 +2253,7 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
                   Confirm Action
                 </h3>
                 <p className="text-xs text-[#64748B] mt-1">
-                  <strong>{singleConfirm.studentName}</strong> ko Round{" "}
-                  {singleConfirm.roundIndex + 1} ({singleConfirm.roundName})
-                  mein{" "}
+                  Mark <strong>{singleConfirm.studentName}</strong> as{" "}
                   <strong
                     style={{
                       color:
@@ -2264,9 +2262,12 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
                           : "#EF4444",
                     }}
                   >
-                    {singleConfirm.status === "Cleared" ? "Clear" : "Eliminate"}
+                    {singleConfirm.status === "Cleared"
+                      ? "Cleared"
+                      : "Eliminated"}
                   </strong>{" "}
-                  karna chahte ho?
+                  in Round {singleConfirm.roundIndex + 1} —{" "}
+                  {singleConfirm.roundName}?
                 </p>
               </div>
             </div>
@@ -2616,7 +2617,10 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
                   ) : (
                     <div
                       onClick={(e) => e.stopPropagation()}
-                      onMouseDown={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                      }}
                       className="flex items-center gap-1.5 flex-wrap"
                     >
                       {["Cleared", "Eliminated"].map((st) => (
