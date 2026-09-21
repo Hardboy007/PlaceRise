@@ -162,6 +162,63 @@ function formatDate(dateValue) {
   return `${day}/${month}/${year}`;
 }
 
+function getSelectionTimeline(app) {
+  const rounds = app?.jobId?.selectionProcess || [];
+  if (!rounds.length) return [];
+
+  return rounds.map((roundName, index) => {
+    const roundEntry = app?.roundStatuses?.find((r) => r.roundIndex === index);
+    const status = roundEntry?.status || "Pending";
+
+    return {
+      index,
+      name: roundName,
+      status,
+    };
+  });
+}
+
+function getSelectionSummary(app) {
+  const timeline = getSelectionTimeline(app);
+
+  if (!timeline.length) {
+    return {
+      text: "Selection process not shared yet.",
+      tone: "default",
+    };
+  }
+
+  const clearedCount = timeline.filter((round) => round.status === "Cleared").length;
+  const eliminated = timeline.find((round) => round.status === "Eliminated");
+
+  if (eliminated) {
+    return {
+      text: `Not selected in ${eliminated.name}.`,
+      tone: "danger",
+    };
+  }
+
+  if (clearedCount > 0 && clearedCount === timeline.length) {
+    return {
+      text: `Selected in ${timeline[timeline.length - 1].name}.`,
+      tone: "success",
+    };
+  }
+
+  if (clearedCount > 0) {
+    const latestCleared = [...timeline].reverse().find((round) => round.status === "Cleared");
+    return {
+      text: `Cleared ${latestCleared?.name}. Waiting for the next round.`,
+      tone: "warning",
+    };
+  }
+
+  return {
+    text: `Application submitted. Waiting for ${timeline[0].name}.`,
+    tone: "default",
+  };
+}
+
 // ── Main Component ────────────────────────────────────────────
 export default function StudentApplication() {
   const navigate = useNavigate();
@@ -414,11 +471,13 @@ export default function StudentApplication() {
           filtered.map((app, idx) => {
             const s = statusConfig[app.status] || statusConfig.Applied;
             const isLast = idx === filtered.length - 1;
+            const selectionSteps = getSelectionTimeline(app);
+            const selectionSummary = getSelectionSummary(app);
 
             return (
               <div
                 key={app._id}
-                className="grid grid-cols-1 gap-3 md:grid-cols-[2.2fr_2fr_1.6fr_1.2fr] md:items-center md:gap-0 px-4 py-5 sm:px-6 sm:py-[22px]"
+                className="px-4 py-5 sm:px-6 sm:py-[22px]"
                 style={{
                   borderBottom: isLast ? "none" : `1px solid ${C.border}`,
                   backgroundColor: C.white,
@@ -431,61 +490,132 @@ export default function StudentApplication() {
                   (e.currentTarget.style.backgroundColor = C.white)
                 }
               >
-                {/* Company - FIXED: clickable now, navigates to CompanyDetailPage */}
-                <div
-                  className="flex items-center gap-3 cursor-pointer group w-fit"
-                  onClick={() =>
-                    navigate(`/student/companies/${app.jobId._id}`)
-                  }
-                >
-                  <CompanyLogo
-                    name={app.jobId.companyId.name}
-                    website={app.jobId.companyId.website}
-                    size={40}
-                  />
-                  <span className="font-bold text-[15px] text-[#0F172A] group-hover:text-[#1a3a8f] group-hover:underline transition-colors break-words">
-                    {app.jobId.companyId.name}
-                  </span>
-                </div>
-
-                {/* Role */}
-                <span
-                  style={{ color: C.textMuted }}
-                  className="text-[14px] before:content-['Role'] before:mr-2 before:text-[10px] before:font-semibold before:tracking-widest before:uppercase before:text-[#64748B] md:before:hidden"
-                >
-                  {app.jobId?.role || "—"}
-                </span>
-
-                {/* Applied Date */}
-                <span
-                  style={{ color: C.textMuted }}
-                  className="text-[14px] flex items-center before:content-['Applied'] before:mr-2 before:text-[10px] before:font-semibold before:tracking-widest before:uppercase before:text-[#64748B] md:before:hidden"
-                >
-                  <CalendarIcon />
-                  {formatDate(app.appliedDate)}
-                </span>
-
-                {/* Status badge */}
-                <div className="flex items-center gap-2 before:content-['Status'] before:text-[10px] before:font-semibold before:tracking-widest before:uppercase before:text-[#64748B] md:before:hidden">
-                  <span
-                    style={{
-                      color: s.color,
-                      backgroundColor: s.bg,
-                      borderColor: s.border,
-                      border: `1px solid`,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      fontSize: "13px",
-                      fontWeight: 600,
-                      padding: "5px 14px",
-                      borderRadius: "9999px",
-                    }}
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-[2.2fr_2fr_1.6fr_1.2fr] md:items-center md:gap-0">
+                  {/* Company - FIXED: clickable now, navigates to CompanyDetailPage */}
+                  <div
+                    className="flex items-center gap-3 cursor-pointer group w-fit"
+                    onClick={() =>
+                      navigate(`/student/companies/${app.jobId._id}`)
+                    }
                   >
-                    <s.Icon />
-                    {app.status}
+                    <CompanyLogo
+                      name={app.jobId.companyId.name}
+                      website={app.jobId.companyId.website}
+                      size={40}
+                    />
+                    <span className="font-bold text-[15px] text-[#0F172A] group-hover:text-[#1a3a8f] group-hover:underline transition-colors break-words">
+                      {app.jobId.companyId.name}
+                    </span>
+                  </div>
+
+                  {/* Role */}
+                  <span
+                    style={{ color: C.textMuted }}
+                    className="text-[14px] before:content-['Role'] before:mr-2 before:text-[10px] before:font-semibold before:tracking-widest before:uppercase before:text-[#64748B] md:before:hidden"
+                  >
+                    {app.jobId?.role || "—"}
                   </span>
+
+                  {/* Applied Date */}
+                  <span
+                    style={{ color: C.textMuted }}
+                    className="text-[14px] flex items-center before:content-['Applied'] before:mr-2 before:text-[10px] before:font-semibold before:tracking-widest before:uppercase before:text-[#64748B] md:before:hidden"
+                  >
+                    <CalendarIcon />
+                    {formatDate(app.appliedDate)}
+                  </span>
+
+                  {/* Status badge */}
+                  <div className="flex items-center gap-2 before:content-['Status'] before:text-[10px] before:font-semibold before:tracking-widest before:uppercase before:text-[#64748B] md:before:hidden">
+                    <span
+                      style={{
+                        color: s.color,
+                        backgroundColor: s.bg,
+                        borderColor: s.border,
+                        border: `1px solid`,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        padding: "5px 14px",
+                        borderRadius: "9999px",
+                      }}
+                    >
+                      <s.Icon />
+                      {app.status}
+                    </span>
+                  </div>
                 </div>
+
+                {selectionSteps.length > 0 && (
+                  <div
+                    className="mt-4 rounded-xl border px-3 py-3 sm:px-4"
+                    style={{ backgroundColor: "#F8FAFC", borderColor: C.border }}
+                  >
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <p
+                        className="text-[11px] font-semibold uppercase tracking-[0.14em]"
+                        style={{ color: C.textMuted }}
+                      >
+                        Selection Process
+                      </p>
+                      <p
+                        className="text-xs font-medium"
+                        style={{
+                          color:
+                            selectionSummary.tone === "danger"
+                              ? C.danger
+                              : selectionSummary.tone === "success"
+                                ? "#15803D"
+                                : selectionSummary.tone === "warning"
+                                  ? "#B45309"
+                                  : C.textMuted,
+                        }}
+                      >
+                        {selectionSummary.text}
+                      </p>
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {selectionSteps.map((step) => {
+                        const colorMap = {
+                          Pending: {
+                            bg: "#F1F5F9",
+                            text: C.textMuted,
+                            border: "#CBD5E1",
+                          },
+                          Cleared: {
+                            bg: "#ECFDF5",
+                            text: "#166534",
+                            border: "#86EFAC",
+                          },
+                          Eliminated: {
+                            bg: "#FEF2F2",
+                            text: C.danger,
+                            border: "#FECACA",
+                          },
+                        };
+
+                        const tone = colorMap[step.status] || colorMap.Pending;
+
+                        return (
+                          <span
+                            key={`${app._id}-${step.index}`}
+                            className="inline-flex items-center rounded-full border px-2.5 py-1.5 text-[11px] font-semibold"
+                            style={{
+                              backgroundColor: tone.bg,
+                              borderColor: tone.border,
+                              color: tone.text,
+                            }}
+                          >
+                            Round {step.index + 1}: {step.name} — {step.status}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })
