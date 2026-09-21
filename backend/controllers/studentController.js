@@ -1,3 +1,4 @@
+const xlsx = require("xlsx");
 const Student = require("../models/Student");
 const Application = require("../models/Application");
 const csv = require("csv-parser");
@@ -9,6 +10,7 @@ const universityStructure = require("../data/universityStructure");
 const { cloudinary } = require("../config/cloudinary");
 const PDFDocument = require("pdfkit");
 const { Readable } = require("stream");
+
 
 const findSchoolAndDept = (course) => {
   for (const s of universityStructure) {
@@ -257,7 +259,7 @@ const uploadProfilePhoto = async (req, res) => {
       ],
     });
 
-    fs.unlink(req.file.path, () => {});
+    fs.unlink(req.file.path, () => { });
 
     const student = await Student.findOneAndUpdate(
       { userId: req.user.id },
@@ -289,7 +291,7 @@ const uploadResume = async (req, res) => {
     });
 
     // Temp file delete karo
-    fs.unlink(req.file.path, () => {});
+    fs.unlink(req.file.path, () => { });
 
     // Student ka resume URL update karo. A manual/onboarding file upload
     // means any previously AI-generated resumeData is now stale (the file
@@ -534,7 +536,7 @@ const bulkImportStudents = async (req, res) => {
         .on("error", reject);
     });
 
-    fs.unlink(req.file.path, () => {});
+    fs.unlink(req.file.path, () => { });
 
     // Pehle saare existing ERPs ek baar fetch kar lo
     const allErpIds = results.map((r) => r["ERP ID"]).filter(Boolean);
@@ -720,6 +722,42 @@ const getSavedJobs = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+const bulkCgpaUpdate = async (req, res) => {
+  try {
+    const file = req.file;
+    if (!file) return res.status(400).json({ message: "No file uploaded" });
+
+    const workbook = xlsx.read(file.buffer, { type: "buffer" });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = xlsx.utils.sheet_to_json(sheet);
+
+    const results = { updated: 0, notFound: 0, errors: [] };
+
+    for (const row of rows) {
+      const erpId = row["ERP ID"] || row["erpId"] || row["erp_id"];
+      const cgpa = parseFloat(row["CGPA"] || row["cgpa"]);
+
+      if (!erpId || isNaN(cgpa)) {
+        results.errors.push({ row, reason: "Missing ERP ID or invalid CGPA" });
+        continue;
+      }
+
+      const student = await Student.findOneAndUpdate(
+        { erpId },
+        { cgpa },
+        { new: true }
+      );
+
+      if (student) results.updated++;
+      else results.notFound++;
+    }
+
+    res.json(results);
+  } catch (err) {
+    console.error("bulkCgpaUpdate error:", err);
+    res.status(500).json({ message: "Bulk CGPA update failed" });
+  }
+};
 
 module.exports = {
   getAllStudents,
@@ -736,4 +774,5 @@ module.exports = {
   saveJob,
   unsaveJob,
   getSavedJobs,
+  bulkCgpaUpdate
 };

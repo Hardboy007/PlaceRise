@@ -16,6 +16,7 @@ const {
   saveJob,
   unsaveJob,
   getSavedJobs,
+  bulkCgpaUpdate,
 } = require("../controllers/studentController");
 const { protect, coordinatorOnly } = require("../middleware/auth");
 
@@ -28,6 +29,12 @@ router.post(
   coordinatorOnly,
   upload.single("file"),
   bulkImportStudents,
+);
+router.patch(
+  "/bulk-cgpa-update",
+  protect,
+  coordinatorOnly,
+  bulkCgpaUpdate,
 );
 // Student own profile
 router.get("/me", protect, getMyProfile);
