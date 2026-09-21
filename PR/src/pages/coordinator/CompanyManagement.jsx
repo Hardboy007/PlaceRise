@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, createElement } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { api } from "../../utils/api";
 import universityStructure from "../../data/universityStructure";
 import {
@@ -26,6 +27,8 @@ import {
   ChevronDown,
 } from "lucide-react";
 import CompanyLogo from "../../components/common/CompanyLogo";
+const ExtLink = ({ href, className, children }) =>
+  createElement("a", { href, target: "_blank", rel: "noreferrer", className }, children);
 
 // ─────────────────────────────────────────────────────────────
 //  CONSTANTS
@@ -42,33 +45,45 @@ const emptyCompany = {
   establishedYear: "",
 };
 
-const emptyJD = {
+const emptyRoleGroup = () => ({
+  id: `rg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+  eligibleBranches: [],
   role: "",
   ctc: "",
+  skills: [],
+  selectionProcess: [],
+  saved: false,
+});
+
+const emptyJD = {
   jobType: "Full Time",
   lastDate: "",
+  lastTime: "",
   minCgpa: "",
   minTenthPercentage: "",
   minTwelfthPercentage: "",
-  eligibleBranches: [],
   maxBacklogs: "0",
-  techStack: [],
-  skills: [],
   perks: [],
-  selectionProcess: [],
+  bondDetails: "",       // NEW (optional)
+  registrationLink: "",  // NEW (optional)
+  roleGroups: [emptyRoleGroup()],
 };
 
-// FIXED: days-left counting now matches the Calendar / Coordinator Profile
-// pages exactly. Previously this compared the raw deadline timestamp
-// against `new Date()` (the current moment, including hours/minutes) using
-// Math.ceil — so a deadline of "19 July 23:59" checked at, say, 3pm on the
-// 19th would round UP to "1d left" instead of showing it's actually the
-// last day. Both dates are now normalized to local midnight first, so the
-// result is a clean whole-day difference: 0 means "the deadline is today"
-// (rendered as "Today · Last day" wherever this is displayed, same as the
-// Calendar/Profile pages), and counting effectively starts from tomorrow —
-// a deadline of tomorrow shows "1d left", not "0d left" just because it's
-// less than 24 hours away by the clock.
+// NEW: link ke aage https:// na ho to auto laga dega
+const normalizeUrl = (url) => {
+  const u = (url || "").trim();
+  if (!u) return "";
+  return /^https?:\/\//i.test(u) ? u : `https://${u}`;
+};
+
+const isValidUrl = (url) => {
+  try {
+    return new URL(normalizeUrl(url)).hostname.includes(".");
+  } catch {
+    return false;
+  }
+};
+
 const daysLeft = (lastDate) => {
   if (!lastDate) return null;
   const d = new Date(lastDate);
@@ -88,9 +103,6 @@ const isExpired = (lastDate) => {
   return d !== null && d < 0;
 };
 
-// Shared "Xd left" / "Today · Last day" / "Closed" label, so every place
-// this page shows a deadline countdown reads the same way as the Calendar
-// and Coordinator Profile pages.
 const daysLeftLabel = (days) => {
   if (days === null) return "";
   if (days < 0) return "Closed";
@@ -98,10 +110,6 @@ const daysLeftLabel = (days) => {
   return `${days}d left`;
 };
 
-// FIXED: plain `.toLocaleDateString()` (no locale arg) renders mm/dd/yyyy
-// or dd/mm/yyyy depending on the visiting browser's own locale setting —
-// so the same date showed differently for different users/machines.
-// Forcing "en-GB" always gives dd/mm/yyyy regardless of the browser.
 const formatDDMMYYYY = (date) => {
   const d = date instanceof Date ? date : new Date(date);
   if (isNaN(d.getTime())) return "—";
@@ -113,7 +121,7 @@ const formatDDMMYYYY = (date) => {
 };
 
 // ─────────────────────────────────────────────────────────────
-//  BRANCH SELECTOR — flat accordion with smart quick-select
+//  BRANCH SELECTOR
 // ─────────────────────────────────────────────────────────────
 const allCourses = () =>
   universityStructure.flatMap((s) => s.departments.flatMap((d) => d.courses));
@@ -541,6 +549,255 @@ function TagInput({ tags, setTags, placeholder }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────────
+//  ROLE GROUP BOX  (ek role/CTC/branches box, JD form ke andar)
+// ─────────────────────────────────────────────────────────────
+function RoleGroupBox({ index, roleGroup, onChange, onRemove, error }) {
+  const update = (patch) => onChange({ ...roleGroup, ...patch });
+
+  if (roleGroup.saved) {
+    return (
+      <div className="flex items-center justify-between gap-3 border border-[#E2E8F0] rounded-xl p-3 bg-[#F8FAFC]">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold text-[#1E293B] truncate">
+            {roleGroup.role || `Role ${index + 1}`} · ₹{roleGroup.ctc || 0} LPA
+          </p>
+          <p className="text-[10px] text-[#94A3B8] truncate">
+            {roleGroup.eligibleBranches.length} course(s) selected
+          </p>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => update({ saved: false })}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-[#E2E8F0] text-[11px] font-medium text-[#64748B] hover:border-[#1a3a8f] hover:text-[#1a3a8f]"
+          >
+            <Pencil size={11} /> Edit
+          </button>
+          {onRemove && (
+            <button
+              type="button"
+              onClick={onRemove}
+              className="w-6 h-6 rounded-lg flex items-center justify-center text-[#94A3B8] hover:text-red-500 hover:bg-red-50"
+            >
+              <Trash2 size={12} />
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border border-[#E2E8F0] rounded-xl p-3 sm:p-4 bg-white flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-bold text-[#1a3a8f]">Role {index + 1}</span>
+        {onRemove && (
+          <button
+            type="button"
+            onClick={onRemove}
+            className="text-[#94A3B8] hover:text-red-500"
+          >
+            <Trash2 size={13} />
+          </button>
+        )}
+      </div>
+
+      <Field label="Eligible Branches & Courses" required error={error?.eligibleBranches}>
+        <BranchSelectorModal
+          selected={roleGroup.eligibleBranches}
+          onChange={(eligibleBranches) => update({ eligibleBranches })}
+        />
+      </Field>
+
+      <Field label="Role / Position" required error={error?.role}>
+        <input
+          value={roleGroup.role}
+          onChange={(e) => update({ role: e.target.value })}
+          placeholder="e.g. Software Engineer"
+          className={inputCls}
+        />
+      </Field>
+
+      <Field label="CTC (LPA)" required error={error?.ctc}>
+        <input
+          type="number"
+          value={roleGroup.ctc}
+          onChange={(e) => update({ ctc: e.target.value })}
+          placeholder="e.g. 12"
+          className={inputCls}
+        />
+      </Field>
+
+      <Field label="Skills Required">
+        <TagInput
+          tags={roleGroup.skills}
+          setTags={(t) => update({ skills: t })}
+          placeholder="Type and press Enter (e.g. DSA, SQL)"
+        />
+      </Field>
+
+      <Field label="Selection Process">
+        <TagInput
+          tags={roleGroup.selectionProcess}
+          setTags={(t) => update({ selectionProcess: t })}
+          placeholder="Type and press Enter (e.g. Aptitude, Technical, HR)"
+        />
+      </Field>
+
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => update({ saved: true })}
+          className="px-3 py-1.5 rounded-lg bg-[#1a3a8f] text-white text-xs font-semibold hover:bg-[#0d1b5e]"
+        >
+          Save Role
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+//  COMPANY CARD  (list view, expand/collapse multi-role)
+// ─────────────────────────────────────────────────────────────
+function CompanyCard({ company, job, onView, onEditCompany, onEditJD, onPostJD }) {
+  const [expanded, setExpanded] = useState(false);
+  const days = job ? daysLeft(job.lastDate) : null;
+  const expired = job ? isExpired(job.lastDate) : false;
+  const isUrgent = !expired && days !== null && days <= 7;
+  const roleGroups = job?.roleGroups ?? [];
+  const multiRole = roleGroups.length > 1;
+
+  return (
+    <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-primary p-4 sm:p-5 shadow-sm hover:shadow-md transition-all">
+      <div className="flex flex-col sm:flex-row items-start gap-4">
+        <CompanyLogo name={company.name} website={company.website} size={44} />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <h3 className="text-sm font-bold text-[#1E293B]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+              {company.name}
+            </h3>
+            {roleGroups.length === 1 && (
+              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-primary border border-blue-200">
+                {roleGroups[0].role}
+              </span>
+            )}
+            {job && (
+              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${job.jobType === "Internship" ? "bg-purple-50 text-purple-600 border border-purple-200" : "bg-green-50 text-green-600 border border-green-200"}`}>
+                {job.jobType}
+              </span>
+            )}
+            {expired && (
+              <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-500 border border-red-200">
+                Closed
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-4 flex-wrap">
+            <span className="flex items-center gap-1 text-xs text-text-muted">
+              <MapPin size={11} /> {company.location}
+            </span>
+            {job?.lastDate && (
+              <span className={`flex items-center gap-1 text-xs font-medium ${expired ? "text-red-400" : isUrgent ? "text-red-500" : "text-text-muted"}`}>
+                <Calendar size={11} />
+                {formatDDMMYYYY(job.lastDate)}
+                {isUrgent && (
+                  <span className="ml-1 px-1.5 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-200 text-[10px] font-bold whitespace-nowrap">
+                    {daysLeftLabel(days)}
+                  </span>
+                )}
+              </span>
+            )}
+            {job?.minCgpa > 0 && (
+              <span className="text-xs text-text-muted">CGPA {job.minCgpa}+</span>
+            )}
+          </div>
+
+          {roleGroups.length === 1 && (
+            <div className="flex items-center gap-3 flex-wrap mt-2">
+              {roleGroups[0].ctc > 0 && (
+                <span className="flex items-center gap-1 text-xs text-text-muted">
+                  <Briefcase size={11} /> ₹{roleGroups[0].ctc} LPA
+                </span>
+              )}
+              {(roleGroups[0].eligibleBranches ?? []).slice(0, 3).map((b) => (
+                <span key={b} className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-background text-[#64748B] border border-[#E2E8F0]">
+                  {b.length > 35 ? b.slice(0, 33) + "…" : b}
+                </span>
+              ))}
+              {(roleGroups[0].eligibleBranches ?? []).length > 3 && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-background text-[#94A3B8] border border-[#E2E8F0]">
+                  +{roleGroups[0].eligibleBranches.length - 3} more
+                </span>
+              )}
+            </div>
+          )}
+
+          {multiRole && (
+            <button
+              onClick={() => setExpanded((v) => !v)}
+              className="flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-lg bg-[#EFF3FA] text-[#1a3a8f] border border-[#B8C6E3] text-xs font-semibold hover:bg-[#E2E8F0] transition-colors"
+            >
+              <Briefcase size={11} /> {roleGroups.length} Roles
+              <ChevronDown size={12} className={`transition-transform ${expanded ? "rotate-180" : ""}`} />
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap sm:flex-shrink-0 w-full sm:w-auto">
+          <button onClick={onView} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E2E8F0] text-xs font-medium text-[#64748B] hover:border-[#8B5CF6] hover:text-[#8B5CF6] transition-all">
+            <Eye size={12} /> View
+          </button>
+          <button onClick={onEditCompany} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0] text-xs font-semibold hover:bg-[#E2E8F0] transition-colors">
+            <Pencil size={12} /> Edit Company Info
+          </button>
+          {job ? (
+            <button onClick={onEditJD} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0] text-xs font-semibold hover:bg-[#E2E8F0] transition-colors">
+              <Pencil size={12} /> Edit JD
+            </button>
+          ) : (
+            <button onClick={onPostJD} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1a3a8f] text-white text-xs font-semibold hover:bg-[#0d1b5e] transition-colors">
+              <FileText size={12} /> Post JD
+            </button>
+          )}
+        </div>
+      </div>
+
+      {multiRole && expanded && (
+        <div className="mt-4 pt-4 border-t border-[#F1F5F9] flex flex-col gap-2.5">
+          {roleGroups.map((rg, i) => (
+            <div key={rg._id || i} className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-bold text-[#1E293B]">{rg.role}</span>
+                <span className="text-xs font-semibold text-[#1a3a8f]">₹{rg.ctc} LPA</span>
+              </div>
+              <div className="flex flex-wrap gap-1 mb-1.5">
+                {(rg.eligibleBranches ?? []).slice(0, 4).map((b) => (
+                  <span key={b} className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-white text-[#64748B] border border-[#E2E8F0]">
+                    {b.length > 30 ? b.slice(0, 28) + "…" : b}
+                  </span>
+                ))}
+                {(rg.eligibleBranches ?? []).length > 4 && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-white text-[#94A3B8] border border-[#E2E8F0]">
+                    +{rg.eligibleBranches.length - 4} more
+                  </span>
+                )}
+              </div>
+              {(rg.skills ?? []).length > 0 && (
+                <p className="text-[10px] text-[#94A3B8]">
+                  Skills: {rg.skills.join(", ")}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Field({ label, required, optional, error, children }) {
   return (
     <div>
@@ -567,26 +824,6 @@ function JDFields({ form, setForm, errors }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Role / Position" required error={errors.role}>
-          <input
-            value={form.role}
-            onChange={(e) => setForm({ ...form, role: e.target.value })}
-            placeholder="e.g. Software Engineer"
-            className={inputCls}
-          />
-        </Field>
-        <Field label="CTC (LPA)" required error={errors.ctc}>
-          <input
-            type="number"
-            value={form.ctc}
-            onChange={(e) => setForm({ ...form, ctc: e.target.value })}
-            placeholder="e.g. 12"
-            className={inputCls}
-          />
-        </Field>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Job Type">
           <select
             value={form.jobType}
@@ -608,6 +845,15 @@ function JDFields({ form, setForm, errors }) {
         </Field>
       </div>
 
+      <Field label="Application End Time" optional>
+        <input
+          type="time"
+          value={form.lastTime}
+          onChange={(e) => setForm({ ...form, lastTime: e.target.value })}
+          className={inputCls}
+        />
+      </Field>
+
       <Field label="Min CGPA" optional>
         <input
           type="number"
@@ -620,54 +866,31 @@ function JDFields({ form, setForm, errors }) {
           className={inputCls}
         />
       </Field>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Min 10th Percentage" optional>
           <input
-            type="number"
-            step="0.1"
-            min="0"
-            max="100"
+            type="number" step="0.1" min="0" max="100"
             value={form.minTenthPercentage}
-            onChange={(e) =>
-              setForm({ ...form, minTenthPercentage: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, minTenthPercentage: e.target.value })}
             placeholder="Leave blank if no requirement"
             className={inputCls}
           />
         </Field>
         <Field label="Min 12th Percentage" optional>
           <input
-            type="number"
-            step="0.1"
-            min="0"
-            max="100"
+            type="number" step="0.1" min="0" max="100"
             value={form.minTwelfthPercentage}
-            onChange={(e) =>
-              setForm({ ...form, minTwelfthPercentage: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, minTwelfthPercentage: e.target.value })}
             placeholder="Leave blank if no requirement"
             className={inputCls}
           />
         </Field>
       </div>
-      {/* ── Eligible Branches — replaced with modal selector ── */}
-      <Field
-        label="Eligible Branches & Courses"
-        required
-        error={errors.eligibleBranches}
-      >
-        <BranchSelectorModal
-          selected={form.eligibleBranches}
-          onChange={(eligibleBranches) =>
-            setForm({ ...form, eligibleBranches })
-          }
-        />
-      </Field>
 
       <Field label="Max Backlogs Allowed">
         <input
-          type="number"
-          min="0"
+          type="number" min="0"
           value={form.maxBacklogs}
           onChange={(e) => setForm({ ...form, maxBacklogs: e.target.value })}
           placeholder="0"
@@ -675,21 +898,19 @@ function JDFields({ form, setForm, errors }) {
         />
       </Field>
 
-      <Field label="Tech Stack">
-        <TagInput
-          tags={form.techStack}
-          setTags={(t) => setForm({ ...form, techStack: t })}
-          placeholder="Type and press Enter (e.g. React, Node.js)"
-        />
-      </Field>
-
-      <Field label="Skills Required">
-        <TagInput
-          tags={form.skills}
-          setTags={(t) => setForm({ ...form, skills: t })}
-          placeholder="Type and press Enter (e.g. DSA, SQL)"
-        />
-      </Field>
+      <Field label="Registration Link" optional error={errors.registrationLink}>
+  <input
+    type="url"
+    value={form.registrationLink}
+    onChange={(e) => setForm({ ...form, registrationLink: e.target.value })}
+    placeholder="https://company.com/careers/register"
+    className={inputCls}
+  />
+  <p className="text-[10px] text-[#94A3B8] mt-1">
+  If the company wants students to register on its own website, paste the
+  link here. Students will see a button that opens the form directly.
+</p>
+</Field>
 
       <Field label="Perks & Benefits">
         <TagInput
@@ -698,17 +919,61 @@ function JDFields({ form, setForm, errors }) {
           placeholder="Type and press Enter (e.g. Health Insurance)"
         />
       </Field>
+      <Field label="Any Bond or Fee" optional>
+  <textarea
+    value={form.bondDetails}
+    onChange={(e) => setForm({ ...form, bondDetails: e.target.value })}
+    placeholder={
+      "e.g. 2 Years\n(Please specify clearly)\nBond-breach compensation: if a candidate leaves before completing the two-year service period, the candidate shall be liable to pay ₹3,00,000."
+    }
+    rows={4}
+    className={`${inputCls} resize-y`}
+  />
+</Field>
 
-      <Field label="Selection Process">
-        <TagInput
-          tags={form.selectionProcess}
-          setTags={(t) => setForm({ ...form, selectionProcess: t })}
-          placeholder="Type and press Enter (e.g. Aptitude, Technical Round, HR)"
-        />
-        <p className="text-[10px] text-[#94A3B8] mt-1">
-          Each entry will be shown as Round 1, Round 2... in order
-        </p>
-      </Field>
+      <div className="border-t border-[#F1F5F9] pt-4 mt-1">
+        <h4 className="text-xs font-bold text-[#1E293B] uppercase tracking-widest">
+          Role-wise Packages
+        </h4>
+        <p className="text-[10px] text-[#94A3B8] mt-0.5 mb-3">
+  If different courses have different roles or packages, add a separate role
+  box for each one.
+</p>
+
+        <div className="flex flex-col gap-3">
+          {form.roleGroups.map((rg, idx) => (
+            <RoleGroupBox
+              key={rg.id}
+              index={idx}
+              roleGroup={rg}
+              error={Array.isArray(errors.roleGroups) ? errors.roleGroups[idx] : null}
+              onChange={(updated) => {
+                const next = [...form.roleGroups];
+                next[idx] = updated;
+                setForm({ ...form, roleGroups: next });
+              }}
+              onRemove={
+                form.roleGroups.length > 1
+                  ? () => {
+                      const next = form.roleGroups.filter((_, i) => i !== idx);
+                      setForm({ ...form, roleGroups: next });
+                    }
+                  : null
+              }
+            />
+          ))}
+        </div>
+
+        <button
+          type="button"
+          onClick={() =>
+            setForm({ ...form, roleGroups: [...form.roleGroups, emptyRoleGroup()] })
+          }
+          className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-[#B8C6E3] text-xs font-semibold text-[#1a3a8f] hover:bg-[#EFF3FA] transition-colors"
+        >
+          <Plus size={13} /> Add Another Role
+        </button>
+      </div>
     </div>
   );
 }
@@ -717,6 +982,9 @@ function JDFields({ form, setForm, errors }) {
 //  MAIN PAGE COMPONENT
 // ─────────────────────────────────────────────────────────────
 export default function CompanyManagementPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [companies, setCompanies] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -760,11 +1028,6 @@ export default function CompanyManagementPage() {
     fetchData();
   }, []);
 
-  // ── FIX: jobs ko sirf un companies ke liye consider karo jo
-  // current "companies" list me actually maujood hain. Pehle
-  // stats (fullTime/internships/urgent) seedhe raw `jobs` array
-  // se nikal rahe the, jisme dusri companies/coordinators ke
-  // stale ya unrelated jobs bhi count ho rahe the.
   const merged = companies.map((c) => {
     const job = jobs.find((j) => j.companyId?._id === c._id);
     return { company: c, job: job || null };
@@ -780,12 +1043,6 @@ export default function CompanyManagementPage() {
     ({ job }) => job?.jobType === "Internship",
   ).length;
 
-  // "Closing Soon" now counts a deadline that's exactly today too (days
-  // === 0, shown elsewhere as "Today · Last day") — it used to require
-  // days >= 0 which already covered this, but with the old Math.ceil
-  // logic "today" could read as 0 OR 1 depending on the time of day. With
-  // the normalized-midnight daysLeft() this is now a reliable same-day
-  // check across the whole page.
   const urgent = merged.filter(({ job }) => {
     if (!job) return false;
     const d = daysLeft(job.lastDate);
@@ -815,11 +1072,21 @@ export default function CompanyManagementPage() {
 
   const validateJD = (form) => {
     const errs = {};
-    if (!form.role.trim()) errs.role = "Role is required";
-    if (!form.ctc) errs.ctc = "CTC is required";
     if (!form.lastDate) errs.lastDate = "Last date is required";
-    if (!form.eligibleBranches.length)
-      errs.eligibleBranches = "Select at least one branch";
+    if (form.registrationLink?.trim() && !isValidUrl(form.registrationLink)) {
+  errs.registrationLink = "Please enter a valid link (e.g. https://company.com/register)";
+}
+
+    const rgErrors = (form.roleGroups || []).map((rg) => {
+      const e = {};
+      if (!rg.role.trim()) e.role = "Role is required";
+      if (!rg.ctc) e.ctc = "CTC is required";
+      if (!rg.eligibleBranches.length) e.eligibleBranches = "Select at least one branch";
+      return e;
+    });
+    if (!form.roleGroups?.length || rgErrors.some((e) => Object.keys(e).length)) {
+      errs.roleGroups = rgErrors;
+    }
     return errs;
   };
 
@@ -833,6 +1100,14 @@ export default function CompanyManagementPage() {
     setShowCompanyModal(true);
   };
 
+  useEffect(() => {
+    if (location.state?.openAddCompany) {
+      openAddCompany();
+      navigate(location.pathname, { replace: true, state: null });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const goToStep2 = async () => {
     const errs = validateCompany();
     if (Object.keys(errs).length) {
@@ -840,10 +1115,8 @@ export default function CompanyManagementPage() {
       return;
     }
     if (createdCompanyId) {
-      // Edit mode — update existing
       await api.put(`/companies/${createdCompanyId}`, companyForm);
     } else {
-      // Add mode — create new
       const newCompany = await api.post("/companies", companyForm);
       setCreatedCompanyId(newCompany._id);
     }
@@ -855,7 +1128,6 @@ export default function CompanyManagementPage() {
     setShowCompanyModal(false);
   };
 
-  // location ab JD form mein nahi — company ka location use hoga
   const saveCompanyWithJD = async () => {
     const errs = validateJD(addJDForm);
     if (Object.keys(errs).length) {
@@ -864,24 +1136,24 @@ export default function CompanyManagementPage() {
     }
     await api.post("/jobs", {
       companyId: createdCompanyId,
-      role: addJDForm.role,
-      ctc: parseFloat(addJDForm.ctc),
       jobType: addJDForm.jobType,
       location: companyForm.location,
       lastDate: addJDForm.lastDate,
+      lastTime: addJDForm.lastTime,
       minCgpa: addJDForm.minCgpa ? parseFloat(addJDForm.minCgpa) : 0,
-      minTenthPercentage: addJDForm.minTenthPercentage
-        ? parseFloat(addJDForm.minTenthPercentage)
-        : 0,
-      minTwelfthPercentage: addJDForm.minTwelfthPercentage
-        ? parseFloat(addJDForm.minTwelfthPercentage)
-        : 0,
-      eligibleBranches: addJDForm.eligibleBranches,
+      minTenthPercentage: addJDForm.minTenthPercentage ? parseFloat(addJDForm.minTenthPercentage) : 0,
+      minTwelfthPercentage: addJDForm.minTwelfthPercentage ? parseFloat(addJDForm.minTwelfthPercentage) : 0,
       maxBacklogs: addJDForm.maxBacklogs ? parseInt(addJDForm.maxBacklogs) : 0,
-      techStack: addJDForm.techStack,
-      skills: addJDForm.skills,
+      bondDetails: addJDForm.bondDetails.trim(),
+registrationLink: normalizeUrl(addJDForm.registrationLink),
       perks: addJDForm.perks,
-      selectionProcess: addJDForm.selectionProcess,
+      roleGroups: addJDForm.roleGroups.map((rg) => ({
+        eligibleBranches: rg.eligibleBranches,
+        role: rg.role,
+        ctc: parseFloat(rg.ctc),
+        skills: rg.skills,
+        selectionProcess: rg.selectionProcess,
+      })),
     });
     await fetchData();
     setShowCompanyModal(false);
@@ -894,27 +1166,35 @@ export default function CompanyManagementPage() {
     setJdErrors({});
     setShowJDModal(true);
   };
+
   const openEditJD = (company, job) => {
     setJdTargetCompany(company);
     setJdTargetJob(job);
     setJdForm({
-      role: job.role || "",
-      ctc: job.ctc || "",
       jobType: job.jobType || "Full Time",
       lastDate: job.lastDate ? job.lastDate.split("T")[0] : "",
+      lastTime: job.lastTime || "",
       minCgpa: job.minCgpa || "",
       minTenthPercentage: job.minTenthPercentage || "",
       minTwelfthPercentage: job.minTwelfthPercentage || "",
-      eligibleBranches: job.eligibleBranches || [],
       maxBacklogs: job.maxBacklogs ?? "0",
-      techStack: job.techStack || [],
-      skills: job.skills || [],
+      bondDetails: job.bondDetails || "",
+registrationLink: job.registrationLink || "",
       perks: job.perks || [],
-      selectionProcess: job.selectionProcess || [],
+      roleGroups: (job.roleGroups?.length ? job.roleGroups : [{}]).map((rg) => ({
+        id: rg._id || `rg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        eligibleBranches: rg.eligibleBranches || [],
+        role: rg.role || "",
+        ctc: rg.ctc || "",
+        skills: rg.skills || [],
+        selectionProcess: rg.selectionProcess || [],
+        saved: true,
+      })),
     });
     setJdErrors({});
     setShowJDModal(true);
   };
+
   const openEditCompany = (company) => {
     setCompanyForm({
       name: company.name || "",
@@ -931,6 +1211,7 @@ export default function CompanyManagementPage() {
     setAddJDErrors({});
     setShowCompanyModal(true);
   };
+
   const submitJD = async () => {
     const errs = validateJD(jdForm);
     if (Object.keys(errs).length) {
@@ -940,24 +1221,24 @@ export default function CompanyManagementPage() {
 
     const payload = {
       companyId: jdTargetCompany._id,
-      role: jdForm.role,
-      ctc: parseFloat(jdForm.ctc),
       jobType: jdForm.jobType,
       location: jdTargetCompany.location,
       lastDate: jdForm.lastDate,
+      lastTime: jdForm.lastTime,
       minCgpa: jdForm.minCgpa ? parseFloat(jdForm.minCgpa) : 0,
-      minTenthPercentage: jdForm.minTenthPercentage
-        ? parseFloat(jdForm.minTenthPercentage)
-        : 0,
-      minTwelfthPercentage: jdForm.minTwelfthPercentage
-        ? parseFloat(jdForm.minTwelfthPercentage)
-        : 0,
-      eligibleBranches: jdForm.eligibleBranches,
+      minTenthPercentage: jdForm.minTenthPercentage ? parseFloat(jdForm.minTenthPercentage) : 0,
+      minTwelfthPercentage: jdForm.minTwelfthPercentage ? parseFloat(jdForm.minTwelfthPercentage) : 0,
       maxBacklogs: jdForm.maxBacklogs ? parseInt(jdForm.maxBacklogs) : 0,
-      techStack: jdForm.techStack,
-      skills: jdForm.skills,
+      bondDetails: jdForm.bondDetails.trim(),
+registrationLink: normalizeUrl(jdForm.registrationLink),
       perks: jdForm.perks,
-      selectionProcess: jdForm.selectionProcess,
+      roleGroups: jdForm.roleGroups.map((rg) => ({
+        eligibleBranches: rg.eligibleBranches,
+        role: rg.role,
+        ctc: parseFloat(rg.ctc),
+        skills: rg.skills,
+        selectionProcess: rg.selectionProcess,
+      })),
     };
 
     setSavingJD(true);
@@ -971,7 +1252,6 @@ export default function CompanyManagementPage() {
         jobId = newJob._id;
       }
 
-      // PDF select ki hui hai to usko bhi save karte hi upload kar do
       if (pdfFile && jobId) {
         const formData = new FormData();
         formData.append("pdf", pdfFile);
@@ -1087,19 +1367,10 @@ export default function CompanyManagementPage() {
 
         <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           {[
-            {
-              label: "Total Companies",
-              value: totalCompanies,
-              icon: Building2,
-            },
+            { label: "Total Companies", value: totalCompanies, icon: Building2 },
             { label: "Full Time", value: fullTime, icon: Briefcase },
             { label: "Internships", value: internships, icon: Users },
-            {
-              label: "Closing Soon",
-              value: urgent,
-              icon: Clock,
-              highlight: urgent > 0,
-            },
+            { label: "Closing Soon", value: urgent, icon: Clock, highlight: urgent > 0 },
           ].map(({ label, value, icon: Icon, highlight }) => (
             <div
               key={label}
@@ -1162,135 +1433,17 @@ export default function CompanyManagementPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {filtered.map(({ company, job }) => {
-            const days = job ? daysLeft(job.lastDate) : null;
-            const expired = job ? isExpired(job.lastDate) : false;
-            const isUrgent = !expired && days !== null && days <= 7;
-
-            return (
-              <div
-                key={company._id}
-                className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-primary p-4 sm:p-5 shadow-sm hover:shadow-md transition-all"
-              >
-                <div className="flex flex-col sm:flex-row items-start gap-4">
-                  <CompanyLogo
-                    name={company.name}
-                    website={company.website}
-                    size={44}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <h3
-                        className="text-sm font-bold text-[#1E293B]"
-                        style={{ fontFamily: "Space Grotesk, sans-serif" }}
-                      >
-                        {company.name}
-                      </h3>
-                      {job?.role && (
-                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-primary border border-blue-200">
-                          {job.role}
-                        </span>
-                      )}
-                      {job && (
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                            job.jobType === "Internship"
-                              ? "bg-purple-50 text-purple-600 border border-purple-200"
-                              : "bg-green-50 text-green-600 border border-green-200"
-                          }`}
-                        >
-                          {job.jobType}
-                        </span>
-                      )}
-                      {expired && (
-                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-500 border border-red-200">
-                          Closed
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-4 flex-wrap">
-                      <span className="flex items-center gap-1 text-xs text-text-muted">
-                        <MapPin size={11} /> {company.location}
-                      </span>
-                      {job?.ctc > 0 && (
-                        <span className="flex items-center gap-1 text-xs text-text-muted">
-                          <Briefcase size={11} /> ₹{job.ctc} LPA
-                        </span>
-                      )}
-                      {job?.lastDate && (
-                        <span
-                          className={`flex items-center gap-1 text-xs font-medium ${expired ? "text-red-400" : isUrgent ? "text-red-500" : "text-text-muted"}`}
-                        >
-                          <Calendar size={11} />
-                          {formatDDMMYYYY(job.lastDate)}
-                          {isUrgent && (
-                            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-200 text-[10px] font-bold whitespace-nowrap">
-                              {daysLeftLabel(days)}
-                            </span>
-                          )}
-                        </span>
-                      )}
-                      {job?.minCgpa > 0 && (
-                        <span className="text-xs text-text-muted">
-                          CGPA {job.minCgpa}+
-                        </span>
-                      )}
-                    </div>
-                    {(job?.eligibleBranches ?? []).length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {job.eligibleBranches.slice(0, 3).map((b) => (
-                          <span
-                            key={b}
-                            className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-background text-[#64748B] border border-[#E2E8F0]"
-                          >
-                            {b.length > 35 ? b.slice(0, 33) + "…" : b}
-                          </span>
-                        ))}
-                        {job.eligibleBranches.length > 3 && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-background text-[#94A3B8] border border-[#E2E8F0]">
-                            +{job.eligibleBranches.length - 3} more
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap sm:flex-shrink-0 w-full sm:w-auto">
-                    <button
-                      onClick={() => {
-                        setViewingCompany({ company, job });
-                        setShowViewModal(true);
-                      }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E2E8F0] text-xs font-medium text-[#64748B] hover:border-[#8B5CF6] hover:text-[#8B5CF6] transition-all"
-                    >
-                      <Eye size={12} /> View
-                    </button>
-                    <button
-                      onClick={() => openEditCompany(company)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0] text-xs font-semibold hover:bg-[#E2E8F0] transition-colors"
-                    >
-                      <Pencil size={12} /> Edit Company Info
-                    </button>
-                    {job ? (
-                      <button
-                        onClick={() => openEditJD(company, job)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0] text-xs font-semibold hover:bg-[#E2E8F0] transition-colors"
-                      >
-                        <Pencil size={12} /> Edit JD
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => openPostJD(company)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1a3a8f] text-white text-xs font-semibold hover:bg-[#0d1b5e] transition-colors"
-                      >
-                        <FileText size={12} /> Post JD
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          {filtered.map(({ company, job }) => (
+            <CompanyCard
+              key={company._id}
+              company={company}
+              job={job}
+              onView={() => { setViewingCompany({ company, job }); setShowViewModal(true); }}
+              onEditCompany={() => openEditCompany(company)}
+              onEditJD={() => openEditJD(company, job)}
+              onPostJD={() => openPostJD(company)}
+            />
+          ))}
         </div>
       )}
 
@@ -1356,15 +1509,13 @@ export default function CompanyManagementPage() {
                   </p>
                 )}
                 {viewingCompany.company.website && (
-                  <a
-                    href={viewingCompany.company.website}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-1 text-xs text-[#1a3a8f] hover:underline"
-                  >
-                    <ExternalLink size={11} /> {viewingCompany.company.website}
-                  </a>
-                )}
+  <ExtLink
+    href={viewingCompany.company.website}
+    className="flex items-center gap-1 text-xs text-[#1a3a8f] hover:underline"
+  >
+    <ExternalLink size={11} /> {viewingCompany.company.website}
+  </ExtLink>
+)}
               </div>
 
               <div className="border-t border-[#F1F5F9]" />
@@ -1377,30 +1528,14 @@ export default function CompanyManagementPage() {
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]">
-                        <p className="text-[10px] text-[#94A3B8] mb-1">Role</p>
-                        <p className="text-xs font-semibold text-[#1E293B]">
-                          {viewingCompany.job.role}
-                        </p>
-                      </div>
-                      <div className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]">
-                        <p className="text-[10px] text-[#94A3B8] mb-1">CTC</p>
-                        <p className="text-xs font-semibold text-[#1E293B]">
-                          ₹{viewingCompany.job.ctc} LPA
-                        </p>
-                      </div>
-                      <div className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]">
-                        <p className="text-[10px] text-[#94A3B8] mb-1">
-                          Job Type
-                        </p>
+                        <p className="text-[10px] text-[#94A3B8] mb-1">Job Type</p>
                         <p className="text-xs font-semibold text-[#1E293B]">
                           {viewingCompany.job.jobType}
                         </p>
                       </div>
                       {viewingCompany.job.lastDate && (
                         <div className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]">
-                          <p className="text-[10px] text-[#94A3B8] mb-1">
-                            Last Date
-                          </p>
+                          <p className="text-[10px] text-[#94A3B8] mb-1">Last Date</p>
                           <p
                             className={`text-xs font-semibold flex items-center gap-1.5 flex-wrap ${(daysLeft(viewingCompany.job.lastDate) ?? 999) <= 7 ? "text-red-500" : "text-[#1E293B]"}`}
                           >
@@ -1418,9 +1553,7 @@ export default function CompanyManagementPage() {
                         </div>
                       )}
                       <div className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]">
-                        <p className="text-[10px] text-[#94A3B8] mb-1">
-                          Min CGPA
-                        </p>
+                        <p className="text-[10px] text-[#94A3B8] mb-1">Min CGPA</p>
                         <p className="text-xs font-semibold text-[#1E293B]">
                           {viewingCompany.job.minCgpa > 0
                             ? `${viewingCompany.job.minCgpa} and above`
@@ -1428,9 +1561,7 @@ export default function CompanyManagementPage() {
                         </p>
                       </div>
                       <div className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]">
-                        <p className="text-[10px] text-[#94A3B8] mb-1">
-                          Max Backlogs
-                        </p>
+                        <p className="text-[10px] text-[#94A3B8] mb-1">Max Backlogs</p>
                         <p className="text-xs font-semibold text-[#1E293B]">
                           {viewingCompany.job.maxBacklogs}
                         </p>
@@ -1438,81 +1569,79 @@ export default function CompanyManagementPage() {
                     </div>
                   </div>
 
-                  {(viewingCompany.job.eligibleBranches ?? []).length > 0 && (
+                  {/* ── Role-wise breakdown ── */}
+                  {(viewingCompany.job.roleGroups ?? []).length > 0 && (
                     <div>
-                      <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-2">
-                        Eligible Branches & Courses
-                        <span className="ml-2 normal-case font-normal text-[#CBD5E1]">
-                          ({viewingCompany.job.eligibleBranches.length}{" "}
-                          selected)
-                        </span>
+                      <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-3">
+                        Role-wise Packages
                       </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {viewingCompany.job.eligibleBranches.map((b) => (
-                          <span
-                            key={b}
-                            className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#EFF3FA] text-[#1a3a8f] border border-[#B8C6E3]"
-                          >
-                            {b}
-                          </span>
+                      <div className="flex flex-col gap-3">
+                        {viewingCompany.job.roleGroups.map((rg, i) => (
+                          <div key={rg._id || i} className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs font-bold text-[#1E293B]">{rg.role}</span>
+                              <span className="text-xs font-semibold text-[#1a3a8f]">₹{rg.ctc} LPA</span>
+                            </div>
+                            {(rg.eligibleBranches ?? []).length > 0 && (
+                              <div className="flex flex-wrap gap-1.5 mb-2">
+                                {rg.eligibleBranches.map((b) => (
+                                  <span key={b} className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#EFF3FA] text-[#1a3a8f] border border-[#B8C6E3]">
+                                    {b}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {(rg.skills ?? []).length > 0 && (
+                              <div className="flex flex-wrap gap-1.5 mb-2">
+                                {rg.skills.map((s) => (
+                                  <span key={s} className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0]">
+                                    {s}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {(rg.selectionProcess ?? []).length > 0 && (
+                              <div className="flex flex-wrap gap-1.5">
+                                {rg.selectionProcess.map((s, si) => (
+                                  <span key={si} className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-white text-[#1a3a8f] border border-[#B8C6E3]">
+                                    Round {si + 1}: {s}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         ))}
                       </div>
                     </div>
                   )}
 
-                  {(viewingCompany.job.selectionProcess ?? []).length > 0 && (
-                    <div>
-                      <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-2">
-                        Selection Process
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {viewingCompany.job.selectionProcess.map((s, i) => (
-                          <span
-                            key={i}
-                            className="px-3 py-1 rounded-full text-xs font-medium bg-[#EFF3FA] text-[#1a3a8f] border border-[#B8C6E3]"
-                          >
-                            Round {i + 1}: {s}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  {viewingCompany.job.registrationLink && (
+  <div className="rounded-xl p-3 border border-[#B8C6E3] bg-[#EFF3FA]">
+    <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-1.5">
+      Registration Link
+    </p>
+    <ExtLink
+      href={viewingCompany.job.registrationLink}
+      className="flex items-center gap-1.5 text-xs font-semibold text-[#1a3a8f] hover:underline break-all"
+    >
+      <ExternalLink size={12} className="flex-shrink-0" />
+      {viewingCompany.job.registrationLink}
+    </ExtLink>
+  </div>
+)}
 
-                  {(viewingCompany.job.techStack ?? []).length > 0 && (
-                    <div>
-                      <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-2">
-                        Tech Stack
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {viewingCompany.job.techStack.map((t) => (
-                          <span
-                            key={t}
-                            className="px-3 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-600 border border-purple-200"
-                          >
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {(viewingCompany.job.skills ?? []).length > 0 && (
-                    <div>
-                      <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-2">
-                        Skills Required
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {viewingCompany.job.skills.map((s) => (
-                          <span
-                            key={s}
-                            className="px-3 py-1 rounded-full text-xs font-medium bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0]"
-                          >
-                            {s}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+{viewingCompany.job.bondDetails && (
+  <div>
+    <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-2">
+      Bond / Fee
+    </p>
+    <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+      <p className="text-xs text-[#1E293B] leading-relaxed whitespace-pre-line">
+        {viewingCompany.job.bondDetails}
+      </p>
+    </div>
+  </div>
+)}
 
                   {(viewingCompany.job.perks ?? []).length > 0 && (
                     <div>
@@ -1647,22 +1776,15 @@ export default function CompanyManagementPage() {
                       </span>
                     </label>
                     {createdCompanyId &&
-                      jobs.find((j) => j.companyId?._id === createdCompanyId)
-                        ?.jdPdfUrl && (
-                        <a
-                          href={
-                            jobs.find(
-                              (j) => j.companyId?._id === createdCompanyId,
-                            )?.jdPdfUrl
-                          }
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex items-center gap-1.5 text-xs text-[#1a3a8f] hover:underline mb-2"
-                        >
-                          <FileText size={12} />
-                          View current PDF
-                        </a>
-                      )}
+  jobs.find((j) => j.companyId?._id === createdCompanyId)?.jdPdfUrl && (
+    <ExtLink
+      href={jobs.find((j) => j.companyId?._id === createdCompanyId)?.jdPdfUrl}
+      className="flex items-center gap-1.5 text-xs text-[#1a3a8f] hover:underline mb-2"
+    >
+      <FileText size={12} />
+      View current PDF
+    </ExtLink>
+  )}
                     <label className="flex items-center gap-3 cursor-pointer">
                       <span className="px-3 py-1.5 rounded-lg bg-[#EFF3FA] text-primary text-xs font-semibold border border-[#B8C6E3] hover:bg-[#E2E8F0] transition-colors flex-shrink-0">
                         Choose PDF

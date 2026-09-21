@@ -4,6 +4,33 @@ import { api } from "../../utils/api";
 import universityStructure from "../../data/universityStructure";
 import ContactCellModal from "../../components/student/ContactCellModal";
 
+// ─── Role group helpers (student ke course/branch se matched roles) ───
+const branchMatches = (eligibleBranches, student) =>
+  !eligibleBranches?.length ||
+  eligibleBranches.includes("All") ||
+  eligibleBranches.includes(student?.course) ||
+  eligibleBranches.includes(student?.branch);
+
+const getRoleGroups = (job) => {
+  if (job?.roleGroups?.length) return job.roleGroups;
+  if (job?.role) {
+    return [
+      {
+        _id: "legacy",
+        role: job.role,
+        ctc: job.ctc,
+        eligibleBranches: job.eligibleBranches ?? [],
+        skills: job.skills ?? [],
+        selectionProcess: job.selectionProcess ?? [],
+      },
+    ];
+  }
+  return [];
+};
+
+const getMatchedRoleGroups = (job, student) =>
+  getRoleGroups(job).filter((rg) => branchMatches(rg.eligibleBranches, student));
+
 // ─── Design Tokens ───────────────────────────────────────────
 const C = {
   primary: "#1a3a8f",
@@ -143,9 +170,27 @@ function CompanyCard({ job, index }) {
   const navigate = useNavigate();
   const color = companyColorPool[index % companyColorPool.length];
   const name = job.companyId?.name || "Company";
-  const role = job.role || "Open Position";
+
+  // Role + CTC ab job ke top-level pe nahi, roleGroups me hote hain.
+  // fetchAll har job ke saath student ke matched role(s) `matchedRoles`
+  // me attach kar deta hai.
+  const matched = job.matchedRoles ?? [];
+  const role =
+    matched
+      .map((r) => r.role)
+      .filter(Boolean)
+      .join(" · ") || "Open Position";
+  const ctcLabel = (() => {
+    const nums = matched
+      .map((r) => Number(r.ctc))
+      .filter((n) => !isNaN(n) && n > 0);
+    if (!nums.length) return "Not disclosed";
+    const min = Math.min(...nums);
+    const max = Math.max(...nums);
+    return min === max ? formatCtc(max) : `₹${min}–${max} LPA`;
+  })();
+
   const location = job.location || "—";
-  const ctcLabel = formatCtc(job.ctc);
   const dateLabel = job.lastDate
     ? new Date(job.lastDate).toLocaleDateString("en-IN", {
         day: "2-digit",
@@ -657,16 +702,14 @@ export default function PlacementDashboard() {
         const allJobs = unwrapList(jobsRes.value, "jobs");
         const studentData = studentRes.value; // direct value, unwrap nahi
 
-        const eligible = allJobs.filter((j) => {
-          if (!j.companyId || !j.companyId._id) return false;
-          if (!j.eligibleBranches || j.eligibleBranches.length === 0)
-            return true;
-          if (j.eligibleBranches.includes("All")) return true;
-          return (
-            j.eligibleBranches.includes(studentData?.course) ||
-            j.eligibleBranches.includes(studentData?.branch)
-          );
-        });
+        // Har job ke saath sirf is student ke matched role(s) attach karo;
+        // jis job me koi role match nahi karta wo list se hat jaata hai.
+        const eligible = allJobs
+          .map((j) => ({
+            ...j,
+            matchedRoles: getMatchedRoleGroups(j, studentData),
+          }))
+          .filter((j) => j.companyId?._id && j.matchedRoles.length > 0);
 
         setJobs(eligible);
       } else {
@@ -693,7 +736,7 @@ export default function PlacementDashboard() {
   }, []);
 
   useEffect(() => {
-    document.title = "Dashboard — PlaceRise"
+    document.title = "Dashboard — PlaceRise";
     fetchAll();
     const interval = setInterval(() => {
       if (!document.hidden) fetchAll();
@@ -736,10 +779,15 @@ export default function PlacementDashboard() {
     .filter(isStillOpen)
     .sort((a, b) => jobSortDate(b) - jobSortDate(a));
 
+  // Trending skills: sirf student ke matched roles ki skills gini jaati hain
+  // (ek job me same skill do roles me ho to bhi ek hi baar count hoti hai).
   const trendingSkills = (() => {
     const counts = {};
     eligibleJobs.forEach((j) => {
-      (j.skills || []).forEach((s) => {
+      const skills = new Set(
+        (j.matchedRoles ?? []).flatMap((r) => r.skills || []),
+      );
+      skills.forEach((s) => {
         counts[s] = (counts[s] || 0) + 1;
       });
     });

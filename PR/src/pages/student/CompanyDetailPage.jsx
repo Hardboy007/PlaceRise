@@ -19,8 +19,54 @@ import {
   X,
   AlertCircle,
   FileText,
+  ExternalLink,
 } from "lucide-react";
 import CompanyLogo from "../../components/common/CompanyLogo";
+
+// ─── Role group helpers (student ke course/branch se matched roles) ───
+const branchMatches = (eligibleBranches, student) =>
+  !eligibleBranches?.length ||
+  eligibleBranches.includes("All") ||
+  eligibleBranches.includes(student?.course) ||
+  eligibleBranches.includes(student?.branch);
+
+const getRoleGroups = (job) => {
+  if (job?.roleGroups?.length) return job.roleGroups;
+  if (job?.role) {
+    return [
+      {
+        _id: "legacy",
+        role: job.role,
+        ctc: job.ctc,
+        eligibleBranches: job.eligibleBranches ?? [],
+        skills: job.skills ?? [],
+        selectionProcess: job.selectionProcess ?? [],
+      },
+    ];
+  }
+  return [];
+};
+
+const getMatchedRoleGroups = (job, student) =>
+  getRoleGroups(job).filter((rg) => branchMatches(rg.eligibleBranches, student));
+
+// Coordinator ka `<input type="time">` "17:00" (24h) bhejta hai -> "5:00 PM".
+// Agar value pehle se kisi aur format me hai to jaisi hai waisi dikha do.
+const formatTime = (t) => {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(String(t ?? "").trim());
+  if (!m) return t || "";
+  const h = Number(m[1]);
+  const suffix = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${m[2]} ${suffix}`;
+};
+
+// Link ke aage https:// na ho to auto laga dega
+const normalizeUrl = (url) => {
+  const u = (url || "").trim();
+  if (!u) return "";
+  return /^https?:\/\//i.test(u) ? u : `https://${u}`;
+};
 
 export default function CompanyDetailPage() {
   const { companyId } = useParams();
@@ -57,15 +103,12 @@ export default function CompanyDetailPage() {
 
         const reasons = [];
 
-        const branchOk =
-          !data.eligibleBranches?.length ||
-          data.eligibleBranches.includes("All") ||
-          data.eligibleBranches.includes(studentData.course) ||
-          data.eligibleBranches.includes(studentData.branch);
-        if (!branchOk) {
-          reasons.push(
-            `Branch not eligible (required: ${data.eligibleBranches.join(", ")})`,
-          );
+        // Branch check ab roleGroups par: kam se kam ek role me student ka
+        // course/branch aana chahiye. (Saare roles ki branches user ko
+        // dikhane ki zaroorat nahi, isliye generic message.)
+        const matchedForStudent = getMatchedRoleGroups(data, studentData);
+        if (matchedForStudent.length === 0) {
+          reasons.push("Your course/branch is not eligible for this drive");
         }
 
         const cgpaOk =
@@ -189,13 +232,58 @@ export default function CompanyDetailPage() {
   deadline.setHours(23, 59, 59, 999);
   const isExpired = deadline < new Date();
 
+  // Coordinator ne bond / registration link daala ho tabhi dikhega
+  const registrationLink = normalizeUrl(company.registrationLink);
+  const bondDetails = (company.bondDetails || "").trim();
+
+  // ── Sirf is student ke matched role(s) ──
+  const matchedRoles = getMatchedRoleGroups(company, studentProfile);
+  const multiRole = matchedRoles.length > 1;
+  const roleTitle = matchedRoles
+    .map((r) => r.role)
+    .filter(Boolean)
+    .join(" / ");
+
+  const ctcNums = matchedRoles
+    .map((r) => Number(r.ctc))
+    .filter((n) => !isNaN(n) && n > 0);
+  const ctcMin = ctcNums.length ? Math.min(...ctcNums) : 0;
+  const ctcMax = ctcNums.length ? Math.max(...ctcNums) : 0;
+  const ctcLabel = !ctcNums.length
+    ? null
+    : ctcMin === ctcMax
+      ? `₹${ctcMax} LPA`
+      : `₹${ctcMin}–${ctcMax} LPA`;
+
+  const eligibleBranchList = [
+    ...new Set(matchedRoles.flatMap((r) => r.eligibleBranches ?? [])),
+  ];
+  const rolesWithSkills = matchedRoles.filter((r) => r.skills?.length > 0);
+  const rolesWithProcess = matchedRoles.filter(
+    (r) => r.selectionProcess?.length > 0,
+  );
+
+  // Baaki pages jaisa: dono dates ko local midnight par normalize karke
+  // whole-day gap. 0 = aaj hi last date, negative = deadline nikal chuki.
   const daysLeft = () => {
-    const today = new Date();
+    const now = new Date();
+    const todayMid = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    );
     const last = new Date(company.lastDate);
-    return Math.ceil((last - today) / (1000 * 60 * 60 * 24));
+    const lastMid = new Date(
+      last.getFullYear(),
+      last.getMonth(),
+      last.getDate(),
+    );
+    return Math.round((lastMid - todayMid) / 86400000);
   };
 
   const days = daysLeft();
+  const deadlineLabel =
+    days < 0 ? "Expired" : days === 0 ? "Today · Last day" : `${days}d left`;
   const deadlineColor =
     days <= 3
       ? "border-t-[#EF4444]"
@@ -258,11 +346,15 @@ export default function CompanyDetailPage() {
               >
                 {companyInfo.name || "Company"}
               </h1>
-              <p className="text-sm text-white/70 mb-3">{company.role}</p>
+              <p className="text-sm text-white/70 mb-3">
+                {roleTitle || "No role open for your course"}
+              </p>
               <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30">
-                  ₹{company.ctc} LPA
-                </span>
+                {ctcLabel && (
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30">
+                    {ctcLabel}
+                  </span>
+                )}
                 <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30">
                   {company.location}
                 </span>
@@ -318,6 +410,38 @@ export default function CompanyDetailPage() {
         </div>
       </div>
 
+      {/* Company Registration Link (sirf tab jab coordinator ne link daala ho) */}
+      {registrationLink && isEligible && !isExpired && (
+        <div className="rounded-2xl border border-[#B8C6E3] bg-[#EFF3FA] p-4 sm:p-5 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-start gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-white border border-[#B8C6E3] flex items-center justify-center flex-shrink-0">
+              <ExternalLink size={16} className="text-[#1a3a8f]" />
+            </div>
+            <div className="min-w-0">
+              <p
+                className="text-sm font-bold text-[#1E293B]"
+                style={{ fontFamily: "Space Grotesk, sans-serif" }}
+              >
+                Register on Company Website
+              </p>
+              <p className="text-xs text-[#64748B] mt-0.5 leading-relaxed">
+                This company wants you to register on its own website as well.
+                Complete that form, then apply here so the placement cell can
+                track your application.
+              </p>
+            </div>
+          </div>
+          <a
+            href={registrationLink}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#1a3a8f] text-white text-sm font-semibold hover:bg-[#0d1b5e] transition-colors flex-shrink-0"
+          >
+            Open Registration Form <ExternalLink size={13} />
+          </a>
+        </div>
+      )}
+
       {/* Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-5">
         {[
@@ -335,7 +459,7 @@ export default function CompanyDetailPage() {
           },
           {
             label: "Deadline",
-            value: days > 0 ? `${days}d left` : "Expired",
+            value: deadlineLabel,
             icon: Calendar,
             color: deadlineColor,
           },
@@ -374,9 +498,12 @@ export default function CompanyDetailPage() {
             { label: "Min CGPA", value: `${company.minCgpa}+` },
             {
               label: "Eligible Branches",
-              value: company.eligibleBranches?.includes("All")
-                ? "All Branches"
-                : company.eligibleBranches?.join(", ") || "—",
+              value:
+                eligibleBranchList.length === 0
+                  ? "—"
+                  : eligibleBranchList.includes("All")
+                    ? "All Branches"
+                    : eligibleBranchList.join(", "),
             },
             {
               label: "Max Backlogs",
@@ -418,27 +545,10 @@ export default function CompanyDetailPage() {
         <p className="text-sm text-[#64748B] leading-relaxed">
           {companyInfo.about || "—"}
         </p>
-        {company.techStack?.length > 0 && (
-          <div className="mt-4">
-            <p className="text-xs font-semibold uppercase tracking-widest text-[#64748B] mb-2">
-              Tech Stack
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {company.techStack.map((t) => (
-                <span
-                  key={t}
-                  className="px-3 py-1 rounded-full text-xs font-medium bg-[#F1F5F9] text-[#1E293B] border border-[#E2E8F0]"
-                >
-                  {t}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Skills Required */}
-      {company.skills?.length > 0 && (
+      {/* Skills Required (sirf matched role ke) */}
+      {rolesWithSkills.length > 0 && (
         <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#F59E0B] p-4 sm:p-5 mb-4 shadow-sm">
           <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#F1F5F9]">
             <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center">
@@ -451,14 +561,25 @@ export default function CompanyDetailPage() {
               Skills Required
             </h3>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {company.skills.map((s) => (
-              <span
-                key={s}
-                className="px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-[#3B82F6] border border-blue-200"
-              >
-                {s}
-              </span>
+          <div className="flex flex-col gap-4">
+            {rolesWithSkills.map((rg, ri) => (
+              <div key={rg._id || ri}>
+                {multiRole && (
+                  <p className="text-xs font-semibold text-[#64748B] mb-2">
+                    {rg.role}
+                  </p>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  {rg.skills.map((s) => (
+                    <span
+                      key={s}
+                      className="px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-[#3B82F6] border border-blue-200"
+                    >
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -484,7 +605,9 @@ export default function CompanyDetailPage() {
             {
               label: "Last Date",
               value: company.lastDate
-                ? new Date(company.lastDate).toLocaleDateString("en-IN")
+                ? `${new Date(company.lastDate).toLocaleDateString("en-IN")}${
+                    company.lastTime ? ` · ${formatTime(company.lastTime)}` : ""
+                  }`
                 : "—",
             },
             { label: "Batch", value: company.batch || "—" },
@@ -535,8 +658,30 @@ export default function CompanyDetailPage() {
         </div>
       )}
 
-      {/* Selection Process */}
-      {company.selectionProcess?.length > 0 && (
+      {/* Bond / Fee (sirf tab jab coordinator ne likha ho) */}
+      {bondDetails && (
+        <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#F59E0B] p-4 sm:p-5 mb-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#F1F5F9]">
+            <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center">
+              <FileText size={14} className="text-[#F59E0B]" />
+            </div>
+            <h3
+              className="text-sm font-bold text-[#1E293B]"
+              style={{ fontFamily: "Space Grotesk, sans-serif" }}
+            >
+              Bond / Fee Details
+            </h3>
+          </div>
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+            <p className="text-sm text-[#1E293B] leading-relaxed whitespace-pre-line break-words">
+              {bondDetails}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Selection Process (sirf matched role ka) */}
+      {rolesWithProcess.length > 0 && (
         <div className="bg-white rounded-2xl border border-[#E2E8F0] border-l-4 border-l-[#3B82F6] p-4 sm:p-5 mb-4 shadow-sm">
           <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#F1F5F9]">
             <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
@@ -549,33 +694,47 @@ export default function CompanyDetailPage() {
               Selection Process
             </h3>
           </div>
-          <div className="flex flex-col">
-            {company.selectionProcess.map((step, index) => (
-              <div key={index} className="flex items-start gap-3 relative">
-                {index < company.selectionProcess.length - 1 && (
-                  <div className="absolute left-[15px] top-8 w-0.5 h-full bg-[#E2E8F0] z-0" />
-                )}
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 z-10 mt-1 bg-blue-100 text-[#3B82F6]">
-                  {index + 1}
-                </div>
-                <div className="pb-5 flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-[#1E293B]">
-                    {step.title || step}
-                  </p>
-                  {step.description && (
-                    <p className="text-xs text-[#64748B] leading-relaxed mt-0.5">
-                      {step.description}
-                    </p>
-                  )}
-                  {step.type && (
-                    <span className="inline-block mt-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-[#3B82F6] border border-blue-200">
-                      {step.type}
-                    </span>
-                  )}
-                </div>
+          {rolesWithProcess.map((rg, ri) => (
+            <div
+              key={rg._id || ri}
+              className={
+                ri > 0 ? "mt-4 pt-4 border-t border-[#F1F5F9]" : undefined
+              }
+            >
+              {multiRole && (
+                <p className="text-xs font-semibold text-[#64748B] mb-3">
+                  {rg.role}
+                </p>
+              )}
+              <div className="flex flex-col">
+                {rg.selectionProcess.map((step, index) => (
+                  <div key={index} className="flex items-start gap-3 relative">
+                    {index < rg.selectionProcess.length - 1 && (
+                      <div className="absolute left-[15px] top-8 w-0.5 h-full bg-[#E2E8F0] z-0" />
+                    )}
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 z-10 mt-1 bg-blue-100 text-[#3B82F6]">
+                      {index + 1}
+                    </div>
+                    <div className="pb-5 flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-[#1E293B]">
+                        {step.title || step}
+                      </p>
+                      {step.description && (
+                        <p className="text-xs text-[#64748B] leading-relaxed mt-0.5">
+                          {step.description}
+                        </p>
+                      )}
+                      {step.type && (
+                        <span className="inline-block mt-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-[#3B82F6] border border-blue-200">
+                          {step.type}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       )}
 
@@ -587,7 +746,8 @@ export default function CompanyDetailPage() {
         />
         <p className="text-xs text-amber-700 leading-relaxed">
           <span className="font-semibold">Important: </span>
-          If this employer asks you to pay any kind of fee, please notify us
+          Bond or fee details, if any, are listed above by the placement cell.
+          If this employer asks you to pay any other fee, please notify us
           immediately.
         </p>
       </div>
@@ -648,13 +808,27 @@ export default function CompanyDetailPage() {
             {/* Job Info */}
             <div className="bg-[#F8FAFC] rounded-xl p-4 border border-[#E2E8F0] mb-4">
               <p className="text-xs text-[#64748B] mb-1">Applying for</p>
-              <p className="text-sm font-bold text-[#1E293B]">
-                {company?.role}
-              </p>
+              <p className="text-sm font-bold text-[#1E293B]">{roleTitle}</p>
               <p className="text-xs text-[#64748B] mt-0.5">
-                {company?.companyId?.name} · ₹{company?.ctc} LPA
+                {company?.companyId?.name}
+                {ctcLabel ? ` · ${ctcLabel}` : ""}
               </p>
             </div>
+
+            {/* Bond / Fee reminder (sirf tab jab bond likha ho) */}
+            {bondDetails && (
+              <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 mb-4">
+                <AlertTriangle
+                  size={14}
+                  className="text-amber-500 flex-shrink-0 mt-0.5"
+                />
+                <p className="text-xs text-amber-700 leading-relaxed">
+                  <span className="font-semibold">Bond / Fee: </span>
+                  This role has a bond or fee condition. Please read the
+                  details on this page before applying.
+                </p>
+              </div>
+            )}
 
             {/* Resume Section */}
             {studentProfile?.resume ? (

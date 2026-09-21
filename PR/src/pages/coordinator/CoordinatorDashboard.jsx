@@ -71,10 +71,18 @@ export default function CoordinatorDashboard() {
           api.get("/companies/jobs"),
         ]);
         setCoordinator(coordData);
-        setStudents(
-          Array.isArray(studentData?.students) ? studentData.students : [],
-        );
-        setTotalCount(studentData?.totalCount || 0);
+
+        // Works with both response shapes:
+        //   new: { students: [...], totalCount: 123 }
+        //   old: [...]
+        const studentList = Array.isArray(studentData)
+          ? studentData
+          : Array.isArray(studentData?.students)
+            ? studentData.students
+            : [];
+        setStudents(studentList);
+        setTotalCount(studentData?.totalCount ?? studentList.length);
+
         setJobs(Array.isArray(jobsData) ? jobsData : []);
       } catch (error) {
         console.error("Failed to load dashboard data:", error);
@@ -206,17 +214,31 @@ export default function CoordinatorDashboard() {
               Placement Season 2025-26 Active
             </span>
           </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-white/70 mb-1">
-              {getGreeting(now)}
-            </p>
-            <h1
-              className="text-xl sm:text-2xl font-bold text-white mb-1"
-              style={{ fontFamily: "Space Grotesk, sans-serif" }}
+
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/70 mb-1">
+                {getGreeting(now)}
+              </p>
+              <h1
+                className="text-xl sm:text-2xl font-bold text-white mb-1"
+                style={{ fontFamily: "Space Grotesk, sans-serif" }}
+              >
+                {toDisplayName(coordinator.name) || "Coordinator"}
+              </h1>
+              <p className="text-sm text-white/60">{formatDate(today)}</p>
+            </div>
+
+            <button
+              onClick={() =>
+                navigate("/coordinator/jobs/all", {
+                  state: { openAddCompany: true },
+                })
+              }
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[#1a3a8f] text-sm font-bold shadow-lg hover:bg-[#F1F5F9] transition-colors w-full sm:w-auto"
             >
-              {toDisplayName(coordinator.name) || "Coordinator"}
-            </h1>
-            <p className="text-sm text-white/60">{formatDate(today)}</p>
+              <Plus size={15} /> Add Company
+            </button>
           </div>
         </div>
         {/* FIXED: was a fixed 260x130 px box that overlapped the greeting
@@ -464,12 +486,6 @@ export default function CoordinatorDashboard() {
         <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3">
           {[
             {
-              label: "Add Company",
-              icon: Plus,
-              color: "bg-[#1E293B] text-white hover:bg-primary",
-              route: "/coordinator/jobs/all",
-            },
-            {
               label: "Post Announcement",
               icon: Megaphone,
               color:
@@ -493,7 +509,12 @@ export default function CoordinatorDashboard() {
           ].map((action) => (
             <button
               key={action.label}
-              onClick={() => navigate(action.route)}
+              onClick={() =>
+                navigate(
+                  action.route,
+                  action.state ? { state: action.state } : undefined,
+                )
+              }
               className={`flex items-center justify-center sm:justify-start gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all hover:-translate-y-0.5 hover:shadow-md ${action.color}`}
             >
               <action.icon size={15} />

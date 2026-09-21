@@ -15,6 +15,32 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../../utils/api";
 import CompanyLogo from "../../components/common/CompanyLogo";
 
+const branchMatches = (eligibleBranches, student) =>
+  !eligibleBranches?.length ||
+  eligibleBranches.includes("All") ||
+  eligibleBranches.includes(student?.course) ||
+  eligibleBranches.includes(student?.branch);
+
+const getRoleGroups = (job) => {
+  if (job?.roleGroups?.length) return job.roleGroups;
+  if (job?.role) {
+    return [
+      {
+        _id: "legacy",
+        role: job.role,
+        ctc: job.ctc,
+        eligibleBranches: job.eligibleBranches ?? [],
+        skills: job.skills ?? [],
+        selectionProcess: job.selectionProcess ?? [],
+      },
+    ];
+  }
+  return [];
+};
+
+const getMatchedRoleGroups = (job, student) =>
+  getRoleGroups(job).filter((rg) => branchMatches(rg.eligibleBranches, student));
+
 // All courses from universityStructure — these match DB eligibleBranches values
 const ALL_COURSES = universityStructure.flatMap((school) =>
   school.departments.flatMap((dept) =>
@@ -298,7 +324,9 @@ function BranchChips({ branches }) {
   );
 }
 
-function CompanyCard({ company, onViewDetails, isSaved, onToggleSave }) {
+// `company` = poora job document, `roles` = is student ke liye matched
+// role group(s) (kabhi khaali nahi hoga, parent filter kar deta hai).
+function CompanyCard({ company, roles, onViewDetails, isSaved, onToggleSave }) {
   // Days-left counting starts from TOMORROW, not today. Both dates are
   // normalized to local midnight first so the comparison is a clean
   // whole-day difference, independent of what time it currently is.
@@ -323,6 +351,9 @@ function CompanyCard({ company, onViewDetails, isSaved, onToggleSave }) {
         ? "text-[#F59E0B] bg-amber-50 border-amber-200"
         : "text-[#22C55E] bg-green-50 border-green-200";
 
+  // Matched role(s) ke branches (usually ek hi role hota hai)
+  const branches = [...new Set(roles.flatMap((r) => r.eligibleBranches ?? []))];
+
   return (
     <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 sm:p-5 flex flex-col hover:shadow-xl hover:shadow-blue-100 hover:-translate-y-1.5 hover:border-blue-200 transition-all duration-300 group">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
@@ -339,7 +370,9 @@ function CompanyCard({ company, onViewDetails, isSaved, onToggleSave }) {
             >
               {company.companyId?.name || "Unknown Company"}
             </h3>
-            <p className="text-xs text-[#64748B] break-words">{company.role}</p>
+            <p className="text-xs text-[#64748B] break-words">
+              {roles.map((r) => r.role).join(" · ")}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0 sm:ml-2">
@@ -377,17 +410,33 @@ function CompanyCard({ company, onViewDetails, isSaved, onToggleSave }) {
       <div className="h-px bg-[#F1F5F9] mb-3" />
 
       <div className="flex flex-col gap-2.5 flex-1">
-        <div className="flex items-center gap-2 bg-green-50 border border-green-100 rounded-lg px-2.5 py-1.5 w-fit">
-          <TrendingUp size={13} className="text-[#22C55E] shrink-0" />
-          <span className="text-sm font-bold text-[#15803D]">
-            ₹{company.ctc} LPA
-          </span>
-        </div>
+        {roles.length === 1 ? (
+          <div className="flex items-center gap-2 bg-green-50 border border-green-100 rounded-lg px-2.5 py-1.5 w-fit">
+            <TrendingUp size={13} className="text-[#22C55E] shrink-0" />
+            <span className="text-sm font-bold text-[#15803D]">
+              ₹{roles[0].ctc} LPA
+            </span>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-1.5">
+            {roles.map((r, i) => (
+              <div
+                key={r._id || i}
+                className="flex items-center gap-2 bg-green-50 border border-green-100 rounded-lg px-2.5 py-1.5 w-fit max-w-full"
+              >
+                <TrendingUp size={13} className="text-[#22C55E] shrink-0" />
+                <span className="text-xs font-bold text-[#15803D] break-words">
+                  {r.role}: ₹{r.ctc} LPA
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
         <div className="flex items-start gap-2">
           <Briefcase size={13} className="text-[#3B82F6] shrink-0 mt-0.5" />
           <div className="flex flex-col gap-1">
             <span className="text-xs text-[#64748B]">Branches:</span>
-            <BranchChips branches={company.eligibleBranches} />
+            <BranchChips branches={branches} />
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -425,25 +474,32 @@ export default function CompanyListPage() {
   const [branch, setBranch] = useState("All");
   const [role, setRole] = useState("All");
   const [companies, setCompanies] = useState([]);
+  const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [savedJobIds, setSavedJobIds] = useState(new Set());
   const [activeTab, setActiveTab] = useState("all"); // "all" | "saved"
 
   useEffect(() => {
-    document.title = "Companies List — PlaceRise"
+    document.title = "Companies List — PlaceRise";
     const fetchData = async () => {
-      const [jobsData, savedData] = await Promise.all([
-        api.get("/companies/jobs"),
-        api.get("/students/saved-jobs"),
-      ]);
-      const valid = (Array.isArray(jobsData) ? jobsData : []).filter(
-        (j) => j.companyId && j.companyId._id && j.companyId.name,
-      );
-      setCompanies(valid);
-      const savedIds = (Array.isArray(savedData) ? savedData : []).map(
-        (j) => j._id,
-      );
-      setSavedJobIds(new Set(savedIds));
+      try {
+        const [jobsData, savedData, studentData] = await Promise.all([
+          api.get("/companies/jobs"),
+          api.get("/students/saved-jobs"),
+          api.get("/students/me"),
+        ]);
+        const valid = (Array.isArray(jobsData) ? jobsData : []).filter(
+          (j) => j.companyId && j.companyId._id && j.companyId.name,
+        );
+        setCompanies(valid);
+        const savedIds = (Array.isArray(savedData) ? savedData : []).map(
+          (j) => j._id,
+        );
+        setSavedJobIds(new Set(savedIds));
+        setStudent(studentData);
+      } catch (err) {
+        console.error("Could not load companies:", err);
+      }
       setLoading(false);
     };
     fetchData();
@@ -465,32 +521,63 @@ export default function CompanyListPage() {
     }
   };
 
+  // Kis "nazar" se roles match karne hain:
+  //  - Branch filter "All" hai  -> student ka apna course/branch
+  //  - Koi branch select ki hai -> wo branch (us branch ke liye kaun se roles open hain)
+  const viewer = useMemo(
+    () => (branch === "All" ? student : { course: branch, branch }),
+    [branch, student],
+  );
+
+  // Har job ke saath uske matched role(s). Jis job me koi role match nahi
+  // karta wo list me aata hi nahi (poori roleGroups list kabhi nahi dikhti).
+  const entries = useMemo(
+    () =>
+      companies
+        .map((job) => ({ job, roles: getMatchedRoleGroups(job, viewer) }))
+        .filter((e) => e.roles.length > 0),
+    [companies, viewer],
+  );
+
+  const hiddenCount = companies.length - entries.length;
+
   const allRoles = useMemo(() => {
-    return ["All", ...new Set(companies.map((c) => c.role).filter(Boolean))];
-  }, [companies]);
+    return [
+      "All",
+      ...new Set(
+        entries.flatMap((e) => e.roles.map((r) => r.role)).filter(Boolean),
+      ),
+    ];
+  }, [entries]);
 
-  const filteredCompanies = useMemo(() => {
-    return companies.filter((c) => {
-      if (activeTab === "saved" && !savedJobIds.has(c._id)) return false;
-      const companyName = c.companyId?.name || "";
-      const matchesSearch =
-        companyName.toLowerCase().includes(search.toLowerCase()) ||
-        (c.role || "").toLowerCase().includes(search.toLowerCase());
-      const matchesRole = role === "All" || c.role === role;
-      const matchesBranch =
-        branch === "All" ||
-        c.eligibleBranches?.includes("All") ||
-        c.eligibleBranches?.includes(branch);
-      return matchesSearch && matchesRole && matchesBranch;
-    });
-  }, [search, role, branch, companies, activeTab, savedJobIds]);
+  const filteredEntries = useMemo(() => {
+    const q = search.toLowerCase();
+    return entries
+      .filter(({ job, roles }) => {
+        if (activeTab === "saved" && !savedJobIds.has(job._id)) return false;
+        const companyName = job.companyId?.name || "";
+        const matchesSearch =
+          companyName.toLowerCase().includes(q) ||
+          roles.some((r) => (r.role || "").toLowerCase().includes(q));
+        const matchesRole = role === "All" || roles.some((r) => r.role === role);
+        return matchesSearch && matchesRole;
+      })
+      .map((e) =>
+        role === "All"
+          ? e
+          : { ...e, roles: e.roles.filter((r) => r.role === role) },
+      );
+  }, [search, role, entries, activeTab, savedJobIds]);
 
-  const highestCTC = filteredCompanies.length
-    ? Math.max(...filteredCompanies.map((c) => c.ctc || 0))
-    : 0;
+  const openRoles = filteredEntries.reduce((n, e) => n + e.roles.length, 0);
+
+  const highestCTC = Math.max(
+    0,
+    ...filteredEntries.flatMap((e) => e.roles.map((r) => Number(r.ctc) || 0)),
+  );
 
   const uniqueCompanies = new Set(
-    filteredCompanies.map((c) => c.companyId?.name),
+    filteredEntries.map((e) => e.job.companyId?.name),
   ).size;
 
   if (loading)
@@ -553,7 +640,7 @@ export default function CompanyListPage() {
           <div className="grid grid-cols-3 gap-2 sm:gap-4">
             {[
               { label: "Active Companies", value: uniqueCompanies },
-              { label: "Open Roles", value: filteredCompanies.length },
+              { label: "Open Roles", value: openRoles },
               { label: "Highest CTC", value: `₹${highestCTC} LPA` },
             ].map((stat) => (
               <div
@@ -652,14 +739,27 @@ export default function CompanyListPage() {
             />
           </div>
 
-          <BranchSearchDropdown value={branch} onChange={setBranch} />
+          <BranchSearchDropdown
+            value={branch}
+            onChange={(b) => {
+              setBranch(b);
+              setRole("All"); // branch badalne par purana role filter invalid ho sakta hai
+            }}
+          />
 
           <RoleDropdown value={role} onChange={setRole} options={allRoles} />
         </div>
       </div>
 
+      {branch === "All" && hiddenCount > 0 && (
+        <p className="text-xs text-[#94A3B8] mb-3">
+          {hiddenCount} {hiddenCount === 1 ? "job" : "jobs"} not shown — none of
+          their roles are open to your course.
+        </p>
+      )}
+
       {/* Cards */}
-      {filteredCompanies.length === 0 ? (
+      {filteredEntries.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mb-4">
             <Building2 size={28} className="text-[#3B82F6]" />
@@ -673,12 +773,13 @@ export default function CompanyListPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredCompanies.map((company) => (
+          {filteredEntries.map(({ job, roles }) => (
             <CompanyCard
-              key={company._id}
-              company={company}
-              isSaved={savedJobIds.has(company._id)}
-              onToggleSave={(e) => toggleSave(company._id, e)}
+              key={job._id}
+              company={job}
+              roles={roles}
+              isSaved={savedJobIds.has(job._id)}
+              onToggleSave={(e) => toggleSave(job._id, e)}
               onViewDetails={(id) => navigate(`/student/companies/${id}`)}
             />
           ))}
