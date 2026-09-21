@@ -44,6 +44,7 @@ router.put(
   },
 );
 const { cloudinary } = require("../config/cloudinary");
+const upload = require("../middleware/upload");
 
 router.post("/", protect, coordinatorOnly, createCoordinator);
 router.get("/me", protect, coordinatorOnly, getMyProfile);
