@@ -232,7 +232,7 @@ export default function CompanyDetailPage() {
         className="relative rounded-3xl overflow-hidden mb-5 border border-white/10"
         style={{
           background:
-            "linear-gradient(135deg, #3B82F6 0%, #60A5FA 60%, #818CF8 100%)",
+          "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
         }}
       >
         <div
@@ -283,7 +283,7 @@ export default function CompanyDetailPage() {
           ? "bg-white/20 text-white border border-white/30 cursor-not-allowed"
           : !isEligible
             ? "bg-white/20 text-white border border-white/30 cursor-not-allowed"
-            : "bg-white text-[#3B82F6] hover:bg-white/90 shadow-md"
+            : "bg-white text-[#1a3a8f] hover:bg-white/90 shadow-md"
     }`}
           >
             {applied ? (
@@ -604,7 +604,7 @@ export default function CompanyDetailPage() {
                 ? "bg-[#F1F5F9] text-[#94A3B8] border border-[#E2E8F0] cursor-not-allowed"
                 : !isEligible
                   ? "bg-[#F1F5F9] text-[#94A3B8] border border-[#E2E8F0] cursor-not-allowed"
-                  : "bg-[#3B82F6] text-white hover:bg-[#2563EB] shadow-md"
+                  :"bg-[#1a3a8f] text-white hover:bg-[#152d73] shadow-md"
           }`}
       >
         {applied ? (
