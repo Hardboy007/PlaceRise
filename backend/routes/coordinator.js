@@ -11,7 +11,7 @@ const {
   getContactInfo,
 } = require("../controllers/coordinatorController");
 const Coordinator = require("../models/Coordinator");
-const { uploadPDF } = require("../config/cloudinary");
+const { uploadPDF, cloudinary } = require("../config/cloudinary");
 const upload = require("../middleware/upload");
 
 router.put(
@@ -44,8 +44,6 @@ router.put(
     }
   },
 );
-const { cloudinary } = require("../config/cloudinary");
-const upload = require("../middleware/upload");
 
 router.post("/", protect, coordinatorOnly, createCoordinator);
 router.get("/me", protect, coordinatorOnly, getMyProfile);
@@ -57,7 +55,7 @@ router.put(
   updateNotificationPreferences,
 );
 router.get("/me/activity", protect, coordinatorOnly, getRecentActivity);
-router.get('/contact', protect, getContactInfo)
+router.get("/contact", protect, getContactInfo);
 router.post("/me/profile-photo", protect, coordinatorOnly, upload.single("file"), uploadProfilePhoto);
 
 module.exports = router;
