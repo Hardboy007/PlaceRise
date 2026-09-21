@@ -1,3 +1,4 @@
+const xlsx = require("xlsx");
 const Student = require("../models/Student");
 const Application = require("../models/Application");
 const csv = require("csv-parser");
@@ -948,6 +949,35 @@ const getSavedJobs = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+const bulkCgpaUpdate = async (req, res) => {
+  try {
+    const { updates } = req.body;
+    if (!updates || !Array.isArray(updates) || updates.length === 0) {
+      return res.status(400).json({ message: "No updates provided" });
+    }
+
+    let updated = 0;
+    let notFound = 0;
+
+    for (const { studentId, cgpa } of updates) {
+      if (!studentId || isNaN(cgpa)) continue;
+
+      const student = await Student.findByIdAndUpdate(
+        studentId,
+        { cgpa: Number(cgpa) },
+        { new: true }
+      );
+
+      if (student) updated++;
+      else notFound++;
+    }
+
+    res.json({ updated, notFound });
+  } catch (err) {
+    console.error("bulkCgpaUpdate error:", err);
+    res.status(500).json({ message: "Bulk CGPA update failed" });
+  }
+};
 
 module.exports = {
   getAllStudents,
@@ -966,4 +996,5 @@ module.exports = {
   saveJob,
   unsaveJob,
   getSavedJobs,
+  bulkCgpaUpdate,
 };

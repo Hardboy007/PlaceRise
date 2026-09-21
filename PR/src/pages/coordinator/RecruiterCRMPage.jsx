@@ -6,8 +6,6 @@ import {
   Building2,
   Phone,
   Mail,
-  Filter,
-  MoreVertical,
   Edit3,
   Trash2,
   X,
@@ -19,6 +17,7 @@ import {
   Download,
 } from "lucide-react";
 import CompanyLogo from "../../components/common/CompanyLogo";
+import { api } from "../../utils/api";
 
 const STATUS_CONFIG = {
   Visited: {
@@ -52,59 +51,6 @@ const STATUS_OPTIONS = [
   "Visited",
   "In Talk",
   "Confirmation Required",
-];
-
-const INITIAL_DATA = [
-  {
-    id: 1,
-    companyName: "Google",
-    pocName: "Priya Sharma",
-    managedBy: "Anaya Singh",
-    status: "Visited",
-    email: "priya.sharma@google.com",
-    phone: "+91 98765 43210",
-    notes: "Very interested in CSE batch 2026.",
-  },
-  {
-    id: 2,
-    companyName: "Microsoft",
-    pocName: "Karan Mehta",
-    managedBy: "Arjun Verma",
-    status: "In Talk",
-    email: "karan.mehta@microsoft.com",
-    phone: "+91 91234 56789",
-    notes: "Discussing package structure.",
-  },
-  {
-    id: 3,
-    companyName: "Amazon",
-    pocName: "Sneha Rao",
-    managedBy: "Meera Iyer",
-    status: "Confirmation Required",
-    email: "sneha.rao@amazon.com",
-    phone: "+91 99887 76655",
-    notes: "MOU signing pending.",
-  },
-  {
-    id: 4,
-    companyName: "Infosys",
-    pocName: "Rohan Gupta",
-    managedBy: "Dev Patel",
-    status: "Visited",
-    email: "rohan.gupta@infosys.com",
-    phone: "+91 88776 55443",
-    notes: "Drive scheduled for August.",
-  },
-  {
-    id: 5,
-    companyName: "TCS",
-    pocName: "Isha Nair",
-    managedBy: "Nisha Pillai",
-    status: "Not Contacted",
-    email: "isha.nair@tcs.com",
-    phone: "+91 77665 44332",
-    notes: "",
-  },
 ];
 
 const EMPTY_FORM = {
@@ -321,7 +267,10 @@ function POCModal({ poc, onClose, onSave }) {
 }
 
 export default function RecruiterCRMPage() {
-  const [pocs, setPocs] = useState(INITIAL_DATA);
+  const [pocs, setPocs] = useState([]);
+  const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [showModal, setShowModal] = useState(false);
@@ -331,12 +280,42 @@ export default function RecruiterCRMPage() {
   const [showEmailFor, setShowEmailFor] = useState(null);
   const [showPhoneFor, setShowPhoneFor] = useState(null);
 
+  const loadCompanies = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const companyList = await api.get("/companies");
+      const flattened = (companyList || []).flatMap((company) =>
+        (company.recruiterContacts || []).map((contact, index) => ({
+          ...contact,
+          id: contact._id || `${company._id}-${index}`,
+          contactId: contact._id || `${company._id}-${index}`,
+          companyId: company._id,
+          companyName: contact.companyName || company.name || "",
+          website: company.website || "",
+        })),
+      );
+
+      setCompanies(companyList || []);
+      setPocs(flattened);
+    } catch (err) {
+      setError(err.message || "Unable to load recruiter records.");
+      setPocs([]);
+      setCompanies([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filtered = useMemo(() => {
     return pocs.filter((p) => {
+      const companyName = (p.companyName || "").toLowerCase();
+      const pocName = (p.pocName || "").toLowerCase();
+      const managedBy = (p.managedBy || "").toLowerCase();
       const matchSearch =
-        p.companyName.toLowerCase().includes(search.toLowerCase()) ||
-        p.pocName.toLowerCase().includes(search.toLowerCase()) ||
-        p.managedBy.toLowerCase().includes(search.toLowerCase());
+        companyName.includes(search.toLowerCase()) ||
+        pocName.includes(search.toLowerCase()) ||
+        managedBy.includes(search.toLowerCase());
       const matchStatus = statusFilter === "All" || p.status === statusFilter;
       return matchSearch && matchStatus;
     });
@@ -353,21 +332,131 @@ export default function RecruiterCRMPage() {
     [pocs],
   );
 
-  const handleSave = (form) => {
-    if (editingPoc) {
-      setPocs((prev) =>
-        prev.map((p) => (p.id === editingPoc.id ? { ...p, ...form } : p)),
-      );
-    } else {
-      setPocs((prev) => [...prev, { ...form, id: Date.now() }]);
-    }
-    setShowModal(false);
-    setEditingPoc(null);
+  const refreshAfterMutation = async () => {
+    await loadCompanies();
   };
 
-  const handleDelete = (id) => {
-    setPocs((prev) => prev.filter((p) => p.id !== id));
-    setDeleteConfirm(null);
+  const handleSave = async (form) => {
+    try {
+      const normalizedForm = {
+        ...form,
+        companyName: form.companyName.trim(),
+        pocName: form.pocName.trim(),
+        managedBy: form.managedBy.trim(),
+        status: STATUS_OPTIONS.includes(form.status)
+          ? form.status
+          : "Not Contacted",
+      };
+
+      const companyName = normalizedForm.companyName;
+      const updatedCompanyList = [...companies];
+      let workingCompany = null;
+
+      if (editingPoc?.companyId) {
+        workingCompany = updatedCompanyList.find(
+          (company) => company._id === editingPoc.companyId,
+        );
+      }
+
+      if (!workingCompany) {
+        workingCompany = updatedCompanyList.find(
+          (company) =>
+            company.name &&
+            company.name.toLowerCase() === companyName.toLowerCase(),
+        );
+      }
+
+      if (editingPoc) {
+        if (workingCompany) {
+          const updatedContacts = (workingCompany.recruiterContacts || []).map(
+            (contact) =>
+              contact._id === editingPoc.contactId
+                ? {
+                    ...contact,
+                    ...normalizedForm,
+                    companyName,
+                  }
+                : contact,
+          );
+
+          await api.put(`/company/${workingCompany._id}`, {
+            ...workingCompany,
+            name: companyName || workingCompany.name,
+            recruiterContacts: updatedContacts,
+          });
+        } else {
+          const companyPayload = {
+            name: companyName,
+            website: "",
+            recruiterContacts: [
+              {
+                ...normalizedForm,
+                companyName,
+              },
+            ],
+          };
+          await api.post("/company", companyPayload);
+        }
+      } else {
+        if (workingCompany) {
+          const updatedContacts = [
+            ...(workingCompany.recruiterContacts || []),
+            { ...normalizedForm, companyName },
+          ];
+
+          await api.put(`/company/${workingCompany._id}`, {
+            ...workingCompany,
+            name: workingCompany.name || companyName,
+            recruiterContacts: updatedContacts,
+          });
+        } else {
+          await api.post("/company", {
+            name: companyName,
+            website: "",
+            recruiterContacts: [{ ...normalizedForm, companyName }],
+          });
+        }
+      }
+
+      await refreshAfterMutation();
+      setShowModal(false);
+      setEditingPoc(null);
+    } catch (err) {
+      setError(err.message || "Unable to save recruiter contact.");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      const record = pocs.find((p) => p.id === id);
+      if (!record || !record.companyId) {
+        setPocs((prev) => prev.filter((p) => p.id !== id));
+        setDeleteConfirm(null);
+        return;
+      }
+
+      const company = companies.find((item) => item._id === record.companyId);
+      if (!company) {
+        setPocs((prev) => prev.filter((p) => p.id !== id));
+        setDeleteConfirm(null);
+        return;
+      }
+
+      const nextContacts = (company.recruiterContacts || []).filter(
+        (contact) =>
+          contact._id !== record.contactId && contact._id !== record.id,
+      );
+
+      await api.put(`/company/${company._id}`, {
+        ...company,
+        recruiterContacts: nextContacts,
+      });
+
+      await refreshAfterMutation();
+      setDeleteConfirm(null);
+    } catch (err) {
+      setError(err.message || "Unable to delete recruiter contact.");
+    }
   };
 
   const exportToExcel = (data, filename) => {
@@ -410,7 +499,9 @@ export default function RecruiterCRMPage() {
 
   useEffect(() => {
     document.title = "Recruiter CRM — PlaceRise";
+    loadCompanies();
   }, []);
+
   return (
     <div
       className="max-w-7xl mx-auto"
@@ -534,6 +625,12 @@ export default function RecruiterCRMPage() {
         </div>
       </div>
 
+      {error && (
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
       {/* Filters */}
       <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 mb-5 shadow-sm flex flex-col md:flex-row gap-3">
         <div className="relative flex-1">
@@ -594,7 +691,14 @@ export default function RecruiterCRMPage() {
         </div>
 
         {/* Rows */}
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="hidden sm:flex flex-col items-center py-16 gap-3">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#CBD5E1] border-t-[#1a3a8f]" />
+            <p className="text-sm text-text-muted">
+              Loading recruiter contacts...
+            </p>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="hidden sm:flex flex-col items-center py-16 gap-3">
             <Building2 size={36} className="text-[#CBD5E1]" />
             <p className="text-sm text-text-muted">No POCs found</p>
@@ -741,7 +845,14 @@ export default function RecruiterCRMPage() {
         )}
         {/* ── Mobile Card List (only below sm breakpoint) ── */}
         <div className="sm:hidden divide-y divide-background">
-          {filtered.length === 0 ? (
+          {loading ? (
+            <div className="flex flex-col items-center py-16 gap-3">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#CBD5E1] border-t-[#1a3a8f]" />
+              <p className="text-sm text-text-muted">
+                Loading recruiter contacts...
+              </p>
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center py-16 gap-3">
               <Building2 size={36} className="text-[#CBD5E1]" />
               <p className="text-sm text-text-muted">No POCs found</p>
