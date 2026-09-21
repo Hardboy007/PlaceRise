@@ -643,6 +643,44 @@ function StatCard({ icon, label, value, bg, border }) {
   );
 }
 
+function ImportingLabel({ estimatedTime, importStart }) {
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - importStart) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [importStart]);
+
+  const remaining = Math.max(0, estimatedTime - elapsed);
+
+  return (
+    <span className="flex items-center gap-1.5">
+      <svg
+        className="animate-spin w-3.5 h-3.5 shrink-0"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="4"
+        />
+        <path
+          className="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8v8z"
+        />
+      </svg>
+      {remaining > 0 ? `~${remaining}s left` : "Almost done..."}
+    </span>
+  );
+}
+
 // ── Student Detail Modal ──────────────────────────────────────
 function StudentModal({ student, onClose }) {
   if (!student) return null;
@@ -976,12 +1014,14 @@ export default function StudentDatabasePage() {
   const [selectedIn, setSelectedIn] = useState("All");
   const [students, setStudents] = useState([]);
   const [importing, setImporting] = useState(false);
+  const [estimatedTime, setEstimatedTime] = useState(null);
+  const [importStart, setImportStart] = useState(null);
   const [importResult, setImportResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [semester, setSemester] = useState("All");
 
   useEffect(() => {
-    document.title = "Manage Students Database — PlaceRise"
+    document.title = "Manage Students Database — PlaceRise";
     const fetchStudents = async () => {
       const data = await api.get("/students");
       setStudents(Array.isArray(data) ? data : []);
@@ -993,8 +1033,16 @@ export default function StudentDatabasePage() {
   const handleImport = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    const estimatedSeconds = Math.max(
+      15,
+      Math.round((file.size / 1024) * 0.78),
+    );
+    setEstimatedTime(estimatedSeconds);
+    setImportStart(Date.now());
     setImporting(true);
     setImportResult(null);
+
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -1009,13 +1057,14 @@ export default function StudentDatabasePage() {
       );
       const data = await res.json();
       setImportResult(data);
-      // Students refresh karo
       const updated = await api.get("/students");
       setStudents(Array.isArray(updated) ? updated : []);
     } catch (err) {
       setImportResult({ error: "Import failed" });
     }
     setImporting(false);
+    setEstimatedTime(null);
+    setImportStart(null);
   };
 
   const handleExport = () => {
@@ -1144,7 +1193,7 @@ export default function StudentDatabasePage() {
           background:
             "linear-gradient(135deg, #0d1b5e 0%, #1a2d8a 25%, #3d1a6e 55%, #6b1040 80%, #7a0f35 100%)",
         }}
-      > 
+      >
         <svg
           className="absolute bottom-0 right-0 pointer-events-none"
           style={{ width: "260px", height: "130px" }}
@@ -1244,7 +1293,14 @@ export default function StudentDatabasePage() {
         }`}
               >
                 <Upload size={14} />
-                {importing ? "Importing..." : "Import CSV"}
+                {importing ? (
+                  <ImportingLabel
+                    estimatedTime={estimatedTime}
+                    importStart={importStart}
+                  />
+                ) : (
+                  "Import CSV"
+                )}
 
                 <input
                   type="file"
