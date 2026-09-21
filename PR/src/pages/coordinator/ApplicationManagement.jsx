@@ -1732,13 +1732,24 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
     const el = document.elementFromPoint(touch.clientX, touch.clientY);
     const row = el?.closest("[data-appid]");
     if (!row) return;
-    const appId = row.dataset.appid;
-    if (!appId) return;
+    const currentAppId = row.dataset.appid;
+    if (!currentAppId) return;
+
+    // Start aur current ke beech ki saari rows select karo
+    const startIdx = filtered.findIndex(
+      (a) => a._id === touchStartIdRef.current,
+    );
+    const currentIdx = filtered.findIndex((a) => a._id === currentAppId);
+    if (startIdx === -1 || currentIdx === -1) return;
+
+    const from = Math.min(startIdx, currentIdx);
+    const to = Math.max(startIdx, currentIdx);
+
     setSelectedAppIds((prev) => {
       const next = new Set(prev);
-      // Starting row bhi add karo
-      if (touchStartIdRef.current) next.add(touchStartIdRef.current);
-      next.add(appId);
+      for (let i = from; i <= to; i++) {
+        next.add(filtered[i]._id);
+      }
       return next;
     });
   };
