@@ -8,6 +8,8 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  PieChart,
+  Pie,
 } from "recharts";
 import universityStructure from "../../data/universityStructure";
 import {
@@ -169,6 +171,12 @@ const AnalyticsDashboardPage = () => {
   const [error, setError] = useState(null);
   const [exporting, setExporting] = useState(false);
   const [toast, setToast] = useState(null);
+  const [vsConfig, setVsConfig] = useState({
+    metricA: "placed",
+    metricB: "notPlaced",
+    chartType: "bar",
+  });
+  const [vsApplied, setVsApplied] = useState(null);
 
   // Generalized drill-down state — used by Company-wise, CTC Distribution,
   // AND Application Funnel now, so all three share one modal shape:
@@ -188,6 +196,19 @@ const AnalyticsDashboardPage = () => {
 
   const batchOptions = ["2024", "2025", "2026", "2027"];
   const jobTypeOptions = ["Full Time", "Internship"];
+  const VS_METRICS = [
+    { value: "placed", label: "Placed Students" },
+    { value: "notPlaced", label: "Not Placed Students" },
+    { value: "totalStudents", label: "Total Students" },
+    { value: "totalCompanies", label: "Total Companies" },
+    { value: "highestCTC", label: "Highest CTC" },
+    { value: "avgCTC", label: "Avg CTC" },
+  ];
+
+  const CHART_TYPES = [
+    { value: "bar", label: "Bar Chart" },
+    { value: "pie", label: "Pie Chart" },
+  ];
   const schoolOptions = (universityStructure || []).map((item) => item.school);
 
   const fetchAnalytics = async (activeFilters) => {
@@ -211,7 +232,7 @@ const AnalyticsDashboardPage = () => {
   };
 
   useEffect(() => {
-    document.title = "Analytics Dashboard"
+    document.title = "Analytics Dashboard";
     fetchAnalytics(appliedFilters);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -818,6 +839,248 @@ const AnalyticsDashboardPage = () => {
                   </>
                 ) : (
                   <EmptyState message="No funnel data available for this filter combination." />
+                )}
+              </div>
+              {/* School-wise Companies Chart */}
+              <div className="bg-white rounded-xl border border-[#E2E8F0] p-3 sm:p-4 hover:shadow-md transition-shadow md:col-span-2">
+                <h3 className="text-sm font-semibold text-[#1E293B] mb-1">
+                  School-wise Company Reach
+                </h3>
+                <p className="text-xs text-[#94A3B8] mb-3">
+                  Number of unique companies that have selected students from
+                  each school
+                </p>
+                {analytics.schoolWiseCompanies &&
+                analytics.schoolWiseCompanies.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart
+                      data={analytics.schoolWiseCompanies}
+                      margin={{ bottom: 60, left: 5, right: 5 }}
+                    >
+                      <XAxis
+                        dataKey="name"
+                        tick={{ fontSize: 10 }}
+                        interval={0}
+                        angle={-35}
+                        textAnchor="end"
+                        height={80}
+                        tickFormatter={(name) =>
+                          name.length > 18 ? `${name.slice(0, 18)}…` : name
+                        }
+                      />
+                      <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+                      <Tooltip
+                        content={({ active, payload, label }) => {
+                          if (!active || !payload?.length) return null;
+                          const d = analytics.schoolWiseCompanies.find(
+                            (s) => s.name === label,
+                          );
+                          return (
+                            <div className="bg-white rounded-lg shadow-lg border border-[#E2E8F0] px-3 py-2 max-w-xs">
+                              <p className="text-xs font-semibold text-[#1E293B] mb-1">
+                                {label}
+                              </p>
+                              <p className="text-xs text-primary mb-1">
+                                Companies:{" "}
+                                <span className="font-semibold">
+                                  {payload[0].value}
+                                </span>
+                              </p>
+                              {d?.companyList?.length > 0 && (
+                                <p className="text-[10px] text-[#64748B]">
+                                  {d.companyList.join(", ")}
+                                </p>
+                              )}
+                            </div>
+                          );
+                        }}
+                        cursor={{ fill: "#F1F5F9" }}
+                      />
+                      <Bar dataKey="Companies" radius={[8, 8, 0, 0]}>
+                        {analytics.schoolWiseCompanies.map((entry, index) => (
+                          <Cell
+                            key={entry.name}
+                            fill={
+                              COMPANY_PALETTE[index % COMPANY_PALETTE.length]
+                            }
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <EmptyState message="No school-wise data available for this filter combination." />
+                )}
+              </div>
+
+              {/* VS Builder */}
+              <div className="bg-white rounded-xl border border-[#E2E8F0] p-3 sm:p-4 hover:shadow-md transition-shadow md:col-span-2">
+                <h3 className="text-sm font-semibold text-[#1E293B] mb-1">
+                  Custom Comparison
+                </h3>
+                <p className="text-xs text-[#94A3B8] mb-4">
+                  Compare two metrics using your preferred chart format
+                </p>
+
+                {/* Config Row */}
+                <div className="flex flex-wrap items-end gap-3 mb-4">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">
+                      Metric A
+                    </label>
+                    <select
+                      value={vsConfig.metricA}
+                      onChange={(e) =>
+                        setVsConfig({ ...vsConfig, metricA: e.target.value })
+                      }
+                      className="px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm"
+                    >
+                      {VS_METRICS.map((m) => (
+                        <option key={m.value} value={m.value}>
+                          {m.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <span className="text-[#94A3B8] font-bold text-lg mb-2">
+                    VS
+                  </span>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">
+                      Metric B
+                    </label>
+                    <select
+                      value={vsConfig.metricB}
+                      onChange={(e) =>
+                        setVsConfig({ ...vsConfig, metricB: e.target.value })
+                      }
+                      className="px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm"
+                    >
+                      {VS_METRICS.map((m) => (
+                        <option key={m.value} value={m.value}>
+                          {m.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">
+                      Chart Type
+                    </label>
+                    <select
+                      value={vsConfig.chartType}
+                      onChange={(e) =>
+                        setVsConfig({ ...vsConfig, chartType: e.target.value })
+                      }
+                      className="px-3 py-2 border border-[#E2E8F0] rounded-lg text-sm"
+                    >
+                      {CHART_TYPES.map((c) => (
+                        <option key={c.value} value={c.value}>
+                          {c.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <button
+                    onClick={() => setVsApplied({ ...vsConfig })}
+                    className="px-4 py-2 bg-[#1a3a8f] text-white rounded-lg text-sm font-medium hover:bg-[#0d1b5e]"
+                  >
+                    Apply
+                  </button>
+                </div>
+
+                {/* Chart Render */}
+                {vsApplied &&
+                  analytics &&
+                  (() => {
+                    const metricLabel = (key) =>
+                      VS_METRICS.find((m) => m.value === key)?.label || key;
+                    const val = (key) => Number(analytics.summary[key]) || 0;
+
+                    const chartData = [
+                      {
+                        name: metricLabel(vsApplied.metricA),
+                        value: val(vsApplied.metricA),
+                        fill: "#1a3a8f",
+                      },
+                      {
+                        name: metricLabel(vsApplied.metricB),
+                        value: val(vsApplied.metricB),
+                        fill: "#EC4899",
+                      },
+                    ];
+
+                    if (vsApplied.chartType === "bar") {
+                      return (
+                        <ResponsiveContainer width="100%" height={260}>
+                          <BarChart data={chartData} margin={{ bottom: 10 }}>
+                            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                            <YAxis
+                              tick={{ fontSize: 12 }}
+                              allowDecimals={false}
+                            />
+                            <Tooltip
+                              content={({ active, payload, label }) => {
+                                if (!active || !payload?.length) return null;
+                                return (
+                                  <div className="bg-white rounded-lg shadow-lg border border-[#E2E8F0] px-3 py-2">
+                                    <p className="text-xs font-semibold text-[#1E293B]">
+                                      {label}
+                                    </p>
+                                    <p className="text-xs text-primary">
+                                      Value:{" "}
+                                      <span className="font-semibold">
+                                        {payload[0].value}
+                                      </span>
+                                    </p>
+                                  </div>
+                                );
+                              }}
+                              cursor={{ fill: "#F1F5F9" }}
+                            />
+                            <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                              {chartData.map((entry) => (
+                                <Cell key={entry.name} fill={entry.fill} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      );
+                    }
+
+                    // Pie
+                    return (
+                      <ResponsiveContainer width="100%" height={260}>
+                        <PieChart>
+                          <Pie
+                            data={chartData}
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={90}
+                            dataKey="value"
+                            label={({ name, value }) => `${name}: ${value}`}
+                          >
+                            {chartData.map((entry) => (
+                              <Cell key={entry.name} fill={entry.fill} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    );
+                  })()}
+
+                {!vsApplied && (
+                  <div className="flex items-center justify-center h-32 border-2 border-dashed border-[#E2E8F0] rounded-xl">
+                    <p className="text-sm text-[#94A3B8]">
+                      Select your metrics and click Apply to generate the
+                      comparison
+                    </p>
+                  </div>
                 )}
               </div>
             </div>
