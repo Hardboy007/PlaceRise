@@ -1736,6 +1736,8 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
     if (!appId) return;
     setSelectedAppIds((prev) => {
       const next = new Set(prev);
+      // Starting row bhi add karo
+      if (touchStartIdRef.current) next.add(touchStartIdRef.current);
       next.add(appId);
       return next;
     });
