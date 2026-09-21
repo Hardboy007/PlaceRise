@@ -1013,22 +1013,64 @@ export default function StudentDatabasePage() {
   const [selected, setSelected] = useState(null);
   const [selectedIn, setSelectedIn] = useState("All");
   const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
+  const observerRef = useRef(null);
+  const sentinelRef = useRef(null);
   const [importing, setImporting] = useState(false);
   const [estimatedTime, setEstimatedTime] = useState(null);
   const [importStart, setImportStart] = useState(null);
   const [importResult, setImportResult] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [semester, setSemester] = useState("All");
 
   useEffect(() => {
     document.title = "Manage Students Database — PlaceRise";
-    const fetchStudents = async () => {
-      const data = await api.get("/students");
-      setStudents(Array.isArray(data) ? data : []);
+
+    const fetchInitial = async () => {
+      setLoading(true);
+      const data = await api.get("/students?page=1&limit=50");
+      setStudents(Array.isArray(data.students) ? data.students : []);
+      setTotalCount(data.totalCount || 0);
+      setHasMore(data.hasMore || false);
+      setPage(1);
       setLoading(false);
     };
-    fetchStudents();
+
+    fetchInitial();
   }, []);
+
+  useEffect(() => {
+    if (observerRef.current) observerRef.current.disconnect();
+
+    observerRef.current = new IntersectionObserver(
+      async (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
+          setLoadingMore(true);
+          const nextPage = page + 1;
+          const data = await api.get(`/students?page=${nextPage}&limit=50`);
+          setStudents((prev) => [
+            ...prev,
+            ...(Array.isArray(data.students) ? data.students : []),
+          ]);
+          setHasMore(data.hasMore || false);
+          setPage(nextPage);
+          setLoadingMore(false);
+        }
+      },
+      { threshold: 0.1 },
+    );
+
+    if (sentinelRef.current) {
+      observerRef.current.observe(sentinelRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) observerRef.current.disconnect();
+    };
+  }, [hasMore, loadingMore, loading, page]);
 
   const handleImport = async (e) => {
     const file = e.target.files[0];
@@ -1057,8 +1099,11 @@ export default function StudentDatabasePage() {
       );
       const data = await res.json();
       setImportResult(data);
-      const updated = await api.get("/students");
-      setStudents(Array.isArray(updated) ? updated : []);
+      const updated = await api.get("/students?page=1&limit=50");
+      setStudents(Array.isArray(updated.students) ? updated.students : []);
+      setTotalCount(updated.totalCount || 0);
+      setHasMore(updated.hasMore || false);
+      setPage(1);
     } catch (err) {
       setImportResult({ error: "Import failed" });
     }
@@ -1153,7 +1198,7 @@ export default function StudentDatabasePage() {
     selectedIn,
   ]);
 
-  const total = students.length;
+  const total = totalCount;
   const placed = students.filter(
     (s) => getPlacementStatus(s) === "Placed",
   ).length;
@@ -1699,7 +1744,42 @@ export default function StudentDatabasePage() {
           </div>
         </div>
       </div>
+      {/* Infinite scroll sentinel */}
+      <div ref={sentinelRef} className="py-4 flex items-center justify-center">
+        {loadingMore && (
+          <div className="flex items-center gap-2">
+            <svg
+              className="animate-spin w-4 h-4 text-blue-500"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v8z"
+              />
+            </svg>
+            <span style={{ color: C.textMuted }} className="text-sm">
+              Loading more students...
+            </span>
+          </div>
+        )}
+        {!hasMore && students.length > 0 && !loading && (
+          <span style={{ color: C.textMuted }} className="text-xs">
+            All {totalCount} students loaded
+          </span>
+        )}
+      </div>
 
+      <StudentModal student={selected} onClose={() => setSelected(null)} />
       {/* ── Student Detail Modal ── */}
       <StudentModal student={selected} onClose={() => setSelected(null)} />
     </div>

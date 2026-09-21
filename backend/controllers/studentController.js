@@ -43,12 +43,21 @@ const enrichStudentWithPlacementData = async (student) => {
 // GET all students
 const getAllStudents = async (req, res) => {
   try {
-    const students = await Student.find().populate("userId", "erpId email");
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
 
-    // Saare student IDs ek baar mein
+    const [students, totalCount] = await Promise.all([
+      Student.find()
+        .populate("userId", "erpId email")
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Student.countDocuments(),
+    ]);
+
     const studentIds = students.map((s) => s._id);
 
-    // Single query — sab selected applications ek saath
     const allSelectedApps = await Application.find({
       studentId: { $in: studentIds },
       status: "Selected",
@@ -57,7 +66,6 @@ const getAllStudents = async (req, res) => {
       populate: { path: "companyId" },
     });
 
-    // Map banao studentId -> applications[]
     const appMap = {};
     allSelectedApps.forEach((app) => {
       const sid = app.studentId.toString();
@@ -66,16 +74,20 @@ const getAllStudents = async (req, res) => {
     });
 
     const studentsWithPlacement = students.map((student) => {
-      const studentObject = student.toObject();
       const selectedJobs = appMap[student._id.toString()] || [];
       return {
-        ...studentObject,
+        ...student,
         placementStatus: selectedJobs.length > 0 ? "Placed" : "Not Placed",
         selectedCompanies: selectedJobs,
       };
     });
 
-    res.json(studentsWithPlacement);
+    res.json({
+      students: studentsWithPlacement,
+      totalCount,
+      page,
+      hasMore: skip + students.length < totalCount,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
