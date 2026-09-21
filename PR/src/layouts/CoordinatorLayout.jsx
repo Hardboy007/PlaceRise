@@ -126,7 +126,9 @@ function CoordinatorLayout() {
   const [showNotifs, setShowNotifs] = useState(false);
   const [openGroup, setOpenGroup] = useState(null);
   const [showMore, setShowMore] = useState(false);
-  const coordinator = JSON.parse(localStorage.getItem("coordinator") || "{}");
+  const [coordinator, setCoordinator] = useState(
+    JSON.parse(localStorage.getItem("coordinator") || "{}"),
+  );
 
   const initials = coordinator.name
     ? coordinator.name
@@ -147,6 +149,19 @@ function CoordinatorLayout() {
     const interval = setInterval(() => {
       if (!document.hidden) fetchCount();
     }, 30000);
+
+    api
+      .get("/coordinators/me")
+      .then((data) => {
+        if (data?.profilePhoto) {
+          setCoordinator((prev) => ({
+            ...prev,
+            profilePhoto: data.profilePhoto,
+          }));
+        }
+      })
+      .catch(() => {});
+
     return () => clearInterval(interval);
   }, []);
 
@@ -284,8 +299,18 @@ function CoordinatorLayout() {
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold shrink-0">
-              {initials}
+            <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
+              {coordinator.profilePhoto ? (
+                <img
+                  src={coordinator.profilePhoto}
+                  alt={coordinator.name}
+                  className="w-full h-full object-cover rounded-full"
+                />
+              ) : (
+                <div className="w-full h-full rounded-full bg-linear-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold">
+                  {initials}
+                </div>
+              )}
             </div>
             <div className="min-w-0">
               <p className="text-xs sm:text-sm font-medium text-[#1E293B] leading-none truncate max-w-[130px] sm:max-w-[180px]">
@@ -418,8 +443,18 @@ function CoordinatorLayout() {
                 expanded ? "gap-2.5 p-3" : "justify-center p-1.5"
               }`}
             >
-              <div className="w-8 h-8 rounded-full bg-linear-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold shrink-0">
-                {initials}
+              <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
+                {coordinator.profilePhoto ? (
+                  <img
+                    src={coordinator.profilePhoto}
+                    alt={coordinator.name}
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                ) : (
+                  <div className="w-full h-full rounded-full bg-linear-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold">
+                    {initials}
+                  </div>
+                )}
               </div>
               <div
                 className={`min-w-0 flex-1 transition-all duration-200 ${expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}

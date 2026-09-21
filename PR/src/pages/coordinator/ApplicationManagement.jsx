@@ -153,11 +153,21 @@ function NameCell({ student }) {
     return <span className="text-xs text-[#94A3B8]">Unknown student</span>;
   return (
     <div className="flex items-center gap-2.5 min-w-0">
-      <div
-        className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0"
-        style={{ background: "linear-gradient(135deg,#1a3a8f,#3d1a6e)" }}
-      >
-        {student.name?.charAt(0) || "?"}
+      <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
+        {student.profilePhoto ? (
+          <img
+            src={student.profilePhoto}
+            alt={student.name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div
+            className="w-full h-full rounded-lg flex items-center justify-center text-white font-bold text-sm"
+            style={{ background: "linear-gradient(135deg,#1a3a8f,#3d1a6e)" }}
+          >
+            {student.name?.charAt(0) || "?"}
+          </div>
+        )}
       </div>
       <div className="min-w-0">
         <p
@@ -2874,13 +2884,23 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
             </button>
             <div className="flex items-center flex-wrap justify-between gap-3 px-4 sm:px-7 py-4 sm:py-5 border-b border-[#E2E8F0] sticky top-0 bg-white rounded-t-3xl z-0">
               <div className="flex items-center gap-3 sm:gap-4 min-w-0 pr-10 sm:pr-12">
-                <div
-                  className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-lg shrink-0"
-                  style={{
-                    background: "linear-gradient(135deg, #1a3a8f, #3d1a6e)",
-                  }}
-                >
-                  {selectedStudent.name?.charAt(0) || "?"}
+                <div className="w-12 h-12 rounded-2xl overflow-hidden shrink-0">
+                  {selectedStudent.profilePhoto ? (
+                    <img
+                      src={selectedStudent.profilePhoto}
+                      alt={selectedStudent.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div
+                      className="w-full h-full rounded-2xl flex items-center justify-center text-white font-bold text-lg"
+                      style={{
+                        background: "linear-gradient(135deg, #1a3a8f, #3d1a6e)",
+                      }}
+                    >
+                      {selectedStudent.name?.charAt(0) || "?"}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-[#0F172A]">

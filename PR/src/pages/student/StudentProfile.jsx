@@ -89,9 +89,14 @@ export default function StudentProfilePage() {
   useEffect(() => {
     document.title = "Your Profile — PlaceRise";
     const fetchProfile = async () => {
-      const storedStudent = JSON.parse(localStorage.getItem("student") || "{}");
       const data = await api.get("/students/me");
       setStudent(data);
+      // localStorage bhi update karo taaki layout mein photo dikhe
+      const stored = JSON.parse(localStorage.getItem("student") || "{}");
+      localStorage.setItem(
+        "student",
+        JSON.stringify({ ...stored, profilePhoto: data.profilePhoto }),
+      );
       setLoading(false);
     };
     fetchProfile();
@@ -106,7 +111,9 @@ export default function StudentProfilePage() {
     try {
       const data = await api.post("/students/me/profile-photo", formData);
       if (data?.profilePhotoUrl) {
-        setStudent({ ...student, profilePhoto: data.profilePhotoUrl });
+        const updated = { ...student, profilePhoto: data.profilePhotoUrl };
+        setStudent(updated);
+        localStorage.setItem("student", JSON.stringify(updated));
       }
     } catch (err) {
       console.error("Photo upload failed:", err);
@@ -297,7 +304,14 @@ export default function StudentProfilePage() {
                     setRemovingPhoto(true);
                     try {
                       await api.put("/students/me", { profilePhoto: null });
-                      setStudent((prev) => ({ ...prev, profilePhoto: null }));
+                      setStudent((prev) => {
+                        const updated = { ...prev, profilePhoto: null };
+                        localStorage.setItem(
+                          "student",
+                          JSON.stringify(updated),
+                        );
+                        return updated;
+                      });
                     } catch (err) {
                       console.error("Remove failed:", err);
                     } finally {
