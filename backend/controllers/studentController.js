@@ -543,24 +543,29 @@ const bulkImportStudents = async (req, res) => {
     const skipped = results.length - validRows.length;
 
     // Bcrypt hash sab ke liye parallel mein
-    const SALT_ROUNDS = 10;
-    const preparedUsers = await Promise.all(
-      validRows.map(async (row) => {
-        const dobRaw = row["Date of Birth"];
-        const dobParts = dobRaw.split(/[-\/]/);
-        const day = dobParts[0].padStart(2, "0");
-        const month = dobParts[1].padStart(2, "0");
-        const year = dobParts[2];
-        const defaultPassword = `${day}${month}${year}`;
-        const hashedPassword = await bcrypt.hash(defaultPassword, SALT_ROUNDS);
+    const SALT_ROUNDS = 6;
+    const BATCH_SIZE = 50;
+    const preparedUsers = [];
 
-        return {
-          row,
-          dobRaw,
-          hashedPassword,
-        };
-      }),
-    );
+    for (let i = 0; i < validRows.length; i += BATCH_SIZE) {
+      const batch = validRows.slice(i, i + BATCH_SIZE);
+      const batchResults = await Promise.all(
+        batch.map(async (row) => {
+          const dobRaw = row["Date of Birth"];
+          const dobParts = dobRaw.split(/[-\/]/);
+          const day = dobParts[0].padStart(2, "0");
+          const month = dobParts[1].padStart(2, "0");
+          const year = dobParts[2];
+          const defaultPassword = `${day}${month}${year}`;
+          const hashedPassword = await bcrypt.hash(
+            defaultPassword,
+            SALT_ROUNDS,
+          );
+          return { row, dobRaw, hashedPassword };
+        }),
+      );
+      preparedUsers.push(...batchResults);
+    }
 
     // Bulk User insert
     const userDocs = preparedUsers.map(({ row, hashedPassword }) => ({
