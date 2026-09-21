@@ -1730,12 +1730,10 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
 
   const handleTouchMove = (e) => {
     if (!touchDragActiveRef.current) {
-      // Agar horizontal ya vertical scroll ho raha hai to long press cancel karo
       const dx = Math.abs(e.touches[0].clientX - touchStartPosRef.current.x);
       const dy = Math.abs(e.touches[0].clientY - touchStartPosRef.current.y);
       if (dx > 5 || dy > 5) {
         clearTimeout(longPressTimerRef.current);
-        hasDraggedRef.current = true; // Modal na khule scroll pe
       }
       return;
     }
