@@ -1522,6 +1522,9 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const [bulkConfirm, setBulkConfirm] = useState(null); // { status, count }
   const [singleConfirm, setSingleConfirm] = useState(null);
+  const touchStartIdRef = useRef(null);
+  const touchDragActiveRef = useRef(false);
+  const longPressTimerRef = useRef(null);
 
   // Excel import state
   const [importLoading, setImportLoading] = useState(false);
@@ -1701,9 +1704,53 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
   const handleMouseUp = () => {
     isDraggingRef.current = false;
     dragStartIdRef.current = null;
-    setTimeout(() => {
-      hasDraggedRef.current = false;
-    }, 0);
+  };
+
+  const handleTouchStart = (appId, e) => {
+    touchStartIdRef.current = appId;
+    touchDragActiveRef.current = false;
+    longPressTimerRef.current = setTimeout(() => {
+      touchDragActiveRef.current = true;
+      hasDraggedRef.current = true;
+      setSelectedAppIds((prev) => {
+        const next = new Set(prev);
+        next.add(appId);
+        return next;
+      });
+      // Vibrate karo — user ko feedback mile
+      if (navigator.vibrate) navigator.vibrate(40);
+    }, 400); // 400ms hold = drag mode on
+  };
+
+  const handleTouchMove = (e) => {
+    if (!touchDragActiveRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      return;
+    }
+    e.preventDefault();
+    const touch = e.touches[0];
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    const row = el?.closest("[data-appid]");
+    if (!row) return;
+    const appId = row.dataset.appid;
+    if (!appId) return;
+    setSelectedAppIds((prev) => {
+      const next = new Set(prev);
+      next.add(appId);
+      return next;
+    });
+  };
+
+  const handleTouchEnd = (appId, e) => {
+    clearTimeout(longPressTimerRef.current);
+    if (!touchDragActiveRef.current) {
+      // Normal tap — modal kholo
+      setSelectedStudent(
+        filtered.find((a) => a._id === appId)?.studentId || null,
+      );
+    }
+    touchDragActiveRef.current = false;
+    touchStartIdRef.current = null;
   };
 
   useEffect(() => {
@@ -2507,10 +2554,18 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
                 key={app._id}
                 data-appid={app._id}
                 onMouseDown={(e) => !readOnly && handleMouseDown(app._id, e)}
-                onMouseUp={() => {
+                onMouseUp={(e) => {
                   if (hasDraggedRef.current) return;
+                  if (
+                    e.target.closest("button") ||
+                    e.target.closest("[data-nmodal]")
+                  )
+                    return;
                   setSelectedStudent(student);
                 }}
+                onTouchStart={(e) => !readOnly && handleTouchStart(app._id, e)}
+                onTouchMove={(e) => !readOnly && handleTouchMove(e)}
+                onTouchEnd={(e) => !readOnly && handleTouchEnd(app._id, e)}
                 style={{
                   display: "grid",
                   gridTemplateColumns: cols,
@@ -2541,7 +2596,7 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
                       return next;
                     });
                   }}
-                  className="w-4 h-4 rounded border flex items-center justify-center shrink-0 cursor-pointer transition-all"
+                  className="w-5 h-5 rounded border flex items-center justify-center shrink-0 cursor-pointer transition-all"
                   style={{
                     backgroundColor: isSelected ? "#1a3a8f" : "white",
                     borderColor: isSelected ? "#1a3a8f" : "#CBD5E1",
@@ -2616,10 +2671,12 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
                     </span>
                   ) : (
                     <div
+                      data-nmodal="true"
                       onClick={(e) => e.stopPropagation()}
                       onMouseDown={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
+                        hasDraggedRef.current = true;
                       }}
                       className="flex items-center gap-1.5 flex-wrap"
                     >
