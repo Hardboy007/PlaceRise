@@ -3,6 +3,23 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../../utils/api";
 import CompanyLogo from "../../components/common/CompanyLogo";
 
+// ── Celebration helpers ──────────────────────────────────────
+const SEEN_KEY = "placerise_celebration_seen";
+
+function getSeenIds() {
+  try {
+    return JSON.parse(localStorage.getItem(SEEN_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function markAsSeen(ids) {
+  try {
+    localStorage.setItem(SEEN_KEY, JSON.stringify(ids));
+  } catch {}
+}
+
 // ── Design Tokens ─────────────────────────────────────────────
 const C = {
   primary: "#1a3a8f",
@@ -223,7 +240,75 @@ function getSelectionSummary(app) {
   };
 }
 
-// ── Main Component ────────────────────────────────────────────
+function CelebrationOverlay({ count, onClose }) {
+  useEffect(() => {
+    const t = setTimeout(onClose, 5000);
+    return () => clearTimeout(t);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+      onClick={onClose}
+    >
+      {Array.from({ length: 40 }).map((_, i) => (
+        <span
+          key={i}
+          className="absolute rounded-full"
+          style={{
+            width: `${6 + Math.random() * 8}px`,
+            height: `${6 + Math.random() * 8}px`,
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            backgroundColor: [
+              "#1a3a8f",
+              "#60A5FA",
+              "#22C55E",
+              "#F59E0B",
+              "#EC4899",
+              "#8B5CF6",
+            ][i % 6],
+            animation: `confettiFall ${1.5 + Math.random() * 2}s ease-in forwards`,
+            animationDelay: `${Math.random() * 0.8}s`,
+          }}
+        />
+      ))}
+      <div
+        className="relative z-10 rounded-3xl px-10 py-10 flex flex-col items-center gap-3 shadow-2xl text-center max-w-xs w-full mx-4"
+        style={{ backgroundColor: "#fff" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="text-6xl">🎉</div>
+        <h2 className="text-2xl font-bold" style={{ color: "#0F172A" }}>
+          Congratulations!
+        </h2>
+        <p className="text-sm font-medium" style={{ color: "#64748B" }}>
+          You've been selected
+          {count > 1 && (
+            <span className="ml-1 font-bold" style={{ color: "#1a3a8f" }}>
+              — cracked {count}!
+            </span>
+          )}
+        </p>
+        <button
+          onClick={onClose}
+          className="mt-2 px-6 py-2 rounded-full text-sm font-semibold text-white"
+          style={{ backgroundColor: "#1a3a8f" }}
+        >
+          Woohoo 🚀
+        </button>
+      </div>
+      <style>{`
+        @keyframes confettiFall {
+          0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 export default function StudentApplication() {
   const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
@@ -231,6 +316,7 @@ export default function StudentApplication() {
   const [filterStatus, setFilterStatus] = useState("Applied");
   const [fetchError, setFetchError] = useState(null);
   const isFirstLoad = useRef(true);
+  const [celebration, setCelebration] = useState(null);
 
   // FIXED: pulled into its own function so it can be called both on mount
   // and repeatedly via polling (for live updates from the coordinator side).
@@ -248,6 +334,18 @@ export default function StudentApplication() {
       );
 
       setApplications(valid);
+      // ── Celebration check ──
+      const selectedApps = valid.filter((a) => a.status === "Selected");
+      if (selectedApps.length > 0) {
+        const seenIds = getSeenIds();
+        const newSelected = selectedApps.filter(
+          (a) => !seenIds.includes(a._id),
+        );
+        if (newSelected.length > 0) {
+          setCelebration({ count: selectedApps.length });
+          markAsSeen(selectedApps.map((a) => a._id));
+        }
+      }
       setFetchError(null);
     } catch (err) {
       // FIXED: previously an unhandled rejection here (e.g. 401 because
@@ -356,6 +454,12 @@ export default function StudentApplication() {
       style={{ backgroundColor: C.background }}
       className="min-h-screen p-4 sm:p-10 font-sans"
     >
+      {celebration && (
+        <CelebrationOverlay
+          count={celebration.count}
+          onClose={() => setCelebration(null)}
+        />
+      )}
       {/* ── Page Header ── */}
       <div className="flex items-start justify-between mb-5 sm:mb-6 flex-wrap gap-4">
         {/* Left: icon + title */}

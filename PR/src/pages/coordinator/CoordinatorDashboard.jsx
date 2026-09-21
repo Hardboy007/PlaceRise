@@ -52,11 +52,12 @@ export default function CoordinatorDashboard() {
   const [students, setStudents] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
 
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
-    document.title = "Coordinator Dashboard"
+    document.title = "Coordinator Dashboard";
     const timer = setInterval(() => setNow(new Date()), 60 * 1000);
     return () => clearInterval(timer);
   }, []);
@@ -70,7 +71,10 @@ export default function CoordinatorDashboard() {
           api.get("/companies/jobs"),
         ]);
         setCoordinator(coordData);
-        setStudents(Array.isArray(studentData) ? studentData : []);
+        setStudents(
+          Array.isArray(studentData?.students) ? studentData.students : [],
+        );
+        setTotalCount(studentData?.totalCount || 0);
         setJobs(Array.isArray(jobsData) ? jobsData : []);
       } catch (error) {
         console.error("Failed to load dashboard data:", error);
@@ -82,7 +86,7 @@ export default function CoordinatorDashboard() {
     loadDashboard();
   }, []);
 
-  const totalStudents = students.length;
+  const totalStudents = totalCount;
   const placedStudents = students.filter(
     (s) => s.placementStatus === "Placed",
   ).length;

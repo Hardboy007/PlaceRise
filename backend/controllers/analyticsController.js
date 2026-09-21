@@ -37,7 +37,7 @@ const getAnalytics = async (req, res) => {
     })
       .populate({
         path: "studentId",
-        select: "name course",
+        select: "name course school",
         populate: { path: "userId", select: "erpId" },
       })
       .populate({
@@ -146,6 +146,27 @@ const getAnalytics = async (req, res) => {
       }))
       .sort((a, b) => b.Selected - a.Selected);
 
+    // School-wise companies — kitni unique companies ne us school ke students ko select kiya
+    const schoolCompanyMap = {};
+    applications
+      .filter((a) => a.status === "Selected")
+      .forEach((a) => {
+        const schoolName = a.studentId?.school || "Unknown";
+        const companyName = a.jobId?.companyId?.name;
+        if (!companyName) return;
+        if (!schoolCompanyMap[schoolName])
+          schoolCompanyMap[schoolName] = new Set();
+        schoolCompanyMap[schoolName].add(companyName);
+      });
+
+    const schoolWiseCompanies = Object.entries(schoolCompanyMap)
+      .map(([name, companies]) => ({
+        name,
+        Companies: companies.size,
+        companyList: Array.from(companies),
+      }))
+      .sort((a, b) => b.Companies - a.Companies);
+
     res.json({
       summary: {
         totalStudents: students.length,
@@ -163,6 +184,7 @@ const getAnalytics = async (req, res) => {
       branchData,
       ctcDistribution,
       companyData,
+      schoolWiseCompanies,
       funnel: {
         totalApplied,
         totalShortlisted,

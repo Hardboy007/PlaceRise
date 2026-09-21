@@ -250,7 +250,8 @@ const resetPassword = async (req, res) => {
 
     if (!user) {
       return res.status(400).json({
-        message: "This reset link is invalid or has expired. Please request a new one.",
+        message:
+          "This reset link is invalid or has expired. Please request a new one.",
       });
     }
 
@@ -266,4 +267,135 @@ const resetPassword = async (req, res) => {
   }
 };
 
-module.exports = { studentLogin, coordinatorLogin, changePassword, forgotPassword, resetPassword };
+// Send OTP for email verification during onboarding
+const sendEmailOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Koi aur student already is email se registered toh nahi hai?
+    const existingUser = await User.findOne({
+      email: normalizedEmail,
+      _id: { $ne: req.user.id }, // apne aap ko exclude karo
+    });
+    if (existingUser) {
+      return res
+        .status(409)
+        .json({
+          message: "This email is already registered with another account",
+        });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+    const hashedOtp = crypto.createHash("sha256").update(otp).digest("hex");
+
+    await User.findByIdAndUpdate(req.user.id, {
+      emailOtp: hashedOtp,
+      emailOtpExpires: Date.now() + 10 * 60 * 1000, // 10 minutes
+      emailVerified: false,
+    });
+
+    await sendEmail({
+      to: normalizedEmail,
+      subject: "Verify Your Email — PlaceRise",
+      html: `
+        <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+          <div style="background: linear-gradient(135deg, #1D4ED8, #3B82F6); border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px;">
+            <img 
+              src="https://res.cloudinary.com/saviaykm/image/upload/v1783784651/WhatsApp_Image_2026-07-11_at_18.55.23_krac4c.jpg" 
+              alt="PlaceRise" 
+              style="height: 40px; border-radius: 8px;"
+            />
+            <p style="color: white; font-size: 12px; margin: 8px 0 0 0; opacity: 0.85; font-weight: 600; letter-spacing: 1px;">
+              PLACERISE - Connect . Grow . Succeed
+            </p>
+          </div>
+          <h2 style="color: #1E293B;">Verify Your Email</h2>
+          <p style="color: #475569;">Use the OTP below to verify your email address. It expires in <strong>10 minutes</strong>.</p>
+          <div style="background: #F1F5F9; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
+            <p style="font-size: 36px; font-weight: 800; letter-spacing: 10px; color: #1a3a8f; margin: 0;">${otp}</p>
+          </div>
+          <p style="color: #94A3B8; font-size: 12px;">
+            If you didn't request this, ignore this email.
+          </p>
+          <p style="color: #94A3B8; font-size: 12px; margin-top: 24px;">
+            PlaceRise | Dev Bhoomi Uttarakhand University
+          </p>
+        </div>
+      `,
+    });
+
+    res.json({ message: "OTP sent successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Verify OTP
+const verifyEmailOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email and OTP are required" });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!user.emailOtp || !user.emailOtpExpires) {
+      return res
+        .status(400)
+        .json({ message: "No OTP requested. Please send OTP first." });
+    }
+
+    if (user.emailOtpExpires < Date.now()) {
+      return res
+        .status(400)
+        .json({ message: "OTP has expired. Please request a new one." });
+    }
+
+    const hashedOtp = crypto
+      .createHash("sha256")
+      .update(otp.trim())
+      .digest("hex");
+    if (hashedOtp !== user.emailOtp) {
+      return res
+        .status(400)
+        .json({ message: "Invalid OTP. Please try again." });
+    }
+
+    // OTP sahi hai — email update karo aur verified mark karo
+    await User.findByIdAndUpdate(req.user.id, {
+      email: email.trim().toLowerCase(),
+      emailVerified: true,
+      emailOtp: null,
+      emailOtpExpires: null,
+    });
+
+    // Student record mein bhi email update karo
+    await Student.findOneAndUpdate(
+      { userId: req.user.id },
+      { email: email.trim().toLowerCase() },
+    );
+
+    res.json({ message: "Email verified successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = {
+  studentLogin,
+  coordinatorLogin,
+  changePassword,
+  forgotPassword,
+  resetPassword,
+  sendEmailOtp,
+  verifyEmailOtp,
+};
