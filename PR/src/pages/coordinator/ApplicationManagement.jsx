@@ -1691,9 +1691,16 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
   const handleMouseDown = (appId, e) => {
     if (e.button !== 0) return;
     e.preventDefault();
+    e.stopPropagation();
     dragStartIdRef.current = appId;
     hasDraggedRef.current = false;
     isDraggingRef.current = true;
+    console.log(
+      "mousedown fired, isDragging:",
+      isDraggingRef.current,
+      "dragStart:",
+      dragStartIdRef.current,
+    );
   };
 
   const handleMouseUp = () => {
