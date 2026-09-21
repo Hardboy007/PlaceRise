@@ -1521,6 +1521,7 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
   const hasDraggedRef = useRef(false);
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const [bulkConfirm, setBulkConfirm] = useState(null); // { status, count }
+  const [singleConfirm, setSingleConfirm] = useState(null);
 
   // Excel import state
   const [importLoading, setImportLoading] = useState(false);
@@ -2225,6 +2226,80 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
         </div>
       )}
 
+      {singleConfirm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{
+            backgroundColor: "rgba(15,23,42,0.55)",
+            backdropFilter: "blur(6px)",
+          }}
+          onClick={(e) =>
+            e.target === e.currentTarget && setSingleConfirm(null)
+          }
+        >
+          <div className="bg-white rounded-3xl shadow-2xl border border-[#E2E8F0] w-full max-w-sm p-6 flex flex-col gap-4">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center text-white text-xl font-bold"
+                style={{
+                  backgroundColor:
+                    singleConfirm.status === "Cleared" ? "#22C55E" : "#EF4444",
+                }}
+              >
+                {singleConfirm.status === "Cleared" ? "✓" : "✕"}
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-[#1E293B]">
+                  Confirm Action
+                </h3>
+                <p className="text-xs text-[#64748B] mt-1">
+                  <strong>{singleConfirm.studentName}</strong> ko Round{" "}
+                  {singleConfirm.roundIndex + 1} ({singleConfirm.roundName})
+                  mein{" "}
+                  <strong
+                    style={{
+                      color:
+                        singleConfirm.status === "Cleared"
+                          ? "#22C55E"
+                          : "#EF4444",
+                    }}
+                  >
+                    {singleConfirm.status === "Cleared" ? "Clear" : "Eliminate"}
+                  </strong>{" "}
+                  karna chahte ho?
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setSingleConfirm(null)}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-[#E2E8F0] text-sm font-medium text-[#64748B] hover:bg-[#F8FAFC]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  updateRoundStatus(
+                    singleConfirm.appId,
+                    singleConfirm.roundIndex,
+                    singleConfirm.roundName,
+                    singleConfirm.status,
+                  );
+                  setSingleConfirm(null);
+                }}
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white"
+                style={{
+                  backgroundColor:
+                    singleConfirm.status === "Cleared" ? "#22C55E" : "#EF4444",
+                }}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Filter + Export + Import bar */}
       <div className="bg-white rounded-2xl border border-gray-100 p-3 sm:p-4 shadow-sm flex items-center gap-2 flex-wrap">
         <div
@@ -2541,18 +2616,20 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
                   ) : (
                     <div
                       onClick={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
                       className="flex items-center gap-1.5 flex-wrap"
                     >
                       {["Cleared", "Eliminated"].map((st) => (
                         <button
                           key={st}
                           onClick={() =>
-                            updateRoundStatus(
-                              app._id,
-                              activeRound,
-                              rounds[activeRound],
-                              st,
-                            )
+                            setSingleConfirm({
+                              appId: app._id,
+                              roundIndex: activeRound,
+                              roundName: rounds[activeRound],
+                              status: st,
+                              studentName: student?.name,
+                            })
                           }
                           className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all"
                           style={{

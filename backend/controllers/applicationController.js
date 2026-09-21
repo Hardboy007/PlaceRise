@@ -999,6 +999,11 @@ const updateRoundStatus = async (req, res) => {
       });
     }
 
+    // Agar kisi round ka status change hua toh uske baad ke saare rounds reset karo
+    application.roundStatuses = application.roundStatuses.filter(
+      (r) => r.roundIndex <= roundIndex,
+    );
+
     const job = await JobPosting.findById(application.jobId).populate(
       "companyId",
       "name",
@@ -1221,6 +1226,11 @@ const bulkUpdateRoundStatus = async (req, res) => {
             updatedAt: new Date(),
           });
         }
+
+        // Agar kisi round ka status change hua toh uske baad ke saare rounds reset karo
+        application.roundStatuses = application.roundStatuses.filter(
+          (r) => r.roundIndex <= roundIndex,
+        );
 
         const hasEliminated = application.roundStatuses.some(
           (r) => r.status === "Eliminated",
