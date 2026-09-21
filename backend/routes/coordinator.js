@@ -12,6 +12,7 @@ const {
 } = require("../controllers/coordinatorController");
 const Coordinator = require("../models/Coordinator");
 const { uploadPDF } = require("../config/cloudinary");
+const upload = require("../middleware/upload");
 
 router.put(
   "/signature",
