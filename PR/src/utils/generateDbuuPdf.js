@@ -15,7 +15,6 @@ export async function generateDbuuPdf(resumeData) {
     iDoc.write(html);
     iDoc.close();
 
-    // Iframe poora load hone ka wait, fir chhota buffer
     await new Promise((resolve) => {
       if (iDoc.readyState === "complete") resolve();
       else iframe.onload = resolve;
@@ -29,7 +28,9 @@ export async function generateDbuuPdf(resumeData) {
       windowWidth: 794,
     });
 
-    if (!canvas || canvas.width === 0 || canvas.height === 0) {
+    console.log("DBUU PDF debug — canvas:", canvas?.width, canvas?.height);
+
+    if (!canvas || !canvas.width || !canvas.height) {
       throw new Error("Resume preview render nahi ho paaya, dobara try karein");
     }
 
@@ -45,6 +46,24 @@ export async function generateDbuuPdf(resumeData) {
     const ratio = pdfW / totalW;
     const pageHeightPx = pdfH / ratio;
 
+    console.log(
+      "DBUU PDF debug — pdfW,pdfH,totalW,totalH,ratio,pageHeightPx:",
+      pdfW,
+      pdfH,
+      totalW,
+      totalH,
+      ratio,
+      pageHeightPx,
+    );
+
+    if (
+      ![pdfW, pdfH, totalW, totalH, ratio, pageHeightPx].every(Number.isFinite)
+    ) {
+      throw new Error(
+        "PDF size calculation galat aayi (NaN/Infinity) — canvas ya page size check karein",
+      );
+    }
+
     let yOffset = 0;
     let pageCount = 0;
     while (yOffset < totalH) {
@@ -55,12 +74,26 @@ export async function generateDbuuPdf(resumeData) {
 
       const pageCanvas = document.createElement("canvas");
       pageCanvas.width = totalW;
-      pageCanvas.height = Math.round(sliceHeight);
+      pageCanvas.height = Math.max(1, Math.round(sliceHeight));
       const ctx = pageCanvas.getContext("2d");
       ctx.drawImage(canvas, 0, -yOffset);
       const pageImg = pageCanvas.toDataURL("image/jpeg", 0.95);
 
-      pdf.addImage(pageImg, "JPEG", 0, 0, pdfW, pageCanvas.height * ratio);
+      const imgH = pageCanvas.height * ratio;
+      console.log(
+        "DBUU PDF debug — page",
+        pageCount,
+        "pageCanvas.height:",
+        pageCanvas.height,
+        "imgH:",
+        imgH,
+      );
+
+      if (!Number.isFinite(imgH) || imgH <= 0) {
+        throw new Error(`Page ${pageCount + 1} ki height galat aayi (${imgH})`);
+      }
+
+      pdf.addImage(pageImg, "JPEG", 0, 0, pdfW, imgH);
       yOffset += pageHeightPx;
       pageCount++;
     }
