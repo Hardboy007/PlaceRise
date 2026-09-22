@@ -1242,13 +1242,14 @@ export default function CompanyManagementPage() {
     setShowCompanyModal(false);
   };
 
+  // WITH
   const saveCompanyWithJD = async () => {
     const errs = validateJD(addJDForm);
     if (Object.keys(errs).length) {
       setAddJDErrors(errs);
       return;
     }
-    await api.post("/jobs", {
+    const newJob = await api.post("/jobs", {
       companyId: createdCompanyId,
       jobType: addJDForm.jobType,
       location: companyForm.location,
@@ -1275,6 +1276,15 @@ export default function CompanyManagementPage() {
         selectionProcess: rg.selectionProcess,
       })),
     });
+
+    // PDF upload — job create hone ke baad
+    if (pdfFile && newJob._id) {
+      const formData = new FormData();
+      formData.append("pdf", pdfFile);
+      await api.post(`/companies/jobs/${newJob._id}/upload-pdf`, formData);
+      setPdfFile(null);
+    }
+
     await fetchData();
     setShowCompanyModal(false);
   };
@@ -2188,7 +2198,6 @@ export default function CompanyManagementPage() {
                 <X size={14} className="text-[#64748B]" />
               </button>
             </div>
-            // WITH
             <div className="p-4 sm:p-5 flex flex-col gap-4">
               {/* PDF Upload */}
               <div className="pb-4 border-b border-[#F1F5F9]">
