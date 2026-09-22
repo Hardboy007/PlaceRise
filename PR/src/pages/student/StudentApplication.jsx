@@ -180,7 +180,11 @@ function formatDate(dateValue) {
 }
 
 function getSelectionTimeline(app) {
-  const rounds = app?.jobId?.selectionProcess || [];
+  const roleGroup = app?.jobId?.roleGroups?.find(
+    (rg) => rg._id?.toString() === app.roleGroupId?.toString(),
+  );
+  const rounds =
+    roleGroup?.selectionProcess || app?.jobId?.selectionProcess || [];
   if (!rounds.length) return [];
 
   return rounds.map((roundName, index) => {
@@ -621,7 +625,14 @@ export default function StudentApplication() {
                     style={{ color: C.textMuted }}
                     className="text-[14px] before:content-['Role'] before:mr-2 before:text-[10px] before:font-semibold before:tracking-widest before:uppercase before:text-[#64748B] md:before:hidden"
                   >
-                    {app.jobId?.role || "—"}
+                    {app.roleGroupId
+                      ? app.jobId?.roleGroups?.find(
+                          (rg) =>
+                            rg._id?.toString() === app.roleGroupId?.toString(),
+                        )?.role ||
+                        app.jobId?.role ||
+                        "—"
+                      : app.jobId?.role || "—"}
                   </span>
 
                   {/* Applied Date */}
