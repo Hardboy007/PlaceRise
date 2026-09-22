@@ -264,6 +264,8 @@ function JDBanner({
   finalizing,
   selectedCompanyId,
   onCompanyChange,
+  selectedRoleGroupId,
+  setSelectedRoleGroupId,
 }) {
   const branchList = selectedJob?.eligibleBranches?.includes("All")
     ? ["All Branches"]
@@ -328,51 +330,67 @@ function JDBanner({
           </div>
 
           {/* Role dropdown */}
-          {selectedCompanyId && (
-            <div className="min-w-0">
-              <p
-                className="text-[10px] font-semibold uppercase tracking-widest mb-1"
-                style={{ color: "rgba(255,255,255,0.7)" }}
-              >
-                Role / Drive
-              </p>
-              <div className="flex items-center gap-2 flex-wrap">
-                <select
-                  value={selectedJobId || ""}
-                  onChange={(e) => setSelectedJobId(e.target.value)}
-                  className="text-sm font-bold border border-white/25 rounded-lg px-2 py-1 bg-white/10 text-white focus:outline-none focus:border-white/50 sm:max-w-[220px] truncate"
-                >
-                  {jobs
-                    .filter((j) => j.companyId?._id === selectedCompanyId)
-                    .map((j) => {
-                      const roleLabel = j.roleGroups?.length
-                        ? j.roleGroups.map((rg) => rg.role).join(", ")
-                        : j.role || "Drive";
-                      return (
+          {selectedCompanyId &&
+            (() => {
+              const companyJobs = jobs.filter(
+                (j) => j.companyId?._id === selectedCompanyId,
+              );
+              const allRoleGroups = companyJobs.flatMap((j) =>
+                (j.roleGroups?.length
+                  ? j.roleGroups
+                  : [{ _id: j._id, role: j.role || "Drive", _jobId: j._id }]
+                ).map((rg) => ({
+                  ...rg,
+                  _jobId: j._id,
+                  _closed: isJobClosed(j),
+                })),
+              );
+              return (
+                <div className="min-w-0">
+                  <p
+                    className="text-[10px] font-semibold uppercase tracking-widest mb-1"
+                    style={{ color: "rgba(255,255,255,0.7)" }}
+                  >
+                    Role
+                  </p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <select
+                      value={selectedRoleGroupId || ""}
+                      onChange={(e) => {
+                        const rgId = e.target.value;
+                        setSelectedRoleGroupId(rgId);
+                        const found = allRoleGroups.find(
+                          (rg) => rg._id?.toString() === rgId,
+                        );
+                        if (found) setSelectedJobId(found._jobId);
+                      }}
+                      className="text-sm font-bold border border-white/25 rounded-lg px-2 py-1 bg-white/10 text-white focus:outline-none focus:border-white/50 sm:max-w-[220px] truncate"
+                    >
+                      {allRoleGroups.map((rg) => (
                         <option
-                          key={j._id}
-                          value={j._id}
+                          key={rg._id}
+                          value={rg._id?.toString()}
                           style={{ color: "#0F172A", backgroundColor: "#fff" }}
                         >
-                          {roleLabel}
-                          {isJobClosed(j) ? " (Closed)" : ""}
+                          {rg.role}
+                          {rg._closed ? " (Closed)" : ""}
                         </option>
-                      );
-                    })}
-                </select>
-                {applicationsClosed && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/15 text-white/75">
-                    <Lock size={10} /> Applications Closed
-                  </span>
-                )}
-                {resultsFinalized && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/15 text-white">
-                    <ShieldCheck size={10} /> Results Finalized
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
+                      ))}
+                    </select>
+                    {applicationsClosed && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/15 text-white/75">
+                        <Lock size={10} /> Applications Closed
+                      </span>
+                    )}
+                    {resultsFinalized && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/15 text-white">
+                        <ShieldCheck size={10} /> Results Finalized
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
         </div>
         {/* Active / Closed / All switch — keeps the dropdown short by
             default without hiding closed-drive data permanently. */}
@@ -1555,7 +1573,13 @@ function ImportPreviewModal({ data, onConfirm, onClose }) {
   );
 }
 
-function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
+function AppliedTab({
+  selectedJobId,
+  selectedJob,
+  readOnly,
+  jobName,
+  selectedRoleGroupId,
+}) {
   const rounds = selectedJob?.selectionProcess || [];
 
   const [applications, setApplications] = useState([]);
@@ -1615,22 +1639,24 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
     return rs?.status || "Pending";
   };
 
-  // Current round ke hisaab se filtered applications
+  const roleFiltered = useMemo(() => {
+    if (!selectedRoleGroupId) return applications;
+    return applications.filter(
+      (a) => a.roleGroupId?.toString() === selectedRoleGroupId,
+    );
+  }, [applications, selectedRoleGroupId]);
+
   const roundApplications = useMemo(() => {
-    if (rounds.length === 0) return applications;
-
-    // Round 0 — saare applied students
-    if (activeRound === 0) return applications;
-
-    // Round N — sirf woh jo pichle saare rounds clear kar chuke hain
-    return applications.filter((app) => {
+    if (rounds.length === 0) return roleFiltered;
+    if (activeRound === 0) return roleFiltered;
+    return roleFiltered.filter((app) => {
       for (let i = 0; i < activeRound; i++) {
         const rs = app.roundStatuses?.find((r) => r.roundIndex === i);
         if (!rs || rs.status !== "Cleared") return false;
       }
       return true;
     });
-  }, [applications, activeRound, rounds]);
+  }, [roleFiltered, activeRound, rounds]);
 
   const filtered = useMemo(() => {
     let result = roundApplications;
@@ -1675,17 +1701,17 @@ function AppliedTab({ selectedJobId, selectedJob, readOnly, jobName }) {
       ).length,
     };
   }, [roundApplications, activeRound]);
-
+  // Role group filter
   const counts = useMemo(
     () => ({
-      total: applications.length,
-      applied: applications.filter((a) => a.status === "Applied").length,
-      shortlisted: applications.filter((a) => a.status === "Shortlisted")
+      total: roleFiltered.length,
+      applied: roleFiltered.filter((a) => a.status === "Applied").length,
+      shortlisted: roleFiltered.filter((a) => a.status === "Shortlisted")
         .length,
-      selected: applications.filter((a) => a.status === "Selected").length,
-      rejected: applications.filter((a) => a.status === "Rejected").length,
+      selected: roleFiltered.filter((a) => a.status === "Selected").length,
+      rejected: roleFiltered.filter((a) => a.status === "Rejected").length,
     }),
-    [applications],
+    [roleFiltered],
   );
 
   // Single round status update
@@ -3087,6 +3113,7 @@ export default function ApplicationsManagementPage() {
   const [driveFilter, setDriveFilter] = useState("Active"); // Active | Closed | All
   const [loading, setLoading] = useState(true);
   const [finalizing, setFinalizing] = useState(false);
+  const [selectedRoleGroupId, setSelectedRoleGroupId] = useState(null);
 
   // Manual "Refresh" support — jobs/students are only fetched once on
   // mount by default, so if a student uploads a resume (or a job's data
@@ -3163,6 +3190,7 @@ export default function ApplicationsManagementPage() {
     if (visibleJobs.length === 0) {
       setSelectedJobId(null);
       setSelectedCompanyId(null);
+      setSelectedRoleGroupId(null);
       return;
     }
     const stillVisible = visibleJobs.some((j) => j._id === selectedJobId);
@@ -3170,6 +3198,7 @@ export default function ApplicationsManagementPage() {
       const firstJob = visibleJobs[0];
       setSelectedCompanyId(firstJob.companyId?._id);
       setSelectedJobId(firstJob._id);
+      setSelectedRoleGroupId(firstJob.roleGroups?.[0]?._id?.toString() || null);
     }
   }, [visibleJobs, selectedJobId]);
 
@@ -3262,12 +3291,19 @@ export default function ApplicationsManagementPage() {
         onToggleFinalize={handleToggleFinalize}
         finalizing={finalizing}
         selectedCompanyId={selectedCompanyId}
+        selectedRoleGroupId={selectedRoleGroupId}
+        setSelectedRoleGroupId={setSelectedRoleGroupId}
         onCompanyChange={(companyId) => {
           setSelectedCompanyId(companyId);
           const firstRole = visibleJobs.find(
             (j) => j.companyId?._id === companyId,
           );
-          if (firstRole) setSelectedJobId(firstRole._id);
+          if (firstRole) {
+            setSelectedJobId(firstRole._id);
+            setSelectedRoleGroupId(
+              firstRole.roleGroups?.[0]?._id?.toString() || null,
+            );
+          }
         }}
       />
 
@@ -3306,6 +3342,7 @@ export default function ApplicationsManagementPage() {
             <AppliedTab
               selectedJobId={selectedJobId}
               selectedJob={selectedJob}
+              selectedRoleGroupId={selectedRoleGroupId}
               readOnly={resultsFinalized}
               jobName={`${selectedJob?.companyId?.name || "Company"} — ${selectedJob?.role || "Role"}`}
             />
