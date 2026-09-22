@@ -968,14 +968,33 @@ export default function StudentProfilePage() {
                   <p className="text-sm font-semibold text-[#1E293B] truncate">
                     Resume Uploaded
                   </p>
-                  <a
-                    href={displayData.resume}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-xs text-primary hover:underline"
-                  >
-                    View Resume
-                  </a>
+                  {displayData.resume &&
+                  displayData.resume !== "dbuu-generated" ? (
+                    <a
+                      href={displayData.resume}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-primary hover:underline"
+                    >
+                      View Resume
+                    </a>
+                  ) : (
+                    <span className="text-xs text-[#94A3B8]">
+                      DBUU Template
+                    </span>
+                  )}
+                  {student.resumeData?.template === "dbuu" && (
+                    <button
+                      onClick={async () => {
+                        const { generateDbuuPdf } =
+                          await import("../../utils/generateDbuuPdf");
+                        await generateDbuuPdf(student.resumeData);
+                      }}
+                      className="text-xs text-[#22C55E] hover:underline font-semibold mt-0.5 block"
+                    >
+                      ↓ Download DBUU PDF
+                    </button>
+                  )}
                 </div>
                 <div className="ml-auto flex items-center gap-2 shrink-0">
                   {student.resumeData && (
@@ -1009,7 +1028,11 @@ export default function StudentProfilePage() {
                 </button>
                 <span className="text-[#E2E8F0] text-xs">|</span>
                 <button
-                  onClick={() => student.resumeData ? setShowResumeBuilder(true) : setShowBuildConfirm(true)}
+                  onClick={() =>
+                    student.resumeData
+                      ? setShowResumeBuilder(true)
+                      : setShowBuildConfirm(true)
+                  }
                   className="flex items-center gap-1 text-xs text-primary font-semibold hover:underline underline-offset-2 transition-colors"
                 >
                   <Sparkles size={11} /> Build with PlaceRise

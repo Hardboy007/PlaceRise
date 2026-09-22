@@ -10,8 +10,6 @@ const universityStructure = require("../data/universityStructure");
 const { cloudinary } = require("../config/cloudinary");
 const PDFDocument = require("pdfkit");
 const { Readable } = require("stream");
-const puppeteer = require("puppeteer-core");
-const chromium = require("@sparticuz/chromium");
 
 const ALLOWED_DOC_TYPES = [
   "image/jpeg",
@@ -984,184 +982,170 @@ const generateResume = async (req, res) => {
       return res.status(400).json({ message: "Name and email are required" });
     }
 
-    let pdfBuffer;
-
-    // ── DBUU Template via Puppeteer ──
+    // DBUU -> frontend handle karega, sirf data save karo
     if (template === "dbuu") {
-      const html = buildDbuuHTML({
-        name,
-        email,
-        phone,
-        city,
-        linkedinUrl,
-        githubUrl,
-        about,
-        college,
-        branch,
-        cgpa,
-        batch,
-        tenthMarks,
-        twelfthMarks,
-        skillCategories,
-        skills,
-        experience,
-        projects,
-        achievements,
-        certifications,
-      });
-
-      const browser = await puppeteer.launch({
-        args: chromium.args,
-        defaultViewport: chromium.defaultViewport,
-        executablePath: await chromium.executablePath(
-          process.env.CHROMIUM_PATH,
-        ),
-        headless: true,
-      });
-
-      const page = await browser.newPage();
-      await page.setContent(html, { waitUntil: "networkidle0" });
-
-      pdfBuffer = await page.pdf({
-        format: "A4",
-        printBackground: true, // ← zaruri hai colored backgrounds ke liye
-        margin: { top: "0px", right: "0px", bottom: "0px", left: "0px" },
-      });
-
-      await browser.close();
+      const student = await Student.findOneAndUpdate(
+        { userId: req.user.id },
+        {
+          resumeSource: "builder",
+          resume: "dbuu-generated",
+          resumeData: {
+            name,
+            email,
+            phone,
+            city,
+            linkedinUrl,
+            githubUrl,
+            codingProfileUrl,
+            about,
+            college,
+            branch,
+            cgpa,
+            batch,
+            tenthMarks,
+            twelfthMarks,
+            skillCategories,
+            skills,
+            experience,
+            projects,
+            achievements,
+            certifications,
+            template,
+          },
+        },
+        { new: true },
+      );
+      return res.json({ student });
     }
 
-    // ── Minimal / Classic — pdfkit (existing logic) ──
-    else {
-      const PDFDocument = require("pdfkit");
-      const ACCENTS = { minimal: "#1E293B", classic: "#334155" };
-      const accent = ACCENTS[template] || "#1E293B";
-      const font = template === "classic" ? "Times-Roman" : "Helvetica";
-      const fontBold = template === "classic" ? "Times-Bold" : "Helvetica-Bold";
+    // Minimal / Classic -> pdfkit (backend)
+    const PDFDocument = require("pdfkit");
+    const { Readable } = require("stream");
+    const ACCENTS = { minimal: "#1E293B", classic: "#334155" };
+    const accent = ACCENTS[template] || "#1E293B";
+    const font = template === "classic" ? "Times-Roman" : "Helvetica";
+    const fontBold = template === "classic" ? "Times-Bold" : "Helvetica-Bold";
 
-      const doc = new PDFDocument({ margin: 50, size: "A4" });
-      const buffers = [];
-      doc.on("data", (chunk) => buffers.push(chunk));
+    const doc = new PDFDocument({ margin: 50, size: "A4" });
+    const buffers = [];
+    doc.on("data", (chunk) => buffers.push(chunk));
 
-      await new Promise((resolve) => {
-        doc.on("end", resolve);
+    await new Promise((resolve) => {
+      doc.on("end", resolve);
 
-        const pageWidth = doc.page.width;
-        const contentWidth = pageWidth - 100;
-        const LEFT = 50;
-        const RIGHT = pageWidth - 50;
+      const pageWidth = doc.page.width;
+      const LEFT = 50;
+      const RIGHT = pageWidth - 50;
 
+      doc
+        .fillColor(accent)
+        .font(fontBold)
+        .fontSize(20)
+        .text(name, { align: "left" });
+      doc.font(font).fontSize(10).fillColor("#475569");
+      doc.text([email, phone, city].filter(Boolean).join("   |   "));
+      if (linkedinUrl) doc.fillColor(accent).text(linkedinUrl);
+      doc.moveDown(0.3);
+      doc
+        .moveTo(LEFT, doc.y)
+        .lineTo(RIGHT, doc.y)
+        .strokeColor(accent)
+        .lineWidth(1)
+        .stroke();
+      doc.moveDown(0.8).fillColor("#1E293B");
+
+      const sectionHeader = (title) => {
+        doc.moveDown(0.8);
         doc
-          .fillColor(accent)
           .font(fontBold)
-          .fontSize(20)
-          .text(name, { align: "left" });
-        doc.font(font).fontSize(10).fillColor("#475569");
-        doc.text([email, phone, city].filter(Boolean).join("   |   "));
-        if (linkedinUrl) doc.fillColor(accent).text(linkedinUrl);
-        doc.moveDown(0.3);
+          .fontSize(12)
+          .fillColor(accent)
+          .text(title.toUpperCase());
         doc
-          .moveTo(LEFT, doc.y)
-          .lineTo(RIGHT, doc.y)
+          .moveTo(LEFT, doc.y + 2)
+          .lineTo(RIGHT, doc.y + 2)
           .strokeColor(accent)
-          .lineWidth(1)
+          .lineWidth(0.5)
           .stroke();
-        doc.moveDown(0.8).fillColor("#1E293B");
+        doc.moveDown(0.6).fillColor("#1E293B").font(font).fontSize(10);
+      };
 
-        const sectionHeader = (title) => {
-          doc.moveDown(0.8);
+      if (about) {
+        sectionHeader("Summary");
+        doc.font(font).fontSize(10).text(about, { lineGap: 3 });
+      }
+
+      sectionHeader("Education");
+      doc
+        .font(fontBold)
+        .fontSize(10.5)
+        .text(college || "—");
+      doc
+        .font(font)
+        .fontSize(10)
+        .fillColor("#475569")
+        .text(`${branch || "—"}   |   CGPA: ${cgpa || "—"}`);
+      doc.fillColor("#1E293B");
+
+      const renderEntries = (label, entries) => {
+        if (!entries || entries.length === 0) return;
+        sectionHeader(label);
+        entries.forEach((e, idx) => {
+          const titleY = doc.y;
           doc
             .font(fontBold)
-            .fontSize(12)
-            .fillColor(accent)
-            .text(title.toUpperCase());
-          doc
-            .moveTo(LEFT, doc.y + 2)
-            .lineTo(RIGHT, doc.y + 2)
-            .strokeColor(accent)
-            .lineWidth(0.5)
-            .stroke();
-          doc.moveDown(0.6).fillColor("#1E293B").font(font).fontSize(10);
-        };
+            .fontSize(10.5)
+            .fillColor("#1E293B")
+            .text(e.title || "—", LEFT, titleY, { width: pageWidth - 250 });
+          if (e.period)
+            doc
+              .font(font)
+              .fontSize(9)
+              .fillColor("#64748B")
+              .text(e.period, pageWidth - 200, titleY, {
+                width: 150,
+                align: "right",
+              });
+          doc.x = LEFT;
+          doc.y = Math.max(doc.y, titleY + 14);
+          if (e.subtitle)
+            doc
+              .font(font)
+              .fontSize(9.5)
+              .fillColor("#64748B")
+              .text(e.subtitle, LEFT, doc.y, {
+                width: pageWidth - 100,
+                lineGap: 2,
+              });
+          if (e.desc)
+            doc
+              .font(font)
+              .fontSize(9.5)
+              .fillColor("#1E293B")
+              .text(e.desc, LEFT, doc.y, {
+                width: pageWidth - 100,
+                lineGap: 2,
+              });
+          if (idx < entries.length - 1) doc.moveDown(0.5);
+        });
+      };
 
-        if (about) {
-          sectionHeader("Summary");
-          doc.font(font).fontSize(10).text(about, { lineGap: 3 });
-        }
-
-        sectionHeader("Education");
-        doc
-          .font(fontBold)
-          .fontSize(10.5)
-          .text(college || "—");
+      renderEntries("Experience", experience);
+      renderEntries("Projects", projects);
+      if (skills.length > 0) {
+        sectionHeader("Skills");
         doc
           .font(font)
           .fontSize(10)
-          .fillColor("#475569")
-          .text(`${branch || "—"}   |   CGPA: ${cgpa || "—"}`);
-        doc.fillColor("#1E293B");
+          .fillColor("#1E293B")
+          .text(skills.join("   •   "), { lineGap: 3 });
+      }
 
-        const renderEntries = (label, entries) => {
-          if (!entries || entries.length === 0) return;
-          sectionHeader(label);
-          entries.forEach((e, idx) => {
-            const titleY = doc.y;
-            doc
-              .font(fontBold)
-              .fontSize(10.5)
-              .fillColor("#1E293B")
-              .text(e.title || "—", LEFT, titleY, { width: pageWidth - 250 });
-            if (e.period)
-              doc
-                .font(font)
-                .fontSize(9)
-                .fillColor("#64748B")
-                .text(e.period, pageWidth - 200, titleY, {
-                  width: 150,
-                  align: "right",
-                });
-            doc.x = LEFT;
-            doc.y = Math.max(doc.y, titleY + 14);
-            if (e.subtitle)
-              doc
-                .font(font)
-                .fontSize(9.5)
-                .fillColor("#64748B")
-                .text(e.subtitle, LEFT, doc.y, {
-                  width: pageWidth - 100,
-                  lineGap: 2,
-                });
-            if (e.desc)
-              doc
-                .font(font)
-                .fontSize(9.5)
-                .fillColor("#1E293B")
-                .text(e.desc, LEFT, doc.y, {
-                  width: pageWidth - 100,
-                  lineGap: 2,
-                });
-            if (idx < entries.length - 1) doc.moveDown(0.5);
-          });
-        };
+      doc.end();
+    });
 
-        renderEntries("Experience", experience);
-        renderEntries("Projects", projects);
-        if (skills.length > 0) {
-          sectionHeader("Skills");
-          doc
-            .font(font)
-            .fontSize(10)
-            .fillColor("#1E293B")
-            .text(skills.join("   •   "), { lineGap: 3 });
-        }
+    const pdfBuffer = Buffer.concat(buffers);
 
-        doc.end();
-      });
-
-      pdfBuffer = Buffer.concat(buffers);
-    }
-
-    // ── Upload to Cloudinary ──
     const uploadResult = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         {
@@ -1175,7 +1159,6 @@ const generateResume = async (req, res) => {
       Readable.from(pdfBuffer).pipe(stream);
     });
 
-    // ── Save to DB ──
     const student = await Student.findOneAndUpdate(
       { userId: req.user.id },
       {
