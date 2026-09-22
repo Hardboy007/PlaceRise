@@ -130,6 +130,11 @@ export default function ResumeBuilder({ student, onClose, onGenerated }) {
     tenthMarks: existing?.tenthMarks || student?.tenthMarks || "",
     twelfthMarks: existing?.twelfthMarks || student?.twelfthMarks || "",
     skills: existing?.skills || student?.skills || [],
+    skillCategories: existing?.skillCategories ||
+    // Purane flat skills ko ek default category mein convert karo
+    (student?.skills?.length > 0
+      ? [{ label: "Skills", skills: (student.skills || []).join(", ") }]
+      : [{ label: "", skills: "" }]),
     experience: (existing?.experience || []).map((e) => ({
       ...e,
       id: e.id || Date.now() + Math.random(),
@@ -386,39 +391,68 @@ export default function ResumeBuilder({ student, onClose, onGenerated }) {
               descPlaceholder="Brief description..."
             />
 
-            {/* Skills */}
+            {/* Skills & Categories */}
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-[#64748B] mb-2">
-                Skills
+                Core Competencies
               </p>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {form.skills.map((s) => (
-                  <span
-                    key={s}
-                    className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-[#3B82F6] border border-blue-200"
-                  >
-                    {s}
-                    <button onClick={() => removeSkill(s)}>
-                      <X size={11} />
-                    </button>
-                  </span>
-                ))}
-              </div>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <input
-                  value={newSkill}
-                  onChange={(e) => setNewSkill(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && addSkill()}
-                  placeholder="Type a skill and press Enter"
-                  className="flex-1 px-3 py-2 rounded-xl border border-[#E2E8F0] text-sm bg-[#F8FAFC] focus:outline-none focus:border-[#3B82F6]"
-                />
-                <button
-                  onClick={addSkill}
-                  className="px-3 py-2 rounded-xl bg-[#3B82F6] text-white text-sm font-semibold flex items-center justify-center gap-1"
+              <p className="text-xs text-[#94A3B8] mb-3">
+                Add skill categories (e.g. Languages, Frontend, Backend &
+                Databases, Tools)
+              </p>
+
+              {form.skillCategories?.map((cat, idx) => (
+                <div
+                  key={idx}
+                  className="flex flex-col sm:flex-row gap-2 mb-2 items-start"
                 >
-                  <Plus size={14} /> Add
-                </button>
-              </div>
+                  <input
+                    placeholder="Category (e.g. Frontend)"
+                    value={cat.label}
+                    onChange={(e) => {
+                      const updated = [...form.skillCategories];
+                      updated[idx].label = e.target.value;
+                      update({ skillCategories: updated });
+                    }}
+                    className="w-full sm:w-40 px-3 py-2 rounded-xl border border-[#E2E8F0] text-sm bg-[#F8FAFC] focus:outline-none focus:border-[#3B82F6] shrink-0"
+                  />
+                  <input
+                    placeholder="Skills (comma separated)"
+                    value={cat.skills}
+                    onChange={(e) => {
+                      const updated = [...form.skillCategories];
+                      updated[idx].skills = e.target.value;
+                      update({ skillCategories: updated });
+                    }}
+                    className="flex-1 px-3 py-2 rounded-xl border border-[#E2E8F0] text-sm bg-[#F8FAFC] focus:outline-none focus:border-[#3B82F6]"
+                  />
+                  <button
+                    onClick={() => {
+                      const updated = form.skillCategories.filter(
+                        (_, i) => i !== idx,
+                      );
+                      update({ skillCategories: updated });
+                    }}
+                    className="text-[#94A3B8] hover:text-red-500 mt-2 sm:mt-0 shrink-0"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+
+              <button
+                onClick={() =>
+                  update({
+                    skillCategories: [
+                      ...(form.skillCategories || []),
+                      { label: "", skills: "" },
+                    ],
+                  })
+                }
+                className="flex items-center gap-1 text-xs font-semibold text-[#3B82F6] hover:underline mt-1"
+              >
+                <Plus size={12} /> Add Category
+              </button>
             </div>
           </div>
         )}

@@ -466,483 +466,718 @@ const uploadResume = async (req, res) => {
 
 //=================== GENERATE RESUME (Build-in-app) =================
 const generateResume = async (req, res) => {
-  try {
-    const {
-      name,
-      email,
-      phone,
-      city,
-      linkedinUrl,
-      githubUrl,
-      codingProfileUrl,
-      about,
-      college,
-      branch,
-      cgpa,
-      batch,
-      tenthMarks,
-      twelfthMarks,
-      skills = [],
-      experience = [],
-      projects = [],
-      achievements = [],
-      certifications = [],
-      template = "dbuu",
-    } = req.body;
+  const path = require("path");
+  const fs = require("fs");
 
-    if (!name || !email) {
-      return res.status(400).json({ message: "Name and email are required" });
-    }
+  const generateResume = async (req, res) => {
+    try {
+      const {
+        name,
+        email,
+        phone,
+        city,
+        linkedinUrl,
+        githubUrl,
+        codingProfileUrl,
+        about,
+        college,
+        branch,
+        cgpa,
+        batch,
+        tenthMarks,
+        twelfthMarks,
+        skillCategories = [],
+        skills = [],
+        experience = [],
+        projects = [],
+        achievements = [],
+        certifications = [],
+        template = "dbuu",
+      } = req.body;
 
-    const ACCENTS = {
-      dbuu: "#1a3a8f",
-      minimal: "#1E293B",
-      classic: "#334155",
-    };
-    const accent = ACCENTS[template] || ACCENTS.dbuu;
-    const font = template === "classic" ? "Times-Roman" : "Helvetica";
-    const fontBold = template === "classic" ? "Times-Bold" : "Helvetica-Bold";
+      if (!name || !email) {
+        return res.status(400).json({ message: "Name and email are required" });
+      }
 
-    const doc = new PDFDocument({ margin: 50 });
-    const buffers = [];
-    doc.on("data", (chunk) => buffers.push(chunk));
+      const ACCENTS = {
+        dbuu: "#1a3a8f",
+        minimal: "#1E293B",
+        classic: "#334155",
+      };
+      const accent = ACCENTS[template] || ACCENTS.dbuu;
+      const font = template === "classic" ? "Times-Roman" : "Helvetica";
+      const fontBold = template === "classic" ? "Times-Bold" : "Helvetica-Bold";
 
-    await new Promise((resolve) => {
-      doc.on("end", resolve);
+      const doc = new PDFDocument({ margin: 50, size: "A4" });
+      const buffers = [];
+      doc.on("data", (chunk) => buffers.push(chunk));
 
-      const pageWidth = doc.page.width;
-      const contentWidth = pageWidth - 100;
+      await new Promise((resolve) => {
+        doc.on("end", resolve);
 
-      if (template === "dbuu") {
-        const dbBlue = "#1a3a8f";
+        const pageWidth = doc.page.width;
+        const contentWidth = pageWidth - 100;
+        const LEFT = 50;
+        const RIGHT = pageWidth - 50;
 
-        // ── DBUU Logo + University name ──
-        doc.circle(56, 46, 12).fill(dbBlue);
-        doc
-          .fillColor("#FFFFFF")
-          .font("Helvetica-Bold")
-          .fontSize(7)
-          .text("DBUU", 47, 43);
-        doc
-          .fillColor(dbBlue)
-          .font("Helvetica-Bold")
-          .fontSize(8.5)
-          .text("DEV BHOOMI UTTARAKHAND UNIVERSITY", 74, 43);
+        if (template === "dbuu") {
+          const dbBlue = "#1a3a8f";
+          const logoPath = path.join(
+            __dirname,
+            "../../../PR/public/images/dbuu-logo.jpeg",
+          );
 
-        doc
-          .moveTo(50, 63)
-          .lineTo(pageWidth - 50, 63)
-          .strokeColor("#CBD5E1")
-          .lineWidth(0.5)
-          .stroke();
-
-        doc.y = 72;
-
-        // ── Student Name ──
-        doc
-          .fillColor("#1E293B")
-          .font("Helvetica-Bold")
-          .fontSize(20)
-          .text(name.toUpperCase(), 50, doc.y);
-
-        doc.moveDown(0.3);
-
-        // ── Branch | Batch | University ──
-        const metaLine = [branch, batch ? `Batch ${batch}` : null, college]
-          .filter(Boolean)
-          .join("   |   ");
-        doc
-          .font("Helvetica-Bold")
-          .fontSize(9.5)
-          .fillColor("#1E293B")
-          .text(metaLine, 50, doc.y, { width: contentWidth });
-
-        doc.moveDown(0.2);
-
-        // ── Contact line ──
-        const contactParts = [
-          city,
-          phone,
-          email,
-          linkedinUrl,
-          githubUrl,
-        ].filter(Boolean);
-        doc
-          .font("Helvetica")
-          .fontSize(8.5)
-          .fillColor("#475569")
-          .text(contactParts.join("   |   "), 50, doc.y, {
-            width: contentWidth,
-            lineGap: 2,
-          });
-
-        doc.moveDown(0.4);
-
-        // ── Summary banner ──
-        if (about) {
-          const bannerY = doc.y;
-          const bannerHeight = 24;
-          doc.rect(50, bannerY, contentWidth, bannerHeight).fill(dbBlue);
+          // ── Logo + University Name ──
+          let headerY = 36;
+          if (fs.existsSync(logoPath)) {
+            doc.image(logoPath, LEFT, headerY, { width: 36, height: 36 });
+          }
           doc
-            .fillColor("#FFFFFF")
-            .font("Helvetica-Bold")
-            .fontSize(8.5)
-            .text(about, 56, bannerY + 7, {
-              width: contentWidth - 12,
-              align: "center",
-              lineGap: 2,
-            });
-          doc.y = bannerY + bannerHeight + 8;
-        }
-
-        // ── Section header ──
-        const dbSection = (title) => {
-          doc.moveDown(0.5);
-          const sy = doc.y;
-          doc.rect(50, sy, contentWidth, 14).fill(dbBlue);
-          doc
-            .fillColor("#FFFFFF")
+            .fillColor(dbBlue)
             .font("Helvetica-Bold")
             .fontSize(9)
-            .text(title.toUpperCase(), 54, sy + 3, { width: contentWidth - 8 });
-          doc.y = sy + 18;
-          doc.fillColor("#1E293B").font("Helvetica").fontSize(9);
-        };
+            .text("DEV BHOOMI UTTARAKHAND UNIVERSITY", LEFT + 44, headerY + 13);
 
-        // ── Table row helper ──
-        const tableRow = (left, right, isHeader = false) => {
-          const col1 = 50,
-            col2 = 230,
-            col3 = 370,
-            col4 = 490;
-          const rowH = 14;
-          const rowY = doc.y;
-          if (isHeader) {
-            doc.rect(50, rowY, contentWidth, rowH).fill("#E8ECF5");
-            doc.fillColor("#1E293B").font("Helvetica-Bold").fontSize(8.5);
-          } else {
+          // Horizontal rule
+          doc
+            .moveTo(LEFT, 78)
+            .lineTo(RIGHT, 78)
+            .strokeColor("#CBD5E1")
+            .lineWidth(0.5)
+            .stroke();
+
+          doc.y = 86;
+
+          // ── Student Name ──
+          doc
+            .fillColor("#1E293B")
+            .font("Helvetica-Bold")
+            .fontSize(22)
+            .text(name.toUpperCase(), LEFT, doc.y);
+
+          doc.moveDown(0.25);
+
+          // ── Branch | Batch | University ──
+          const metaLine = [branch, batch ? `Batch ${batch}` : null, college]
+            .filter(Boolean)
+            .join("   |   ");
+          doc
+            .font("Helvetica-Bold")
+            .fontSize(9.5)
+            .fillColor("#1E293B")
+            .text(metaLine, LEFT, doc.y, { width: contentWidth });
+
+          doc.moveDown(0.2);
+
+          // ── Contact line ──
+          const contactParts = [
+            city,
+            phone,
+            email,
+            linkedinUrl,
+            githubUrl,
+          ].filter(Boolean);
+          doc
+            .font("Helvetica")
+            .fontSize(8.5)
+            .fillColor("#475569")
+            .text(contactParts.join("   |   "), LEFT, doc.y, {
+              width: contentWidth,
+              lineGap: 1.5,
+            });
+
+          doc.moveDown(0.35);
+
+          // ── Summary banner ──
+          if (about) {
+            const bannerY = doc.y;
+            // Measure text height
+            const bannerPadV = 6;
+            const bannerPadH = 8;
+            const bannerTextWidth = contentWidth - bannerPadH * 2;
+            // Calculate height needed
+            const textHeight = doc
+              .font("Helvetica-Bold")
+              .fontSize(8.5)
+              .heightOfString(about, { width: bannerTextWidth });
+            const bannerHeight = textHeight + bannerPadV * 2;
+
+            doc.rect(LEFT, bannerY, contentWidth, bannerHeight).fill(dbBlue);
             doc
-              .moveTo(50, rowY)
-              .lineTo(pageWidth - 50, rowY)
-              .strokeColor("#E2E8F0")
-              .lineWidth(0.3)
-              .stroke();
-            doc.fillColor("#1E293B").font("Helvetica").fontSize(8.5);
+              .fillColor("#FFFFFF")
+              .font("Helvetica-Bold")
+              .fontSize(8.5)
+              .text(about, LEFT + bannerPadH, bannerY + bannerPadV, {
+                width: bannerTextWidth,
+                align: "center",
+                lineGap: 2,
+              });
+            doc.y = bannerY + bannerHeight + 6;
           }
-          if (Array.isArray(left)) {
-            doc.text(left[0] || "", col1 + 3, rowY + 3, {
-              width: col2 - col1 - 6,
+
+          // ── Section header ──
+          const dbSection = (title) => {
+            doc.moveDown(0.4);
+            const sy = doc.y;
+            doc.rect(LEFT, sy, contentWidth, 15).fill(dbBlue);
+            doc
+              .fillColor("#FFFFFF")
+              .font("Helvetica-Bold")
+              .fontSize(9)
+              .text(title.toUpperCase(), LEFT + 4, sy + 3.5, {
+                width: contentWidth - 8,
+              });
+            doc.y = sy + 19;
+          };
+
+          // ── Table helpers ──
+          const COL1 = LEFT;
+          const COL2 = LEFT + 130; // Institute
+          const COL3 = LEFT + 320; // % / CGPA
+          const COL4 = LEFT + 420; // Year
+
+          const drawTableBorder = (y, h) => {
+            // outer border
+            doc
+              .rect(COL1, y, contentWidth, h)
+              .strokeColor("#CBD5E1")
+              .lineWidth(0.4)
+              .stroke();
+            // col dividers
+            [COL2, COL3, COL4].forEach((cx) => {
+              doc
+                .moveTo(cx, y)
+                .lineTo(cx, y + h)
+                .strokeColor("#CBD5E1")
+                .lineWidth(0.4)
+                .stroke();
             });
-            doc.text(left[1] || "", col2 + 3, rowY + 3, {
-              width: col3 - col2 - 6,
+          };
+
+          const academicRow = (deg, inst, perc, year, isHeader = false) => {
+            const rowH = 16;
+            const rowY = doc.y;
+            if (isHeader) {
+              doc.rect(COL1, rowY, contentWidth, rowH).fill("#E8ECF5");
+              doc.font("Helvetica-Bold").fontSize(8.5).fillColor("#1E293B");
+            } else {
+              doc.font("Helvetica").fontSize(8.5).fillColor("#1E293B");
+            }
+            const pad = 3;
+            doc.text(deg, COL1 + pad, rowY + pad + 1, {
+              width: COL2 - COL1 - pad * 2,
             });
-            doc.text(left[2] || "", col3 + 3, rowY + 3, {
-              width: col4 - col3 - 6,
+            doc.text(inst, COL2 + pad, rowY + pad + 1, {
+              width: COL3 - COL2 - pad * 2,
             });
-            doc.text(right || "", col4 + 3, rowY + 3, {
-              width: pageWidth - 50 - col4 - 6,
+            doc.text(perc, COL3 + pad, rowY + pad + 1, {
+              width: COL4 - COL3 - pad * 2,
             });
-          } else {
+            doc.text(year, COL4 + pad, rowY + pad + 1, {
+              width: RIGHT - COL4 - pad,
+            });
+            doc.y = rowY + rowH;
+            return rowH;
+          };
+
+          // ── Academic Record ──
+          dbSection("Academic Record");
+          const tableStartY = doc.y;
+          let totalTableH = 0;
+          totalTableH += academicRow(
+            "Degree",
+            "Institute / Board",
+            "% / CGPA",
+            "Year",
+            true,
+          );
+          const batchYear = batch ? batch.split(/[-–]/)[1]?.trim() : "";
+          totalTableH += academicRow(
+            `B.Tech (${branch || "—"})`,
+            college || "—",
+            cgpa ? `${cgpa}` : "—",
+            batchYear ? `${batchYear} (Exp.)` : "—",
+          );
+          if (twelfthMarks)
+            totalTableH += academicRow(
+              "XII (CBSE)",
+              "—",
+              `${twelfthMarks}%`,
+              "2023",
+            );
+          if (tenthMarks)
+            totalTableH += academicRow(
+              "X (CBSE)",
+              "—",
+              `${tenthMarks}%`,
+              "2021",
+            );
+          drawTableBorder(tableStartY, totalTableH);
+
+          // ── Core Competencies ──
+          const cats = skillCategories.filter((c) => c.label || c.skills);
+          if (cats.length > 0) {
+            dbSection("Core Competencies");
+            const compStartY = doc.y;
+            let compH = 0;
+            const LABEL_COL = LEFT;
+            const VALUE_COL = LEFT + 180;
+            const valueWidth = RIGHT - VALUE_COL - 4;
+
+            cats.forEach((cat, i) => {
+              const rowY = doc.y;
+              const valueText = cat.skills || "";
+              const labelText = (cat.label || "").toUpperCase();
+
+              const rowH = Math.max(
+                16,
+                doc
+                  .font("Helvetica")
+                  .fontSize(8.5)
+                  .heightOfString(valueText, { width: valueWidth }) + 8,
+              );
+
+              // alternating light bg
+              if (i % 2 === 1) {
+                doc.rect(LEFT, rowY, contentWidth, rowH).fill("#F8FAFC");
+              }
+
+              doc
+                .font("Helvetica-Bold")
+                .fontSize(8.5)
+                .fillColor(dbBlue)
+                .text(labelText, LABEL_COL + 4, rowY + 4, {
+                  width: VALUE_COL - LABEL_COL - 8,
+                });
+              doc
+                .font("Helvetica")
+                .fontSize(8.5)
+                .fillColor("#1E293B")
+                .text(valueText, VALUE_COL + 4, rowY + 4, {
+                  width: valueWidth,
+                  lineGap: 1.5,
+                });
+
+              doc.y = rowY + rowH;
+              compH += rowH;
+            });
+
+            // border + col divider
+            doc
+              .rect(LEFT, compStartY, contentWidth, compH)
+              .strokeColor("#CBD5E1")
+              .lineWidth(0.4)
+              .stroke();
+            doc
+              .moveTo(VALUE_COL, compStartY)
+              .lineTo(VALUE_COL, compStartY + compH)
+              .strokeColor("#CBD5E1")
+              .lineWidth(0.4)
+              .stroke();
+          } else if (skills.length > 0) {
+            // fallback: flat skills
+            dbSection("Core Competencies");
+            const rowY = doc.y;
+            const rowH = 16;
+            doc.rect(LEFT, rowY, contentWidth, rowH).fill("#F8FAFC");
             doc
               .font("Helvetica-Bold")
               .fontSize(8.5)
               .fillColor(dbBlue)
-              .text(left || "", col1 + 3, rowY + 3, { width: col2 - col1 - 6 });
+              .text("SKILLS", LEFT + 4, rowY + 4, { width: 170 });
             doc
               .font("Helvetica")
               .fontSize(8.5)
               .fillColor("#1E293B")
-              .text(right || "", col2 + 3, rowY + 3, {
-                width: contentWidth - (col2 - col1) - 6,
+              .text(skills.join(", "), LEFT + 184, rowY + 4, {
+                width: contentWidth - 184,
               });
-          }
-          doc.y = rowY + rowH;
-        };
-
-        // ── Academic Record ──
-        dbSection("Academic Record");
-        tableRow(["Degree", "Institute / Board", "% / CGPA"], "Year", true);
-        const batchYear = batch ? batch.split(/[-–]/)[1]?.trim() : "";
-        tableRow(
-          [`B.Tech (${branch || "—"})`, college || "—", cgpa || "—"],
-          batchYear ? `${batchYear} (Exp.)` : "—",
-        );
-        if (twelfthMarks) tableRow(["XII (CBSE)", "—", `${twelfthMarks}%`], "");
-        if (tenthMarks) tableRow(["X (CBSE)", "—", `${tenthMarks}%`], "");
-
-        // ── Core Competencies ──
-        if (skills.length > 0) {
-          dbSection("Core Competencies");
-          tableRow("Skills", skills.join(", "), false);
-        }
-
-        // ── Projects ──
-        if (projects.length > 0) {
-          dbSection("Projects");
-          projects.forEach((p) => {
+            doc.y = rowY + rowH;
             doc
-              .font("Helvetica-Bold")
-              .fontSize(9.5)
-              .fillColor("#1E293B")
-              .text(
-                `${p.title || "—"}${p.subtitle ? `   |   ${p.subtitle}` : ""}`,
-                50,
-                doc.y,
-                { width: contentWidth - 100 },
-              );
-            if (p.desc) {
+              .rect(LEFT, rowY, contentWidth, rowH)
+              .strokeColor("#CBD5E1")
+              .lineWidth(0.4)
+              .stroke();
+          }
+
+          // ── Projects ──
+          if (projects.length > 0) {
+            dbSection("Projects");
+            projects.forEach((p) => {
+              // Title row
+              const titleY = doc.y;
               doc
-                .moveTo(50, doc.y + 1)
-                .lineTo(pageWidth - 50, doc.y + 1)
-                .strokeColor("#E2E8F0")
-                .lineWidth(0.3)
-                .stroke();
-              doc.moveDown(0.2);
-              p.desc
-                .split("\n")
-                .filter(Boolean)
-                .forEach((line) => {
+                .font("Helvetica-Bold")
+                .fontSize(9.5)
+                .fillColor("#1E293B")
+                .text(
+                  `${p.title || "—"}${p.subtitle ? `   |   ${p.subtitle}` : ""}`,
+                  LEFT,
+                  titleY,
+                  { width: contentWidth - 120, continued: false },
+                );
+              // URL italic right
+              if (p.period) {
+                doc
+                  .font("Helvetica-Oblique")
+                  .fontSize(8.5)
+                  .fillColor("#64748B")
+                  .text(p.period, RIGHT - 130, titleY, {
+                    width: 130,
+                    align: "right",
+                  });
+              }
+              doc.y = Math.max(doc.y, titleY + 14);
+
+              if (p.desc) {
+                const lines = p.desc.split("\n").filter(Boolean);
+                lines.forEach((line) => {
                   doc
                     .font("Helvetica")
                     .fontSize(9)
                     .fillColor("#1E293B")
-                    .text(`▪ ${line.replace(/^[•▪-]\s*/, "")}`, 60, doc.y, {
-                      width: contentWidth - 10,
-                      lineGap: 2,
-                    });
+                    .text(
+                      `▪ ${line.replace(/^[•▪\-]\s*/, "")}`,
+                      LEFT + 10,
+                      doc.y,
+                      {
+                        width: contentWidth - 10,
+                        lineGap: 2,
+                      },
+                    );
                 });
-            }
-            doc.moveDown(0.4);
-          });
-        }
+              }
+              doc.moveDown(0.4);
+            });
+          }
 
-        // ── Experience ──
-        if (experience.length > 0) {
-          dbSection("Experience");
-          experience.forEach((e) => {
-            doc
-              .font("Helvetica-Bold")
-              .fontSize(9.5)
-              .fillColor("#1E293B")
-              .text(e.title || "—", 50, doc.y, { width: contentWidth - 100 });
-            if (e.subtitle) {
+          // ── Experience ──
+          if (experience.length > 0) {
+            dbSection("Experience");
+            experience.forEach((e) => {
+              const titleY = doc.y;
+              doc
+                .font("Helvetica-Bold")
+                .fontSize(9.5)
+                .fillColor("#1E293B")
+                .text(e.title || "—", LEFT, titleY, {
+                  width: contentWidth - 120,
+                });
+              if (e.period) {
+                doc
+                  .font("Helvetica")
+                  .fontSize(8.5)
+                  .fillColor("#64748B")
+                  .text(e.period, RIGHT - 130, titleY, {
+                    width: 130,
+                    align: "right",
+                  });
+              }
+              doc.y = Math.max(doc.y, titleY + 14);
+              if (e.subtitle) {
+                doc
+                  .font("Helvetica")
+                  .fontSize(9)
+                  .fillColor("#64748B")
+                  .text(e.subtitle, LEFT, doc.y, {
+                    width: contentWidth,
+                    lineGap: 1.5,
+                  });
+              }
+              if (e.desc) {
+                e.desc
+                  .split("\n")
+                  .filter(Boolean)
+                  .forEach((line) => {
+                    doc
+                      .font("Helvetica")
+                      .fontSize(9)
+                      .fillColor("#1E293B")
+                      .text(
+                        `▪ ${line.replace(/^[•▪\-]\s*/, "")}`,
+                        LEFT + 10,
+                        doc.y,
+                        {
+                          width: contentWidth - 10,
+                          lineGap: 2,
+                        },
+                      );
+                  });
+              }
+              doc.moveDown(0.4);
+            });
+          }
+
+          // ── Certifications ──
+          if (certifications.length > 0) {
+            dbSection("Certifications");
+            const certStartY = doc.y;
+            let certH = 0;
+            const VALUE_COL = LEFT + 180;
+            certifications.forEach((c, i) => {
+              const rowY = doc.y;
+              const rowH = 16;
+              if (i % 2 === 1)
+                doc.rect(LEFT, rowY, contentWidth, rowH).fill("#F8FAFC");
+              doc
+                .font("Helvetica-Bold")
+                .fontSize(8.5)
+                .fillColor(dbBlue)
+                .text((c.title || "—").toUpperCase(), LEFT + 4, rowY + 4, {
+                  width: VALUE_COL - LEFT - 8,
+                });
               doc
                 .font("Helvetica")
+                .fontSize(8.5)
+                .fillColor("#1E293B")
+                .text(c.subtitle || "—", VALUE_COL + 4, rowY + 4, {
+                  width: RIGHT - VALUE_COL - 8,
+                });
+              doc.y = rowY + rowH;
+              certH += rowH;
+            });
+            doc
+              .rect(LEFT, certStartY, contentWidth, certH)
+              .strokeColor("#CBD5E1")
+              .lineWidth(0.4)
+              .stroke();
+            doc
+              .moveTo(LEFT + 180, certStartY)
+              .lineTo(LEFT + 180, certStartY + certH)
+              .strokeColor("#CBD5E1")
+              .lineWidth(0.4)
+              .stroke();
+          }
+
+          // ── Achievements ──
+          if (achievements.length > 0) {
+            dbSection("Achievements");
+            const achStartY = doc.y;
+            let achH = 0;
+            const VALUE_COL = LEFT + 180;
+
+            achievements.forEach((a, i) => {
+              const rowY = doc.y;
+              const valueText = a.desc || "";
+              const rowH = Math.max(
+                20,
+                doc
+                  .font("Helvetica")
+                  .fontSize(9)
+                  .heightOfString(valueText, {
+                    width: RIGHT - VALUE_COL - 8,
+                  }) + 10,
+              );
+              if (i % 2 === 1)
+                doc.rect(LEFT, rowY, contentWidth, rowH).fill("#F8FAFC");
+
+              doc
+                .font("Helvetica-Bold")
+                .fontSize(8.5)
+                .fillColor(dbBlue)
+                .text((a.title || "").toUpperCase(), LEFT + 4, rowY + 5, {
+                  width: VALUE_COL - LEFT - 8,
+                });
+
+              if (a.desc) {
+                const lines = a.desc.split("\n").filter(Boolean);
+                let bulletY = rowY + 5;
+                lines.forEach((line) => {
+                  doc
+                    .font("Helvetica")
+                    .fontSize(8.5)
+                    .fillColor("#1E293B")
+                    .text(
+                      `• ${line.replace(/^[•▪\-]\s*/, "")}`,
+                      VALUE_COL + 4,
+                      bulletY,
+                      {
+                        width: RIGHT - VALUE_COL - 8,
+                        lineGap: 2,
+                      },
+                    );
+                  bulletY = doc.y;
+                });
+              }
+              doc.y = rowY + rowH;
+              achH += rowH;
+            });
+
+            doc
+              .rect(LEFT, achStartY, contentWidth, achH)
+              .strokeColor("#CBD5E1")
+              .lineWidth(0.4)
+              .stroke();
+            doc
+              .moveTo(VALUE_COL, achStartY)
+              .lineTo(VALUE_COL, achStartY + achH)
+              .strokeColor("#CBD5E1")
+              .lineWidth(0.4)
+              .stroke();
+          }
+
+          doc.end();
+          return;
+        }
+
+        // ── Minimal + Classic ──
+        doc.fillColor(accent).font(fontBold).fontSize(20);
+        doc.text(name, { align: "left" });
+        doc.font(font).fontSize(10).fillColor("#475569");
+        const contactLine = [email, phone, city]
+          .filter(Boolean)
+          .join("   |   ");
+        doc.text(contactLine);
+        if (linkedinUrl) doc.fillColor(accent).text(linkedinUrl);
+        doc.moveDown(0.3);
+        doc
+          .moveTo(LEFT, doc.y)
+          .lineTo(RIGHT, doc.y)
+          .strokeColor(accent)
+          .lineWidth(1)
+          .stroke();
+        doc.moveDown(0.8);
+        doc.fillColor("#1E293B");
+
+        const sectionHeader = (title) => {
+          doc.moveDown(0.8);
+          doc.font(fontBold).fontSize(12).fillColor(accent);
+          doc.text(title.toUpperCase());
+          doc
+            .moveTo(LEFT, doc.y + 2)
+            .lineTo(RIGHT, doc.y + 2)
+            .strokeColor(accent)
+            .lineWidth(0.5)
+            .stroke();
+          doc.moveDown(0.6);
+          doc.fillColor("#1E293B").font(font).fontSize(10);
+        };
+
+        if (about) {
+          sectionHeader("Summary");
+          doc.font(font).fontSize(10).text(about, { lineGap: 3 });
+        }
+
+        sectionHeader("Education");
+        doc
+          .font(fontBold)
+          .fontSize(10.5)
+          .text(college || "—");
+        doc
+          .font(font)
+          .fontSize(10)
+          .fillColor("#475569")
+          .text(`${branch || "—"}   |   CGPA: ${cgpa || "—"}`);
+        doc.fillColor("#1E293B");
+
+        const renderEntries = (label, entries) => {
+          if (!entries || entries.length === 0) return;
+          sectionHeader(label);
+          entries.forEach((e, idx) => {
+            const titleY = doc.y;
+            doc.font(fontBold).fontSize(10.5).fillColor("#1E293B");
+            doc.text(e.title || "—", LEFT, titleY, { width: pageWidth - 250 });
+            const afterTitleY = doc.y;
+            if (e.period) {
+              doc
+                .font(font)
                 .fontSize(9)
                 .fillColor("#64748B")
-                .text(e.subtitle, 50, doc.y, { width: contentWidth });
+                .text(e.period, pageWidth - 200, titleY, {
+                  width: 150,
+                  align: "right",
+                });
+            }
+            doc.x = LEFT;
+            doc.y = Math.max(afterTitleY, doc.y);
+            if (e.subtitle) {
+              doc
+                .font(font)
+                .fontSize(9.5)
+                .fillColor("#64748B")
+                .text(e.subtitle, LEFT, doc.y, {
+                  width: pageWidth - 100,
+                  lineGap: 2,
+                });
             }
             if (e.desc) {
-              e.desc
-                .split("\n")
-                .filter(Boolean)
-                .forEach((line) => {
-                  doc
-                    .font("Helvetica")
-                    .fontSize(9)
-                    .fillColor("#1E293B")
-                    .text(`▪ ${line.replace(/^[•▪-]\s*/, "")}`, 60, doc.y, {
-                      width: contentWidth - 10,
-                      lineGap: 2,
-                    });
+              doc
+                .font(font)
+                .fontSize(9.5)
+                .fillColor("#1E293B")
+                .text(e.desc, LEFT, doc.y, {
+                  width: pageWidth - 100,
+                  lineGap: 2,
                 });
             }
-            doc.moveDown(0.4);
+            if (idx < entries.length - 1) doc.moveDown(0.5);
           });
-        }
+        };
 
-        // ── Certifications ──
-        if (certifications.length > 0) {
-          dbSection("Certifications");
-          certifications.forEach((c) => {
-            tableRow(c.title || "—", c.subtitle || "—", false);
-          });
-        }
+        renderEntries("Experience", experience);
+        renderEntries("Projects", projects);
 
-        // ── Achievements ──
-        if (achievements.length > 0) {
-          dbSection("Achievements");
-          achievements.forEach((a) => {
-            const aY = doc.y;
-            doc
-              .font("Helvetica-Bold")
-              .fontSize(9)
-              .fillColor(dbBlue)
-              .text(a.title || "—", 50, aY, { width: 150 });
-            if (a.desc) {
-              a.desc
-                .split("\n")
-                .filter(Boolean)
-                .forEach((line) => {
-                  doc
-                    .font("Helvetica")
-                    .fontSize(9)
-                    .fillColor("#1E293B")
-                    .text(`• ${line.replace(/^[•▪-]\s*/, "")}`, 210, doc.y, {
-                      width: contentWidth - 160,
-                      lineGap: 2,
-                    });
-                });
-            }
-            doc.moveDown(0.3);
-          });
+        if (skills.length > 0) {
+          sectionHeader("Skills");
+          doc.font(font).fontSize(10).fillColor("#1E293B");
+          doc.text(skills.join("   •   "), { lineGap: 3 });
         }
 
         doc.end();
-        return;
-      }
+      });
 
-      // ── Minimal + Classic templates ──
-      doc.fillColor(accent).font(fontBold).fontSize(20);
-      doc.text(name, { align: "left" });
-      doc.font(font).fontSize(10).fillColor("#475569");
-      const contactLine = [email, phone, city].filter(Boolean).join("   |   ");
-      doc.text(contactLine);
-      if (linkedinUrl) doc.fillColor(accent).text(linkedinUrl);
-      doc.moveDown(0.3);
-      doc
-        .moveTo(50, doc.y)
-        .lineTo(pageWidth - 50, doc.y)
-        .strokeColor(accent)
-        .lineWidth(1)
-        .stroke();
-      doc.moveDown(0.8);
-      doc.fillColor("#1E293B");
+      const buffer = Buffer.concat(buffers);
 
-      const sectionHeader = (title) => {
-        doc.moveDown(0.8);
-        doc.font(fontBold).fontSize(12).fillColor(accent);
-        doc.text(title.toUpperCase());
-        doc
-          .moveTo(50, doc.y + 2)
-          .lineTo(pageWidth - 50, doc.y + 2)
-          .strokeColor(accent)
-          .lineWidth(0.5)
-          .stroke();
-        doc.moveDown(0.6);
-        doc.fillColor("#1E293B").font(font).fontSize(10);
-      };
+      const uploadResult = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: "placerise/resumes",
+            resource_type: "raw",
+            format: "pdf",
+            public_id: `resume_${name.replace(/[^a-zA-Z0-9_-]/g, "_")}_${Date.now()}`,
+          },
+          (error, result) => (error ? reject(error) : resolve(result)),
+        );
+        Readable.from(buffer).pipe(stream);
+      });
 
-      if (about) {
-        sectionHeader("Summary");
-        doc.font(font).fontSize(10).text(about, { lineGap: 3 });
-      }
-
-      sectionHeader("Education");
-      doc
-        .font(fontBold)
-        .fontSize(10.5)
-        .text(college || "—");
-      doc
-        .font(font)
-        .fontSize(10)
-        .fillColor("#475569")
-        .text(`${branch || "—"}   |   CGPA: ${cgpa || "—"}`);
-      doc.fillColor("#1E293B");
-
-      const renderEntries = (label, entries) => {
-        if (!entries || entries.length === 0) return;
-        sectionHeader(label);
-        entries.forEach((e, idx) => {
-          const titleY = doc.y;
-          doc.font(fontBold).fontSize(10.5).fillColor("#1E293B");
-          doc.text(e.title || "—", 50, titleY, { width: pageWidth - 250 });
-          const afterTitleY = doc.y;
-          if (e.period) {
-            doc
-              .font(font)
-              .fontSize(9)
-              .fillColor("#64748B")
-              .text(e.period, pageWidth - 200, titleY, {
-                width: 150,
-                align: "right",
-              });
-          }
-          doc.x = 50;
-          doc.y = Math.max(afterTitleY, doc.y);
-          if (e.subtitle) {
-            doc
-              .font(font)
-              .fontSize(9.5)
-              .fillColor("#64748B")
-              .text(e.subtitle, 50, doc.y, {
-                width: pageWidth - 100,
-                lineGap: 2,
-              });
-          }
-          if (e.desc) {
-            doc
-              .font(font)
-              .fontSize(9.5)
-              .fillColor("#1E293B")
-              .text(e.desc, 50, doc.y, { width: pageWidth - 100, lineGap: 2 });
-          }
-          if (idx < entries.length - 1) doc.moveDown(0.5);
-        });
-      };
-
-      renderEntries("Experience", experience);
-      renderEntries("Projects", projects);
-
-      if (skills.length > 0) {
-        sectionHeader("Skills");
-        doc.font(font).fontSize(10).fillColor("#1E293B");
-        doc.text(skills.join("   •   "), { lineGap: 3 });
-      }
-
-      doc.end();
-    });
-
-    const buffer = Buffer.concat(buffers);
-
-    const uploadResult = await new Promise((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
+      const student = await Student.findOneAndUpdate(
+        { userId: req.user.id },
         {
-          folder: "placerise/resumes",
-          resource_type: "raw",
-          format: "pdf",
-          public_id: `resume_${name.replace(/[^a-zA-Z0-9_-]/g, "_")}_${Date.now()}`,
+          resume: uploadResult.secure_url,
+          resumeSource: null,
+          resumeData: {
+            name,
+            email,
+            phone,
+            city,
+            linkedinUrl,
+            githubUrl,
+            codingProfileUrl,
+            about,
+            college,
+            branch,
+            cgpa,
+            batch,
+            tenthMarks,
+            twelfthMarks,
+            skillCategories,
+            skills,
+            experience,
+            projects,
+            achievements,
+            certifications,
+            template,
+          },
         },
-        (error, result) => (error ? reject(error) : resolve(result)),
+        { new: true },
       );
-      Readable.from(buffer).pipe(stream);
-    });
 
-    const student = await Student.findOneAndUpdate(
-      { userId: req.user.id },
-      {
-        resume: uploadResult.secure_url,
-        resumeSource: null,
-        resumeData: {
-          name,
-          email,
-          phone,
-          city,
-          linkedinUrl,
-          githubUrl,
-          codingProfileUrl,
-          about,
-          college,
-          branch,
-          cgpa,
-          batch,
-          tenthMarks,
-          twelfthMarks,
-          skills,
-          experience,
-          projects,
-          achievements,
-          certifications,
-          template,
-        },
-      },
-      { new: true },
-    );
-
-    res.json({ resumeUrl: uploadResult.secure_url, student });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+      res.json({ resumeUrl: uploadResult.secure_url, student });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  };
 };
 // ================== BULK IMPORT ==================
 const bulkImportStudents = async (req, res) => {
