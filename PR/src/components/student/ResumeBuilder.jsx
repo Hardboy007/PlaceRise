@@ -130,11 +130,12 @@ export default function ResumeBuilder({ student, onClose, onGenerated }) {
     tenthMarks: existing?.tenthMarks || student?.tenthMarks || "",
     twelfthMarks: existing?.twelfthMarks || student?.twelfthMarks || "",
     skills: existing?.skills || student?.skills || [],
-    skillCategories: existing?.skillCategories ||
-    // Purane flat skills ko ek default category mein convert karo
-    (student?.skills?.length > 0
-      ? [{ label: "Skills", skills: (student.skills || []).join(", ") }]
-      : [{ label: "", skills: "" }]),
+    skillCategories:
+      existing?.skillCategories ||
+      // Purane flat skills ko ek default category mein convert karo
+      (student?.skills?.length > 0
+        ? [{ label: "Skills", skills: (student.skills || []).join(", ") }]
+        : [{ label: "", skills: "" }]),
     experience: (existing?.experience || []).map((e) => ({
       ...e,
       id: e.id || Date.now() + Math.random(),
@@ -198,11 +199,12 @@ export default function ResumeBuilder({ student, onClose, onGenerated }) {
         },
       );
       const data = await res.json();
-if (data.student) {                 // ✅ resumeUrl ki jagah student check karo
-  onGenerated(data.student);
-} else {
-  alert(data.message || "Something went wrong generating your resume.");
-}
+      if (data.student) {
+        // ✅ resumeUrl ki jagah student check karo
+        onGenerated(data.student);
+      } else {
+        alert(data.message || "Something went wrong generating your resume.");
+      }
     } catch (err) {
       console.error(err);
       alert("Failed to generate resume.");
