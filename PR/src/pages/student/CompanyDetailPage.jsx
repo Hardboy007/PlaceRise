@@ -85,6 +85,7 @@ export default function CompanyDetailPage() {
   const [studentProfile, setStudentProfile] = useState(null);
   const [selectedRoleGroupId, setSelectedRoleGroupId] = useState(null);
   const [appliedRoleIds, setAppliedRoleIds] = useState(new Set());
+  const [selectedRoleGroupIds, setSelectedRoleGroupIds] = useState([]);
 
   const goBack = () => {
     if (window.history.length > 1) {
@@ -192,16 +193,18 @@ export default function CompanyDetailPage() {
   const submitApplication = async () => {
     setApplyLoading(true);
     try {
-      const res = await api.post("/applications", {
-        jobId: company._id,
-        roleGroupId: selectedRoleGroupId,
-      });
-      if (res.message) {
-        alert(res.message);
-      } else {
-        setApplied(true);
-        setShowApplyModal(false);
+      const roleIds = company.allowMultipleRoleApplications
+        ? selectedRoleGroupIds
+        : [selectedRoleGroupId];
+
+      for (const roleId of roleIds) {
+        await api.post("/applications", {
+          jobId: company._id,
+          roleGroupId: roleId,
+        });
       }
+      setApplied(true);
+      setShowApplyModal(false);
     } catch (err) {
       alert(err.message || "Something went wrong");
     }
@@ -850,7 +853,7 @@ export default function CompanyDetailPage() {
             {matchedRoles.length > 1 && (
               <div className="border border-[#E2E8F0] rounded-xl p-4 mb-4">
                 <p className="text-xs font-semibold text-[#64748B] uppercase tracking-widest mb-3">
-                  Select Role to Apply
+                  Select Role(s) to Apply
                 </p>
                 <div className="flex flex-col gap-2">
                   {matchedRoles.map((rg) => {
@@ -859,11 +862,12 @@ export default function CompanyDetailPage() {
                       alreadyApplied ||
                       (!company.allowMultipleRoleApplications &&
                         appliedRoleIds.size > 0);
+                    const isChecked = selectedRoleGroupIds?.includes(rg._id);
                     return (
                       <label
                         key={rg._id}
                         className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                          selectedRoleGroupId === rg._id
+                          isChecked
                             ? "border-[#1a3a8f] bg-[#EFF3FA]"
                             : isDisabled
                               ? "border-[#E2E8F0] bg-[#F8FAFC] opacity-50 cursor-not-allowed"
@@ -871,12 +875,30 @@ export default function CompanyDetailPage() {
                         }`}
                       >
                         <input
-                          type="radio"
+                          type={
+                            company.allowMultipleRoleApplications
+                              ? "checkbox"
+                              : "radio"
+                          }
                           name="roleGroup"
                           value={rg._id}
                           disabled={isDisabled}
-                          checked={selectedRoleGroupId === rg._id}
-                          onChange={() => setSelectedRoleGroupId(rg._id)}
+                          checked={
+                            company.allowMultipleRoleApplications
+                              ? isChecked
+                              : selectedRoleGroupId === rg._id
+                          }
+                          onChange={() => {
+                            if (company.allowMultipleRoleApplications) {
+                              setSelectedRoleGroupIds((prev) =>
+                                prev.includes(rg._id)
+                                  ? prev.filter((id) => id !== rg._id)
+                                  : [...prev, rg._id],
+                              );
+                            } else {
+                              setSelectedRoleGroupId(rg._id);
+                            }
+                          }}
                           className="accent-[#1a3a8f]"
                         />
                         <div className="flex-1 min-w-0">
@@ -975,14 +997,20 @@ export default function CompanyDetailPage() {
                   !studentProfile?.resume ||
                   !resumeConfirmed ||
                   applyLoading ||
-                  (matchedRoles.length > 1 && !selectedRoleGroupId)
+                  (matchedRoles.length > 1 &&
+                    (company.allowMultipleRoleApplications
+                      ? selectedRoleGroupIds.length === 0
+                      : !selectedRoleGroupId))
                 }
                 className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2
             ${
               !studentProfile?.resume ||
               !resumeConfirmed ||
               applyLoading ||
-              (matchedRoles.length > 1 && !selectedRoleGroupId)
+              (matchedRoles.length > 1 &&
+                (company.allowMultipleRoleApplications
+                  ? selectedRoleGroupIds.length === 0
+                  : !selectedRoleGroupId))
                 ? "bg-[#CBD5E1] text-white cursor-not-allowed"
                 : "bg-[#3B82F6] text-white hover:bg-[#2563EB]"
             }`}
