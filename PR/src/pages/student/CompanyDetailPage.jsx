@@ -857,7 +857,7 @@ export default function CompanyDetailPage() {
                 </p>
                 <div className="flex flex-col gap-2">
                   {matchedRoles.map((rg) => {
-                    const alreadyApplied = appliedRoleIds.has(rg._id);
+                    const alreadyApplied = appliedRoleIds.has(rg._id?.toString());
                     const isDisabled =
                       alreadyApplied ||
                       (!company.allowMultipleRoleApplications &&
