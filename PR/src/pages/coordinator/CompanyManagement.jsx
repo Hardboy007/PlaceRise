@@ -1265,7 +1265,8 @@ export default function CompanyManagementPage() {
       bondDetails: addJDForm.bondDetails.trim(),
       registrationLink: normalizeUrl(addJDForm.registrationLink),
       perks: addJDForm.perks,
-      allowMultipleRoleApplications: addJDForm.allowMultipleRoleApplications || false,
+      allowMultipleRoleApplications:
+        addJDForm.allowMultipleRoleApplications || false,
       roleGroups: addJDForm.roleGroups.map((rg) => ({
         eligibleBranches: rg.eligibleBranches,
         role: rg.role,
@@ -2187,7 +2188,47 @@ export default function CompanyManagementPage() {
                 <X size={14} className="text-[#64748B]" />
               </button>
             </div>
-            <div className="p-4 sm:p-5">
+            // WITH
+            <div className="p-4 sm:p-5 flex flex-col gap-4">
+              {/* PDF Upload */}
+              <div className="pb-4 border-b border-[#F1F5F9]">
+                <label className="block text-xs font-semibold text-text-muted uppercase tracking-widest mb-2">
+                  Job Description PDF{" "}
+                  <span className="normal-case font-normal text-[#94A3B8]">
+                    (optional)
+                  </span>
+                </label>
+                {jdTargetJob?.jdPdfUrl && (
+                  <a
+                    href={jdTargetJob.jdPdfUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1.5 text-xs text-[#1a3a8f] hover:underline mb-2"
+                  >
+                    <FileText size={12} /> View current PDF
+                  </a>
+                )}
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <span className="px-3 py-1.5 rounded-lg bg-[#EFF3FA] text-primary text-xs font-semibold border border-[#B8C6E3] hover:bg-[#E2E8F0] transition-colors flex-shrink-0">
+                    Choose PDF
+                  </span>
+                  <span className="text-xs text-[#94A3B8] truncate">
+                    {pdfFile ? pdfFile.name : "No file chosen"}
+                  </span>
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    onChange={(e) => setPdfFile(e.target.files[0] || null)}
+                    className="hidden"
+                  />
+                </label>
+                {pdfFile && (
+                  <p className="text-[10px] text-[#94A3B8] mt-1.5">
+                    Selected: {pdfFile.name}
+                  </p>
+                )}
+              </div>
+
               <JDFields form={jdForm} setForm={setJdForm} errors={jdErrors} />
             </div>
             <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 p-4 sm:p-5 border-t border-[#F1F5F9]">
