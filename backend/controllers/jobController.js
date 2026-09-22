@@ -148,10 +148,23 @@ const createJob = async (req, res) => {
 // PUT /api/jobs/:id
 const updateJob = async (req, res) => {
   try {
+    const existing = await JobPosting.findById(req.params.id);
+    if (!existing) return res.status(404).json({ message: "Job not found" });
+
+    // roleGroups ke existing _id preserve karo
+    if (req.body.roleGroups && existing.roleGroups) {
+      req.body.roleGroups = req.body.roleGroups.map((rg, i) => {
+        const existingRg = existing.roleGroups[i];
+        if (existingRg?._id) {
+          return { ...rg, _id: existingRg._id };
+        }
+        return rg;
+      });
+    }
+
     const job = await JobPosting.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     });
-    if (!job) return res.status(404).json({ message: "Job not found" });
     res.json(job);
   } catch (error) {
     res.status(500).json({ message: error.message });
