@@ -9,10 +9,10 @@ const TEMPLATES = [
     accent: "#1E293B",
   },
   {
-    id: "modern",
-    name: "Modern",
-    desc: "Bold header, color accents",
-    accent: "#3B82F6",
+    id: "dbuu",
+    name: "DBUU Official",
+    desc: "University format with logo",
+    accent: "#1a3a8f",
   },
   {
     id: "classic",
@@ -30,31 +30,34 @@ const emptyEntry = () => ({
   desc: "",
 });
 
-// ─── Mini visual mockup of each template — pure CSS, no image needed ───
 function TemplatePreview({ id, accent }) {
-  if (id === "modern") {
+  if (id === "dbuu") {
     return (
       <div className="w-full h-28 sm:h-32 rounded-lg overflow-hidden bg-white border border-[#E2E8F0] flex flex-col">
-        <div
-          style={{ backgroundColor: accent }}
-          className="h-8 sm:h-9 px-3 py-1.5 flex flex-col justify-center gap-1"
-        >
-          <div className="h-1.5 w-16 bg-white/90 rounded-full" />
-          <div className="h-1 w-10 bg-white/50 rounded-full" />
+        {/* Logo row */}
+        <div className="flex items-center gap-1.5 px-2.5 pt-2 pb-1 border-b border-[#E2E8F0]">
+          <div className="w-4 h-4 rounded-full bg-[#1a3a8f] shrink-0" />
+          <div className="h-1 w-20 bg-[#1a3a8f] rounded-full" />
         </div>
-        <div className="flex-1 p-2.5 flex flex-col gap-1.5">
-          <div
-            className="h-1 w-8 rounded-full"
-            style={{ backgroundColor: accent }}
-          />
-          <div className="h-1 w-full bg-[#E2E8F0] rounded-full" />
-          <div className="h-1 w-4/5 bg-[#E2E8F0] rounded-full" />
-          <div
-            className="h-1 w-8 mt-1 rounded-full"
-            style={{ backgroundColor: accent }}
-          />
-          <div className="h-1 w-full bg-[#E2E8F0] rounded-full" />
-          <div className="h-1 w-3/5 bg-[#E2E8F0] rounded-full" />
+        {/* Name */}
+        <div className="px-2.5 pt-1.5 flex flex-col gap-1">
+          <div className="h-2 w-20 bg-[#1E293B] rounded-full" />
+          <div className="h-1 w-28 bg-[#CBD5E1] rounded-full" />
+        </div>
+        {/* Summary banner */}
+        <div className="mx-2.5 mt-1.5 h-3 bg-[#1a3a8f] rounded-sm" />
+        {/* Table rows */}
+        <div className="px-2.5 mt-1.5 flex flex-col gap-1">
+          <div className="flex gap-1">
+            <div className="h-1 w-1/3 bg-[#E2E8F0] rounded-full" />
+            <div className="h-1 w-1/3 bg-[#E2E8F0] rounded-full" />
+            <div className="h-1 w-1/4 bg-[#E2E8F0] rounded-full" />
+          </div>
+          <div className="flex gap-1">
+            <div className="h-1 w-1/3 bg-[#F1F5F9] rounded-full" />
+            <div className="h-1 w-1/3 bg-[#F1F5F9] rounded-full" />
+            <div className="h-1 w-1/4 bg-[#F1F5F9] rounded-full" />
+          </div>
         </div>
       </div>
     );
@@ -81,7 +84,6 @@ function TemplatePreview({ id, accent }) {
     );
   }
 
-  // minimal
   return (
     <div className="w-full h-28 sm:h-32 rounded-lg overflow-hidden bg-white border border-[#E2E8F0] p-3 flex flex-col gap-1.5">
       <div className="h-1.5 w-16 rounded-full bg-[#1E293B]" />
@@ -104,8 +106,8 @@ function TemplatePreview({ id, accent }) {
 export default function ResumeBuilder({ student, onClose, onGenerated }) {
   const existing = student?.resumeData || null;
 
-  const [step, setStep] = useState(1); // 1: form, 2: template
-  const [template, setTemplate] = useState(existing?.template || "modern");
+  const [step, setStep] = useState(1);
+  const [template, setTemplate] = useState(existing?.template || "dbuu");
   const [generating, setGenerating] = useState(false);
 
   const [form, setForm] = useState({
@@ -114,6 +116,9 @@ export default function ResumeBuilder({ student, onClose, onGenerated }) {
     phone: existing?.phone || student?.phone || "",
     city: existing?.city || student?.city || "",
     linkedinUrl: existing?.linkedinUrl || student?.linkedinUrl || "",
+    githubUrl: existing?.githubUrl || student?.githubUrl || "",
+    codingProfileUrl:
+      existing?.codingProfileUrl || student?.codingProfileUrl || "",
     about: existing?.about || student?.about || "",
     college:
       existing?.college ||
@@ -121,6 +126,9 @@ export default function ResumeBuilder({ student, onClose, onGenerated }) {
       "Dev Bhoomi Uttarakhand University",
     branch: existing?.branch || student?.branch || "",
     cgpa: existing?.cgpa || student?.cgpa || "",
+    batch: existing?.batch || student?.batch || "",
+    tenthMarks: existing?.tenthMarks || student?.tenthMarks || "",
+    twelfthMarks: existing?.twelfthMarks || student?.twelfthMarks || "",
     skills: existing?.skills || student?.skills || [],
     experience: (existing?.experience || []).map((e) => ({
       ...e,
@@ -130,6 +138,19 @@ export default function ResumeBuilder({ student, onClose, onGenerated }) {
       ...p,
       id: p.id || Date.now() + Math.random(),
     })),
+    achievements: (existing?.achievements || []).map((a) => ({
+      ...a,
+      id: a.id || Date.now() + Math.random(),
+    })),
+    certifications:
+      existing?.certifications ||
+      (student?.certifications || []).map((c) => ({
+        id: Date.now() + Math.random(),
+        title: c.name || "",
+        subtitle: c.issuingOrganization || "",
+        period: c.issueDate || "",
+        desc: c.credentialUrl || "",
+      })),
   });
 
   const [newSkill, setNewSkill] = useState("");
@@ -173,7 +194,7 @@ export default function ResumeBuilder({ student, onClose, onGenerated }) {
       );
       const data = await res.json();
       if (data.resumeUrl) {
-        onGenerated(data.student); 
+        onGenerated(data.student);
       } else {
         alert(data.message || "Something went wrong generating your resume.");
       }
@@ -216,7 +237,7 @@ export default function ResumeBuilder({ student, onClose, onGenerated }) {
 
         {step === 1 && (
           <div className="p-4 sm:p-5 flex flex-col gap-5">
-            {/* Personal */}
+            {/* Personal Info */}
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-[#64748B] mb-2">
                 Personal Info
@@ -252,6 +273,18 @@ export default function ResumeBuilder({ student, onClose, onGenerated }) {
                   onChange={(e) => update({ linkedinUrl: e.target.value })}
                   className="sm:col-span-2 px-3 py-2 rounded-xl border border-[#E2E8F0] text-sm bg-[#F8FAFC] focus:outline-none focus:border-[#3B82F6]"
                 />
+                <input
+                  placeholder="GitHub URL"
+                  value={form.githubUrl}
+                  onChange={(e) => update({ githubUrl: e.target.value })}
+                  className="px-3 py-2 rounded-xl border border-[#E2E8F0] text-sm bg-[#F8FAFC] focus:outline-none focus:border-[#3B82F6]"
+                />
+                <input
+                  placeholder="Coding Profile (LeetCode, CodeChef...)"
+                  value={form.codingProfileUrl}
+                  onChange={(e) => update({ codingProfileUrl: e.target.value })}
+                  className="px-3 py-2 rounded-xl border border-[#E2E8F0] text-sm bg-[#F8FAFC] focus:outline-none focus:border-[#3B82F6]"
+                />
               </div>
               <textarea
                 placeholder="Short summary about yourself..."
@@ -281,10 +314,28 @@ export default function ResumeBuilder({ student, onClose, onGenerated }) {
                   className="px-3 py-2 rounded-xl border border-[#E2E8F0] text-sm bg-[#F8FAFC] focus:outline-none focus:border-[#3B82F6]"
                 />
                 <input
+                  placeholder="Batch (e.g. 2022-2026)"
+                  value={form.batch}
+                  onChange={(e) => update({ batch: e.target.value })}
+                  className="px-3 py-2 rounded-xl border border-[#E2E8F0] text-sm bg-[#F8FAFC] focus:outline-none focus:border-[#3B82F6]"
+                />
+                <input
                   placeholder="CGPA"
                   value={form.cgpa}
                   onChange={(e) => update({ cgpa: e.target.value })}
                   className="px-3 py-2 rounded-xl border border-[#E2E8F0] text-sm bg-[#F8FAFC] focus:outline-none focus:border-[#3B82F6]"
+                />
+                <input
+                  placeholder="10th Marks (%)"
+                  value={form.tenthMarks}
+                  onChange={(e) => update({ tenthMarks: e.target.value })}
+                  className="px-3 py-2 rounded-xl border border-[#E2E8F0] text-sm bg-[#F8FAFC] focus:outline-none focus:border-[#3B82F6]"
+                />
+                <input
+                  placeholder="12th Marks (%)"
+                  value={form.twelfthMarks}
+                  onChange={(e) => update({ twelfthMarks: e.target.value })}
+                  className="sm:col-span-2 px-3 py-2 rounded-xl border border-[#E2E8F0] text-sm bg-[#F8FAFC] focus:outline-none focus:border-[#3B82F6]"
                 />
               </div>
             </div>
@@ -296,7 +347,7 @@ export default function ResumeBuilder({ student, onClose, onGenerated }) {
               onAdd={() => addEntry("experience")}
               onUpdate={(id, patch) => updateEntry("experience", id, patch)}
               onRemove={(id) => removeEntry("experience", id)}
-              titlePlaceholder="Job Title / Company"
+              titlePlaceholder="Job Title"
               subtitlePlaceholder="Company Name / Location"
             />
 
@@ -309,6 +360,30 @@ export default function ResumeBuilder({ student, onClose, onGenerated }) {
               onRemove={(id) => removeEntry("projects", id)}
               titlePlaceholder="Project Title"
               subtitlePlaceholder="Tech Stack Used"
+            />
+
+            {/* Certifications */}
+            <EntryList
+              label="Certifications"
+              entries={form.certifications}
+              onAdd={() => addEntry("certifications")}
+              onUpdate={(id, patch) => updateEntry("certifications", id, patch)}
+              onRemove={(id) => removeEntry("certifications", id)}
+              titlePlaceholder="Certification Name"
+              subtitlePlaceholder="Issuing Organization"
+              descPlaceholder="Credential URL (optional)"
+            />
+
+            {/* Achievements */}
+            <EntryList
+              label="Achievements & Extra-curricular"
+              entries={form.achievements}
+              onAdd={() => addEntry("achievements")}
+              onUpdate={(id, patch) => updateEntry("achievements", id, patch)}
+              onRemove={(id) => removeEntry("achievements", id)}
+              titlePlaceholder="Achievement Title"
+              subtitlePlaceholder="Organization / Event"
+              descPlaceholder="Brief description..."
             />
 
             {/* Skills */}
@@ -431,6 +506,7 @@ function EntryList({
   onRemove,
   titlePlaceholder,
   subtitlePlaceholder,
+  descPlaceholder = "Brief description...",
 }) {
   return (
     <div>
@@ -481,7 +557,7 @@ function EntryList({
               className="w-full mb-2 px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] text-xs bg-[#F8FAFC] focus:outline-none focus:border-[#3B82F6]"
             />
             <textarea
-              placeholder="Brief description..."
+              placeholder={descPlaceholder}
               value={e.desc}
               onChange={(ev) => onUpdate(e.id, { desc: ev.target.value })}
               rows={2}

@@ -89,6 +89,8 @@ export default function StudentProfilePage() {
   const [showCertModal, setShowCertModal] = useState(false);
   const [savingCert, setSavingCert] = useState(false);
   const [certifications, setCertifications] = useState([]);
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+  const [showBuildConfirm, setShowBuildConfirm] = useState(false);
 
   useEffect(() => {
     document.title = "Your Profile — PlaceRise";
@@ -957,44 +959,141 @@ export default function StudentProfilePage() {
           borderColor="border-l-[#F59E0B]"
         >
           {displayData?.resume ? (
-            <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-              <div className="w-10 h-10 rounded-xl bg-[#eef1fb] border border-blue-100 flex items-center justify-center shrink-0">
-                <FileText size={18} className="text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-[#1E293B] truncate">
-                  Resume Uploaded
-                </p>
-                <a
-                  href={displayData.resume}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-xs text-primary hover:underline"
-                >
-                  View Resume
-                </a>
-              </div>
-              <div className="ml-auto flex items-center gap-2 shrink-0">
-                {/* AI-built resume -> can edit the template. Any other
-                    resume (uploaded during onboarding or manually from this
-                    page) only offers Replace — "Build" only shows up in the
-                    empty state before any resume exists. */}
-                {student.resumeData && (
-                  <button
-                    onClick={() => setShowResumeBuilder(true)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#eef1fb] text-primary border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1"
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                <div className="w-10 h-10 rounded-xl bg-[#eef1fb] border border-blue-100 flex items-center justify-center shrink-0">
+                  <FileText size={18} className="text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-[#1E293B] truncate">
+                    Resume Uploaded
+                  </p>
+                  <a
+                    href={displayData.resume}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs text-primary hover:underline"
                   >
-                    <Sparkles size={12} /> Edit
+                    View Resume
+                  </a>
+                </div>
+                <div className="ml-auto flex items-center gap-2 shrink-0">
+                  {student.resumeData && (
+                    <button
+                      onClick={() => setShowResumeBuilder(true)}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#eef1fb] text-primary border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1"
+                    >
+                      <Sparkles size={12} /> Edit
+                    </button>
+                  )}
+                  <button
+                    onClick={() => resumeInputRef.current.click()}
+                    disabled={uploadingResume}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-background text-[#64748B] border border-[#E2E8F0] hover:bg-[#E2E8F0] transition-colors disabled:opacity-50"
+                  >
+                    {uploadingResume ? "Uploading..." : "Replace"}
                   </button>
-                )}
+                </div>
+              </div>
+
+              {/* Remove + Build option */}
+              <div className="flex flex-wrap items-center gap-2 px-1">
+                <span className="text-xs text-[#94A3B8]">
+                  Want to start fresh?
+                </span>
                 <button
-                  onClick={() => resumeInputRef.current.click()}
-                  disabled={uploadingResume}
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium bg-background text-[#64748B] border border-[#E2E8F0] hover:bg-[#E2E8F0] transition-colors disabled:opacity-50"
+                  onClick={() => setShowRemoveConfirm(true)}
+                  className="text-xs text-red-400 hover:text-red-500 font-semibold underline underline-offset-2 transition-colors"
                 >
-                  {uploadingResume ? "Uploading..." : "Replace"}
+                  Remove Resume
+                </button>
+                <span className="text-[#E2E8F0] text-xs">|</span>
+                <button
+                  onClick={() => student.resumeData ? setShowResumeBuilder(true) : setShowBuildConfirm(true)}
+                  className="flex items-center gap-1 text-xs text-primary font-semibold hover:underline underline-offset-2 transition-colors"
+                >
+                  <Sparkles size={11} /> Build with PlaceRise
                 </button>
               </div>
+              {showRemoveConfirm && (
+                <div className="flex flex-col gap-3 p-4 rounded-xl border border-red-100 bg-red-50">
+                  <div className="flex items-start gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-red-100 flex items-center justify-center shrink-0 mt-0.5">
+                      <FileText size={13} className="text-red-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-[#1E293B]">
+                        Remove Resume?
+                      </p>
+                      <p className="text-xs text-[#64748B] mt-0.5">
+                        Your uploaded resume will be permanently removed. You
+                        can upload a new one or build one with PlaceRise
+                        anytime.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 justify-end">
+                    <button
+                      onClick={() => setShowRemoveConfirm(false)}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#64748B] bg-white border border-[#E2E8F0] hover:bg-[#F8FAFC] transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={async () => {
+                        await api.put("/students/me", {
+                          resume: null,
+                          resumeData: null,
+                        });
+                        setStudent((prev) => ({
+                          ...prev,
+                          resume: null,
+                          resumeData: null,
+                        }));
+                        setShowRemoveConfirm(false);
+                      }}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors"
+                    >
+                      Yes, Remove
+                    </button>
+                  </div>
+                </div>
+              )}
+              {showBuildConfirm && (
+                <div className="flex flex-col gap-3 p-4 rounded-xl border border-blue-100 bg-blue-50">
+                  <div className="flex items-start gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
+                      <Sparkles size={13} className="text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-[#1E293B]">
+                        Replace with PlaceRise Resume?
+                      </p>
+                      <p className="text-xs text-[#64748B] mt-0.5">
+                        Your current resume will be replaced with a new one
+                        built by PlaceRise. This cannot be undone.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 justify-end">
+                    <button
+                      onClick={() => setShowBuildConfirm(false)}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#64748B] bg-white border border-[#E2E8F0] hover:bg-[#F8FAFC] transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowBuildConfirm(false);
+                        setShowResumeBuilder(true);
+                      }}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-primary hover:bg-blue-700 transition-colors flex items-center gap-1.5"
+                    >
+                      <Sparkles size={12} /> Yes, Build New
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed border-[#CBD5E1]">
