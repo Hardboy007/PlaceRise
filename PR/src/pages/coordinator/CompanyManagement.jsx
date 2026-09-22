@@ -1944,48 +1944,35 @@ export default function CompanyManagementPage() {
             <div className="p-4 sm:p-5 flex flex-col gap-4">
               {addStep === 1 && (
                 <>
-                  <div className="pb-4 border-b border-background">
-                    <label className="block text-xs font-semibold text-text-muted uppercase tracking-widest mb-2">
-                      Job Description PDF{" "}
-                      <span className="normal-case font-normal text-[#94A3B8]">
-                        (optional)
-                      </span>
-                    </label>
-                    {createdCompanyId &&
-                      jobs.find((j) => j.companyId?._id === createdCompanyId)
-                        ?.jdPdfUrl && (
-                        <ExtLink
-                          href={
-                            jobs.find(
-                              (j) => j.companyId?._id === createdCompanyId,
-                            )?.jdPdfUrl
-                          }
-                          className="flex items-center gap-1.5 text-xs text-[#1a3a8f] hover:underline mb-2"
-                        >
-                          <FileText size={12} />
-                          View current PDF
-                        </ExtLink>
+                  {!createdCompanyId && (
+                    <div className="pb-4 border-b border-background">
+                      <label className="block text-xs font-semibold text-text-muted uppercase tracking-widest mb-2">
+                        Job Description PDF{" "}
+                        <span className="normal-case font-normal text-[#94A3B8]">
+                          (optional)
+                        </span>
+                      </label>
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <span className="px-3 py-1.5 rounded-lg bg-[#EFF3FA] text-primary text-xs font-semibold border border-[#B8C6E3] hover:bg-[#E2E8F0] transition-colors flex-shrink-0">
+                          Choose PDF
+                        </span>
+                        <span className="text-xs text-[#94A3B8] truncate">
+                          {pdfFile ? pdfFile.name : "No file chosen"}
+                        </span>
+                        <input
+                          type="file"
+                          accept="application/pdf"
+                          onChange={(e) => setPdfFile(e.target.files[0])}
+                          className="hidden"
+                        />
+                      </label>
+                      {pdfFile && (
+                        <p className="text-[10px] text-[#94A3B8] mt-1.5">
+                          Selected: {pdfFile.name}
+                        </p>
                       )}
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <span className="px-3 py-1.5 rounded-lg bg-[#EFF3FA] text-primary text-xs font-semibold border border-[#B8C6E3] hover:bg-[#E2E8F0] transition-colors flex-shrink-0">
-                        Choose PDF
-                      </span>
-                      <span className="text-xs text-[#94A3B8] truncate">
-                        {pdfFile ? pdfFile.name : "No file chosen"}
-                      </span>
-                      <input
-                        type="file"
-                        accept="application/pdf"
-                        onChange={(e) => setPdfFile(e.target.files[0])}
-                        className="hidden"
-                      />
-                    </label>
-                    {pdfFile && (
-                      <p className="text-[10px] text-[#94A3B8] mt-1.5">
-                        Selected: {pdfFile.name}
-                      </p>
-                    )}
-                  </div>
+                    </div>
+                  )}
                   <Field
                     label="Company Name"
                     required
