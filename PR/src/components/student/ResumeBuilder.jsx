@@ -198,11 +198,11 @@ export default function ResumeBuilder({ student, onClose, onGenerated }) {
         },
       );
       const data = await res.json();
-      if (data.resumeUrl) {
-        onGenerated(data.student);
-      } else {
-        alert(data.message || "Something went wrong generating your resume.");
-      }
+if (data.student) {                 // ✅ resumeUrl ki jagah student check karo
+  onGenerated(data.student);
+} else {
+  alert(data.message || "Something went wrong generating your resume.");
+}
     } catch (err) {
       console.error(err);
       alert("Failed to generate resume.");
