@@ -157,18 +157,21 @@ export default function CompanyDetailPage() {
             : [];
 
           if (jobApps.length > 0) {
-            setApplied(true);
             setExistingStatus(jobApps[0].status);
-            setAppliedRoleIds(
-              new Set(jobApps.map((a) => a.roleGroupId).filter(Boolean)),
+            const appliedIds = new Set(
+              jobApps.map((a) => a.roleGroupId?.toString()).filter(Boolean),
             );
-          }
-          const existing = Array.isArray(myApps)
-            ? myApps.find((a) => a.jobId?._id === data._id)
-            : null;
-          if (existing) {
-            setApplied(true);
-            setExistingStatus(existing.status);
+            setAppliedRoleIds(appliedIds);
+
+            if (!data.allowMultipleRoleApplications) {
+              setApplied(true);
+            } else {
+              const allRoleIds = getRoleGroups(data).map((rg) =>
+                rg._id?.toString(),
+              );
+              const allApplied = allRoleIds.every((id) => appliedIds.has(id));
+              setApplied(allApplied);
+            }
           }
         } catch (e) {
           console.error("Could not verify existing application:", e);
