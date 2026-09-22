@@ -110,10 +110,19 @@ export default function CoordinatorDashboard() {
   );
 
   const liveJobs = jobs.filter((j) => j.companyId && j.companyId.name);
-  const highestCTC = liveJobs.reduce(
-    (max, j) => (j.ctc > max ? j.ctc : max),
-    0,
-  );
+  let topJob = null;
+  let highestCTC = 0;
+
+  liveJobs.forEach((job) => {
+    (job.roleGroups ?? []).forEach((rg) => {
+      if ((rg.ctc ?? 0) > highestCTC) {
+        highestCTC = rg.ctc;
+        topJob = { company: job.companyId?.name, role: rg.role };
+      }
+    });
+  });
+
+  const highestCTCCompany = topJob?.company ?? null;
 
   const isJobOpen = (job) => {
     if (!job.lastDate) return true;
@@ -159,7 +168,7 @@ export default function CoordinatorDashboard() {
       id: job._id,
       company: job.companyId?.name || "Unknown",
       website: job.companyId?.website,
-      role: job.role,
+      role: job.roleGroups?.[0]?.role ?? "—",
       status: isJobOpen(job) ? "Active" : "Closed",
     }));
 
@@ -235,9 +244,17 @@ export default function CoordinatorDashboard() {
                   state: { openAddCompany: true },
                 })
               }
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[#1a3a8f] text-sm font-bold shadow-lg hover:bg-[#F1F5F9] transition-colors w-full sm:w-auto"
+              className="flex flex-col items-start px-4 py-3 rounded-xl bg-white text-left shadow-lg hover:bg-[#F1F5F9] transition-colors w-full sm:w-auto min-w-[160px]"
             >
-              <Plus size={15} /> Add Company
+              <div className="flex items-center gap-2 text-[#1a3a8f]">
+                <Plus size={15} />
+                <span className="text-sm font-bold text-[#1a3a8f]">
+                  Add Company
+                </span>
+              </div>
+              <span className="text-[11px] text-[#64748B] mt-0.5 leading-tight">
+                Register a new recruiter &amp; post openings
+              </span>
             </button>
           </div>
         </div>
@@ -324,6 +341,7 @@ export default function CoordinatorDashboard() {
           {
             label: "Highest Package",
             value: highestCTC > 0 ? `₹${highestCTC} LPA` : "—",
+            sub: highestCTCCompany, // <-- new field
             icon: TrendingUp,
             color: "border-t-[#8B5CF6]",
             bg: "bg-purple-50",
@@ -348,6 +366,11 @@ export default function CoordinatorDashboard() {
             <p className="text-xs uppercase tracking-widest text-text-muted mt-1">
               {stat.label}
             </p>
+            {stat.sub && (
+              <p className="text-[11px] text-[#8B5CF6] font-medium mt-0.5 truncate">
+                {stat.sub}
+              </p>
+            )}
             {stat.label === "Placed Students" && (
               <div className="w-full h-1.5 rounded-full bg-background mt-2.5 overflow-hidden">
                 <div
