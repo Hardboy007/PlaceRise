@@ -7,6 +7,7 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   X,
   MapPin,
   IndianRupee,
@@ -18,6 +19,7 @@ import {
   Wifi,
   TrendingUp,
   CheckCircle2,
+  ExternalLink,
 } from "lucide-react";
 import { api } from "../../utils/api";
 import CompanyLogo from "../../components/common/CompanyLogo";
@@ -75,6 +77,40 @@ const getAvatarColors = () => ({ bg: "bg-[#EFF3FA]", text: "text-[#1a3a8f]" });
 const dateKey = (d) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 const initials = (name) => (name || "??").slice(0, 2).toUpperCase();
 const daysUntil = (date, ref) => Math.ceil((date - ref) / 86400000);
+
+// A job can carry its packages in one of two shapes:
+//   new: job.roleGroups = [{ role, ctc, eligibleBranches, skills, selectionProcess }, ...]
+//   old: flat job.role / job.ctc / job.eligibleBranches / job.skills / job.selectionProcess
+// This always returns the new shape (an array of role groups), so every
+// place that reads role/CTC/branches/skills/selection-process can just use
+// roleGroups[i].xyz without caring which shape the job came in as.
+function getRoleGroups(job) {
+  if (job?.roleGroups?.length) return job.roleGroups;
+  if (job?.role) {
+    return [
+      {
+        _id: "legacy",
+        role: job.role,
+        ctc: job.ctc,
+        eligibleBranches: job.eligibleBranches ?? [],
+        skills: job.skills ?? [],
+        selectionProcess: job.selectionProcess ?? [],
+      },
+    ];
+  }
+  return [];
+}
+
+// "₹11 LPA" for a single package, or "₹11–12 LPA" for a range across roles.
+function packageLabel(roleGroups) {
+  const nums = roleGroups
+    .map((r) => Number(r.ctc))
+    .filter((n) => !isNaN(n) && n > 0);
+  if (!nums.length) return null;
+  const min = Math.min(...nums);
+  const max = Math.max(...nums);
+  return min === max ? `₹${max} LPA` : `₹${min}–${max} LPA`;
+}
 
 // FIXED: job.lastDate is a calendar DAY the coordinator picked (e.g. "3
 // July"), not a precise moment in time. It comes back from the API as a
@@ -155,9 +191,28 @@ function JobTypeBadge({ type }) {
   );
 }
 
-function JobDetailModal({ job, onClose }) {
+// job: the job posting. roleIndex: which role group to show first — a job
+// can have several roles (e.g. "Frontend" and "Backend" at different CTCs),
+// each with its own branches/skills/selection process, so the modal shows
+// a role switcher whenever there's more than one and lets the coordinator
+// flip between them without closing the modal.
+function JobDetailModal({ job, roleIndex = 0, onClose }) {
   const [activeTab, setActiveTab] = useState("overview");
+  const [activeRoleIndex, setActiveRoleIndex] = useState(roleIndex);
+
+  // Reset to the role that was clicked (and back to the Overview tab)
+  // whenever a different job/role is opened.
+  useEffect(() => {
+    setActiveRoleIndex(roleIndex);
+    setActiveTab("overview");
+  }, [job?._id, roleIndex]);
+
   if (!job) return null;
+
+  const roleGroups = getRoleGroups(job);
+  const role = roleGroups[activeRoleIndex] || roleGroups[0] || {};
+  const multiRole = roleGroups.length > 1;
+
   const companyName = job.companyId?.name || "Unknown";
   // FIXED: use the timezone-safe deadline instead of new Date(job.lastDate)
   // directly, so the modal shows the same day as everywhere else.
@@ -217,25 +272,49 @@ function JobDetailModal({ job, onClose }) {
                 {companyName}
               </p>
               <p className="text-white/75 text-[12px] mt-0.5 truncate">
-                {job.role}
+                {role.role || "Role not specified"}
               </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2 mt-4">
             {[
               { icon: MapPin, label: job.location },
-              { icon: IndianRupee, label: `${job.ctc} LPA` },
+              role.ctc ? { icon: IndianRupee, label: `${role.ctc} LPA` } : null,
               { icon: GraduationCap, label: `CGPA ${job.minCgpa || 0}+` },
               { icon: Briefcase, label: job.jobType },
-            ].map(({ icon: Icon, label }) => (
-              <span
-                key={label}
-                className="text-[11px] px-2.5 py-1 rounded-lg bg-white/20 text-white border border-white/25 inline-flex items-center gap-1.5 whitespace-nowrap"
-              >
-                <Icon size={11} /> {label}
-              </span>
-            ))}
+            ]
+              .filter(Boolean)
+              .map(({ icon: Icon, label }) => (
+                <span
+                  key={label}
+                  className="text-[11px] px-2.5 py-1 rounded-lg bg-white/20 text-white border border-white/25 inline-flex items-center gap-1.5 whitespace-nowrap"
+                >
+                  <Icon size={11} /> {label}
+                </span>
+              ))}
           </div>
+
+          {/* Role switcher — only shown when this company posted more than
+              one role for this drive. Switching roles updates everything
+              below (branches, skills, package, selection process) without
+              closing the modal. */}
+          {multiRole && (
+            <div className="flex flex-wrap gap-1.5 mt-3.5 pt-3.5 border-t border-white/15">
+              {roleGroups.map((r, i) => (
+                <button
+                  key={r._id || i}
+                  onClick={() => setActiveRoleIndex(i)}
+                  className={`text-[11px] px-2.5 py-1 rounded-lg border font-medium transition-colors ${
+                    i === activeRoleIndex
+                      ? "bg-white text-[#1a3a8f] border-white"
+                      : "bg-white/10 text-white/80 border-white/25 hover:bg-white/20"
+                  }`}
+                >
+                  {r.role}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex border-b border-gray-100 px-4 shrink-0">
@@ -263,36 +342,22 @@ function JobDetailModal({ job, onClose }) {
                 </p>
               )}
 
-              {[
-                {
-                  label: "Tech Stack",
-                  items: job.techStack || [],
-                  cls: "bg-[#EFF3FA] text-[#1a3a8f] border-[#B8C6E3] font-medium",
-                },
-                {
-                  label: "Required Skills",
-                  items: job.skills || [],
-                  cls: "bg-gray-50 text-gray-600 border-gray-200",
-                },
-              ].map(
-                ({ label, items, cls }) =>
-                  items.length > 0 && (
-                    <div key={label}>
-                      <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-2">
-                        {label}
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {items.map((item) => (
-                          <span
-                            key={item}
-                            className={`text-[11px] px-2.5 py-1 rounded-lg border ${cls}`}
-                          >
-                            {item}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ),
+              {(role.skills || []).length > 0 && (
+                <div>
+                  <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-2">
+                    Required Skills
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {role.skills.map((item) => (
+                      <span
+                        key={item}
+                        className="text-[11px] px-2.5 py-1 rounded-lg border bg-gray-50 text-gray-600 border-gray-200"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               )}
 
               <div className="grid grid-cols-2 gap-2 sm:gap-3">
@@ -306,7 +371,7 @@ function JobDetailModal({ job, onClose }) {
                   {
                     icon: GraduationCap,
                     label: "Branches",
-                    val: (job.eligibleBranches || []).join(", ") || "All",
+                    val: (role.eligibleBranches || []).join(", ") || "All",
                   },
                   {
                     icon: Clock,
@@ -331,6 +396,43 @@ function JobDetailModal({ job, onClose }) {
                 ))}
               </div>
 
+              {/* Registration link — only shown when the coordinator has
+                  added one for this job. */}
+              {job.registrationLink && (
+                <div className="rounded-xl p-3 border border-[#B8C6E3] bg-[#EFF3FA] flex items-start gap-2.5">
+                  <ExternalLink
+                    size={14}
+                    className="text-[#1a3a8f] shrink-0 mt-0.5"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-medium text-[#1a3a8f]">
+                      Company registration
+                    </p>
+                    <a
+                      href={job.registrationLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[12px] font-semibold text-[#1a3a8f] hover:underline break-all"
+                    >
+                      {job.registrationLink}
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              {/* Bond / fee — only shown when the coordinator has added
+                  details for this job. */}
+              {job.bondDetails && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                  <p className="text-[11px] font-medium text-amber-700 mb-1">
+                    Bond / Fee
+                  </p>
+                  <p className="text-[12px] text-amber-800 leading-relaxed whitespace-pre-line">
+                    {job.bondDetails}
+                  </p>
+                </div>
+              )}
+
               <div className="bg-red-50 border border-red-100 rounded-xl p-3 flex items-center gap-2.5">
                 <Bell size={14} className="text-red-500 shrink-0" />
                 <div>
@@ -349,18 +451,18 @@ function JobDetailModal({ job, onClose }) {
 
           {activeTab === "process" && (
             <div className="space-y-3">
-              {(job.selectionProcess || []).length === 0 ? (
+              {(role.selectionProcess || []).length === 0 ? (
                 <p className="text-[12px] text-gray-400 text-center py-6">
-                  No selection process listed.
+                  No selection process listed for this role.
                 </p>
               ) : (
-                job.selectionProcess.map((step, i) => (
+                role.selectionProcess.map((step, i) => (
                   <div key={i} className="flex gap-3">
                     <div className="flex flex-col items-center">
                       <div className="w-7 h-7 rounded-full bg-[#EFF3FA] text-[#1a3a8f] flex items-center justify-center text-[11px] font-semibold border border-[#B8C6E3] shrink-0">
                         {i + 1}
                       </div>
-                      {i < job.selectionProcess.length - 1 && (
+                      {i < role.selectionProcess.length - 1 && (
                         <div className="w-px flex-1 bg-gray-100 my-1" />
                       )}
                     </div>
@@ -407,6 +509,10 @@ function JobDetailModal({ job, onClose }) {
   );
 }
 
+// jobs: postings whose deadline falls on the clicked day. Each posting can
+// carry several roles — if it does, the company row expands into a list of
+// its roles instead of opening the detail modal directly, so a coordinator
+// can pick which role's details they want to see.
 function DayPopupModal({
   selectedDay,
   selectedMonth,
@@ -415,7 +521,9 @@ function DayPopupModal({
   onClose,
   onSelectJob,
 }) {
+  const [expandedId, setExpandedId] = useState(null);
   if (!selectedDay) return null;
+
   return (
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-start justify-center pt-16 sm:pt-20 px-4"
@@ -445,44 +553,101 @@ function DayPopupModal({
           </button>
         </div>
         <div className="p-3 flex flex-col gap-2 max-h-100 overflow-y-auto">
-          {jobs.map((j) => (
-            <button
-              key={j._id}
-              onClick={() => {
-                onClose();
-                onSelectJob(j);
-              }}
-              className="bg-gray-50 border border-gray-100 hover:border-[#B8C6E3] hover:bg-[#EFF3FA] hover:shadow-sm rounded-xl p-3 text-left transition-all duration-150 group"
-            >
-              <div className="flex items-center gap-2.5 mb-2.5">
-                <CompanyAvatar
-                  company={j.companyId?.name}
-                  website={j.companyId?.website}
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-semibold text-gray-900 truncate">
-                    {j.companyId?.name || "Unknown"}
-                  </p>
-                  <p className="text-[11px] text-gray-500 truncate">{j.role}</p>
-                </div>
-                <JobTypeBadge type={j.jobType} />
+          {jobs.map((j) => {
+            const roleGroups = getRoleGroups(j);
+            const multiRole = roleGroups.length > 1;
+            const pkg = packageLabel(roleGroups);
+            const isExpanded = expandedId === j._id;
+
+            return (
+              <div
+                key={j._id}
+                className="bg-gray-50 border border-gray-100 rounded-xl overflow-hidden"
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (multiRole) {
+                      setExpandedId(isExpanded ? null : j._id);
+                    } else {
+                      onClose();
+                      onSelectJob(j, 0);
+                    }
+                  }}
+                  className="w-full text-left p-3 hover:border-[#B8C6E3] hover:bg-[#EFF3FA] hover:shadow-sm transition-all duration-150 group"
+                >
+                  <div className="flex items-center gap-2.5 mb-2.5">
+                    <CompanyAvatar
+                      company={j.companyId?.name}
+                      website={j.companyId?.website}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-semibold text-gray-900 truncate">
+                        {j.companyId?.name || "Unknown"}
+                      </p>
+                      <p className="text-[11px] text-gray-500 truncate">
+                        {multiRole
+                          ? `${roleGroups.length} roles`
+                          : roleGroups[0]?.role || "Role not specified"}
+                      </p>
+                    </div>
+                    <JobTypeBadge type={j.jobType} />
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    <span className="text-[10px] px-2 py-0.5 rounded-md bg-white text-gray-500 border border-gray-200 flex items-center gap-1">
+                      <MapPin size={9} /> {j.location}
+                    </span>
+                    {pkg && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-white text-gray-500 border border-gray-200 flex items-center gap-1">
+                        <IndianRupee size={9} /> {pkg}
+                      </span>
+                    )}
+                    <span className="text-[10px] px-2 py-0.5 rounded-md bg-white text-gray-500 border border-gray-200">
+                      CGPA {j.minCgpa || 0}+
+                    </span>
+                  </div>
+                  {multiRole ? (
+                    <p className="text-[10px] text-[#1a3a8f] mt-2 font-medium flex items-center gap-1">
+                      {isExpanded ? "Hide roles" : "View roles"}
+                      <ChevronDown
+                        size={11}
+                        className={`transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                      />
+                    </p>
+                  ) : (
+                    <p className="text-[10px] text-[#1a3a8f] mt-2 opacity-0 group-hover:opacity-100 transition-opacity font-medium">
+                      Click to view details →
+                    </p>
+                  )}
+                </button>
+
+                {multiRole && isExpanded && (
+                  <div className="border-t border-gray-200 divide-y divide-gray-200">
+                    {roleGroups.map((r, i) => (
+                      <button
+                        key={r._id || i}
+                        type="button"
+                        onClick={() => {
+                          onClose();
+                          onSelectJob(j, i);
+                        }}
+                        className="w-full text-left px-3 py-2.5 bg-white hover:bg-[#EFF3FA] transition-colors flex items-center justify-between gap-2"
+                      >
+                        <span className="text-[12px] font-medium text-gray-800 truncate">
+                          {r.role}
+                        </span>
+                        {r.ctc && (
+                          <span className="text-[11px] font-semibold text-[#1a3a8f] shrink-0">
+                            ₹{r.ctc} LPA
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-              <div className="flex flex-wrap gap-1.5">
-                <span className="text-[10px] px-2 py-0.5 rounded-md bg-white text-gray-500 border border-gray-200 flex items-center gap-1">
-                  <MapPin size={9} /> {j.location}
-                </span>
-                <span className="text-[10px] px-2 py-0.5 rounded-md bg-white text-gray-500 border border-gray-200 flex items-center gap-1">
-                  <IndianRupee size={9} /> {j.ctc} LPA
-                </span>
-                <span className="text-[10px] px-2 py-0.5 rounded-md bg-white text-gray-500 border border-gray-200">
-                  CGPA {j.minCgpa || 0}+
-                </span>
-              </div>
-              <p className="text-[10px] text-[#1a3a8f] mt-2 opacity-0 group-hover:opacity-100 transition-opacity font-medium">
-                Click to view details →
-              </p>
-            </button>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
@@ -501,13 +666,14 @@ export default function CompanyCalendarPage() {
   const [curMonth, setCurMonth] = useState(today.getMonth());
   const [dayPopup, setDayPopup] = useState(null);
   const [detailJob, setDetailJob] = useState(null);
+  const [detailRoleIndex, setDetailRoleIndex] = useState(0);
   const [filter, setFilter] = useState("upcoming");
   const [search, setSearch] = useState("");
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    document.title = "Placement Calendar"
+    document.title = "Placement Calendar";
     const fetchJobs = async () => {
       const data = await api.get("/companies/jobs");
       const valid = (Array.isArray(data) ? data : []).filter(
@@ -600,6 +766,13 @@ export default function CompanyCalendarPage() {
     if (diff < 0) return "bg-gray-300";
     if (diff <= 7) return "bg-red-500";
     return "bg-emerald-500";
+  }
+
+  function openJobDetail(job, roleIndex = 0) {
+    setCurYear(job.parsedDate ? job.parsedDate.getFullYear() : curYear);
+    setCurMonth(job.parsedDate ? job.parsedDate.getMonth() : curMonth);
+    setDetailJob(job);
+    setDetailRoleIndex(roleIndex);
   }
 
   if (loading)
@@ -930,22 +1103,28 @@ export default function CompanyCalendarPage() {
                 .filter((j) => {
                   const q = search.toLowerCase().trim();
                   if (!q) return true;
+                  const roleGroups = getRoleGroups(j);
+                  const roleMatch = roleGroups.some((r) =>
+                    (r.role || "").toLowerCase().includes(q),
+                  );
                   return (
                     (j.companyId?.name || "").toLowerCase().includes(q) ||
-                    (j.role || "").toLowerCase().includes(q)
+                    roleMatch
                   );
                 })
                 .map((j) => {
                   const diff = daysUntil(j.parsedDate, todayMid);
                   const dateStr = `${j.parsedDate.getDate()} ${SHORT[j.parsedDate.getMonth()]}`;
+                  const roleGroups = getRoleGroups(j);
+                  const multiRole = roleGroups.length > 1;
+                  const pkg = packageLabel(roleGroups);
+                  const roleLabel = multiRole
+                    ? `${roleGroups.length} roles`
+                    : roleGroups[0]?.role || "Role not specified";
                   return (
                     <div
                       key={j._id}
-                      onClick={() => {
-                        setCurYear(j.parsedDate.getFullYear());
-                        setCurMonth(j.parsedDate.getMonth());
-                        setDetailJob(j);
-                      }}
+                      onClick={() => openJobDetail(j, 0)}
                       className={`px-4 py-3 flex items-start gap-3 hover:bg-gray-50 hover:shadow-sm transition-all duration-150 cursor-pointer group ${
                         j._id ===
                         sortedJobs.find((x) => x.parsedDate >= todayMid)?._id
@@ -963,10 +1142,11 @@ export default function CompanyCalendarPage() {
                           {j.companyId?.name || "—"}
                         </p>
                         <p className="text-[11px] text-gray-500 truncate mt-0.5">
-                          {j.role}
+                          {roleLabel}
                         </p>
                         <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1 tabular-nums">
-                          <Calendar size={9} /> {dateStr} · ₹{j.ctc} LPA
+                          <Calendar size={9} /> {dateStr}
+                          {pkg ? ` · ${pkg}` : ""}
                         </p>
                       </div>
                       <DaysBadge diff={diff} />
@@ -985,15 +1165,20 @@ export default function CompanyCalendarPage() {
           selectedYear={curYear}
           jobs={dayPopup.jobs}
           onClose={() => setDayPopup(null)}
-          onSelectJob={(j) => {
+          onSelectJob={(j, roleIdx) => {
             setDayPopup(null);
             setDetailJob(j);
+            setDetailRoleIndex(roleIdx ?? 0);
           }}
         />
       )}
 
       {detailJob && (
-        <JobDetailModal job={detailJob} onClose={() => setDetailJob(null)} />
+        <JobDetailModal
+          job={detailJob}
+          roleIndex={detailRoleIndex}
+          onClose={() => setDetailJob(null)}
+        />
       )}
     </div>
   );
