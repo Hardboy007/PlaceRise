@@ -344,16 +344,21 @@ function JDBanner({
                 >
                   {jobs
                     .filter((j) => j.companyId?._id === selectedCompanyId)
-                    .map((j) => (
-                      <option
-                        key={j._id}
-                        value={j._id}
-                        style={{ color: "#0F172A", backgroundColor: "#fff" }}
-                      >
-                        {j.role}
-                        {isJobClosed(j) ? " (Closed)" : ""}
-                      </option>
-                    ))}
+                    .map((j) => {
+                      const roleLabel = j.roleGroups?.length
+                        ? j.roleGroups.map((rg) => rg.role).join(", ")
+                        : j.role || "Drive";
+                      return (
+                        <option
+                          key={j._id}
+                          value={j._id}
+                          style={{ color: "#0F172A", backgroundColor: "#fff" }}
+                        >
+                          {roleLabel}
+                          {isJobClosed(j) ? " (Closed)" : ""}
+                        </option>
+                      );
+                    })}
                 </select>
                 {applicationsClosed && (
                   <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/15 text-white/75">
