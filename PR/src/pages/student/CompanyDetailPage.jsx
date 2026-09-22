@@ -48,7 +48,9 @@ const getRoleGroups = (job) => {
 };
 
 const getMatchedRoleGroups = (job, student) =>
-  getRoleGroups(job).filter((rg) => branchMatches(rg.eligibleBranches, student));
+  getRoleGroups(job).filter((rg) =>
+    branchMatches(rg.eligibleBranches, student),
+  );
 
 // Coordinator ka `<input type="time">` "17:00" (24h) bhejta hai -> "5:00 PM".
 // Agar value pehle se kisi aur format me hai to jaisi hai waisi dikha do.
@@ -81,6 +83,8 @@ export default function CompanyDetailPage() {
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [resumeConfirmed, setResumeConfirmed] = useState(false);
   const [studentProfile, setStudentProfile] = useState(null);
+  const [selectedRoleGroupId, setSelectedRoleGroupId] = useState(null);
+  const [appliedRoleIds, setAppliedRoleIds] = useState(new Set());
 
   const goBack = () => {
     if (window.history.length > 1) {
@@ -148,6 +152,17 @@ export default function CompanyDetailPage() {
 
         try {
           const myApps = await api.get("/applications/my");
+          const jobApps = Array.isArray(myApps)
+            ? myApps.filter((a) => a.jobId?._id === data._id)
+            : [];
+
+          if (jobApps.length > 0) {
+            setApplied(true);
+            setExistingStatus(jobApps[0].status);
+            setAppliedRoleIds(
+              new Set(jobApps.map((a) => a.roleGroupId).filter(Boolean)),
+            );
+          }
           const existing = Array.isArray(myApps)
             ? myApps.find((a) => a.jobId?._id === data._id)
             : null;
@@ -174,7 +189,10 @@ export default function CompanyDetailPage() {
   const submitApplication = async () => {
     setApplyLoading(true);
     try {
-      const res = await api.post("/applications", { jobId: company._id });
+      const res = await api.post("/applications", {
+        jobId: company._id,
+        roleGroupId: selectedRoleGroupId,
+      });
       if (res.message) {
         alert(res.message);
       } else {
@@ -267,11 +285,7 @@ export default function CompanyDetailPage() {
   // whole-day gap. 0 = aaj hi last date, negative = deadline nikal chuki.
   const daysLeft = () => {
     const now = new Date();
-    const todayMid = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-    );
+    const todayMid = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const last = new Date(company.lastDate);
     const lastMid = new Date(
       last.getFullYear(),
@@ -824,12 +838,65 @@ export default function CompanyDetailPage() {
                 />
                 <p className="text-xs text-amber-700 leading-relaxed">
                   <span className="font-semibold">Bond / Fee: </span>
-                  This role has a bond or fee condition. Please read the
-                  details on this page before applying.
+                  This role has a bond or fee condition. Please read the details
+                  on this page before applying.
                 </p>
               </div>
             )}
-
+            {/* Role Selection */}
+            {matchedRoles.length > 1 && (
+              <div className="border border-[#E2E8F0] rounded-xl p-4 mb-4">
+                <p className="text-xs font-semibold text-[#64748B] uppercase tracking-widest mb-3">
+                  Select Role to Apply
+                </p>
+                <div className="flex flex-col gap-2">
+                  {matchedRoles.map((rg) => {
+                    const alreadyApplied = appliedRoleIds.has(rg._id);
+                    const isDisabled =
+                      alreadyApplied ||
+                      (!company.allowMultipleRoleApplications &&
+                        appliedRoleIds.size > 0);
+                    return (
+                      <label
+                        key={rg._id}
+                        className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                          selectedRoleGroupId === rg._id
+                            ? "border-[#1a3a8f] bg-[#EFF3FA]"
+                            : isDisabled
+                              ? "border-[#E2E8F0] bg-[#F8FAFC] opacity-50 cursor-not-allowed"
+                              : "border-[#E2E8F0] hover:border-[#1a3a8f]"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="roleGroup"
+                          value={rg._id}
+                          disabled={isDisabled}
+                          checked={selectedRoleGroupId === rg._id}
+                          onChange={() => setSelectedRoleGroupId(rg._id)}
+                          className="accent-[#1a3a8f]"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-[#1E293B]">
+                            {rg.role}
+                          </p>
+                          {rg.ctc && (
+                            <p className="text-xs text-[#64748B]">
+                              ₹{rg.ctc} LPA
+                            </p>
+                          )}
+                          {alreadyApplied && (
+                            <p className="text-xs text-green-600 font-medium">
+                              Already applied
+                            </p>
+                          )}
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
             {/* Resume Section */}
             {studentProfile?.resume ? (
               <div className="border border-[#E2E8F0] rounded-xl p-4 mb-4">
@@ -902,11 +969,17 @@ export default function CompanyDetailPage() {
               <button
                 onClick={submitApplication}
                 disabled={
-                  !studentProfile?.resume || !resumeConfirmed || applyLoading
+                  !studentProfile?.resume ||
+                  !resumeConfirmed ||
+                  applyLoading ||
+                  (matchedRoles.length > 1 && !selectedRoleGroupId)
                 }
                 className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2
             ${
-              !studentProfile?.resume || !resumeConfirmed || applyLoading
+              !studentProfile?.resume ||
+              !resumeConfirmed ||
+              applyLoading ||
+              (matchedRoles.length > 1 && !selectedRoleGroupId)
                 ? "bg-[#CBD5E1] text-white cursor-not-allowed"
                 : "bg-[#3B82F6] text-white hover:bg-[#2563EB]"
             }`}

@@ -28,7 +28,11 @@ import {
 } from "lucide-react";
 import CompanyLogo from "../../components/common/CompanyLogo";
 const ExtLink = ({ href, className, children }) =>
-  createElement("a", { href, target: "_blank", rel: "noreferrer", className }, children);
+  createElement(
+    "a",
+    { href, target: "_blank", rel: "noreferrer", className },
+    children,
+  );
 
 // ─────────────────────────────────────────────────────────────
 //  CONSTANTS
@@ -64,9 +68,10 @@ const emptyJD = {
   minTwelfthPercentage: "",
   maxBacklogs: "0",
   perks: [],
-  bondDetails: "",       // NEW (optional)
-  registrationLink: "",  // NEW (optional)
+  bondDetails: "", // NEW (optional)
+  registrationLink: "", // NEW (optional)
   roleGroups: [emptyRoleGroup()],
+  allowMultipleRoleApplications: false,
 };
 
 // NEW: link ke aage https:// na ho to auto laga dega
@@ -591,7 +596,9 @@ function RoleGroupBox({ index, roleGroup, onChange, onRemove, error }) {
   return (
     <div className="border border-[#E2E8F0] rounded-xl p-3 sm:p-4 bg-white flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-bold text-[#1a3a8f]">Role {index + 1}</span>
+        <span className="text-xs font-bold text-[#1a3a8f]">
+          Role {index + 1}
+        </span>
         {onRemove && (
           <button
             type="button"
@@ -603,7 +610,11 @@ function RoleGroupBox({ index, roleGroup, onChange, onRemove, error }) {
         )}
       </div>
 
-      <Field label="Eligible Branches & Courses" required error={error?.eligibleBranches}>
+      <Field
+        label="Eligible Branches & Courses"
+        required
+        error={error?.eligibleBranches}
+      >
         <BranchSelectorModal
           selected={roleGroup.eligibleBranches}
           onChange={(eligibleBranches) => update({ eligibleBranches })}
@@ -661,7 +672,14 @@ function RoleGroupBox({ index, roleGroup, onChange, onRemove, error }) {
 // ─────────────────────────────────────────────────────────────
 //  COMPANY CARD  (list view, expand/collapse multi-role)
 // ─────────────────────────────────────────────────────────────
-function CompanyCard({ company, job, onView, onEditCompany, onEditJD, onPostJD }) {
+function CompanyCard({
+  company,
+  job,
+  onView,
+  onEditCompany,
+  onEditJD,
+  onPostJD,
+}) {
   const [expanded, setExpanded] = useState(false);
   const days = job ? daysLeft(job.lastDate) : null;
   const expired = job ? isExpired(job.lastDate) : false;
@@ -675,7 +693,10 @@ function CompanyCard({ company, job, onView, onEditCompany, onEditJD, onPostJD }
         <CompanyLogo name={company.name} website={company.website} size={44} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
-            <h3 className="text-sm font-bold text-[#1E293B]" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+            <h3
+              className="text-sm font-bold text-[#1E293B]"
+              style={{ fontFamily: "Space Grotesk, sans-serif" }}
+            >
               {company.name}
             </h3>
             {roleGroups.length === 1 && (
@@ -684,7 +705,9 @@ function CompanyCard({ company, job, onView, onEditCompany, onEditJD, onPostJD }
               </span>
             )}
             {job && (
-              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${job.jobType === "Internship" ? "bg-purple-50 text-purple-600 border border-purple-200" : "bg-green-50 text-green-600 border border-green-200"}`}>
+              <span
+                className={`px-2 py-0.5 rounded-full text-xs font-semibold ${job.jobType === "Internship" ? "bg-purple-50 text-purple-600 border border-purple-200" : "bg-green-50 text-green-600 border border-green-200"}`}
+              >
                 {job.jobType}
               </span>
             )}
@@ -700,7 +723,9 @@ function CompanyCard({ company, job, onView, onEditCompany, onEditJD, onPostJD }
               <MapPin size={11} /> {company.location}
             </span>
             {job?.lastDate && (
-              <span className={`flex items-center gap-1 text-xs font-medium ${expired ? "text-red-400" : isUrgent ? "text-red-500" : "text-text-muted"}`}>
+              <span
+                className={`flex items-center gap-1 text-xs font-medium ${expired ? "text-red-400" : isUrgent ? "text-red-500" : "text-text-muted"}`}
+              >
                 <Calendar size={11} />
                 {formatDDMMYYYY(job.lastDate)}
                 {isUrgent && (
@@ -711,7 +736,9 @@ function CompanyCard({ company, job, onView, onEditCompany, onEditJD, onPostJD }
               </span>
             )}
             {job?.minCgpa > 0 && (
-              <span className="text-xs text-text-muted">CGPA {job.minCgpa}+</span>
+              <span className="text-xs text-text-muted">
+                CGPA {job.minCgpa}+
+              </span>
             )}
           </div>
 
@@ -723,7 +750,10 @@ function CompanyCard({ company, job, onView, onEditCompany, onEditJD, onPostJD }
                 </span>
               )}
               {(roleGroups[0].eligibleBranches ?? []).slice(0, 3).map((b) => (
-                <span key={b} className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-background text-[#64748B] border border-[#E2E8F0]">
+                <span
+                  key={b}
+                  className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-background text-[#64748B] border border-[#E2E8F0]"
+                >
                   {b.length > 35 ? b.slice(0, 33) + "…" : b}
                 </span>
               ))}
@@ -741,24 +771,39 @@ function CompanyCard({ company, job, onView, onEditCompany, onEditJD, onPostJD }
               className="flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-lg bg-[#EFF3FA] text-[#1a3a8f] border border-[#B8C6E3] text-xs font-semibold hover:bg-[#E2E8F0] transition-colors"
             >
               <Briefcase size={11} /> {roleGroups.length} Roles
-              <ChevronDown size={12} className={`transition-transform ${expanded ? "rotate-180" : ""}`} />
+              <ChevronDown
+                size={12}
+                className={`transition-transform ${expanded ? "rotate-180" : ""}`}
+              />
             </button>
           )}
         </div>
 
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap sm:flex-shrink-0 w-full sm:w-auto">
-          <button onClick={onView} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E2E8F0] text-xs font-medium text-[#64748B] hover:border-[#8B5CF6] hover:text-[#8B5CF6] transition-all">
+          <button
+            onClick={onView}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E2E8F0] text-xs font-medium text-[#64748B] hover:border-[#8B5CF6] hover:text-[#8B5CF6] transition-all"
+          >
             <Eye size={12} /> View
           </button>
-          <button onClick={onEditCompany} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0] text-xs font-semibold hover:bg-[#E2E8F0] transition-colors">
+          <button
+            onClick={onEditCompany}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0] text-xs font-semibold hover:bg-[#E2E8F0] transition-colors"
+          >
             <Pencil size={12} /> Edit Company Info
           </button>
           {job ? (
-            <button onClick={onEditJD} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0] text-xs font-semibold hover:bg-[#E2E8F0] transition-colors">
+            <button
+              onClick={onEditJD}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0] text-xs font-semibold hover:bg-[#E2E8F0] transition-colors"
+            >
               <Pencil size={12} /> Edit JD
             </button>
           ) : (
-            <button onClick={onPostJD} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1a3a8f] text-white text-xs font-semibold hover:bg-[#0d1b5e] transition-colors">
+            <button
+              onClick={onPostJD}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1a3a8f] text-white text-xs font-semibold hover:bg-[#0d1b5e] transition-colors"
+            >
               <FileText size={12} /> Post JD
             </button>
           )}
@@ -768,14 +813,24 @@ function CompanyCard({ company, job, onView, onEditCompany, onEditJD, onPostJD }
       {multiRole && expanded && (
         <div className="mt-4 pt-4 border-t border-[#F1F5F9] flex flex-col gap-2.5">
           {roleGroups.map((rg, i) => (
-            <div key={rg._id || i} className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]">
+            <div
+              key={rg._id || i}
+              className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]"
+            >
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs font-bold text-[#1E293B]">{rg.role}</span>
-                <span className="text-xs font-semibold text-[#1a3a8f]">₹{rg.ctc} LPA</span>
+                <span className="text-xs font-bold text-[#1E293B]">
+                  {rg.role}
+                </span>
+                <span className="text-xs font-semibold text-[#1a3a8f]">
+                  ₹{rg.ctc} LPA
+                </span>
               </div>
               <div className="flex flex-wrap gap-1 mb-1.5">
                 {(rg.eligibleBranches ?? []).slice(0, 4).map((b) => (
-                  <span key={b} className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-white text-[#64748B] border border-[#E2E8F0]">
+                  <span
+                    key={b}
+                    className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-white text-[#64748B] border border-[#E2E8F0]"
+                  >
                     {b.length > 30 ? b.slice(0, 28) + "…" : b}
                   </span>
                 ))}
@@ -870,18 +925,28 @@ function JDFields({ form, setForm, errors }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Min 10th Percentage" optional>
           <input
-            type="number" step="0.1" min="0" max="100"
+            type="number"
+            step="0.1"
+            min="0"
+            max="100"
             value={form.minTenthPercentage}
-            onChange={(e) => setForm({ ...form, minTenthPercentage: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, minTenthPercentage: e.target.value })
+            }
             placeholder="Leave blank if no requirement"
             className={inputCls}
           />
         </Field>
         <Field label="Min 12th Percentage" optional>
           <input
-            type="number" step="0.1" min="0" max="100"
+            type="number"
+            step="0.1"
+            min="0"
+            max="100"
             value={form.minTwelfthPercentage}
-            onChange={(e) => setForm({ ...form, minTwelfthPercentage: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, minTwelfthPercentage: e.target.value })
+            }
             placeholder="Leave blank if no requirement"
             className={inputCls}
           />
@@ -890,7 +955,8 @@ function JDFields({ form, setForm, errors }) {
 
       <Field label="Max Backlogs Allowed">
         <input
-          type="number" min="0"
+          type="number"
+          min="0"
           value={form.maxBacklogs}
           onChange={(e) => setForm({ ...form, maxBacklogs: e.target.value })}
           placeholder="0"
@@ -899,18 +965,21 @@ function JDFields({ form, setForm, errors }) {
       </Field>
 
       <Field label="Registration Link" optional error={errors.registrationLink}>
-  <input
-    type="url"
-    value={form.registrationLink}
-    onChange={(e) => setForm({ ...form, registrationLink: e.target.value })}
-    placeholder="https://company.com/careers/register"
-    className={inputCls}
-  />
-  <p className="text-[10px] text-[#94A3B8] mt-1">
-  If the company wants students to register on its own website, paste the
-  link here. Students will see a button that opens the form directly.
-</p>
-</Field>
+        <input
+          type="url"
+          value={form.registrationLink}
+          onChange={(e) =>
+            setForm({ ...form, registrationLink: e.target.value })
+          }
+          placeholder="https://company.com/careers/register"
+          className={inputCls}
+        />
+        <p className="text-[10px] text-[#94A3B8] mt-1">
+          If the company wants students to register on its own website, paste
+          the link here. Students will see a button that opens the form
+          directly.
+        </p>
+      </Field>
 
       <Field label="Perks & Benefits">
         <TagInput
@@ -920,25 +989,60 @@ function JDFields({ form, setForm, errors }) {
         />
       </Field>
       <Field label="Any Bond or Fee" optional>
-  <textarea
-    value={form.bondDetails}
-    onChange={(e) => setForm({ ...form, bondDetails: e.target.value })}
-    placeholder={
-      "e.g. 2 Years\n(Please specify clearly)\nBond-breach compensation: if a candidate leaves before completing the two-year service period, the candidate shall be liable to pay ₹3,00,000."
-    }
-    rows={4}
-    className={`${inputCls} resize-y`}
-  />
-</Field>
-
+        <textarea
+          value={form.bondDetails}
+          onChange={(e) => setForm({ ...form, bondDetails: e.target.value })}
+          placeholder={
+            "e.g. 2 Years\n(Please specify clearly)\nBond-breach compensation: if a candidate leaves before completing the two-year service period, the candidate shall be liable to pay ₹3,00,000."
+          }
+          rows={4}
+          className={`${inputCls} resize-y`}
+        />
+      </Field>
+      <Field label="Allow Multiple Role Applications" optional>
+        <div className="flex items-center gap-3 p-3 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC]">
+          <button
+            type="button"
+            onClick={() =>
+              setForm({
+                ...form,
+                allowMultipleRoleApplications:
+                  !form.allowMultipleRoleApplications,
+              })
+            }
+            className={`relative w-10 h-5 rounded-full transition-colors ${
+              form.allowMultipleRoleApplications
+                ? "bg-[#1a3a8f]"
+                : "bg-[#CBD5E1]"
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                form.allowMultipleRoleApplications
+                  ? "translate-x-5"
+                  : "translate-x-0"
+              }`}
+            />
+          </button>
+          <span className="text-sm text-[#1E293B]">
+            {form.allowMultipleRoleApplications
+              ? "Students can apply to multiple roles"
+              : "Students can apply to one role only"}
+          </span>
+        </div>
+        <p className="text-[10px] text-[#94A3B8] mt-1">
+          If the company allows students to apply for more than one role in this
+          drive, enable this toggle.
+        </p>
+      </Field>
       <div className="border-t border-[#F1F5F9] pt-4 mt-1">
-        <h4 className="text-xs font-bold text-[#1E293B] uppercase tracking-widest">
+        <h4 className="text-[14px] font-bold text-[#464a50] uppercase tracking-widest">
           Role-wise Packages
         </h4>
-        <p className="text-[10px] text-[#94A3B8] mt-0.5 mb-3">
-  If different courses have different roles or packages, add a separate role
-  box for each one.
-</p>
+        <p className="text-[13px] text-[#94A3B8] mt-0.5 mb-3">
+          If different courses have different roles or packages, add a separate
+          role box for each one.
+        </p>
 
         <div className="flex flex-col gap-3">
           {form.roleGroups.map((rg, idx) => (
@@ -946,7 +1050,9 @@ function JDFields({ form, setForm, errors }) {
               key={rg.id}
               index={idx}
               roleGroup={rg}
-              error={Array.isArray(errors.roleGroups) ? errors.roleGroups[idx] : null}
+              error={
+                Array.isArray(errors.roleGroups) ? errors.roleGroups[idx] : null
+              }
               onChange={(updated) => {
                 const next = [...form.roleGroups];
                 next[idx] = updated;
@@ -967,7 +1073,10 @@ function JDFields({ form, setForm, errors }) {
         <button
           type="button"
           onClick={() =>
-            setForm({ ...form, roleGroups: [...form.roleGroups, emptyRoleGroup()] })
+            setForm({
+              ...form,
+              roleGroups: [...form.roleGroups, emptyRoleGroup()],
+            })
           }
           className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-[#B8C6E3] text-xs font-semibold text-[#1a3a8f] hover:bg-[#EFF3FA] transition-colors"
         >
@@ -1074,17 +1183,22 @@ export default function CompanyManagementPage() {
     const errs = {};
     if (!form.lastDate) errs.lastDate = "Last date is required";
     if (form.registrationLink?.trim() && !isValidUrl(form.registrationLink)) {
-  errs.registrationLink = "Please enter a valid link (e.g. https://company.com/register)";
-}
+      errs.registrationLink =
+        "Please enter a valid link (e.g. https://company.com/register)";
+    }
 
     const rgErrors = (form.roleGroups || []).map((rg) => {
       const e = {};
       if (!rg.role.trim()) e.role = "Role is required";
       if (!rg.ctc) e.ctc = "CTC is required";
-      if (!rg.eligibleBranches.length) e.eligibleBranches = "Select at least one branch";
+      if (!rg.eligibleBranches.length)
+        e.eligibleBranches = "Select at least one branch";
       return e;
     });
-    if (!form.roleGroups?.length || rgErrors.some((e) => Object.keys(e).length)) {
+    if (
+      !form.roleGroups?.length ||
+      rgErrors.some((e) => Object.keys(e).length)
+    ) {
       errs.roleGroups = rgErrors;
     }
     return errs;
@@ -1141,12 +1255,17 @@ export default function CompanyManagementPage() {
       lastDate: addJDForm.lastDate,
       lastTime: addJDForm.lastTime,
       minCgpa: addJDForm.minCgpa ? parseFloat(addJDForm.minCgpa) : 0,
-      minTenthPercentage: addJDForm.minTenthPercentage ? parseFloat(addJDForm.minTenthPercentage) : 0,
-      minTwelfthPercentage: addJDForm.minTwelfthPercentage ? parseFloat(addJDForm.minTwelfthPercentage) : 0,
+      minTenthPercentage: addJDForm.minTenthPercentage
+        ? parseFloat(addJDForm.minTenthPercentage)
+        : 0,
+      minTwelfthPercentage: addJDForm.minTwelfthPercentage
+        ? parseFloat(addJDForm.minTwelfthPercentage)
+        : 0,
       maxBacklogs: addJDForm.maxBacklogs ? parseInt(addJDForm.maxBacklogs) : 0,
       bondDetails: addJDForm.bondDetails.trim(),
-registrationLink: normalizeUrl(addJDForm.registrationLink),
+      registrationLink: normalizeUrl(addJDForm.registrationLink),
       perks: addJDForm.perks,
+      allowMultipleRoleApplications: addJDForm.allowMultipleRoleApplications || false,
       roleGroups: addJDForm.roleGroups.map((rg) => ({
         eligibleBranches: rg.eligibleBranches,
         role: rg.role,
@@ -1179,17 +1298,21 @@ registrationLink: normalizeUrl(addJDForm.registrationLink),
       minTwelfthPercentage: job.minTwelfthPercentage || "",
       maxBacklogs: job.maxBacklogs ?? "0",
       bondDetails: job.bondDetails || "",
-registrationLink: job.registrationLink || "",
+      registrationLink: job.registrationLink || "",
       perks: job.perks || [],
-      roleGroups: (job.roleGroups?.length ? job.roleGroups : [{}]).map((rg) => ({
-        id: rg._id || `rg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        eligibleBranches: rg.eligibleBranches || [],
-        role: rg.role || "",
-        ctc: rg.ctc || "",
-        skills: rg.skills || [],
-        selectionProcess: rg.selectionProcess || [],
-        saved: true,
-      })),
+      allowMultipleRoleApplications: job.allowMultipleRoleApplications || false,
+      roleGroups: (job.roleGroups?.length ? job.roleGroups : [{}]).map(
+        (rg) => ({
+          id:
+            rg._id || `rg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          eligibleBranches: rg.eligibleBranches || [],
+          role: rg.role || "",
+          ctc: rg.ctc || "",
+          skills: rg.skills || [],
+          selectionProcess: rg.selectionProcess || [],
+          saved: true,
+        }),
+      ),
     });
     setJdErrors({});
     setShowJDModal(true);
@@ -1226,12 +1349,18 @@ registrationLink: job.registrationLink || "",
       lastDate: jdForm.lastDate,
       lastTime: jdForm.lastTime,
       minCgpa: jdForm.minCgpa ? parseFloat(jdForm.minCgpa) : 0,
-      minTenthPercentage: jdForm.minTenthPercentage ? parseFloat(jdForm.minTenthPercentage) : 0,
-      minTwelfthPercentage: jdForm.minTwelfthPercentage ? parseFloat(jdForm.minTwelfthPercentage) : 0,
+      minTenthPercentage: jdForm.minTenthPercentage
+        ? parseFloat(jdForm.minTenthPercentage)
+        : 0,
+      minTwelfthPercentage: jdForm.minTwelfthPercentage
+        ? parseFloat(jdForm.minTwelfthPercentage)
+        : 0,
       maxBacklogs: jdForm.maxBacklogs ? parseInt(jdForm.maxBacklogs) : 0,
       bondDetails: jdForm.bondDetails.trim(),
-registrationLink: normalizeUrl(jdForm.registrationLink),
+      registrationLink: normalizeUrl(jdForm.registrationLink),
       perks: jdForm.perks,
+      allowMultipleRoleApplications:
+        jdForm.allowMultipleRoleApplications || false,
       roleGroups: jdForm.roleGroups.map((rg) => ({
         eligibleBranches: rg.eligibleBranches,
         role: rg.role,
@@ -1367,10 +1496,19 @@ registrationLink: normalizeUrl(jdForm.registrationLink),
 
         <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           {[
-            { label: "Total Companies", value: totalCompanies, icon: Building2 },
+            {
+              label: "Total Companies",
+              value: totalCompanies,
+              icon: Building2,
+            },
             { label: "Full Time", value: fullTime, icon: Briefcase },
             { label: "Internships", value: internships, icon: Users },
-            { label: "Closing Soon", value: urgent, icon: Clock, highlight: urgent > 0 },
+            {
+              label: "Closing Soon",
+              value: urgent,
+              icon: Clock,
+              highlight: urgent > 0,
+            },
           ].map(({ label, value, icon: Icon, highlight }) => (
             <div
               key={label}
@@ -1438,7 +1576,10 @@ registrationLink: normalizeUrl(jdForm.registrationLink),
               key={company._id}
               company={company}
               job={job}
-              onView={() => { setViewingCompany({ company, job }); setShowViewModal(true); }}
+              onView={() => {
+                setViewingCompany({ company, job });
+                setShowViewModal(true);
+              }}
               onEditCompany={() => openEditCompany(company)}
               onEditJD={() => openEditJD(company, job)}
               onPostJD={() => openPostJD(company)}
@@ -1509,13 +1650,13 @@ registrationLink: normalizeUrl(jdForm.registrationLink),
                   </p>
                 )}
                 {viewingCompany.company.website && (
-  <ExtLink
-    href={viewingCompany.company.website}
-    className="flex items-center gap-1 text-xs text-[#1a3a8f] hover:underline"
-  >
-    <ExternalLink size={11} /> {viewingCompany.company.website}
-  </ExtLink>
-)}
+                  <ExtLink
+                    href={viewingCompany.company.website}
+                    className="flex items-center gap-1 text-xs text-[#1a3a8f] hover:underline"
+                  >
+                    <ExternalLink size={11} /> {viewingCompany.company.website}
+                  </ExtLink>
+                )}
               </div>
 
               <div className="border-t border-[#F1F5F9]" />
@@ -1528,14 +1669,18 @@ registrationLink: normalizeUrl(jdForm.registrationLink),
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]">
-                        <p className="text-[10px] text-[#94A3B8] mb-1">Job Type</p>
+                        <p className="text-[10px] text-[#94A3B8] mb-1">
+                          Job Type
+                        </p>
                         <p className="text-xs font-semibold text-[#1E293B]">
                           {viewingCompany.job.jobType}
                         </p>
                       </div>
                       {viewingCompany.job.lastDate && (
                         <div className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]">
-                          <p className="text-[10px] text-[#94A3B8] mb-1">Last Date</p>
+                          <p className="text-[10px] text-[#94A3B8] mb-1">
+                            Last Date
+                          </p>
                           <p
                             className={`text-xs font-semibold flex items-center gap-1.5 flex-wrap ${(daysLeft(viewingCompany.job.lastDate) ?? 999) <= 7 ? "text-red-500" : "text-[#1E293B]"}`}
                           >
@@ -1553,7 +1698,9 @@ registrationLink: normalizeUrl(jdForm.registrationLink),
                         </div>
                       )}
                       <div className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]">
-                        <p className="text-[10px] text-[#94A3B8] mb-1">Min CGPA</p>
+                        <p className="text-[10px] text-[#94A3B8] mb-1">
+                          Min CGPA
+                        </p>
                         <p className="text-xs font-semibold text-[#1E293B]">
                           {viewingCompany.job.minCgpa > 0
                             ? `${viewingCompany.job.minCgpa} and above`
@@ -1561,7 +1708,9 @@ registrationLink: normalizeUrl(jdForm.registrationLink),
                         </p>
                       </div>
                       <div className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]">
-                        <p className="text-[10px] text-[#94A3B8] mb-1">Max Backlogs</p>
+                        <p className="text-[10px] text-[#94A3B8] mb-1">
+                          Max Backlogs
+                        </p>
                         <p className="text-xs font-semibold text-[#1E293B]">
                           {viewingCompany.job.maxBacklogs}
                         </p>
@@ -1577,15 +1726,25 @@ registrationLink: normalizeUrl(jdForm.registrationLink),
                       </p>
                       <div className="flex flex-col gap-3">
                         {viewingCompany.job.roleGroups.map((rg, i) => (
-                          <div key={rg._id || i} className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]">
+                          <div
+                            key={rg._id || i}
+                            className="bg-[#F8FAFC] rounded-xl p-3 border border-[#E2E8F0]"
+                          >
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-xs font-bold text-[#1E293B]">{rg.role}</span>
-                              <span className="text-xs font-semibold text-[#1a3a8f]">₹{rg.ctc} LPA</span>
+                              <span className="text-xs font-bold text-[#1E293B]">
+                                {rg.role}
+                              </span>
+                              <span className="text-xs font-semibold text-[#1a3a8f]">
+                                ₹{rg.ctc} LPA
+                              </span>
                             </div>
                             {(rg.eligibleBranches ?? []).length > 0 && (
                               <div className="flex flex-wrap gap-1.5 mb-2">
                                 {rg.eligibleBranches.map((b) => (
-                                  <span key={b} className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#EFF3FA] text-[#1a3a8f] border border-[#B8C6E3]">
+                                  <span
+                                    key={b}
+                                    className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#EFF3FA] text-[#1a3a8f] border border-[#B8C6E3]"
+                                  >
                                     {b}
                                   </span>
                                 ))}
@@ -1594,7 +1753,10 @@ registrationLink: normalizeUrl(jdForm.registrationLink),
                             {(rg.skills ?? []).length > 0 && (
                               <div className="flex flex-wrap gap-1.5 mb-2">
                                 {rg.skills.map((s) => (
-                                  <span key={s} className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0]">
+                                  <span
+                                    key={s}
+                                    className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0]"
+                                  >
                                     {s}
                                   </span>
                                 ))}
@@ -1603,7 +1765,10 @@ registrationLink: normalizeUrl(jdForm.registrationLink),
                             {(rg.selectionProcess ?? []).length > 0 && (
                               <div className="flex flex-wrap gap-1.5">
                                 {rg.selectionProcess.map((s, si) => (
-                                  <span key={si} className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-white text-[#1a3a8f] border border-[#B8C6E3]">
+                                  <span
+                                    key={si}
+                                    className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-white text-[#1a3a8f] border border-[#B8C6E3]"
+                                  >
                                     Round {si + 1}: {s}
                                   </span>
                                 ))}
@@ -1616,32 +1781,32 @@ registrationLink: normalizeUrl(jdForm.registrationLink),
                   )}
 
                   {viewingCompany.job.registrationLink && (
-  <div className="rounded-xl p-3 border border-[#B8C6E3] bg-[#EFF3FA]">
-    <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-1.5">
-      Registration Link
-    </p>
-    <ExtLink
-      href={viewingCompany.job.registrationLink}
-      className="flex items-center gap-1.5 text-xs font-semibold text-[#1a3a8f] hover:underline break-all"
-    >
-      <ExternalLink size={12} className="flex-shrink-0" />
-      {viewingCompany.job.registrationLink}
-    </ExtLink>
-  </div>
-)}
+                    <div className="rounded-xl p-3 border border-[#B8C6E3] bg-[#EFF3FA]">
+                      <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-1.5">
+                        Registration Link
+                      </p>
+                      <ExtLink
+                        href={viewingCompany.job.registrationLink}
+                        className="flex items-center gap-1.5 text-xs font-semibold text-[#1a3a8f] hover:underline break-all"
+                      >
+                        <ExternalLink size={12} className="flex-shrink-0" />
+                        {viewingCompany.job.registrationLink}
+                      </ExtLink>
+                    </div>
+                  )}
 
-{viewingCompany.job.bondDetails && (
-  <div>
-    <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-2">
-      Bond / Fee
-    </p>
-    <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
-      <p className="text-xs text-[#1E293B] leading-relaxed whitespace-pre-line">
-        {viewingCompany.job.bondDetails}
-      </p>
-    </div>
-  </div>
-)}
+                  {viewingCompany.job.bondDetails && (
+                    <div>
+                      <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-2">
+                        Bond / Fee
+                      </p>
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                        <p className="text-xs text-[#1E293B] leading-relaxed whitespace-pre-line">
+                          {viewingCompany.job.bondDetails}
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   {(viewingCompany.job.perks ?? []).length > 0 && (
                     <div>
@@ -1776,15 +1941,20 @@ registrationLink: normalizeUrl(jdForm.registrationLink),
                       </span>
                     </label>
                     {createdCompanyId &&
-  jobs.find((j) => j.companyId?._id === createdCompanyId)?.jdPdfUrl && (
-    <ExtLink
-      href={jobs.find((j) => j.companyId?._id === createdCompanyId)?.jdPdfUrl}
-      className="flex items-center gap-1.5 text-xs text-[#1a3a8f] hover:underline mb-2"
-    >
-      <FileText size={12} />
-      View current PDF
-    </ExtLink>
-  )}
+                      jobs.find((j) => j.companyId?._id === createdCompanyId)
+                        ?.jdPdfUrl && (
+                        <ExtLink
+                          href={
+                            jobs.find(
+                              (j) => j.companyId?._id === createdCompanyId,
+                            )?.jdPdfUrl
+                          }
+                          className="flex items-center gap-1.5 text-xs text-[#1a3a8f] hover:underline mb-2"
+                        >
+                          <FileText size={12} />
+                          View current PDF
+                        </ExtLink>
+                      )}
                     <label className="flex items-center gap-3 cursor-pointer">
                       <span className="px-3 py-1.5 rounded-lg bg-[#EFF3FA] text-primary text-xs font-semibold border border-[#B8C6E3] hover:bg-[#E2E8F0] transition-colors flex-shrink-0">
                         Choose PDF

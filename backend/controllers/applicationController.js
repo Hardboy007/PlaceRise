@@ -10,7 +10,7 @@ const logActivity = require("../utils/logActivity");
 // Student apply kare
 const createApplication = async (req, res) => {
   try {
-    const { jobId } = req.body;
+    const { jobId, roleGroupId } = req.body;
     const userId = req.user.id;
 
     //Student dhundho
@@ -85,30 +85,28 @@ const createApplication = async (req, res) => {
     const alreadyApplied = await Application.findOne({
       studentId: student._id,
       jobId,
+      ...(roleGroupId ? { roleGroupId } : {}),
     });
     if (alreadyApplied) {
-      return res.status(400).json({ message: "Already applied to this job" });
+      return res.status(400).json({ message: "Already applied for this role" });
     }
 
-    // 3 selected restriction check — sirf student ke apne self-apply flow
-    // pe lagu hota hai. Coordinator ke bulk-apply override me isko
-    // jaanbujh kar skip kiya gaya hai (coordinator ka manual call hai).
-
-    //issa 3 sa jyada comapny mai apply krna sa rok rha tha students ko .
-    // const selectedCount = await Application.countDocuments({
-
-    //   studentId: student._id,
-    //   status: "Selected",
-    // });
-    // if (selectedCount >= 3) {
-    //   return res
-    //     .status(400)
-    //     .json({ message: "You have been selected in 3 companies already" });
-    // }
+    if (!job.allowMultipleRoleApplications) {
+      const anyApplied = await Application.findOne({
+        studentId: student._id,
+        jobId,
+      });
+      if (anyApplied) {
+        return res.status(400).json({
+          message: "Multiple role applications are not allowed for this drive",
+        });
+      }
+    }
 
     const application = await Application.create({
       studentId: student._id,
       jobId,
+      roleGroupId: roleGroupId || null,
       status: "Applied",
       resumeUrl: student.resume || "",
       appliedVia: "self",

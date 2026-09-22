@@ -12,6 +12,10 @@ const applicationSchema = new mongoose.Schema(
       ref: "JobPosting",
       required: true,
     },
+    roleGroupId: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
+    },
     appliedDate: {
       type: Date,
       default: Date.now,
@@ -58,7 +62,7 @@ const applicationSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 module.exports = mongoose.model("Application", applicationSchema);

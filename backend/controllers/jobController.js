@@ -25,81 +25,83 @@ const createJob = async (req, res) => {
     const job = await JobPosting.create(req.body);
 
     setImmediate(async () => {
-  try {
-    const allStudents = await Student.find().populate("userId", "email");
-    const company = await Company.findById(job.companyId);
-    const companyName = company?.name || "A Company";
-    const lastDate = job.lastDate
-      ? new Date(job.lastDate).toLocaleDateString("en-IN")
-      : "N/A";
+      try {
+        const allStudents = await Student.find().populate("userId", "email");
+        const company = await Company.findById(job.companyId);
+        const companyName = company?.name || "A Company";
+        const lastDate = job.lastDate
+          ? new Date(job.lastDate).toLocaleDateString("en-IN")
+          : "N/A";
 
-    // Har student ke liye check karo wo KAUNSE specific roleGroups
-    // ke liye eligible hai — sirf overall "eligible/not" nahi,
-    // balki exact roles jo unko dikhne chahiye
-    const studentMatches = [];
-    for (const s of allStudents) {
-      if (!s.userId) continue;
-      const cgpaOk = !job.minCgpa || (s.cgpa ?? 0) >= job.minCgpa;
-      const backlogOk = (s.backlogs ?? 0) <= (job.maxBacklogs ?? 99);
-      if (!cgpaOk || !backlogOk) continue;
+        // Har student ke liye check karo wo KAUNSE specific roleGroups
+        // ke liye eligible hai — sirf overall "eligible/not" nahi,
+        // balki exact roles jo unko dikhne chahiye
+        const studentMatches = [];
+        for (const s of allStudents) {
+          if (!s.userId) continue;
+          const cgpaOk = !job.minCgpa || (s.cgpa ?? 0) >= job.minCgpa;
+          const backlogOk = (s.backlogs ?? 0) <= (job.maxBacklogs ?? 99);
+          if (!cgpaOk || !backlogOk) continue;
 
-      const matchedRoles = (job.roleGroups || []).filter((rg) => {
-        const branches = rg.eligibleBranches || [];
-        return (
-          !branches.length ||
-          branches.includes("All") ||
-          branches.includes(s.course) ||
-          branches.includes(s.branch)
+          const matchedRoles = (job.roleGroups || []).filter((rg) => {
+            const branches = rg.eligibleBranches || [];
+            return (
+              !branches.length ||
+              branches.includes("All") ||
+              branches.includes(s.course) ||
+              branches.includes(s.branch)
+            );
+          });
+
+          if (matchedRoles.length > 0) {
+            studentMatches.push({ student: s, matchedRoles });
+          }
+        }
+
+        const allRoleNames = (job.roleGroups || [])
+          .map((rg) => rg.role)
+          .join(", ");
+        await logActivity(
+          req.user?.id,
+          `Posted a new job — ${allRoleNames} at ${companyName}`,
+          "job",
+          job._id,
         );
-      });
 
-      if (matchedRoles.length > 0) {
-        studentMatches.push({ student: s, matchedRoles });
-      }
-    }
+        // In-app notifications — har student ko sirf uske matched roles dikhein
+        const notifs = studentMatches.map(({ student: s, matchedRoles }) => ({
+          userId: s.userId._id,
+          type: "JD_POSTED",
+          title: `New Drive: ${companyName}`,
+          message: `${companyName} — ${matchedRoles.map((r) => r.role).join(", ")} | Apply by ${lastDate}`,
+          link: `/student/companies`,
+          isRead: false,
+        }));
+        if (notifs.length > 0) {
+          await Notification.insertMany(notifs);
+        }
 
-    const allRoleNames = (job.roleGroups || []).map((rg) => rg.role).join(", ");
-    await logActivity(
-      req.user?.id,
-      `Posted a new job — ${allRoleNames} at ${companyName}`,
-      "job",
-      job._id,
-    );
+        const emailEligible = studentMatches.filter(
+          ({ student: s }) =>
+            s.notificationPreferences?.emailNotifications !== false &&
+            s.notificationPreferences?.jobAlerts === true,
+        );
 
-    // In-app notifications — har student ko sirf uske matched roles dikhein
-    const notifs = studentMatches.map(({ student: s, matchedRoles }) => ({
-      userId: s.userId._id,
-      type: "JD_POSTED",
-      title: `New Drive: ${companyName}`,
-      message: `${companyName} — ${matchedRoles.map((r) => r.role).join(", ")} | Apply by ${lastDate}`,
-      link: `/student/companies`,
-      isRead: false,
-    }));
-    if (notifs.length > 0) {
-      await Notification.insertMany(notifs);
-    }
+        for (const { student, matchedRoles } of emailEligible) {
+          const email = student.userId?.email;
+          if (!email) continue;
 
-    const emailEligible = studentMatches.filter(
-      ({ student: s }) =>
-        s.notificationPreferences?.emailNotifications !== false &&
-        s.notificationPreferences?.jobAlerts === true,
-    );
+          const roleLabel = matchedRoles.map((r) => r.role).join(", ");
+          const ctcs = matchedRoles.map((r) => r.ctc);
+          const ctcLabel =
+            ctcs.length > 1
+              ? `₹${Math.min(...ctcs)}–${Math.max(...ctcs)} LPA`
+              : `₹${ctcs[0]} LPA`;
 
-    for (const { student, matchedRoles } of emailEligible) {
-      const email = student.userId?.email;
-      if (!email) continue;
-
-      const roleLabel = matchedRoles.map((r) => r.role).join(", ");
-      const ctcs = matchedRoles.map((r) => r.ctc);
-      const ctcLabel =
-        ctcs.length > 1
-          ? `₹${Math.min(...ctcs)}–${Math.max(...ctcs)} LPA`
-          : `₹${ctcs[0]} LPA`;
-
-      await sendEmail({
-        to: email,
-        subject: `New Placement Drive — ${companyName} | ${roleLabel}`,
-        html: `
+          await sendEmail({
+            to: email,
+            subject: `New Placement Drive — ${companyName} | ${roleLabel}`,
+            html: `
           <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
             <div style="background: linear-gradient(135deg, #1D4ED8, #3B82F6); border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px;">
               <img 
@@ -130,12 +132,12 @@ const createJob = async (req, res) => {
             </p>
           </div>
         `,
-      });
-    }
-  } catch (bgError) {
-    console.error("Notification error:", bgError.message);
-  }
-});
+          });
+        }
+      } catch (bgError) {
+        console.error("Notification error:", bgError.message);
+      }
+    });
 
     res.status(201).json(job);
   } catch (error) {

@@ -39,7 +39,9 @@ const getRoleGroups = (job) => {
 };
 
 const getMatchedRoleGroups = (job, student) =>
-  getRoleGroups(job).filter((rg) => branchMatches(rg.eligibleBranches, student));
+  getRoleGroups(job).filter((rg) =>
+    branchMatches(rg.eligibleBranches, student),
+  );
 
 // All courses from universityStructure — these match DB eligibleBranches values
 const ALL_COURSES = universityStructure.flatMap((school) =>
@@ -559,7 +561,8 @@ export default function CompanyListPage() {
         const matchesSearch =
           companyName.toLowerCase().includes(q) ||
           roles.some((r) => (r.role || "").toLowerCase().includes(q));
-        const matchesRole = role === "All" || roles.some((r) => r.role === role);
+        const matchesRole =
+          role === "All" || roles.some((r) => r.role === role);
         return matchesSearch && matchesRole;
       })
       .map((e) =>

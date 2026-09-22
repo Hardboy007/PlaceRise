@@ -29,7 +29,9 @@ const getRoleGroups = (job) => {
 };
 
 const getMatchedRoleGroups = (job, student) =>
-  getRoleGroups(job).filter((rg) => branchMatches(rg.eligibleBranches, student));
+  getRoleGroups(job).filter((rg) =>
+    branchMatches(rg.eligibleBranches, student),
+  );
 
 // ─── Design Tokens ───────────────────────────────────────────
 const C = {
