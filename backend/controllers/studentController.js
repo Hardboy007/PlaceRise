@@ -10,7 +10,8 @@ const universityStructure = require("../data/universityStructure");
 const { cloudinary } = require("../config/cloudinary");
 const PDFDocument = require("pdfkit");
 const { Readable } = require("stream");
-const puppeteer = require("puppeteer");
+const puppeteer = require("puppeteer-core");
+const chromium = require("@sparticuz/chromium");
 
 const ALLOWED_DOC_TYPES = [
   "image/jpeg",
@@ -1010,12 +1011,10 @@ const generateResume = async (req, res) => {
       });
 
       const browser = await puppeteer.launch({
-        headless: "new",
-        args: [
-          "--no-sandbox",
-          "--disable-setuid-sandbox",
-          "--disable-dev-shm-usage",
-        ],
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath(),
+        headless: chromium.headless,
       });
 
       const page = await browser.newPage();
