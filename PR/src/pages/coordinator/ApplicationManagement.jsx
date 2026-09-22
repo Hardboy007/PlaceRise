@@ -267,9 +267,12 @@ function JDBanner({
   selectedRoleGroupId,
   setSelectedRoleGroupId,
 }) {
-  const branchList = selectedJob?.eligibleBranches?.includes("All")
+  const selectedRoleGroup = selectedJob?.roleGroups?.find(
+    (rg) => rg._id?.toString() === selectedRoleGroupId,
+  );
+  const branchList = selectedRoleGroup?.eligibleBranches?.includes("All")
     ? ["All Branches"]
-    : selectedJob?.eligibleBranches || [];
+    : selectedRoleGroup?.eligibleBranches || [];
   const applicationsClosed = isJobClosed(selectedJob);
   const resultsFinalized = !!selectedJob?.resultsFinalized;
 
