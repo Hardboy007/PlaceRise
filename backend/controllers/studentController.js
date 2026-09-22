@@ -1013,8 +1013,10 @@ const generateResume = async (req, res) => {
       const browser = await puppeteer.launch({
         args: chromium.args,
         defaultViewport: chromium.defaultViewport,
-        executablePath: await chromium.executablePath(),
-        headless: chromium.headless,
+        executablePath: await chromium.executablePath(
+          process.env.CHROMIUM_PATH,
+        ),
+        headless: true,
       });
 
       const page = await browser.newPage();
