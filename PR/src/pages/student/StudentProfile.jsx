@@ -984,22 +984,24 @@ export default function StudentProfilePage() {
                     </span>
                   )}
                   {student.resumeData?.template === "dbuu" && (
-  <button
-    onClick={async () => {
-      try {
-        const { generateDbuuPdf } =
-          await import("../../utils/generateDbuuPdf");
-        await generateDbuuPdf(student.resumeData);
-      } catch (err) {
-        console.error("PDF download failed:", err);
-        alert("PDF download nahi ho paaya, dobara try karein.");
-      }
-    }}
-    className="text-xs text-[#22C55E] hover:underline font-semibold mt-0.5 block"
-  >
-    ↓ Download DBUU PDF
-  </button>
-)}
+                    <button
+                      onClick={async () => {
+                        try {
+                          const { generateDbuuPdf } =
+                            await import("../../utils/generateDbuuPdf");
+                          await generateDbuuPdf(student.resumeData);
+                        } catch (err) {
+                          console.error("PDF download failed:", err);
+                          alert(
+                            "Cannot download PDF, please try again.",
+                          );
+                        }
+                      }}
+                      className="text-xs text-[#22C55E] hover:underline font-semibold mt-0.5 block"
+                    >
+                      ↓ Download DBUU PDF
+                    </button>
+                  )}
                 </div>
                 <div className="ml-auto flex items-center gap-2 shrink-0">
                   {student.resumeData && (

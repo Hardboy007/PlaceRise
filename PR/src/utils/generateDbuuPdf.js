@@ -33,7 +33,11 @@ export async function generateDbuuPdf(resumeData) {
       throw new Error("Resume preview render nahi ho paaya, dobara try karein");
     }
 
-    const pdf = new jsPDF({ unit: "pt", format: "a4", orientation: "portrait" });
+    const pdf = new jsPDF({
+      unit: "pt",
+      format: "a4",
+      orientation: "portrait",
+    });
     const pdfW = pdf.internal.pageSize.getWidth();
     const pdfH = pdf.internal.pageSize.getHeight();
     const totalH = canvas.height;
