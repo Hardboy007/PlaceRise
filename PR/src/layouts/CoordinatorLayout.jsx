@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Outlet,
   NavLink,
@@ -51,7 +51,6 @@ const navLinks = [
   },
 ];
 
-// Bottom bar pe sirf ye 4 sabse zyada use hone wale pages, 5th "More"
 const bottomTabs = [
   { to: "/coordinator/dashboard", label: "Home", icon: LayoutDashboard },
   { to: "/coordinator/calendar", label: "Calendar", icon: Calendar },
@@ -59,51 +58,15 @@ const bottomTabs = [
   { to: "/coordinator/profile", label: "Profile", icon: User },
 ];
 
-// "More" sheet mein baaki saare links — har ek ko alag accent color
 const moreLinks = [
-  {
-    to: "/coordinator/students",
-    label: "Students",
-    icon: Users,
-    color: "blue",
-  },
-  {
-    to: "/coordinator/recruiter-crm",
-    label: "Recruiter CRM",
-    icon: Building2,
-    color: "purple",
-  },
-  {
-    to: "/coordinator/applications",
-    label: "Applications",
-    icon: FileCheck,
-    color: "green",
-  },
-  {
-    to: "/coordinator/announcements",
-    label: "Announcements",
-    icon: Megaphone,
-    color: "amber",
-  },
+  { to: "/coordinator/students", label: "Students", icon: Users, color: "blue" },
+  { to: "/coordinator/recruiter-crm", label: "Recruiter CRM", icon: Building2, color: "purple" },
+  { to: "/coordinator/applications", label: "Applications", icon: FileCheck, color: "green" },
+  { to: "/coordinator/announcements", label: "Announcements", icon: Megaphone, color: "amber" },
   { to: "/coordinator/noc", label: "NOC / LOR", icon: FileText, color: "pink" },
-  {
-    to: "/coordinator/attendance",
-    label: "Attendance",
-    icon: QrCode,
-    color: "teal",
-  },
-  {
-    to: "/coordinator/analytics",
-    label: "Analytics",
-    icon: LineChart,
-    color: "orange",
-  },
-  {
-    to: "/coordinator/hr-feedback",
-    label: "HR Feedback",
-    icon: MessageSquareText,
-    color: "indigo", // ← naya color
-  },
+  { to: "/coordinator/attendance", label: "Attendance", icon: QrCode, color: "teal" },
+  { to: "/coordinator/analytics", label: "Analytics", icon: LineChart, color: "orange" },
+  { to: "/coordinator/hr-feedback", label: "HR Feedback", icon: MessageSquareText, color: "indigo" },
 ];
 
 const moreColorMap = {
@@ -126,20 +89,20 @@ function CoordinatorLayout() {
   const [showNotifs, setShowNotifs] = useState(false);
   const [openGroup, setOpenGroup] = useState(null);
   const [showMore, setShowMore] = useState(false);
+  const notifRef = useRef(null);
   const [coordinator, setCoordinator] = useState(
     JSON.parse(localStorage.getItem("coordinator") || "{}"),
   );
 
   const initials = coordinator.name
     ? coordinator.name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase()
     : "MK";
 
-  // Poll unread notification count every 30s
   useEffect(() => {
     const fetchCount = async () => {
       const data = await api.get("/notifications/unread-count");
@@ -160,17 +123,27 @@ function CoordinatorLayout() {
           }));
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (!showNotifs) return;
+    const handleOutside = (e) => {
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setShowNotifs(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [showNotifs]);
 
   const handleBellClick = async () => {
     setShowNotifs(!showNotifs);
     if (!showNotifs) {
       const data = await api.get("/notifications");
       setNotifications(Array.isArray(data) ? data : []);
-      // Saari read mark karo
       await api.put("/notifications/mark-all-read");
       setUnreadCount(0);
     }
@@ -204,41 +177,20 @@ function CoordinatorLayout() {
       className="min-h-screen bg-background overflow-x-hidden"
       style={{ fontFamily: "Inter, sans-serif" }}
     >
-      {/* Thin, subtle scrollbar for the sidebar nav list */}
       <style>{`
-        .sidebar-nav-scroll::-webkit-scrollbar {
-          width: 4px;
-        }
-        .sidebar-nav-scroll::-webkit-scrollbar-thumb {
-          background: #CBD5E1;
-          border-radius: 4px;
-        }
-        .sidebar-nav-scroll::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .sidebar-nav-scroll {
-          scrollbar-width: thin;
-          scrollbar-color: #CBD5E1 transparent;
-        }
+        .sidebar-nav-scroll::-webkit-scrollbar { width: 4px; }
+        .sidebar-nav-scroll::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+        .sidebar-nav-scroll::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-nav-scroll { scrollbar-width: thin; scrollbar-color: #CBD5E1 transparent; }
       `}</style>
 
       {/* ── Navbar ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-white/80 backdrop-blur px-3 sm:px-6 flex items-center justify-between gap-2">
-        <Link
-          to="/"
-          className="flex items-center gap-2 sm:gap-2.5 min-w-0 shrink-0"
-        >
+        <Link to="/" className="flex items-center gap-2 sm:gap-2.5 min-w-0 shrink-0">
           <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center shadow-[0_4px_12px_rgba(59,130,246,0.4)] shrink-0">
-            <img
-              src="/images/logo-transparent.png"
-              alt="PlaceRise"
-              className="w-full h-full object-contain"
-            />
+            <img src="/images/logo-transparent.png" alt="PlaceRise" className="w-full h-full object-contain" />
           </div>
-          <span
-            className="text-base sm:text-lg font-bold whitespace-nowrap"
-            style={{ fontFamily: "Space Grotesk, sans-serif" }}
-          >
+          <span className="text-base sm:text-lg font-bold whitespace-nowrap" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
             <span className="text-[#1E293B]">Place</span>
             <span className="text-primary">Rise</span>
           </span>
@@ -249,7 +201,7 @@ function CoordinatorLayout() {
 
         <div className="flex items-center gap-1 sm:gap-3 shrink-0">
           {/* Notification Bell */}
-          <div className="relative">
+          <div className="relative" ref={notifRef}>
             <button
               onClick={handleBellClick}
               className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#F1F5F9] hover:bg-[#E2E8F0] flex items-center justify-center transition-colors shrink-0"
@@ -261,13 +213,12 @@ function CoordinatorLayout() {
                 </span>
               )}
             </button>
+
             {/* Notification Dropdown */}
             {showNotifs && (
               <div className="fixed left-3 right-3 top-16 lg:absolute lg:left-auto lg:right-0 lg:top-11 lg:w-80 lg:max-w-[calc(100vw-2rem)] max-w-full bg-white rounded-2xl shadow-xl border border-[#E2E8F0] z-50 overflow-hidden">
                 <div className="px-4 py-3 border-b border-[#F1F5F9] flex items-center justify-between">
-                  <p className="text-sm font-bold text-[#1E293B]">
-                    Notifications
-                  </p>
+                  <p className="text-sm font-bold text-[#1E293B]">Notifications</p>
                   <button
                     onClick={() => setShowNotifs(false)}
                     className="p-1.5 rounded-full text-[#64748B] hover:text-[#EF4444] hover:bg-red-50 transition-all duration-300 hover:rotate-90"
@@ -277,18 +228,13 @@ function CoordinatorLayout() {
                 </div>
                 <div className="max-h-80 overflow-y-auto">
                   {notifications.length === 0 ? (
-                    <p className="text-sm text-[#64748B] text-center py-8">
-                      No notifications
-                    </p>
+                    <p className="text-sm text-[#64748B] text-center py-8">No notifications</p>
                   ) : (
                     notifications.map((n) => (
                       <SwipeToDeleteNotification
                         key={n._id}
                         notification={n}
-                        onClick={(notif) => {
-                          // Coordinators don't have navigate on notification right now, but we can just close the panel
-                          setShowNotifs(false);
-                        }}
+                        onClick={() => setShowNotifs(false)}
                         onDelete={handleDeleteNotif}
                       />
                     ))
@@ -301,11 +247,7 @@ function CoordinatorLayout() {
           <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
             <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
               {coordinator.profilePhoto ? (
-                <img
-                  src={coordinator.profilePhoto}
-                  alt={coordinator.name}
-                  className="w-full h-full object-cover rounded-full"
-                />
+                <img src={coordinator.profilePhoto} alt={coordinator.name} className="w-full h-full object-cover rounded-full" />
               ) : (
                 <div className="w-full h-full rounded-full bg-linear-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold">
                   {initials}
@@ -321,6 +263,7 @@ function CoordinatorLayout() {
               </p>
             </div>
           </div>
+
           <button
             onClick={handleLogout}
             className="flex items-center gap-1.5 px-1.5 sm:px-3 py-1.5 rounded-xl text-xs font-medium text-text-muted hover:text-danger hover:bg-red-50 transition-colors shrink-0"
@@ -329,6 +272,7 @@ function CoordinatorLayout() {
             <span className="hidden md:block">Logout</span>
           </button>
         </div>
+
         <div className="absolute bottom-0 left-0 right-0 flex h-[0.5px] overflow-hidden">
           <div style={{ backgroundColor: "#CBD5E1", flex: 1 }} />
         </div>
@@ -336,7 +280,7 @@ function CoordinatorLayout() {
 
       {/* ── Body ── */}
       <div className="pt-16">
-        {/* ── Sidebar — DESKTOP ONLY (sm and above), hover to expand ── */}
+        {/* ── Sidebar — DESKTOP ONLY ── */}
         <aside
           onMouseEnter={() => setExpanded(true)}
           onMouseLeave={() => setExpanded(false)}
@@ -345,49 +289,26 @@ function CoordinatorLayout() {
           <div className="sidebar-nav-scroll flex-1 flex flex-col gap-1 p-2 mt-2 overflow-y-auto overflow-x-hidden">
             {navLinks.map(({ to, label, icon: Icon, children }) => {
               if (children) {
-                const isGroupActive = children.some((c) =>
-                  location.pathname.startsWith(c.to),
-                );
+                const isGroupActive = children.some((c) => location.pathname.startsWith(c.to));
                 const isOpen = openGroup === label;
-
                 return (
                   <div key={label}>
-                    {/* Group Header */}
                     <button
                       onClick={() => setOpenGroup(isOpen ? null : label)}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap
-              ${
-                isGroupActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-text-muted hover:bg-background hover:text-[#1E293B]"
-              }`}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap ${isGroupActive ? "bg-primary/10 text-primary" : "text-text-muted hover:bg-background hover:text-[#1E293B]"
+                        }`}
                     >
                       <Icon size={18} className="shrink-0" />
-                      <span
-                        className={`flex-1 text-left transition-all duration-200 ${expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}
-                      >
+                      <span className={`flex-1 text-left transition-all duration-200 ${expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}>
                         {label}
                       </span>
                       {expanded && (
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          className={`shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M19 9l-7 7-7-7"
-                          />
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                          className={`shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                         </svg>
                       )}
                     </button>
-
-                    {/* Children */}
                     {isOpen && expanded && (
                       <div className="ml-4 mt-1 flex flex-col gap-1 border-l-2 border-[#E2E8F0] pl-3">
                         {children.map(({ to: childTo, label: childLabel }) => (
@@ -395,12 +316,10 @@ function CoordinatorLayout() {
                             key={childTo}
                             to={childTo}
                             className={({ isActive }) =>
-                              `flex items-center px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 whitespace-nowrap
-                    ${
-                      isActive
-                        ? "bg-[#1a3a8f] text-white shadow-[0_4px_12px_rgba(26,58,143,0.3)]"
-                        : "text-text-muted hover:bg-background hover:text-[#1E293B]"
-                    }`
+                              `flex items-center px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 whitespace-nowrap ${isActive
+                                ? "bg-[#1a3a8f] text-white shadow-[0_4px_12px_rgba(26,58,143,0.3)]"
+                                : "text-text-muted hover:bg-background hover:text-[#1E293B]"
+                              }`
                             }
                           >
                             {childLabel}
@@ -411,24 +330,19 @@ function CoordinatorLayout() {
                   </div>
                 );
               }
-
               return (
                 <NavLink
                   key={to}
                   to={to}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap
-          ${
-            isActive
-              ? "bg-[#1a3a8f] text-white shadow-[0_4px_12px_rgba(26,58,143,0.3)]"
-              : "text-text-muted hover:bg-background hover:text-[#1E293B]"
-          }`
+                    `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap ${isActive
+                      ? "bg-[#1a3a8f] text-white shadow-[0_4px_12px_rgba(26,58,143,0.3)]"
+                      : "text-text-muted hover:bg-background hover:text-[#1E293B]"
+                    }`
                   }
                 >
                   <Icon size={18} className="shrink-0" />
-                  <span
-                    className={`transition-all duration-200 ${expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}
-                  >
+                  <span className={`transition-all duration-200 ${expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}>
                     {label}
                   </span>
                 </NavLink>
@@ -438,42 +352,26 @@ function CoordinatorLayout() {
 
           {/* Bottom user card */}
           <div className="mb-2 px-2">
-            <div
-              className={`rounded-xl bg-background border border-[#CBD5E1] flex items-center overflow-hidden transition-all duration-200 ${
-                expanded ? "gap-2.5 p-3" : "justify-center p-1.5"
-              }`}
-            >
+            <div className={`rounded-xl bg-background border border-[#CBD5E1] flex items-center overflow-hidden transition-all duration-200 ${expanded ? "gap-2.5 p-3" : "justify-center p-1.5"}`}>
               <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
                 {coordinator.profilePhoto ? (
-                  <img
-                    src={coordinator.profilePhoto}
-                    alt={coordinator.name}
-                    className="w-full h-full object-cover rounded-full"
-                  />
+                  <img src={coordinator.profilePhoto} alt={coordinator.name} className="w-full h-full object-cover rounded-full" />
                 ) : (
                   <div className="w-full h-full rounded-full bg-linear-to-br from-primary to-[#1E293B] flex items-center justify-center text-white text-xs font-bold">
                     {initials}
                   </div>
                 )}
               </div>
-              <div
-                className={`min-w-0 flex-1 transition-all duration-200 ${expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}
-              >
-                <p className="text-sm font-semibold text-[#1E293B] leading-tight truncate">
-                  {coordinator.name || "Coordinator"}
-                </p>
-                <p className="text-xs text-text-muted truncate mt-0.5">
-                  Placement Cell · DBUU
-                </p>
+              <div className={`min-w-0 flex-1 transition-all duration-200 ${expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"}`}>
+                <p className="text-sm font-semibold text-[#1E293B] leading-tight truncate">{coordinator.name || "Coordinator"}</p>
+                <p className="text-xs text-text-muted truncate mt-0.5">Placement Cell · DBUU</p>
               </div>
             </div>
           </div>
         </aside>
 
-        {/* ── Main Content — desktop pe sidebar ke hisaab se margin, mobile pe full width ── */}
-        <main
-          className={`min-h-screen p-3 sm:p-6 pb-28 sm:pb-6 transition-all duration-300 ease-in-out ml-0 ${expanded ? "sm:ml-60" : "sm:ml-16"}`}
-        >
+        {/* ── Main Content ── */}
+        <main className={`min-h-screen p-3 sm:p-6 pb-28 sm:pb-6 transition-all duration-300 ease-in-out ml-0 ${expanded ? "sm:ml-60" : "sm:ml-16"}`}>
           <Outlet />
         </main>
       </div>
@@ -486,9 +384,7 @@ function CoordinatorLayout() {
             to={to}
             onClick={() => setShowMore(false)}
             className={({ isActive }) =>
-              `flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-[10px] font-medium rounded-2xl ${
-                isActive ? "text-primary" : "text-text-muted"
-              }`
+              `flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-[10px] font-medium rounded-2xl ${isActive ? "text-primary" : "text-text-muted"}`
             }
           >
             <Icon size={20} />
@@ -497,9 +393,7 @@ function CoordinatorLayout() {
         ))}
         <button
           onClick={() => setShowMore(true)}
-          className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-[10px] font-medium rounded-2xl ${
-            isMoreActive ? "text-primary" : "text-text-muted"
-          }`}
+          className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full text-[10px] font-medium rounded-2xl ${isMoreActive ? "text-primary" : "text-text-muted"}`}
         >
           <MoreHorizontal size={20} />
           More
@@ -509,17 +403,11 @@ function CoordinatorLayout() {
       {/* ── "More" bottom sheet — MOBILE ONLY ── */}
       {showMore && (
         <div className="sm:hidden fixed inset-0 z-50">
-          <div
-            onClick={() => setShowMore(false)}
-            className="absolute inset-0 bg-black/40"
-          />
+          <div onClick={() => setShowMore(false)} className="absolute inset-0 bg-black/40" />
           <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[70vh] overflow-y-auto pb-4">
             <div className="px-4 py-3 border-b border-[#F1F5F9] flex items-center justify-between sticky top-0 bg-white">
               <p className="text-sm font-bold text-[#1E293B]">More</p>
-              <button
-                onClick={() => setShowMore(false)}
-                className="p-1.5 rounded-full text-[#64748B] hover:text-[#EF4444] hover:bg-red-50"
-              >
+              <button onClick={() => setShowMore(false)} className="p-1.5 rounded-full text-[#64748B] hover:text-[#EF4444] hover:bg-red-50">
                 <X size={18} />
               </button>
             </div>
@@ -532,21 +420,14 @@ function CoordinatorLayout() {
                     to={to}
                     onClick={() => setShowMore(false)}
                     className={({ isActive }) =>
-                      `flex flex-col items-center justify-center gap-1.5 w-[100px] h-[84px] p-2 rounded-xl border shrink-0 transition-all duration-150 ${
-                        isActive
-                          ? "border-primary bg-primary/5"
-                          : "border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-background"
+                      `flex flex-col items-center justify-center gap-1.5 w-[100px] h-[84px] p-2 rounded-xl border shrink-0 transition-all duration-150 ${isActive ? "border-primary bg-primary/5" : "border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-background"
                       }`
                     }
                   >
-                    <div
-                      className={`w-7 h-7 rounded-lg ${c.bg} flex items-center justify-center shrink-0`}
-                    >
+                    <div className={`w-7 h-7 rounded-lg ${c.bg} flex items-center justify-center shrink-0`}>
                       <Icon size={14} className={c.text} />
                     </div>
-                    <p className="text-[11px] font-semibold text-[#1E293B] leading-tight text-center">
-                      {label}
-                    </p>
+                    <p className="text-[11px] font-semibold text-[#1E293B] leading-tight text-center">{label}</p>
                   </NavLink>
                 );
               })}
