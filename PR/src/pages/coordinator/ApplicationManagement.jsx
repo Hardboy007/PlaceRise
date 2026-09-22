@@ -251,6 +251,7 @@ function DriveFilterTabs({ value, onChange, counts }) {
 }
 
 // --- Branches/courses shown as individual pills instead of one long string ---
+// WITH
 function JDBanner({
   jobs,
   selectedJobId,
@@ -261,6 +262,8 @@ function JDBanner({
   driveCounts,
   onToggleFinalize,
   finalizing,
+  selectedCompanyId,
+  onCompanyChange,
 }) {
   const branchList = selectedJob?.eligibleBranches?.includes("All")
     ? ["All Branches"]
@@ -278,42 +281,79 @@ function JDBanner({
       }}
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
             style={{ background: "linear-gradient(135deg,#1a3a8f,#3d1a6e)" }}
           >
             <Briefcase size={18} color="white" />
           </div>
-          <div className="min-w-0 w-full sm:w-auto">
+
+          {/* Company dropdown */}
+          <div className="min-w-0">
             <p
               className="text-[10px] font-semibold uppercase tracking-widest mb-1"
               style={{ color: "rgba(255,255,255,0.7)" }}
             >
-              Select Drive
+              Company
             </p>
             {jobs.length === 0 ? (
-              <p className="text-sm font-bold" style={{ color: "#0F172A" }}>
+              <p className="text-sm font-bold text-white">
                 No {driveFilter !== "All" ? driveFilter.toLowerCase() : ""}{" "}
-                drives{driveFilter !== "All" ? "" : " posted yet"}
+                drives
               </p>
             ) : (
-              <div className="flex items-center gap-2 flex-wrap min-w-0 w-full">
+              <select
+                value={selectedCompanyId || ""}
+                onChange={(e) => onCompanyChange(e.target.value)}
+                className="text-sm font-bold border border-white/25 rounded-lg px-2 py-1 bg-white/10 text-white focus:outline-none focus:border-white/50 sm:max-w-[200px] truncate"
+              >
+                {[
+                  ...new Map(
+                    jobs.map((j) => [j.companyId?._id, j.companyId?.name]),
+                  ).entries(),
+                ]
+                  .filter(([id]) => id)
+                  .map(([id, name]) => (
+                    <option
+                      key={id}
+                      value={id}
+                      style={{ color: "#0F172A", backgroundColor: "#fff" }}
+                    >
+                      {name}
+                    </option>
+                  ))}
+              </select>
+            )}
+          </div>
+
+          {/* Role dropdown */}
+          {selectedCompanyId && (
+            <div className="min-w-0">
+              <p
+                className="text-[10px] font-semibold uppercase tracking-widest mb-1"
+                style={{ color: "rgba(255,255,255,0.7)" }}
+              >
+                Role / Drive
+              </p>
+              <div className="flex items-center gap-2 flex-wrap">
                 <select
                   value={selectedJobId || ""}
                   onChange={(e) => setSelectedJobId(e.target.value)}
-                  className="text-sm font-bold border border-white/25 rounded-lg px-2 py-1 bg-white/10 text-white focus:outline-none focus:border-white/50 w-full sm:w-auto sm:max-w-xs truncate"
+                  className="text-sm font-bold border border-white/25 rounded-lg px-2 py-1 bg-white/10 text-white focus:outline-none focus:border-white/50 sm:max-w-[220px] truncate"
                 >
-                  {jobs.map((j) => (
-                    <option
-                      key={j._id}
-                      value={j._id}
-                      style={{ color: "#0F172A", backgroundColor: "#fff" }}
-                    >
-                      {j.companyId?.name || "Unknown"} — {j.role}
-                      {isJobClosed(j) ? " (Closed)" : ""}
-                    </option>
-                  ))}
+                  {jobs
+                    .filter((j) => j.companyId?._id === selectedCompanyId)
+                    .map((j) => (
+                      <option
+                        key={j._id}
+                        value={j._id}
+                        style={{ color: "#0F172A", backgroundColor: "#fff" }}
+                      >
+                        {j.role}
+                        {isJobClosed(j) ? " (Closed)" : ""}
+                      </option>
+                    ))}
                 </select>
                 {applicationsClosed && (
                   <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/15 text-white/75">
@@ -326,10 +366,9 @@ function JDBanner({
                   </span>
                 )}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
-
         {/* Active / Closed / All switch — keeps the dropdown short by
             default without hiding closed-drive data permanently. */}
         <DriveFilterTabs
@@ -3039,6 +3078,7 @@ export default function ApplicationsManagementPage() {
   const [jobs, setJobs] = useState([]);
   const [allStudents, setAllStudents] = useState([]);
   const [selectedJobId, setSelectedJobId] = useState(null);
+  const [selectedCompanyId, setSelectedCompanyId] = useState(null);
   const [driveFilter, setDriveFilter] = useState("Active"); // Active | Closed | All
   const [loading, setLoading] = useState(true);
   const [finalizing, setFinalizing] = useState(false);
@@ -3113,13 +3153,19 @@ export default function ApplicationsManagementPage() {
   // If the currently selected drive isn't in the visible list anymore
   // (e.g. coordinator switched from Active to Closed), fall back to the
   // first visible job instead of showing a stale/invisible selection.
+  // REPLACE this entire useEffect
   useEffect(() => {
     if (visibleJobs.length === 0) {
       setSelectedJobId(null);
+      setSelectedCompanyId(null);
       return;
     }
     const stillVisible = visibleJobs.some((j) => j._id === selectedJobId);
-    if (!stillVisible) setSelectedJobId(visibleJobs[0]._id);
+    if (!stillVisible) {
+      const firstJob = visibleJobs[0];
+      setSelectedCompanyId(firstJob.companyId?._id);
+      setSelectedJobId(firstJob._id);
+    }
   }, [visibleJobs, selectedJobId]);
 
   const selectedJob = jobs.find((j) => j._id === selectedJobId);
@@ -3210,6 +3256,14 @@ export default function ApplicationsManagementPage() {
         driveCounts={driveCounts}
         onToggleFinalize={handleToggleFinalize}
         finalizing={finalizing}
+        selectedCompanyId={selectedCompanyId}
+        onCompanyChange={(companyId) => {
+          setSelectedCompanyId(companyId);
+          const firstRole = visibleJobs.find(
+            (j) => j.companyId?._id === companyId,
+          );
+          if (firstRole) setSelectedJobId(firstRole._id);
+        }}
       />
 
       {jobs.length > 0 && selectedJob && (
