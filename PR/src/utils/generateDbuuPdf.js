@@ -10,61 +10,76 @@ export async function generateDbuuPdf(resumeData) {
   document.body.appendChild(iframe);
 
   try {
-    const iDoc = iframe.contentDocument || iframe.contentWindow.document;
-    iDoc.open();
-    iDoc.write(html);
-    iDoc.close();
+  const iDoc = iframe.contentDocument || iframe.contentWindow.document;
+  iDoc.open();
+  iDoc.write(html);
+  iDoc.close();
 
-    // Iframe poora load hone ka wait, fir chhota buffer
-    await new Promise((resolve) => {
-      if (iDoc.readyState === "complete") resolve();
-      else iframe.onload = resolve;
-    });
-    await new Promise((r) => setTimeout(r, 400));
+  await new Promise((resolve) => {
+    if (iDoc.readyState === "complete") resolve();
+    else iframe.onload = resolve;
+  });
+  await new Promise((r) => setTimeout(r, 400));
 
-    const canvas = await html2canvas(iDoc.body, {
-      scale: 2,
-      useCORS: true,
-      width: 794,
-      windowWidth: 794,
-    });
+  const canvas = await html2canvas(iDoc.body, {
+    scale: 2,
+    useCORS: true,
+    width: 794,
+    windowWidth: 794,
+  });
 
-    if (!canvas || canvas.width === 0 || canvas.height === 0) {
-      throw new Error("Resume preview render nahi ho paaya, dobara try karein");
-    }
+  console.log("DBUU PDF debug — canvas:", canvas?.width, canvas?.height);
 
-    const pdf = new jsPDF({ unit: "pt", format: "a4", orientation: "portrait" });
-    const pdfW = pdf.internal.pageSize.getWidth();
-    const pdfH = pdf.internal.pageSize.getHeight();
-    const totalH = canvas.height;
-    const totalW = canvas.width;
-    const ratio = pdfW / totalW;
-    const pageHeightPx = pdfH / ratio;
-
-    let yOffset = 0;
-    let pageCount = 0;
-    while (yOffset < totalH) {
-      const sliceHeight = Math.min(pageHeightPx, totalH - yOffset);
-      if (sliceHeight <= 0) break;
-
-      if (pageCount > 0) pdf.addPage();
-
-      const pageCanvas = document.createElement("canvas");
-      pageCanvas.width = totalW;
-      pageCanvas.height = Math.round(sliceHeight);
-      const ctx = pageCanvas.getContext("2d");
-      ctx.drawImage(canvas, 0, -yOffset);
-      const pageImg = pageCanvas.toDataURL("image/jpeg", 0.95);
-
-      pdf.addImage(pageImg, "JPEG", 0, 0, pdfW, pageCanvas.height * ratio);
-      yOffset += pageHeightPx;
-      pageCount++;
-    }
-
-    pdf.save(`${resumeData.name || "resume"}_DBUU.pdf`);
-  } finally {
-    document.body.removeChild(iframe);
+  if (!canvas || !canvas.width || !canvas.height) {
+    throw new Error("Resume preview render nahi ho paaya, dobara try karein");
   }
+
+  const pdf = new jsPDF({ unit: "pt", format: "a4", orientation: "portrait" });
+  const pdfW = pdf.internal.pageSize.getWidth();
+  const pdfH = pdf.internal.pageSize.getHeight();
+  const totalH = canvas.height;
+  const totalW = canvas.width;
+  const ratio = pdfW / totalW;
+  const pageHeightPx = pdfH / ratio;
+
+  console.log("DBUU PDF debug — pdfW,pdfH,totalW,totalH,ratio,pageHeightPx:",
+    pdfW, pdfH, totalW, totalH, ratio, pageHeightPx);
+
+  if (![pdfW, pdfH, totalW, totalH, ratio, pageHeightPx].every(Number.isFinite)) {
+    throw new Error("PDF size calculation galat aayi (NaN/Infinity) — canvas ya page size check karein");
+  }
+
+  let yOffset = 0;
+  let pageCount = 0;
+  while (yOffset < totalH) {
+    const sliceHeight = Math.min(pageHeightPx, totalH - yOffset);
+    if (sliceHeight <= 0) break;
+
+    if (pageCount > 0) pdf.addPage();
+
+    const pageCanvas = document.createElement("canvas");
+    pageCanvas.width = totalW;
+    pageCanvas.height = Math.max(1, Math.round(sliceHeight));
+    const ctx = pageCanvas.getContext("2d");
+    ctx.drawImage(canvas, 0, -yOffset);
+    const pageImg = pageCanvas.toDataURL("image/jpeg", 0.95);
+
+    const imgH = pageCanvas.height * ratio;
+    console.log("DBUU PDF debug — page", pageCount, "pageCanvas.height:", pageCanvas.height, "imgH:", imgH);
+
+    if (!Number.isFinite(imgH) || imgH <= 0) {
+      throw new Error(`Page ${pageCount + 1} ki height galat aayi (${imgH})`);
+    }
+
+    pdf.addImage(pageImg, "JPEG", 0, 0, pdfW, imgH);
+    yOffset += pageHeightPx;
+    pageCount++;
+  }
+
+  pdf.save(`${resumeData.name || "resume"}_DBUU.pdf`);
+} finally {
+  document.body.removeChild(iframe);
+}
 }
 
 function buildDbuuHTML(data) {
