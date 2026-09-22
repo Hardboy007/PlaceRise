@@ -147,28 +147,41 @@ export default function StudentProfilePage() {
   };
 
   const handleCertSave = async (data) => {
-  setSavingCert(true);
-  try {
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, val]) => {
-      if (key === "file") {
-        if (val) formData.append("file", val);
-      } else if (key === "skills") {
-        formData.append("skills", JSON.stringify(val));
-      } else {
-        formData.append(key, val ?? "");
-      }
-    });
+    setSavingCert(true);
+    try {
+      const formData = new FormData();
+      Object.entries(data).forEach(([key, val]) => {
+        if (key === "file") {
+          if (val) formData.append("file", val);
+        } else if (key === "skills") {
+          formData.append("skills", JSON.stringify(val));
+        } else {
+          formData.append(key, val ?? "");
+        }
+      });
 
-    const updated = await api.post("/students/me/certifications", formData);
-    setCertifications(updated);
-    setSavingCert(false);
-    return true;
-  } catch (err) {
-    setSavingCert(false);
-    return false;
-  }
-};
+      const updated = await api.post("/students/me/certifications", formData);
+      setCertifications(updated);
+      if (data.skills?.length > 0) {
+        const currentSkills = student.skills || [];
+        const newSkills = data.skills.filter(
+          (s) => s && !currentSkills.includes(s),
+        );
+        if (newSkills.length > 0) {
+          const mergedSkills = [...currentSkills, ...newSkills];
+          const updatedStudent = await api.put("/students/me", {
+            skills: mergedSkills,
+          });
+          setStudent(updatedStudent);
+        }
+      }
+      setSavingCert(false);
+      return true;
+    } catch (err) {
+      setSavingCert(false);
+      return false;
+    }
+  };
 
   const handleCancel = () => {
     setForm(null);
