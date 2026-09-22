@@ -211,20 +211,21 @@ export default function CompanyDetailPage() {
     setApplyLoading(false);
   };
 
+  // WITH
   const handleDownloadPDF = () => {
-    if (!company.jdPdfUrl) {
+    if (!company?.jdPdfUrl) {
       alert("No JD PDF available for this job yet.");
       return;
     }
 
-    const companyName = (companyInfo.name || "JD").replace(
+    const name = (company?.companyId?.name || "JD").replace(
       /[^a-zA-Z0-9_-]/g,
       "_",
     );
 
     const downloadUrl = company.jdPdfUrl.replace(
       "/upload/",
-      `/upload/fl_attachment:${companyName}/`,
+      `/upload/fl_attachment:${name}/`,
     );
 
     window.open(downloadUrl, "_blank");
@@ -857,7 +858,9 @@ export default function CompanyDetailPage() {
                 </p>
                 <div className="flex flex-col gap-2">
                   {matchedRoles.map((rg) => {
-                    const alreadyApplied = appliedRoleIds.has(rg._id?.toString());
+                    const alreadyApplied = appliedRoleIds.has(
+                      rg._id?.toString(),
+                    );
                     const isDisabled =
                       alreadyApplied ||
                       (!company.allowMultipleRoleApplications &&
