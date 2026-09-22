@@ -650,28 +650,23 @@ function BulkApplyModal({
   );
 }
 
-function EligibleTab({
-  selectedJob,
-  allStudents,
-  refreshKey,
-  selectedRoleGroupId,
-}) {
+function EligibleTab({ selectedJob, allStudents, refreshKey, selectedRoleGroupId}) {
   // Matching against s.course (not s.branch) — eligibleBranches actually
   // stores full COURSE name strings (e.g. "B.Tech Computer Science
   // Engineering") as selected via BranchSelectorModal in
   // CompanyManagementPage.jsx, which use the same universityStructure
   // course-name strings as Student.course.
   const selectedRoleGroup = selectedJob?.roleGroups?.find(
-    (rg) => rg._id?.toString() === selectedRoleGroupId,
-  );
+  (rg) => rg._id?.toString() === selectedRoleGroupId,
+);
   const eligible = useMemo(() => {
     if (!selectedJob) return [];
     return allStudents.filter((s) => {
       const eligibleBranches = selectedRoleGroup?.eligibleBranches || [];
-      const branchOk =
-        eligibleBranches.length === 0 ||
-        eligibleBranches.includes("All") ||
-        eligibleBranches.includes(s.course);
+const branchOk =
+  eligibleBranches.length === 0 ||
+  eligibleBranches.includes("All") ||
+  eligibleBranches.includes(s.course);
       const cgpaOk = (s.cgpa ?? 0) >= (selectedJob.minCgpa || 0);
       const backlogOk = (s.backlogs ?? 0) <= (selectedJob.maxBacklogs ?? 0);
       return branchOk && cgpaOk && backlogOk;
@@ -1656,17 +1651,17 @@ function AppliedTab({
   };
 
   const roleFiltered = useMemo(() => {
-    const roleGroups = selectedJob?.roleGroups || [];
-    // Single-role drives (jaise Google — sirf ek role) me filter ki zaroorat nahi.
-    // Multi-role drives me bhi, jin applications ka roleGroupId set nahi hai
-    // (purana data, ya student ne role choose kiye bina apply kiya) unhe
-    // hide mat karo — warna wo applied hote hue bhi list se gayab dikhenge.
-    if (!selectedRoleGroupId || roleGroups.length <= 1) return applications;
-    return applications.filter((a) => {
-      const rgId = a.roleGroupId?.toString();
-      return !rgId || rgId === selectedRoleGroupId;
-    });
-  }, [applications, selectedRoleGroupId, selectedJob]);
+  const roleGroups = selectedJob?.roleGroups || [];
+  // Single-role drives (jaise Google — sirf ek role) me filter ki zaroorat nahi.
+  // Multi-role drives me bhi, jin applications ka roleGroupId set nahi hai
+  // (purana data, ya student ne role choose kiye bina apply kiya) unhe
+  // hide mat karo — warna wo applied hote hue bhi list se gayab dikhenge.
+  if (!selectedRoleGroupId || roleGroups.length <= 1) return applications;
+  return applications.filter((a) => {
+    const rgId = a.roleGroupId?.toString();
+    return !rgId || rgId === selectedRoleGroupId;
+  });
+}, [applications, selectedRoleGroupId, selectedJob]);
 
   const roundApplications = useMemo(() => {
     if (rounds.length === 0) return roleFiltered;
@@ -2103,7 +2098,7 @@ function AppliedTab({
       )}
 
       {/* Overall stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
         <StatCard
           icon={<Users size={20} color="#1a3a8f" />}
           label="Total Applied"
@@ -2132,13 +2127,7 @@ function AppliedTab({
           bg="#F0FDF4"
           borderColor="#86EFAC"
         />
-        <StatCard
-          icon={<XCircle size={20} color="#EF4444" />}
-          label="Rejected"
-          value={counts.rejected}
-          bg="#FFF1F2"
-          borderColor="#FECDD3"
-        />
+        
       </div>
 
       {/* Round Tabs — sirf tab dikhao jab selectionProcess defined ho */}
@@ -2152,27 +2141,23 @@ function AppliedTab({
               const isActive = activeRound === idx;
               // Is round mein kitne cleared/eliminated
               const appsInRound =
-                idx === 0
-                  ? applications
-                  : applications.filter((app) => {
-                      for (let i = 0; i < idx; i++) {
-                        const rs = app.roundStatuses?.find(
-                          (r) => r.roundIndex === i,
-                        );
-                        if (!rs || rs.status !== "Cleared") return false;
-                      }
-                      return true;
-                    });
-              const clearedCount = appsInRound.filter(
-                (a) =>
-                  a.roundStatuses?.find((r) => r.roundIndex === idx)?.status ===
-                  "Cleared",
-              ).length;
-              const eliminatedCount = appsInRound.filter(
-                (a) =>
-                  a.roundStatuses?.find((r) => r.roundIndex === idx)?.status ===
-                  "Eliminated",
-              ).length;
+  idx === 0
+    ? roleFiltered
+    : roleFiltered.filter((app) => {
+        for (let i = 0; i < idx; i++) {
+          const rs = app.roundStatuses?.find((r) => r.roundIndex === i);
+          if (!rs || rs.status !== "Cleared") return false;
+        }
+        return true;
+      });
+const clearedCount = appsInRound.filter(
+  (a) =>
+    a.roundStatuses?.find((r) => r.roundIndex === idx)?.status === "Cleared",
+).length;
+const eliminatedCount = appsInRound.filter(
+  (a) =>
+    a.roundStatuses?.find((r) => r.roundIndex === idx)?.status === "Eliminated",
+).length;
 
               return (
                 <button
@@ -3146,22 +3131,22 @@ export default function ApplicationsManagementPage() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const fetchData = async () => {
-    const jobsData = await api.get("/companies/jobs");
-    const studentsData = await api.get("/students");
+  const jobsData = await api.get("/companies/jobs");
+  const studentsData = await api.get("/students");
 
-    // Filter out jobs whose company has been deleted (orphaned jobs).
-    const jobList = Array.isArray(jobsData)
-      ? jobsData.filter((j) => j.companyId && j.companyId.name)
+  // Filter out jobs whose company has been deleted (orphaned jobs).
+  const jobList = Array.isArray(jobsData)
+    ? jobsData.filter((j) => j.companyId && j.companyId.name)
+    : [];
+  setJobs(jobList);
+
+  const studentList = Array.isArray(studentsData)
+    ? studentsData
+    : Array.isArray(studentsData?.students)
+      ? studentsData.students
       : [];
-    setJobs(jobList);
-
-    const studentList = Array.isArray(studentsData)
-      ? studentsData
-      : Array.isArray(studentsData?.students)
-        ? studentsData.students
-        : [];
-    setAllStudents(studentList);
-  };
+  setAllStudents(studentList);
+};
 
   useEffect(() => {
     document.title = "Applications Management";
@@ -3360,11 +3345,11 @@ export default function ApplicationsManagementPage() {
 
           {activeTab === "eligible" ? (
             <EligibleTab
-              selectedJob={selectedJob}
-              allStudents={allStudents}
-              refreshKey={refreshKey}
-              selectedRoleGroupId={selectedRoleGroupId}
-            />
+  selectedJob={selectedJob}
+  allStudents={allStudents}
+  refreshKey={refreshKey}
+  selectedRoleGroupId={selectedRoleGroupId}
+/>
           ) : (
             <AppliedTab
               selectedJobId={selectedJobId}
