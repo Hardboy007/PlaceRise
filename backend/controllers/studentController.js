@@ -10,6 +10,7 @@ const universityStructure = require("../data/universityStructure");
 const { cloudinary } = require("../config/cloudinary");
 const PDFDocument = require("pdfkit");
 const { Readable } = require("stream");
+const puppeteer = require("puppeteer");
 
 const ALLOWED_DOC_TYPES = [
   "image/jpeg",
@@ -479,6 +480,479 @@ const uploadResume = async (req, res) => {
 //=================== GENERATE RESUME (Build-in-app) =================
 
 const path = require("path");
+const buildDbuuHTML = (data) => {
+  const {
+    name = "",
+    email = "",
+    phone = "",
+    city = "",
+    linkedinUrl = "",
+    githubUrl = "",
+    about = "",
+    college = "",
+    branch = "",
+    cgpa = "",
+    batch = "",
+    tenthMarks = "",
+    twelfthMarks = "",
+    skillCategories = [],
+    projects = [],
+    experience = [],
+    achievements = [],
+    certifications = [],
+  } = data;
+
+  const batchYear = batch ? batch.split(/[-–]/)[1]?.trim() : "";
+
+  // ── Contact line ──
+  const contactParts = [city, phone, email, linkedinUrl, githubUrl].filter(
+    Boolean,
+  );
+
+  // ── Meta line ──
+  const metaParts = [
+    branch ? `B.Tech, ${branch}` : null,
+    batch ? `Batch ${batch}` : null,
+    college || null,
+  ].filter(Boolean);
+
+  // ── Academic rows ──
+  const academicRows = [
+    {
+      degree: `B.Tech (${branch || "—"})`,
+      institute: college || "—",
+      marks: cgpa ? `${cgpa}` : "—",
+      year: batchYear ? `${batchYear} (Exp.)` : "—",
+    },
+    twelfthMarks && {
+      degree: "XII (CBSE)",
+      institute: "—",
+      marks: `${twelfthMarks}%`,
+      year: "2023",
+    },
+    tenthMarks && {
+      degree: "X (CBSE)",
+      institute: "—",
+      marks: `${tenthMarks}%`,
+      year: "2021",
+    },
+  ].filter(Boolean);
+
+  // ── Skill categories ──
+  const skillRows = skillCategories.filter((c) => c.label || c.skills);
+
+  // ── Projects HTML ──
+  const projectsHTML = projects
+    .map((p) => {
+      const bullets = p.desc
+        ? p.desc
+            .split("\n")
+            .filter(Boolean)
+            .map((line) => `<li>${line.replace(/^[•▪\-]\s*/, "")}</li>`)
+            .join("")
+        : "";
+
+      // Group bullets into rows: Impact (first half) + Delivery (second half)
+      // OR use p.impact / p.delivery if your data has those fields
+      const allLines = p.desc ? p.desc.split("\n").filter(Boolean) : [];
+      const mid = Math.ceil(allLines.length / 2);
+      const impactLines = allLines.slice(0, mid);
+      const deliveryLines = allLines.slice(mid);
+
+      const makeBullets = (lines) =>
+        lines.map((l) => `<li>${l.replace(/^[•▪\-]\s*/, "")}</li>`).join("");
+
+      // If project has explicit impact/delivery fields use them, else split desc
+      const impactHTML = p.impact
+        ? p.impact
+            .split("\n")
+            .filter(Boolean)
+            .map((l) => `<li>${l.replace(/^[•▪\-]\s*/, "")}</li>`)
+            .join("")
+        : makeBullets(impactLines);
+
+      const deliveryHTML = p.delivery
+        ? p.delivery
+            .split("\n")
+            .filter(Boolean)
+            .map((l) => `<li>${l.replace(/^[•▪\-]\s*/, "")}</li>`)
+            .join("")
+        : makeBullets(deliveryLines);
+
+      const techStack = p.subtitle
+        ? ` &nbsp;|&nbsp; <span style="font-weight:normal">${p.subtitle}</span>`
+        : "";
+      const link = p.period || p.link || "";
+
+      // If only one section of bullets, show as single "Delivery" row
+      const tableRows =
+        impactHTML && deliveryHTML
+          ? `
+          <tr>
+            <td class="label-cell">Impact</td>
+            <td><ul>${impactHTML}</ul></td>
+          </tr>
+          <tr>
+            <td class="label-cell">Delivery</td>
+            <td><ul>${deliveryHTML}</ul></td>
+          </tr>`
+          : `
+          <tr>
+            <td class="label-cell">Delivery</td>
+            <td><ul>${impactHTML || deliveryHTML || bullets}</ul></td>
+          </tr>`;
+
+      return `
+        <div class="project-header-row">
+          <div class="project-title">${p.title || "—"}${techStack}</div>
+          ${link ? `<div class="project-link">${link}</div>` : ""}
+        </div>
+        <table class="proj-table">
+          ${tableRows}
+        </table>`;
+    })
+    .join("");
+
+  // ── Experience HTML ──
+  const experienceHTML = experience
+    .map(
+      (e) => `
+      <div class="project-header-row">
+        <div class="project-title">${e.title || "—"}${e.subtitle ? ` &nbsp;|&nbsp; <span style="font-weight:normal">${e.subtitle}</span>` : ""}</div>
+        ${e.period ? `<div class="project-link">${e.period}</div>` : ""}
+      </div>
+      ${
+        e.desc
+          ? `<table class="proj-table">
+          <tr>
+            <td class="label-cell">Work</td>
+            <td><ul>${e.desc
+              .split("\n")
+              .filter(Boolean)
+              .map((l) => `<li>${l.replace(/^[•▪\-]\s*/, "")}</li>`)
+              .join("")}</ul></td>
+          </tr>
+        </table>`
+          : ""
+      }`,
+    )
+    .join("");
+
+  // ── Achievements HTML ──
+  const achievementsHTML =
+    achievements.length > 0
+      ? `
+      <table class="comp-table">
+        ${achievements
+          .map(
+            (a) => `
+          <tr>
+            <td class="label-cell">${a.title || "Recognition"}</td>
+            <td><ul class="ach-list">${(a.desc || "")
+              .split("\n")
+              .filter(Boolean)
+              .map((l) => `<li>${l.replace(/^[•▪\-]\s*/, "")}</li>`)
+              .join("")}</ul></td>
+          </tr>`,
+          )
+          .join("")}
+      </table>`
+      : "";
+
+  // ── Certifications HTML ──
+  const certificationsHTML =
+    certifications.length > 0
+      ? `
+      <table class="comp-table">
+        ${certifications
+          .map(
+            (c) => `
+          <tr>
+            <td class="label-cell">${c.title || "—"}</td>
+            <td>${c.subtitle || "—"}</td>
+          </tr>`,
+          )
+          .join("")}
+      </table>`
+      : "";
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+ 
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 9.5pt;
+    color: #000;
+    background: #fff;
+    padding: 22px 30px;
+    width: 794px; /* A4 width at 96dpi */
+  }
+ 
+  /* ── HEADER ── */
+  .header-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+  }
+  .logo-wrap { width: 46px; height: 46px; flex-shrink: 0; }
+  .dbuu-univ-name {
+    font-size: 8.5pt;
+    font-weight: bold;
+    color: #8B0000;
+    letter-spacing: 0.4px;
+  }
+  .header-rule {
+    border: none;
+    border-top: 1.5px solid #8B0000;
+    margin-bottom: 5px;
+  }
+  .cv-name {
+    font-size: 22pt;
+    font-weight: bold;
+    color: #8B0000;
+    line-height: 1.1;
+    margin-bottom: 2px;
+  }
+  .cv-subtitle {
+    font-size: 9.5pt;
+    font-weight: bold;
+    color: #000;
+    margin-bottom: 2px;
+  }
+  .cv-contact {
+    font-size: 8pt;
+    color: #333;
+    margin-bottom: 6px;
+  }
+ 
+  /* ── BANNER ── */
+  .highlight-banner {
+    background-color: #111;
+    color: #fff;
+    text-align: center;
+    padding: 6px 10px;
+    font-size: 8.5pt;
+    font-weight: bold;
+    margin-bottom: 8px;
+    line-height: 1.6;
+  }
+ 
+  /* ── SECTION HEADER ── */
+  .section-header {
+    background-color: #6B0F1A;
+    color: #fff;
+    font-size: 9pt;
+    font-weight: bold;
+    padding: 3.5px 7px;
+    margin-top: 8px;
+    margin-bottom: 0;
+    letter-spacing: 0.3px;
+  }
+ 
+  /* ── ACADEMIC TABLE ── */
+  .academic-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9pt;
+  }
+  .academic-table th {
+    background-color: #e8e8e8;
+    font-weight: bold;
+    padding: 4px 8px;
+    border: 1px solid #bbb;
+    text-align: center;
+  }
+  .academic-table td {
+    padding: 3.5px 8px;
+    border: 1px solid #ccc;
+    text-align: center;
+  }
+  .academic-table td.left { text-align: left; }
+ 
+  /* ── COMPETENCIES / SKILLS TABLE ── */
+  .comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9pt;
+  }
+  .comp-table td {
+    padding: 4.5px 7px;
+    border: 1px solid #ddd;
+    vertical-align: top;
+  }
+  .label-cell {
+    background-color: #fce8e8 !important;
+    font-weight: bold;
+    color: #6B0F1A !important;
+    width: 22%;
+    white-space: nowrap;
+  }
+ 
+  /* ── PROJECT HEADER ROW ── */
+  .project-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-top: 7px;
+    margin-bottom: 2px;
+  }
+  .project-title {
+    font-size: 9.5pt;
+    font-weight: bold;
+    color: #000;
+    flex: 1;
+  }
+  .project-link {
+    font-size: 8.5pt;
+    color: #444;
+    font-style: italic;
+    white-space: nowrap;
+    margin-left: 12px;
+  }
+ 
+  /* ── PROJECT / EXPERIENCE TABLE ── */
+  .proj-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9pt;
+  }
+  .proj-table td {
+    padding: 4.5px 7px;
+    border: 1px solid #ddd;
+    vertical-align: top;
+  }
+  .proj-table ul {
+    margin: 0; padding: 0; list-style: none;
+  }
+  .proj-table ul li {
+    position: relative;
+    padding-left: 11px;
+    margin-bottom: 3px;
+    line-height: 1.45;
+  }
+  .proj-table ul li::before {
+    content: "▪";
+    position: absolute;
+    left: 0; top: 0;
+  }
+ 
+  /* ── ACHIEVEMENTS LIST ── */
+  .ach-list {
+    margin: 0 !important;
+    padding-left: 15px !important;
+    list-style: disc !important;
+  }
+  .ach-list li { margin-bottom: 3px; line-height: 1.45; }
+</style>
+</head>
+<body>
+ 
+  <!-- LOGO + UNIVERSITY NAME -->
+  <div class="header-top">
+    <div class="logo-wrap">
+      <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" width="46" height="46">
+        <circle cx="24" cy="24" r="22" fill="#fff" stroke="#B8860B" stroke-width="2.5"/>
+        <circle cx="24" cy="24" r="17" fill="none" stroke="#B8860B" stroke-width="1"/>
+        <text x="24" y="22" text-anchor="middle" font-family="Arial" font-size="9" font-weight="bold" fill="#8B0000">DB</text>
+        <text x="24" y="31" text-anchor="middle" font-family="Arial" font-size="7" fill="#8B0000">UU</text>
+      </svg>
+    </div>
+    <div class="dbuu-univ-name">DEV BHOOMI UTTARAKHAND UNIVERSITY</div>
+  </div>
+ 
+  <hr class="header-rule">
+ 
+  <div class="cv-name">${name.toUpperCase()}</div>
+  <div class="cv-subtitle">${metaParts.join(" &nbsp;|&nbsp; ")}</div>
+  <div class="cv-contact">${contactParts.join(" &nbsp;|&nbsp; ")}</div>
+ 
+  ${about ? `<div class="highlight-banner">${about}</div>` : ""}
+ 
+  <!-- ACADEMIC RECORD -->
+  <div class="section-header">ACADEMIC RECORD</div>
+  <table class="academic-table">
+    <thead>
+      <tr>
+        <th>Degree</th>
+        <th>Institute / Board</th>
+        <th>% / CGPA</th>
+        <th>Year</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${academicRows
+        .map(
+          (r) => `
+        <tr>
+          <td>${r.degree}</td>
+          <td class="left">${r.institute}</td>
+          <td>${r.marks}</td>
+          <td>${r.year}</td>
+        </tr>`,
+        )
+        .join("")}
+    </tbody>
+  </table>
+ 
+  <!-- CORE COMPETENCIES -->
+  ${
+    skillRows.length > 0
+      ? `
+  <div class="section-header">CORE COMPETENCIES</div>
+  <table class="comp-table">
+    ${skillRows
+      .map(
+        (cat) => `
+      <tr>
+        <td class="label-cell">${(cat.label || "").toUpperCase()}</td>
+        <td>${cat.skills || ""}</td>
+      </tr>`,
+      )
+      .join("")}
+  </table>`
+      : ""
+  }
+ 
+  <!-- PROJECTS -->
+  ${
+    projects.length > 0
+      ? `<div class="section-header">PROJECTS</div>${projectsHTML}`
+      : ""
+  }
+ 
+  <!-- EXPERIENCE -->
+  ${
+    experience.length > 0
+      ? `<div class="section-header">EXPERIENCE</div>${experienceHTML}`
+      : ""
+  }
+ 
+  <!-- CERTIFICATIONS -->
+  ${
+    certifications.length > 0
+      ? `<div class="section-header">CERTIFICATIONS</div>${certificationsHTML}`
+      : ""
+  }
+ 
+  <!-- ACHIEVEMENTS -->
+  ${
+    achievements.length > 0
+      ? `<div class="section-header">ACHIEVEMENTS</div>${achievementsHTML}`
+      : ""
+  }
+ 
+</body>
+</html>`;
+};
+
+// ─────────────────────────────────────────────
+//  MAIN CONTROLLER
+// ─────────────────────────────────────────────
 const generateResume = async (req, res) => {
   try {
     const {
@@ -509,628 +983,184 @@ const generateResume = async (req, res) => {
       return res.status(400).json({ message: "Name and email are required" });
     }
 
-    const ACCENTS = {
-      dbuu: "#1a3a8f",
-      minimal: "#1E293B",
-      classic: "#334155",
-    };
-    const accent = ACCENTS[template] || ACCENTS.dbuu;
-    const font = template === "classic" ? "Times-Roman" : "Helvetica";
-    const fontBold = template === "classic" ? "Times-Bold" : "Helvetica-Bold";
+    let pdfBuffer;
 
-    const doc = new PDFDocument({ margin: 50, size: "A4" });
-    const buffers = [];
-    doc.on("data", (chunk) => buffers.push(chunk));
+    // ── DBUU Template via Puppeteer ──
+    if (template === "dbuu") {
+      const html = buildDbuuHTML({
+        name,
+        email,
+        phone,
+        city,
+        linkedinUrl,
+        githubUrl,
+        about,
+        college,
+        branch,
+        cgpa,
+        batch,
+        tenthMarks,
+        twelfthMarks,
+        skillCategories,
+        skills,
+        experience,
+        projects,
+        achievements,
+        certifications,
+      });
 
-    await new Promise((resolve) => {
-      doc.on("end", resolve);
+      const browser = await puppeteer.launch({
+        headless: "new",
+        args: [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--disable-dev-shm-usage",
+        ],
+      });
 
-      const pageWidth = doc.page.width;
-      const contentWidth = pageWidth - 100;
-      const LEFT = 50;
-      const RIGHT = pageWidth - 50;
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: "networkidle0" });
 
-      if (template === "dbuu") {
-        const dbBlue = "#1a3a8f";
-        const logoPath = path.join(
-          __dirname,
-          "../../../PR/public/images/dbuu-logo.jpeg",
-        );
+      pdfBuffer = await page.pdf({
+        format: "A4",
+        printBackground: true, // ← zaruri hai colored backgrounds ke liye
+        margin: { top: "0px", right: "0px", bottom: "0px", left: "0px" },
+      });
 
-        // ── Logo + University Name ──
-        let headerY = 36;
-        if (fs.existsSync(logoPath)) {
-          doc.image(logoPath, LEFT, headerY, { width: 36, height: 36 });
-        }
+      await browser.close();
+    }
+
+    // ── Minimal / Classic — pdfkit (existing logic) ──
+    else {
+      const PDFDocument = require("pdfkit");
+      const ACCENTS = { minimal: "#1E293B", classic: "#334155" };
+      const accent = ACCENTS[template] || "#1E293B";
+      const font = template === "classic" ? "Times-Roman" : "Helvetica";
+      const fontBold = template === "classic" ? "Times-Bold" : "Helvetica-Bold";
+
+      const doc = new PDFDocument({ margin: 50, size: "A4" });
+      const buffers = [];
+      doc.on("data", (chunk) => buffers.push(chunk));
+
+      await new Promise((resolve) => {
+        doc.on("end", resolve);
+
+        const pageWidth = doc.page.width;
+        const contentWidth = pageWidth - 100;
+        const LEFT = 50;
+        const RIGHT = pageWidth - 50;
+
         doc
-          .fillColor(dbBlue)
-          .font("Helvetica-Bold")
-          .fontSize(9)
-          .text("DEV BHOOMI UTTARAKHAND UNIVERSITY", LEFT + 44, headerY + 13);
-
-        // Horizontal rule
+          .fillColor(accent)
+          .font(fontBold)
+          .fontSize(20)
+          .text(name, { align: "left" });
+        doc.font(font).fontSize(10).fillColor("#475569");
+        doc.text([email, phone, city].filter(Boolean).join("   |   "));
+        if (linkedinUrl) doc.fillColor(accent).text(linkedinUrl);
+        doc.moveDown(0.3);
         doc
-          .moveTo(LEFT, 78)
-          .lineTo(RIGHT, 78)
-          .strokeColor("#CBD5E1")
-          .lineWidth(0.5)
+          .moveTo(LEFT, doc.y)
+          .lineTo(RIGHT, doc.y)
+          .strokeColor(accent)
+          .lineWidth(1)
           .stroke();
+        doc.moveDown(0.8).fillColor("#1E293B");
 
-        doc.y = 86;
+        const sectionHeader = (title) => {
+          doc.moveDown(0.8);
+          doc
+            .font(fontBold)
+            .fontSize(12)
+            .fillColor(accent)
+            .text(title.toUpperCase());
+          doc
+            .moveTo(LEFT, doc.y + 2)
+            .lineTo(RIGHT, doc.y + 2)
+            .strokeColor(accent)
+            .lineWidth(0.5)
+            .stroke();
+          doc.moveDown(0.6).fillColor("#1E293B").font(font).fontSize(10);
+        };
 
-        // ── Student Name ──
-        doc
-          .fillColor("#1E293B")
-          .font("Helvetica-Bold")
-          .fontSize(22)
-          .text(name.toUpperCase(), LEFT, doc.y);
-
-        doc.moveDown(0.25);
-
-        // ── Branch | Batch | University ──
-        const metaLine = [branch, batch ? `Batch ${batch}` : null, college]
-          .filter(Boolean)
-          .join("   |   ");
-        doc
-          .font("Helvetica-Bold")
-          .fontSize(9.5)
-          .fillColor("#1E293B")
-          .text(metaLine, LEFT, doc.y, { width: contentWidth });
-
-        doc.moveDown(0.2);
-
-        // ── Contact line ──
-        const contactParts = [
-          city,
-          phone,
-          email,
-          linkedinUrl,
-          githubUrl,
-        ].filter(Boolean);
-        doc
-          .font("Helvetica")
-          .fontSize(8.5)
-          .fillColor("#475569")
-          .text(contactParts.join("   |   "), LEFT, doc.y, {
-            width: contentWidth,
-            lineGap: 1.5,
-          });
-
-        doc.moveDown(0.35);
-
-        // ── Summary banner ──
         if (about) {
-          const bannerY = doc.y;
-          // Measure text height
-          const bannerPadV = 6;
-          const bannerPadH = 8;
-          const bannerTextWidth = contentWidth - bannerPadH * 2;
-          // Calculate height needed
-          const textHeight = doc
-            .font("Helvetica-Bold")
-            .fontSize(8.5)
-            .heightOfString(about, { width: bannerTextWidth });
-          const bannerHeight = textHeight + bannerPadV * 2;
-
-          doc.rect(LEFT, bannerY, contentWidth, bannerHeight).fill(dbBlue);
-          doc
-            .fillColor("#FFFFFF")
-            .font("Helvetica-Bold")
-            .fontSize(8.5)
-            .text(about, LEFT + bannerPadH, bannerY + bannerPadV, {
-              width: bannerTextWidth,
-              align: "center",
-              lineGap: 2,
-            });
-          doc.y = bannerY + bannerHeight + 6;
+          sectionHeader("Summary");
+          doc.font(font).fontSize(10).text(about, { lineGap: 3 });
         }
 
-        // ── Section header ──
-        const dbSection = (title) => {
-          doc.moveDown(0.4);
-          const sy = doc.y;
-          doc.rect(LEFT, sy, contentWidth, 15).fill(dbBlue);
-          doc
-            .fillColor("#FFFFFF")
-            .font("Helvetica-Bold")
-            .fontSize(9)
-            .text(title.toUpperCase(), LEFT + 4, sy + 3.5, {
-              width: contentWidth - 8,
-            });
-          doc.y = sy + 19;
-        };
+        sectionHeader("Education");
+        doc
+          .font(fontBold)
+          .fontSize(10.5)
+          .text(college || "—");
+        doc
+          .font(font)
+          .fontSize(10)
+          .fillColor("#475569")
+          .text(`${branch || "—"}   |   CGPA: ${cgpa || "—"}`);
+        doc.fillColor("#1E293B");
 
-        // ── Table helpers ──
-        const COL1 = LEFT;
-        const COL2 = LEFT + 130; // Institute
-        const COL3 = LEFT + 320; // % / CGPA
-        const COL4 = LEFT + 420; // Year
-
-        const drawTableBorder = (y, h) => {
-          // outer border
-          doc
-            .rect(COL1, y, contentWidth, h)
-            .strokeColor("#CBD5E1")
-            .lineWidth(0.4)
-            .stroke();
-          // col dividers
-          [COL2, COL3, COL4].forEach((cx) => {
-            doc
-              .moveTo(cx, y)
-              .lineTo(cx, y + h)
-              .strokeColor("#CBD5E1")
-              .lineWidth(0.4)
-              .stroke();
-          });
-        };
-
-        const academicRow = (deg, inst, perc, year, isHeader = false) => {
-          const rowH = 16;
-          const rowY = doc.y;
-          if (isHeader) {
-            doc.rect(COL1, rowY, contentWidth, rowH).fill("#E8ECF5");
-            doc.font("Helvetica-Bold").fontSize(8.5).fillColor("#1E293B");
-          } else {
-            doc.font("Helvetica").fontSize(8.5).fillColor("#1E293B");
-          }
-          const pad = 3;
-          doc.text(deg, COL1 + pad, rowY + pad + 1, {
-            width: COL2 - COL1 - pad * 2,
-          });
-          doc.text(inst, COL2 + pad, rowY + pad + 1, {
-            width: COL3 - COL2 - pad * 2,
-          });
-          doc.text(perc, COL3 + pad, rowY + pad + 1, {
-            width: COL4 - COL3 - pad * 2,
-          });
-          doc.text(year, COL4 + pad, rowY + pad + 1, {
-            width: RIGHT - COL4 - pad,
-          });
-          doc.y = rowY + rowH;
-          return rowH;
-        };
-
-        // ── Academic Record ──
-        dbSection("Academic Record");
-        const tableStartY = doc.y;
-        let totalTableH = 0;
-        totalTableH += academicRow(
-          "Degree",
-          "Institute / Board",
-          "% / CGPA",
-          "Year",
-          true,
-        );
-        const batchYear = batch ? batch.split(/[-–]/)[1]?.trim() : "";
-        totalTableH += academicRow(
-          `B.Tech (${branch || "—"})`,
-          college || "—",
-          cgpa ? `${cgpa}` : "—",
-          batchYear ? `${batchYear} (Exp.)` : "—",
-        );
-        if (twelfthMarks)
-          totalTableH += academicRow(
-            "XII (CBSE)",
-            "—",
-            `${twelfthMarks}%`,
-            "2023",
-          );
-        if (tenthMarks)
-          totalTableH += academicRow("X (CBSE)", "—", `${tenthMarks}%`, "2021");
-        drawTableBorder(tableStartY, totalTableH);
-
-        // ── Core Competencies ──
-        const cats = skillCategories.filter((c) => c.label || c.skills);
-        if (cats.length > 0) {
-          dbSection("Core Competencies");
-          const compStartY = doc.y;
-          let compH = 0;
-          const LABEL_COL = LEFT;
-          const VALUE_COL = LEFT + 180;
-          const valueWidth = RIGHT - VALUE_COL - 4;
-
-          cats.forEach((cat, i) => {
-            const rowY = doc.y;
-            const valueText = cat.skills || "";
-            const labelText = (cat.label || "").toUpperCase();
-
-            const rowH = Math.max(
-              16,
-              doc
-                .font("Helvetica")
-                .fontSize(8.5)
-                .heightOfString(valueText, { width: valueWidth }) + 8,
-            );
-
-            // alternating light bg
-            if (i % 2 === 1) {
-              doc.rect(LEFT, rowY, contentWidth, rowH).fill("#F8FAFC");
-            }
-
-            doc
-              .font("Helvetica-Bold")
-              .fontSize(8.5)
-              .fillColor(dbBlue)
-              .text(labelText, LABEL_COL + 4, rowY + 4, {
-                width: VALUE_COL - LABEL_COL - 8,
-              });
-            doc
-              .font("Helvetica")
-              .fontSize(8.5)
-              .fillColor("#1E293B")
-              .text(valueText, VALUE_COL + 4, rowY + 4, {
-                width: valueWidth,
-                lineGap: 1.5,
-              });
-
-            doc.y = rowY + rowH;
-            compH += rowH;
-          });
-
-          // border + col divider
-          doc
-            .rect(LEFT, compStartY, contentWidth, compH)
-            .strokeColor("#CBD5E1")
-            .lineWidth(0.4)
-            .stroke();
-          doc
-            .moveTo(VALUE_COL, compStartY)
-            .lineTo(VALUE_COL, compStartY + compH)
-            .strokeColor("#CBD5E1")
-            .lineWidth(0.4)
-            .stroke();
-        } else if (skills.length > 0) {
-          // fallback: flat skills
-          dbSection("Core Competencies");
-          const rowY = doc.y;
-          const rowH = 16;
-          doc.rect(LEFT, rowY, contentWidth, rowH).fill("#F8FAFC");
-          doc
-            .font("Helvetica-Bold")
-            .fontSize(8.5)
-            .fillColor(dbBlue)
-            .text("SKILLS", LEFT + 4, rowY + 4, { width: 170 });
-          doc
-            .font("Helvetica")
-            .fontSize(8.5)
-            .fillColor("#1E293B")
-            .text(skills.join(", "), LEFT + 184, rowY + 4, {
-              width: contentWidth - 184,
-            });
-          doc.y = rowY + rowH;
-          doc
-            .rect(LEFT, rowY, contentWidth, rowH)
-            .strokeColor("#CBD5E1")
-            .lineWidth(0.4)
-            .stroke();
-        }
-
-        // ── Projects ──
-        if (projects.length > 0) {
-          dbSection("Projects");
-          projects.forEach((p) => {
-            // Title row
+        const renderEntries = (label, entries) => {
+          if (!entries || entries.length === 0) return;
+          sectionHeader(label);
+          entries.forEach((e, idx) => {
             const titleY = doc.y;
             doc
-              .font("Helvetica-Bold")
-              .fontSize(9.5)
+              .font(fontBold)
+              .fontSize(10.5)
               .fillColor("#1E293B")
-              .text(
-                `${p.title || "—"}${p.subtitle ? `   |   ${p.subtitle}` : ""}`,
-                LEFT,
-                titleY,
-                { width: contentWidth - 120, continued: false },
-              );
-            // URL italic right
-            if (p.period) {
+              .text(e.title || "—", LEFT, titleY, { width: pageWidth - 250 });
+            if (e.period)
               doc
-                .font("Helvetica-Oblique")
-                .fontSize(8.5)
-                .fillColor("#64748B")
-                .text(p.period, RIGHT - 130, titleY, {
-                  width: 130,
-                  align: "right",
-                });
-            }
-            doc.y = Math.max(doc.y, titleY + 14);
-
-            if (p.desc) {
-              const lines = p.desc.split("\n").filter(Boolean);
-              lines.forEach((line) => {
-                doc
-                  .font("Helvetica")
-                  .fontSize(9)
-                  .fillColor("#1E293B")
-                  .text(
-                    `▪ ${line.replace(/^[•▪\-]\s*/, "")}`,
-                    LEFT + 10,
-                    doc.y,
-                    {
-                      width: contentWidth - 10,
-                      lineGap: 2,
-                    },
-                  );
-              });
-            }
-            doc.moveDown(0.4);
-          });
-        }
-
-        // ── Experience ──
-        if (experience.length > 0) {
-          dbSection("Experience");
-          experience.forEach((e) => {
-            const titleY = doc.y;
-            doc
-              .font("Helvetica-Bold")
-              .fontSize(9.5)
-              .fillColor("#1E293B")
-              .text(e.title || "—", LEFT, titleY, {
-                width: contentWidth - 120,
-              });
-            if (e.period) {
-              doc
-                .font("Helvetica")
-                .fontSize(8.5)
-                .fillColor("#64748B")
-                .text(e.period, RIGHT - 130, titleY, {
-                  width: 130,
-                  align: "right",
-                });
-            }
-            doc.y = Math.max(doc.y, titleY + 14);
-            if (e.subtitle) {
-              doc
-                .font("Helvetica")
+                .font(font)
                 .fontSize(9)
+                .fillColor("#64748B")
+                .text(e.period, pageWidth - 200, titleY, {
+                  width: 150,
+                  align: "right",
+                });
+            doc.x = LEFT;
+            doc.y = Math.max(doc.y, titleY + 14);
+            if (e.subtitle)
+              doc
+                .font(font)
+                .fontSize(9.5)
                 .fillColor("#64748B")
                 .text(e.subtitle, LEFT, doc.y, {
-                  width: contentWidth,
-                  lineGap: 1.5,
+                  width: pageWidth - 100,
+                  lineGap: 2,
                 });
-            }
-            if (e.desc) {
-              e.desc
-                .split("\n")
-                .filter(Boolean)
-                .forEach((line) => {
-                  doc
-                    .font("Helvetica")
-                    .fontSize(9)
-                    .fillColor("#1E293B")
-                    .text(
-                      `▪ ${line.replace(/^[•▪\-]\s*/, "")}`,
-                      LEFT + 10,
-                      doc.y,
-                      {
-                        width: contentWidth - 10,
-                        lineGap: 2,
-                      },
-                    );
-                });
-            }
-            doc.moveDown(0.4);
-          });
-        }
-
-        // ── Certifications ──
-        if (certifications.length > 0) {
-          dbSection("Certifications");
-          const certStartY = doc.y;
-          let certH = 0;
-          const VALUE_COL = LEFT + 180;
-          certifications.forEach((c, i) => {
-            const rowY = doc.y;
-            const rowH = 16;
-            if (i % 2 === 1)
-              doc.rect(LEFT, rowY, contentWidth, rowH).fill("#F8FAFC");
-            doc
-              .font("Helvetica-Bold")
-              .fontSize(8.5)
-              .fillColor(dbBlue)
-              .text((c.title || "—").toUpperCase(), LEFT + 4, rowY + 4, {
-                width: VALUE_COL - LEFT - 8,
-              });
-            doc
-              .font("Helvetica")
-              .fontSize(8.5)
-              .fillColor("#1E293B")
-              .text(c.subtitle || "—", VALUE_COL + 4, rowY + 4, {
-                width: RIGHT - VALUE_COL - 8,
-              });
-            doc.y = rowY + rowH;
-            certH += rowH;
-          });
-          doc
-            .rect(LEFT, certStartY, contentWidth, certH)
-            .strokeColor("#CBD5E1")
-            .lineWidth(0.4)
-            .stroke();
-          doc
-            .moveTo(LEFT + 180, certStartY)
-            .lineTo(LEFT + 180, certStartY + certH)
-            .strokeColor("#CBD5E1")
-            .lineWidth(0.4)
-            .stroke();
-        }
-
-        // ── Achievements ──
-        if (achievements.length > 0) {
-          dbSection("Achievements");
-          const achStartY = doc.y;
-          let achH = 0;
-          const VALUE_COL = LEFT + 180;
-
-          achievements.forEach((a, i) => {
-            const rowY = doc.y;
-            const valueText = a.desc || "";
-            const rowH = Math.max(
-              20,
+            if (e.desc)
               doc
-                .font("Helvetica")
-                .fontSize(9)
-                .heightOfString(valueText, {
-                  width: RIGHT - VALUE_COL - 8,
-                }) + 10,
-            );
-            if (i % 2 === 1)
-              doc.rect(LEFT, rowY, contentWidth, rowH).fill("#F8FAFC");
-
-            doc
-              .font("Helvetica-Bold")
-              .fontSize(8.5)
-              .fillColor(dbBlue)
-              .text((a.title || "").toUpperCase(), LEFT + 4, rowY + 5, {
-                width: VALUE_COL - LEFT - 8,
-              });
-
-            if (a.desc) {
-              const lines = a.desc.split("\n").filter(Boolean);
-              let bulletY = rowY + 5;
-              lines.forEach((line) => {
-                doc
-                  .font("Helvetica")
-                  .fontSize(8.5)
-                  .fillColor("#1E293B")
-                  .text(
-                    `• ${line.replace(/^[•▪\-]\s*/, "")}`,
-                    VALUE_COL + 4,
-                    bulletY,
-                    {
-                      width: RIGHT - VALUE_COL - 8,
-                      lineGap: 2,
-                    },
-                  );
-                bulletY = doc.y;
-              });
-            }
-            doc.y = rowY + rowH;
-            achH += rowH;
+                .font(font)
+                .fontSize(9.5)
+                .fillColor("#1E293B")
+                .text(e.desc, LEFT, doc.y, {
+                  width: pageWidth - 100,
+                  lineGap: 2,
+                });
+            if (idx < entries.length - 1) doc.moveDown(0.5);
           });
+        };
 
+        renderEntries("Experience", experience);
+        renderEntries("Projects", projects);
+        if (skills.length > 0) {
+          sectionHeader("Skills");
           doc
-            .rect(LEFT, achStartY, contentWidth, achH)
-            .strokeColor("#CBD5E1")
-            .lineWidth(0.4)
-            .stroke();
-          doc
-            .moveTo(VALUE_COL, achStartY)
-            .lineTo(VALUE_COL, achStartY + achH)
-            .strokeColor("#CBD5E1")
-            .lineWidth(0.4)
-            .stroke();
+            .font(font)
+            .fontSize(10)
+            .fillColor("#1E293B")
+            .text(skills.join("   •   "), { lineGap: 3 });
         }
 
         doc.end();
-        return;
-      }
+      });
 
-      // ── Minimal + Classic ──
-      doc.fillColor(accent).font(fontBold).fontSize(20);
-      doc.text(name, { align: "left" });
-      doc.font(font).fontSize(10).fillColor("#475569");
-      const contactLine = [email, phone, city].filter(Boolean).join("   |   ");
-      doc.text(contactLine);
-      if (linkedinUrl) doc.fillColor(accent).text(linkedinUrl);
-      doc.moveDown(0.3);
-      doc
-        .moveTo(LEFT, doc.y)
-        .lineTo(RIGHT, doc.y)
-        .strokeColor(accent)
-        .lineWidth(1)
-        .stroke();
-      doc.moveDown(0.8);
-      doc.fillColor("#1E293B");
+      pdfBuffer = Buffer.concat(buffers);
+    }
 
-      const sectionHeader = (title) => {
-        doc.moveDown(0.8);
-        doc.font(fontBold).fontSize(12).fillColor(accent);
-        doc.text(title.toUpperCase());
-        doc
-          .moveTo(LEFT, doc.y + 2)
-          .lineTo(RIGHT, doc.y + 2)
-          .strokeColor(accent)
-          .lineWidth(0.5)
-          .stroke();
-        doc.moveDown(0.6);
-        doc.fillColor("#1E293B").font(font).fontSize(10);
-      };
-
-      if (about) {
-        sectionHeader("Summary");
-        doc.font(font).fontSize(10).text(about, { lineGap: 3 });
-      }
-
-      sectionHeader("Education");
-      doc
-        .font(fontBold)
-        .fontSize(10.5)
-        .text(college || "—");
-      doc
-        .font(font)
-        .fontSize(10)
-        .fillColor("#475569")
-        .text(`${branch || "—"}   |   CGPA: ${cgpa || "—"}`);
-      doc.fillColor("#1E293B");
-
-      const renderEntries = (label, entries) => {
-        if (!entries || entries.length === 0) return;
-        sectionHeader(label);
-        entries.forEach((e, idx) => {
-          const titleY = doc.y;
-          doc.font(fontBold).fontSize(10.5).fillColor("#1E293B");
-          doc.text(e.title || "—", LEFT, titleY, { width: pageWidth - 250 });
-          const afterTitleY = doc.y;
-          if (e.period) {
-            doc
-              .font(font)
-              .fontSize(9)
-              .fillColor("#64748B")
-              .text(e.period, pageWidth - 200, titleY, {
-                width: 150,
-                align: "right",
-              });
-          }
-          doc.x = LEFT;
-          doc.y = Math.max(afterTitleY, doc.y);
-          if (e.subtitle) {
-            doc
-              .font(font)
-              .fontSize(9.5)
-              .fillColor("#64748B")
-              .text(e.subtitle, LEFT, doc.y, {
-                width: pageWidth - 100,
-                lineGap: 2,
-              });
-          }
-          if (e.desc) {
-            doc
-              .font(font)
-              .fontSize(9.5)
-              .fillColor("#1E293B")
-              .text(e.desc, LEFT, doc.y, {
-                width: pageWidth - 100,
-                lineGap: 2,
-              });
-          }
-          if (idx < entries.length - 1) doc.moveDown(0.5);
-        });
-      };
-
-      renderEntries("Experience", experience);
-      renderEntries("Projects", projects);
-
-      if (skills.length > 0) {
-        sectionHeader("Skills");
-        doc.font(font).fontSize(10).fillColor("#1E293B");
-        doc.text(skills.join("   •   "), { lineGap: 3 });
-      }
-
-      doc.end();
-    });
-
-    const buffer = Buffer.concat(buffers);
-
+    // ── Upload to Cloudinary ──
     const uploadResult = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         {
@@ -1141,9 +1171,10 @@ const generateResume = async (req, res) => {
         },
         (error, result) => (error ? reject(error) : resolve(result)),
       );
-      Readable.from(buffer).pipe(stream);
+      Readable.from(pdfBuffer).pipe(stream);
     });
 
+    // ── Save to DB ──
     const student = await Student.findOneAndUpdate(
       { userId: req.user.id },
       {
@@ -1178,6 +1209,7 @@ const generateResume = async (req, res) => {
 
     res.json({ resumeUrl: uploadResult.secure_url, student });
   } catch (error) {
+    console.error("generateResume error:", error);
     res.status(500).json({ message: error.message });
   }
 };
