@@ -189,6 +189,10 @@ const updateStudent = async (req, res) => {
       "parentPhone",
       "parentName",
       "profilePhoto",
+      "resume", // ADD
+      "resumeData", // ADD
+      "githubUrl", // ADD (profile me add kiya tha)
+      "codingProfileUrl", // ADD
     ];
 
     const set = {};
@@ -202,6 +206,14 @@ const updateStudent = async (req, res) => {
     if ("profilePhoto" in set && !set.profilePhoto) {
       delete set.profilePhoto;
       update.$unset = { profilePhoto: "" };
+    }
+    if ("resume" in set && set.resume === null) {
+      delete set.resume;
+      update.$unset = { ...update.$unset, resume: "", resumeData: "" };
+    }
+    if ("resumeData" in set && set.resumeData === null) {
+      delete set.resumeData;
+      update.$unset = { ...update.$unset, resumeData: "" };
     }
     if (Object.keys(set).length > 0) update.$set = set;
 
