@@ -650,23 +650,28 @@ function BulkApplyModal({
   );
 }
 
-function EligibleTab({ selectedJob, allStudents, refreshKey }) {
+function EligibleTab({ selectedJob, allStudents, refreshKey, selectedRoleGroupId}) {
   // Matching against s.course (not s.branch) — eligibleBranches actually
   // stores full COURSE name strings (e.g. "B.Tech Computer Science
   // Engineering") as selected via BranchSelectorModal in
   // CompanyManagementPage.jsx, which use the same universityStructure
   // course-name strings as Student.course.
+  const selectedRoleGroup = selectedJob?.roleGroups?.find(
+  (rg) => rg._id?.toString() === selectedRoleGroupId,
+);
   const eligible = useMemo(() => {
     if (!selectedJob) return [];
     return allStudents.filter((s) => {
-      const branchOk =
-        !selectedJob.eligibleBranches?.length ||
-        selectedJob.eligibleBranches?.includes(s.course);
+      const eligibleBranches = selectedRoleGroup?.eligibleBranches || [];
+const branchOk =
+  eligibleBranches.length === 0 ||
+  eligibleBranches.includes("All") ||
+  eligibleBranches.includes(s.course);
       const cgpaOk = (s.cgpa ?? 0) >= (selectedJob.minCgpa || 0);
       const backlogOk = (s.backlogs ?? 0) <= (selectedJob.maxBacklogs ?? 0);
       return branchOk && cgpaOk && backlogOk;
     });
-  }, [selectedJob, allStudents]);
+  }, [selectedJob, allStudents, selectedRoleGroupId]);
 
   // Whether today is the drive's bulk-apply day (== job.lastDate).
   const bulkApplyStatus = useMemo(
@@ -911,7 +916,7 @@ function EligibleTab({ selectedJob, allStudents, refreshKey }) {
   };
 
   const cols = "34px 2fr 1.2fr 1.4fr 0.8fr 0.8fr 0.8fr 1.4fr";
-  const jobName = `${selectedJob?.companyId?.name || "Company"} — ${selectedJob?.role || "Role"}`;
+  const jobName = `${selectedJob?.companyId?.name || "Company"} — ${selectedRoleGroup?.role || "Role"}`;
 
   return (
     <div className="space-y-4">
@@ -933,7 +938,7 @@ function EligibleTab({ selectedJob, allStudents, refreshKey }) {
         <StatCard
           icon={<Building2 size={20} color="#8B5CF6" />}
           label="Courses"
-          value={selectedJob?.eligibleBranches?.length || 0}
+          value={selectedRoleGroup?.eligibleBranches?.length || 0}
           bg="#F5F3FF"
           borderColor="#DDD6FE"
         />
@@ -1646,11 +1651,17 @@ function AppliedTab({
   };
 
   const roleFiltered = useMemo(() => {
-    if (!selectedRoleGroupId) return applications;
-    return applications.filter(
-      (a) => a.roleGroupId?.toString() === selectedRoleGroupId,
-    );
-  }, [applications, selectedRoleGroupId]);
+  const roleGroups = selectedJob?.roleGroups || [];
+  // Single-role drives (jaise Google — sirf ek role) me filter ki zaroorat nahi.
+  // Multi-role drives me bhi, jin applications ka roleGroupId set nahi hai
+  // (purana data, ya student ne role choose kiye bina apply kiya) unhe
+  // hide mat karo — warna wo applied hote hue bhi list se gayab dikhenge.
+  if (!selectedRoleGroupId || roleGroups.length <= 1) return applications;
+  return applications.filter((a) => {
+    const rgId = a.roleGroupId?.toString();
+    return !rgId || rgId === selectedRoleGroupId;
+  });
+}, [applications, selectedRoleGroupId, selectedJob]);
 
   const roundApplications = useMemo(() => {
     if (rounds.length === 0) return roleFiltered;
@@ -3130,18 +3141,22 @@ export default function ApplicationsManagementPage() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const fetchData = async () => {
-    const jobsData = await api.get("/companies/jobs");
-    const studentsData = await api.get("/students");
+  const jobsData = await api.get("/companies/jobs");
+  const studentsData = await api.get("/students");
 
-    // Filter out jobs whose company has been deleted (orphaned jobs).
-    // A deleted company leaves companyId as null/undefined on the job doc.
-    const jobList = Array.isArray(jobsData)
-      ? jobsData.filter((j) => j.companyId && j.companyId.name)
+  // Filter out jobs whose company has been deleted (orphaned jobs).
+  const jobList = Array.isArray(jobsData)
+    ? jobsData.filter((j) => j.companyId && j.companyId.name)
+    : [];
+  setJobs(jobList);
+
+  const studentList = Array.isArray(studentsData)
+    ? studentsData
+    : Array.isArray(studentsData?.students)
+      ? studentsData.students
       : [];
-
-    setJobs(jobList);
-    setAllStudents(Array.isArray(studentsData) ? studentsData : []);
-  };
+  setAllStudents(studentList);
+};
 
   useEffect(() => {
     document.title = "Applications Management";
@@ -3340,10 +3355,11 @@ export default function ApplicationsManagementPage() {
 
           {activeTab === "eligible" ? (
             <EligibleTab
-              selectedJob={selectedJob}
-              allStudents={allStudents}
-              refreshKey={refreshKey}
-            />
+  selectedJob={selectedJob}
+  allStudents={allStudents}
+  refreshKey={refreshKey}
+  selectedRoleGroupId={selectedRoleGroupId}
+/>
           ) : (
             <AppliedTab
               selectedJobId={selectedJobId}
