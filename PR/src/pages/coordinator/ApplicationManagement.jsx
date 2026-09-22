@@ -1583,7 +1583,10 @@ function AppliedTab({
   jobName,
   selectedRoleGroupId,
 }) {
-  const rounds = selectedJob?.selectionProcess || [];
+  const selectedRoleGroup = selectedJob?.roleGroups?.find(
+    (rg) => rg._id?.toString() === selectedRoleGroupId,
+  );
+  const rounds = selectedRoleGroup?.selectionProcess || [];
 
   const [applications, setApplications] = useState([]);
   const [activeRound, setActiveRound] = useState(0);
