@@ -350,73 +350,50 @@ export default function RecruiterCRMPage() {
       };
 
       const companyName = normalizedForm.companyName;
-      const updatedCompanyList = [...companies];
+
+      // Sirf existing company mein dhundho
       let workingCompany = null;
 
       if (editingPoc?.companyId) {
-        workingCompany = updatedCompanyList.find(
-          (company) => company._id === editingPoc.companyId,
-        );
+        workingCompany = companies.find((c) => c._id === editingPoc.companyId);
       }
 
       if (!workingCompany) {
-        workingCompany = updatedCompanyList.find(
-          (company) =>
-            company.name &&
-            company.name.toLowerCase() === companyName.toLowerCase(),
+        workingCompany = companies.find(
+          (c) => c.name && c.name.toLowerCase() === companyName.toLowerCase(),
         );
       }
 
+      // Company exist nahi karti — error dikhaao, naya create mat karo
+      if (!workingCompany) {
+        setError(
+          `"${companyName}" not found in Company Management. Please add the company there first.`,
+        );
+        return;
+      }
+
       if (editingPoc) {
-        if (workingCompany) {
-          const updatedContacts = (workingCompany.recruiterContacts || []).map(
-            (contact) =>
-              contact._id === editingPoc.contactId
-                ? {
-                    ...contact,
-                    ...normalizedForm,
-                    companyName,
-                  }
-                : contact,
-          );
-
-          await api.put(`/companies/${workingCompany._id}`, {
-            ...workingCompany,
-            name: companyName || workingCompany.name,
-            recruiterContacts: updatedContacts,
-          });
-        } else {
-          const companyPayload = {
-            name: companyName,
-            website: "",
-            recruiterContacts: [
-              {
-                ...normalizedForm,
-                companyName,
-              },
-            ],
-          };
-          await api.post("/companies", companyPayload);
-        }
+        // Existing contact update karo
+        const updatedContacts = (workingCompany.recruiterContacts || []).map(
+          (contact) =>
+            contact._id === editingPoc.contactId
+              ? { ...contact, ...normalizedForm, companyName }
+              : contact,
+        );
+        await api.put(`/companies/${workingCompany._id}`, {
+          ...workingCompany,
+          recruiterContacts: updatedContacts,
+        });
       } else {
-        if (workingCompany) {
-          const updatedContacts = [
-            ...(workingCompany.recruiterContacts || []),
-            { ...normalizedForm, companyName },
-          ];
-
-          await api.put(`/companies/${workingCompany._id}`, {
-            ...workingCompany,
-            name: workingCompany.name || companyName,
-            recruiterContacts: updatedContacts,
-          });
-        } else {
-          await api.post("/companies", {
-            name: companyName,
-            website: "",
-            recruiterContacts: [{ ...normalizedForm, companyName }],
-          });
-        }
+        // Naya contact add karo existing company mein
+        const updatedContacts = [
+          ...(workingCompany.recruiterContacts || []),
+          { ...normalizedForm, companyName },
+        ];
+        await api.put(`/companies/${workingCompany._id}`, {
+          ...workingCompany,
+          recruiterContacts: updatedContacts,
+        });
       }
 
       await refreshAfterMutation();
