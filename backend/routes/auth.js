@@ -3,7 +3,6 @@ const router = express.Router();
 const { loginLimiter } = require("../middleware/security");
 const { protect } = require("../middleware/auth");
 const {
-  login,
   changePassword,
   studentLogin,
   coordinatorLogin,
@@ -13,7 +12,8 @@ const {
   verifyEmailOtp,
 } = require("../controllers/authController");
 
-router.post("/login", loginLimiter, login);
+router.post("/student/login", loginLimiter, studentLogin);
+router.post("/coordinator/login", loginLimiter, coordinatorLogin);
 router.put("/change-password", protect, changePassword);
 router.post("/student/login", studentLogin);
 router.post("/coordinator/login", coordinatorLogin);

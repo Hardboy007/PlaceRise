@@ -22,10 +22,8 @@ const generalLimiter = rateLimit({
 // Login limit — 5 attempts/15 min (brute force rokne ke liye)
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
-  message: {
-    message: "Too many login attempts, please try again after 15 minutes.",
-  },
+  max: 7,
+  message: { message: "Too many login attempts, please try again after 15 minutes." },
   standardHeaders: true,
   legacyHeaders: false,
 });
