@@ -379,7 +379,7 @@ export default function RecruiterCRMPage() {
                 : contact,
           );
 
-          await api.put(`/company/${workingCompany._id}`, {
+          await api.put(`/companies/${workingCompany._id}`, {
             ...workingCompany,
             name: companyName || workingCompany.name,
             recruiterContacts: updatedContacts,
@@ -395,7 +395,7 @@ export default function RecruiterCRMPage() {
               },
             ],
           };
-          await api.post("/company", companyPayload);
+          await api.post("/companies", companyPayload);
         }
       } else {
         if (workingCompany) {
@@ -404,13 +404,13 @@ export default function RecruiterCRMPage() {
             { ...normalizedForm, companyName },
           ];
 
-          await api.put(`/company/${workingCompany._id}`, {
+          await api.put(`/companies/${workingCompany._id}`, {
             ...workingCompany,
             name: workingCompany.name || companyName,
             recruiterContacts: updatedContacts,
           });
         } else {
-          await api.post("/company", {
+          await api.post("/companies", {
             name: companyName,
             website: "",
             recruiterContacts: [{ ...normalizedForm, companyName }],
