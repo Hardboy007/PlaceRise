@@ -1428,6 +1428,15 @@ const bulkCgpaUpdate = async (req, res) => {
   }
 };
 
+const cleanupOrphanedApplications = async (req, res) => {
+  try {
+    const result = await Application.deleteMany({ studentId: null });
+    res.json({ deleted: result.deletedCount });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   getAllStudents,
   getStudentById,
@@ -1446,4 +1455,5 @@ module.exports = {
   unsaveJob,
   getSavedJobs,
   bulkCgpaUpdate,
+  cleanupOrphanedApplications,
 };
