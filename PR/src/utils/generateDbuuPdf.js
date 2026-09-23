@@ -113,7 +113,7 @@ function buildDbuuHTML(data, logoBase64 = "") {
     certifications = [],
   } = data;
 
-  const batchYear = batch ? batch.split(/[-–]/)[1]?.trim() : "";
+  const batchYear = batch ? batch.split(/[-–]/).pop()?.trim() : "";
   const contactParts = [city, phone, email, linkedinUrl, githubUrl].filter(
     Boolean,
   );
@@ -231,7 +231,7 @@ function buildDbuuHTML(data, logoBase64 = "") {
     .logo-wrap img { width:46px; height:46px; object-fit:contain; }
     .dbuu-univ-name { font-size:8.5pt; font-weight:bold; color:#8B0000; letter-spacing:0.4px; }
     .header-rule { border:none; border-top:1.5px solid #8B0000; margin-bottom:5px; }
-    .cv-name { font-size:22pt; font-weight:bold; color:#8B0000; line-height:1.1; margin-bottom:2px; }
+    .cv-name { font-size:18pt; font-weight:bold; color:#8B0000; line-height:1.1; margin-bottom:2px; }
     .cv-subtitle { font-size:9.5pt; font-weight:bold; color:#000; margin-bottom:2px; }
     .cv-contact { font-size:8pt; color:#333; margin-bottom:6px; }
     .highlight-banner { background-color:#111; color:#fff; text-align:center; padding:6px 10px; font-size:8.5pt; font-weight:bold; margin-bottom:8px; line-height:1.6; }
@@ -242,7 +242,7 @@ function buildDbuuHTML(data, logoBase64 = "") {
     .academic-table td.left { text-align:left; }
     .comp-table { width:100%; border-collapse:collapse; font-size:9pt; }
     .comp-table td { padding:4.5px 7px; border:1px solid #ddd; vertical-align:top; }
-    .label-cell { background-color:#fce8e8 !important; font-weight:bold; color:#6B0F1A !important; width:22%; white-space:nowrap; }
+    .label-cell { background-color:#fce8e8 !important; font-weight:bold; color:#6B0F1A !important; width:22%; white-space:normal; word-break:break-word; }
     .project-header-row { display:flex; justify-content:space-between; align-items:baseline; margin-top:7px; margin-bottom:2px; }
     .project-title { font-size:9.5pt; font-weight:bold; color:#000; flex:1; }
     .project-link { font-size:8.5pt; color:#444; font-style:italic; white-space:nowrap; margin-left:12px; }
