@@ -1428,10 +1428,19 @@ const bulkCgpaUpdate = async (req, res) => {
   }
 };
 
-const cleanupOrphanedApplications = async (req, res) => {
+const deleteStudent = async (req, res) => {
   try {
-    const result = await Application.deleteMany({ studentId: null });
-    res.json({ deleted: result.deletedCount });
+    const student = await Student.findById(req.params.id);
+    if (!student) return res.status(404).json({ message: "Student not found" });
+
+    // Pehle saari applications delete karo
+    await Application.deleteMany({ studentId: student._id });
+
+    // Phir student aur user delete karo
+    await Student.findByIdAndDelete(student._id);
+    await User.findByIdAndDelete(student.userId);
+
+    res.json({ message: "Student deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -1455,5 +1464,5 @@ module.exports = {
   unsaveJob,
   getSavedJobs,
   bulkCgpaUpdate,
-  cleanupOrphanedApplications,
+  deleteStudent,
 };
