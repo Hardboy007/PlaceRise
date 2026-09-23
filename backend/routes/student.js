@@ -60,7 +60,7 @@ router.delete("/save-job/:jobId", protect, unsaveJob);
 router.get("/saved-jobs", protect, getSavedJobs);
 // Read only — coordinator only
 router.get("/:id", protect, coordinatorOnly, getStudentById);
-router.delete("/:id", protect, coordinatorOnly, deleteStudent);
 router.delete("/cleanup-orphaned", protect, coordinatorOnly, cleanupOrphanedApplications);
+router.delete("/:id", protect, coordinatorOnly, deleteStudent);
 
 module.exports = router;
