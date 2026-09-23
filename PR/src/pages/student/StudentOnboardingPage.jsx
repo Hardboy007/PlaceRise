@@ -569,7 +569,7 @@ function StudentOnboardingPage() {
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
                     Your Email Address
                   </label>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <input
                       type="email"
                       value={emailInput}
@@ -590,7 +590,7 @@ function StudentOnboardingPage() {
                         type="button"
                         onClick={handleSendOtp}
                         disabled={otpLoading || !emailInput || resendTimer > 0}
-                        className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition whitespace-nowrap
+                        className={`px-4 py-2.5 rounded-xl text-sm font-semibold w-full sm:w-auto transition whitespace-nowrap
           ${
             otpLoading || !emailInput || resendTimer > 0
               ? "bg-[#E2E8F0] text-[#94A3B8] cursor-not-allowed"
@@ -613,7 +613,7 @@ function StudentOnboardingPage() {
                     </p>
                   )}
                   {otpSent && !emailVerified && (
-                    <div className="mt-3 flex gap-2">
+                    <div className="mt-3 flex flex-col sm:flex-row gap-2">
                       <input
                         type="text"
                         inputMode="numeric"

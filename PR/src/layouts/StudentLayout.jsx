@@ -218,6 +218,7 @@ function StudentLayout() {
                 </span>
               )}
             </button>
+
             {showNotifs && (
               <div className="fixed left-3 right-3 top-16 lg:absolute lg:left-auto lg:right-0 lg:top-11 lg:w-80 lg:max-w-[calc(100vw-2rem)] max-w-full bg-white rounded-2xl shadow-xl border border-[#E2E8F0] z-50 overflow-hidden">
                 <div className="px-4 py-3 border-b border-[#F1F5F9] flex items-center justify-between">
@@ -250,6 +251,13 @@ function StudentLayout() {
               </div>
             )}
           </div>
+
+          {showNotifs && (
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setShowNotifs(false)}
+            />
+          )}
 
           {/* Divider */}
           <div className="hidden sm:block w-px h-6 bg-[#CBD5E1]" />
