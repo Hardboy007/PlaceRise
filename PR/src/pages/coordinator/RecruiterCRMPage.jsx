@@ -285,6 +285,7 @@ export default function RecruiterCRMPage() {
       setLoading(true);
       setError("");
       const companyList = await api.get("/companies");
+      console.log("companyList:", companyList);
       const flattened = (companyList || []).flatMap((company) =>
         (company.recruiterContacts || []).map((contact, index) => ({
           ...contact,
@@ -419,9 +420,11 @@ export default function RecruiterCRMPage() {
       }
 
       await refreshAfterMutation();
+      console.log("pocs after refresh:", pocs);
       setShowModal(false);
       setEditingPoc(null);
     } catch (err) {
+      console.error("handleSave error:", err);
       setError(err.message || "Unable to save recruiter contact.");
     }
   };

@@ -37,6 +37,26 @@ const companySchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    recruiterContacts: [
+      {
+        companyName: { type: String, default: "" },
+        pocName: { type: String, default: "" },
+        managedBy: { type: String, default: "" },
+        status: {
+          type: String,
+          enum: [
+            "Not Contacted",
+            "Visited",
+            "In Talk",
+            "Confirmation Required",
+          ],
+          default: "Not Contacted",
+        },
+        email: { type: String, default: "" },
+        phone: { type: String, default: "" },
+        notes: { type: String, default: "" },
+      },
+    ],
   },
   {
     timestamps: true,
