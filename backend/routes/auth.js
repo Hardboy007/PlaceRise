@@ -7,7 +7,6 @@ const {
   changePassword,
   studentLogin,
   coordinatorLogin,
-  changePassword,
   forgotPassword,
   resetPassword,
   sendEmailOtp,
