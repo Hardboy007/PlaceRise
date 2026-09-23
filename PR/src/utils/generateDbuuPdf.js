@@ -225,7 +225,7 @@ function buildDbuuHTML(data, logoBase64 = "") {
 
   return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:Arial,Helvetica,sans-serif; font-size:9.5pt; color:#000; background:#fff; padding:22px 30px; width:794px; }
+    body { font-family:Arial,Helvetica,sans-serif; font-size:8.5pt; color:#000; background:#fff; padding:18px 26px; width:794px; overflow:hidden; }
     .header-top { display:flex; align-items:center; gap:10px; margin-bottom:5px; }
     .logo-wrap { width:46px; height:46px; flex-shrink:0; }
     .logo-wrap img { width:46px; height:46px; object-fit:contain; }
@@ -241,13 +241,13 @@ function buildDbuuHTML(data, logoBase64 = "") {
     .academic-table td { padding:3.5px 8px; border:1px solid #ccc; text-align:center; }
     .academic-table td.left { text-align:left; }
     .comp-table { width:100%; border-collapse:collapse; font-size:9pt; }
-    .comp-table td { padding:4.5px 7px; border:1px solid #ddd; vertical-align:top; }
-    .label-cell { background-color:#fce8e8 !important; font-weight:bold; color:#6B0F1A !important; width:22%; white-space:normal; word-break:break-word; }
-    .project-header-row { display:flex; justify-content:space-between; align-items:baseline; margin-top:7px; margin-bottom:2px; }
-    .project-title { font-size:9.5pt; font-weight:bold; color:#000; flex:1; }
+    .comp-table td { padding:4.5px 7px; border:1px solid #ddd; vertical-align:top; word-break:break-word; overflow-wrap:break-word; max-width:0; }
+    .label-cell { background-color:#fce8e8 !important; font-weight:bold; color:#6B0F1A !important; width:180px; min-width:180px; max-width:180px; }
+    .project-header-row { display:flex; justify-content:space-between; align-items:flex-start; margin-top:7px; margin-bottom:2px; gap:8px; }
+    .project-title { font-size:8.5pt; font-weight:bold; color:#000; flex:1; min-width:0; word-break:break-word; }
     .project-link { font-size:8.5pt; color:#444; font-style:italic; white-space:nowrap; margin-left:12px; }
     .proj-table { width:100%; border-collapse:collapse; font-size:9pt; }
-    .proj-table td { padding:4.5px 7px; border:1px solid #ddd; vertical-align:top; }
+    .proj-table td { padding:4.5px 7px; border:1px solid #ddd; vertical-align:top; word-break:break-word; overflow-wrap:break-word; }
     .proj-table ul { margin:0; padding:0; list-style:none; }
     .proj-table ul li { position:relative; padding-left:11px; margin-bottom:3px; line-height:1.45; }
     .proj-table ul li::before { content:"▪"; position:absolute; left:0; top:0; }
