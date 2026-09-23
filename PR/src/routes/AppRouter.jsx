@@ -31,6 +31,7 @@ import ResetPasswordPage from "../pages/common/ResetPasswordPage";
 import HRLoginPage from "../pages/common/HRLoginPage";
 import HRFeedbackFormPage from "../pages/common/HRFeedbackFormPage";
 import HRFeedbackManagementPage from "../pages/coordinator/HRFeedbackManagementPage";
+import CoordinatorStudentProfilePage from "../pages/coordinator/CoordinatorStudentProfilePage";
 
 function AppRouter() {
   return (
@@ -100,6 +101,7 @@ function AppRouter() {
           <Route path="analytics" element={<AnalyticsDashboardPage />} />
           <Route path="/coordinator/hr-feedback" element={<HRFeedbackManagementPage />} />
           <Route path="profile" element={<CoordinatorProfile />} />
+          <Route path="students/:studentId" element={<CoordinatorStudentProfilePage />} />
         </Route>
         <Route path="*" element={<div>404 - Page Not Found</div>} />
       </Routes>

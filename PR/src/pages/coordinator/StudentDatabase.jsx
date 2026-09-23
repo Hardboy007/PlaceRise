@@ -1,5 +1,6 @@
 import * as XLSX from "xlsx";
 import { useState, useMemo, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "../../utils/api";
 import universityStructure from "../../data/universityStructure";
 import { Download, Upload } from "lucide-react";
@@ -707,6 +708,7 @@ function parseCgpaExcel(file) {
 }
 // ── Student Detail Modal ──────────────────────────────────────
 function StudentModal({ student, onClose }) {
+  const navigate = useNavigate();
   if (!student) return null;
 
   const InfoRow = ({ icon, label, value }) => (
@@ -783,6 +785,29 @@ function StudentModal({ student, onClose }) {
           </div>
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap w-full sm:w-auto">
             <StatusBadge status={student.placementStatus} size="lg" />
+            <button
+              onClick={() => {
+                onClose();
+                navigate(`/coordinator/students/${student._id}`);
+              }}
+              style={{ backgroundColor: C.primary, color: C.white }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold hover:opacity-90 transition"
+            >
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
+              </svg>
+              View Full Profile
+            </button>
             <button
               onClick={onClose}
               style={{ color: C.textMuted, backgroundColor: C.background }}

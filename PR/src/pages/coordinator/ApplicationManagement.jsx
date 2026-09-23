@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Users,
   CheckCircle,
@@ -656,6 +657,7 @@ function EligibleTab({
   refreshKey,
   selectedRoleGroupId,
 }) {
+  const navigate = useNavigate();
   // Matching against s.course (not s.branch) — eligibleBranches actually
   // stores full COURSE name strings (e.g. "B.Tech Computer Science
   // Engineering") as selected via BranchSelectorModal in
@@ -1593,6 +1595,7 @@ function AppliedTab({
   jobName,
   selectedRoleGroupId,
 }) {
+  const navigate = useNavigate();
   const selectedRoleGroup = selectedJob?.roleGroups?.find(
     (rg) => rg._id?.toString() === selectedRoleGroupId,
   );
@@ -2961,12 +2964,37 @@ function AppliedTab({
             className="rounded-3xl border shadow-2xl w-full max-w-2xl overflow-y-auto bg-white border-[#E2E8F0] flex flex-col relative"
             style={{ maxHeight: "90vh" }}
           >
-            <button
-              onClick={() => setSelectedStudent(null)}
-              className="absolute top-4 right-4 sm:top-5 sm:right-7 w-9 h-9 rounded-xl flex items-center justify-center bg-[#F1F5F9] text-[#64748B] hover:opacity-80 transition z-10"
-            >
-              <X size={16} />
-            </button>
+            <div className="absolute top-4 right-4 sm:top-5 sm:right-7 flex items-center gap-2 z-10">
+              <button
+                onClick={() => {
+                  setSelectedStudent(null);
+                  navigate(`/coordinator/students/${selectedStudent._id}`);
+                }}
+                style={{ backgroundColor: "#1a3a8f", color: "white" }}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold hover:opacity-90 transition"
+              >
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                  />
+                </svg>
+                View Full Profile
+              </button>
+              <button
+                onClick={() => setSelectedStudent(null)}
+                className="w-9 h-9 rounded-xl flex items-center justify-center bg-[#F1F5F9] text-[#64748B] hover:opacity-80 transition"
+              >
+                <X size={16} />
+              </button>
+            </div>
             <div className="flex items-center flex-wrap justify-between gap-3 px-4 sm:px-7 py-4 sm:py-5 border-b border-[#E2E8F0] sticky top-0 bg-white rounded-t-3xl z-0">
               <div className="flex items-center gap-3 sm:gap-4 min-w-0 pr-10 sm:pr-12">
                 <div className="w-12 h-12 rounded-2xl overflow-hidden shrink-0">
