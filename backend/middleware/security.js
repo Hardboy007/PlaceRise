@@ -1,6 +1,5 @@
 // backend/middleware/security.js
 const rateLimit = require("express-rate-limit");
-const mongoSanitize = require("express-mongo-sanitize");
 const helmet = require("helmet");
 
 // ── 1. Helmet (HTTP headers secure karta hai) ──
@@ -48,16 +47,10 @@ const uploadLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// ── 3. Mongo Sanitize (NoSQL injection rokta hai) ──
-const sanitizeMiddleware = mongoSanitize({
-  replaceWith: "_", // $ aur . ko _ se replace karo
-});
-
 module.exports = {
   helmetMiddleware,
   generalLimiter,
   loginLimiter,
   resumeLimiter,
   uploadLimiter,
-  sanitizeMiddleware,
 };

@@ -7,7 +7,6 @@ const { scheduleDeadlineCheck } = require("./jobs/deadlineCheck");
 const {
   helmetMiddleware,
   generalLimiter,
-  sanitizeMiddleware,
 } = require("./middleware/security");
 
 dotenv.config();
@@ -15,7 +14,6 @@ dotenv.config();
 const app = express();
 app.set("trust proxy", 1);          // Render ke reverse proxy ke liye zaruri hai rate limit
 app.use(helmetMiddleware);           // HTTP headers
-app.use(sanitizeMiddleware);         // NoSQL injection
 
 
 app.use(express.json({ limit: "10kb" }));
