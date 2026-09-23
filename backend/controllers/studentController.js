@@ -1446,6 +1446,30 @@ const deleteStudent = async (req, res) => {
   }
 };
 
+const cleanupOrphanedApplications = async (req, res) => {
+  try {
+    // studentId: null wali
+    const nullResult = await Application.deleteMany({ studentId: null });
+    
+    // Orphaned — studentId hai but student exist nahi karta
+    const allApps = await Application.find({}).populate("studentId");
+    const orphanedIds = allApps
+      .filter(a => !a.studentId)
+      .map(a => a._id);
+    
+    const orphanResult = await Application.deleteMany({ 
+      _id: { $in: orphanedIds } 
+    });
+
+    res.json({ 
+      nullDeleted: nullResult.deletedCount,
+      orphanDeleted: orphanResult.deletedCount 
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   getAllStudents,
   getStudentById,
@@ -1465,4 +1489,5 @@ module.exports = {
   getSavedJobs,
   bulkCgpaUpdate,
   deleteStudent,
+  cleanupOrphanedApplications,
 };

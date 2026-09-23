@@ -20,6 +20,7 @@ const {
   getSavedJobs,
   bulkCgpaUpdate,
   deleteStudent,
+  cleanupOrphanedApplications,
 } = require("../controllers/studentController");
 const { protect, coordinatorOnly } = require("../middleware/auth");
 
@@ -60,5 +61,6 @@ router.get("/saved-jobs", protect, getSavedJobs);
 // Read only — coordinator only
 router.get("/:id", protect, coordinatorOnly, getStudentById);
 router.delete("/:id", protect, coordinatorOnly, deleteStudent);
+router.delete("/cleanup-orphaned", protect, coordinatorOnly, cleanupOrphanedApplications);
 
 module.exports = router;

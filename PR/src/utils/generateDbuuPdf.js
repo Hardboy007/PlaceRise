@@ -1,8 +1,19 @@
 import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+import { jsPDF } from "jspdf";
+
+async function getLogoBase64() {
+  const res = await fetch("/images/dbuu-logo.jpeg");
+  const blob = await res.blob();
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.readAsDataURL(blob);
+  });
+}
 
 export async function generateDbuuPdf(resumeData) {
-  const html = buildDbuuHTML(resumeData);
+  const logoBase64 = await getLogoBase64();
+  const html = buildDbuuHTML(resumeData, logoBase64);
 
   const iframe = document.createElement("iframe");
   iframe.style.cssText =
@@ -19,7 +30,7 @@ export async function generateDbuuPdf(resumeData) {
       if (iDoc.readyState === "complete") resolve();
       else iframe.onload = resolve;
     });
-    await new Promise((r) => setTimeout(r, 400));
+    await new Promise((r) => setTimeout(r, 1200));
 
     const canvas = await html2canvas(iDoc.body, {
       scale: 2,
@@ -28,10 +39,8 @@ export async function generateDbuuPdf(resumeData) {
       windowWidth: 794,
     });
 
-    console.log("DBUU PDF debug — canvas:", canvas?.width, canvas?.height);
-
     if (!canvas || !canvas.width || !canvas.height) {
-      throw new Error("Resume preview render nahi ho paaya, dobara try karein");
+      throw new Error("Failed to render resume preview, please try again.");
     }
 
     const pdf = new jsPDF({
@@ -46,22 +55,10 @@ export async function generateDbuuPdf(resumeData) {
     const ratio = pdfW / totalW;
     const pageHeightPx = pdfH / ratio;
 
-    console.log(
-      "DBUU PDF debug — pdfW,pdfH,totalW,totalH,ratio,pageHeightPx:",
-      pdfW,
-      pdfH,
-      totalW,
-      totalH,
-      ratio,
-      pageHeightPx,
-    );
-
     if (
       ![pdfW, pdfH, totalW, totalH, ratio, pageHeightPx].every(Number.isFinite)
     ) {
-      throw new Error(
-        "PDF size calculation galat aayi (NaN/Infinity) — canvas ya page size check karein",
-      );
+      throw new Error("PDF size calculation failed (NaN/Infinity).");
     }
 
     let yOffset = 0;
@@ -69,7 +66,6 @@ export async function generateDbuuPdf(resumeData) {
     while (yOffset < totalH) {
       const sliceHeight = Math.min(pageHeightPx, totalH - yOffset);
       if (sliceHeight <= 0) break;
-
       if (pageCount > 0) pdf.addPage();
 
       const pageCanvas = document.createElement("canvas");
@@ -78,19 +74,10 @@ export async function generateDbuuPdf(resumeData) {
       const ctx = pageCanvas.getContext("2d");
       ctx.drawImage(canvas, 0, -yOffset);
       const pageImg = pageCanvas.toDataURL("image/jpeg", 0.95);
-
       const imgH = pageCanvas.height * ratio;
-      console.log(
-        "DBUU PDF debug — page",
-        pageCount,
-        "pageCanvas.height:",
-        pageCanvas.height,
-        "imgH:",
-        imgH,
-      );
 
       if (!Number.isFinite(imgH) || imgH <= 0) {
-        throw new Error(`Page ${pageCount + 1} ki height galat aayi (${imgH})`);
+        throw new Error(`Page ${pageCount + 1} has invalid height (${imgH})`);
       }
 
       pdf.addImage(pageImg, "JPEG", 0, 0, pdfW, imgH);
@@ -104,7 +91,7 @@ export async function generateDbuuPdf(resumeData) {
   }
 }
 
-function buildDbuuHTML(data) {
+function buildDbuuHTML(data, logoBase64 = "") {
   const {
     name = "",
     email = "",
@@ -182,8 +169,7 @@ function buildDbuuHTML(data) {
       const link = p.period || p.link || "";
       const tableRows =
         impactHTML && deliveryHTML
-          ? `<tr><td class="label-cell">Impact</td><td><ul>${impactHTML}</ul></td></tr>
-           <tr><td class="label-cell">Delivery</td><td><ul>${deliveryHTML}</ul></td></tr>`
+          ? `<tr><td class="label-cell">Impact</td><td><ul>${impactHTML}</ul></td></tr><tr><td class="label-cell">Delivery</td><td><ul>${deliveryHTML}</ul></td></tr>`
           : `<tr><td class="label-cell">Delivery</td><td><ul>${impactHTML || deliveryHTML}</ul></td></tr>`;
       return `
       <div class="project-header-row">
@@ -242,6 +228,7 @@ function buildDbuuHTML(data) {
     body { font-family:Arial,Helvetica,sans-serif; font-size:9.5pt; color:#000; background:#fff; padding:22px 30px; width:794px; }
     .header-top { display:flex; align-items:center; gap:10px; margin-bottom:5px; }
     .logo-wrap { width:46px; height:46px; flex-shrink:0; }
+    .logo-wrap img { width:46px; height:46px; object-fit:contain; }
     .dbuu-univ-name { font-size:8.5pt; font-weight:bold; color:#8B0000; letter-spacing:0.4px; }
     .header-rule { border:none; border-top:1.5px solid #8B0000; margin-bottom:5px; }
     .cv-name { font-size:22pt; font-weight:bold; color:#8B0000; line-height:1.1; margin-bottom:2px; }
@@ -269,12 +256,7 @@ function buildDbuuHTML(data) {
   </style></head><body>
     <div class="header-top">
       <div class="logo-wrap">
-        <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" width="46" height="46">
-          <circle cx="24" cy="24" r="22" fill="#fff" stroke="#B8860B" stroke-width="2.5"/>
-          <circle cx="24" cy="24" r="17" fill="none" stroke="#B8860B" stroke-width="1"/>
-          <text x="24" y="22" text-anchor="middle" font-family="Arial" font-size="9" font-weight="bold" fill="#8B0000">DB</text>
-          <text x="24" y="31" text-anchor="middle" font-family="Arial" font-size="7" fill="#8B0000">UU</text>
-        </svg>
+        <img src="${logoBase64}" width="46" height="46" style="object-fit:contain;" />
       </div>
       <div class="dbuu-univ-name">DEV BHOOMI UTTARAKHAND UNIVERSITY</div>
     </div>
