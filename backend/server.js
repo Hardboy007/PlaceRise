@@ -4,13 +4,28 @@ const cors = require("cors");
 const connectDB = require("./config/db");
 const { scheduleWeeklyDigest } = require('./jobs/weeklyDigest')
 const { scheduleDeadlineCheck } = require("./jobs/deadlineCheck");
+const {
+  helmetMiddleware,
+  generalLimiter,
+  sanitizeMiddleware,
+} = require("./middleware/security");
 
 dotenv.config();
 
 const app = express();
-app.use(express.json());
+app.use(helmetMiddleware);           // HTTP headers
+app.use(sanitizeMiddleware);         // NoSQL injection
+app.set("trust proxy", 1);          // Render ke reverse proxy ke liye zaruri hai rate limit
+
+
+app.use(express.json({ limit: "10kb" }));
 app.use(
   cors({
+    origin: [
+      process.env.FRONTEND_URL,
+      "http://localhost:5173",
+    ],
+    credentials: true,
     exposedHeaders: ["Content-Disposition"],
   }),
 );
@@ -27,6 +42,7 @@ const notificationRoutes = require("./routes/notification");
 const analyticsRoutes = require("./routes/analytics");
 const nocRoutes = require("./routes/noc");
 
+app.use("/api", generalLimiter);
 app.use("/api/auth", authRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/companies", companyRoutes);

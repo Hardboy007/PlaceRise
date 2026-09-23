@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const { resumeLimiter, uploadLimiter } = require("../middleware/security"); 
 const upload = require("../middleware/upload");
 const {
   getAllStudents,
@@ -40,8 +41,8 @@ router.get("/me", protect, getMyProfile);
 router.put("/me", protect, updateStudent);
 router.put("/me/onboard", protect, onboardStudent);
 router.put("/me/notifications", protect, updateNotificationPreferences);
-router.post("/me/resume", protect, upload.single("file"), uploadResume);
-router.post("/me/marksheet", protect, upload.single("file"), uploadMarksheet);
+router.post("/me/resume", protect, uploadLimiter, upload.single("file"), uploadResume);
+router.post("/me/marksheet", protect, uploadLimiter, upload.single("file"), uploadMarksheet);
 router.post(
   "/me/certifications",
   protect,
@@ -54,7 +55,7 @@ router.post(
   upload.single("file"),
   uploadProfilePhoto,
 );
-router.post("/me/generate-resume", protect, generateResume);
+router.post("/me/generate-resume", protect, resumeLimiter, generateResume);
 router.post("/save-job/:jobId", protect, saveJob);
 router.delete("/save-job/:jobId", protect, unsaveJob);
 router.get("/saved-jobs", protect, getSavedJobs);

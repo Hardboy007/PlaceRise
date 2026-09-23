@@ -1,7 +1,10 @@
 const express = require("express");
 const router = express.Router();
+const { loginLimiter } = require("../middleware/security");
 const { protect } = require("../middleware/auth");
 const {
+  login,
+  changePassword,
   studentLogin,
   coordinatorLogin,
   changePassword,
@@ -11,6 +14,7 @@ const {
   verifyEmailOtp,
 } = require("../controllers/authController");
 
+router.post("/login", loginLimiter, login);
 router.put("/change-password", protect, changePassword);
 router.post("/student/login", studentLogin);
 router.post("/coordinator/login", coordinatorLogin);

@@ -96,4 +96,11 @@ const studentSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+// Indexes for faster queries
+studentSchema.index({ userId: 1 });
+studentSchema.index({ batch: 1 });
+studentSchema.index({ branch: 1 });
+studentSchema.index({ batch: 1, branch: 1 });
+studentSchema.index({ email: 1 });
+
 module.exports = mongoose.model("Student", studentSchema);
