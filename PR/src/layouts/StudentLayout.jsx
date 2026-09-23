@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Outlet,
   NavLink,
@@ -75,6 +75,7 @@ function StudentLayout() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifs, setShowNotifs] = useState(false);
   const [showMore, setShowMore] = useState(false);
+  const notifRef = useRef(null);
   const [student, setStudent] = useState(
     JSON.parse(localStorage.getItem("student") || "{}"),
   );
@@ -113,6 +114,17 @@ function StudentLayout() {
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+  if (!showNotifs) return;
+  const handleOutside = (e) => {
+    if (notifRef.current && !notifRef.current.contains(e.target)) {
+      setShowNotifs(false);
+    }
+  };
+  document.addEventListener("mousedown", handleOutside);
+  return () => document.removeEventListener("mousedown", handleOutside);
+}, [showNotifs]);
 
   const handleBellClick = async () => {
     setShowNotifs(!showNotifs);
@@ -206,7 +218,7 @@ function StudentLayout() {
         {/* Right Side */}
         <div className="flex items-center gap-1 sm:gap-3 shrink-0">
           {/* Notification Bell */}
-          <div className="relative">
+          <div className="relative" ref={notifRef}>
             <button
               onClick={handleBellClick}
               className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-background hover:bg-[#E2E8F0] flex items-center justify-center transition-colors shrink-0"
@@ -251,13 +263,6 @@ function StudentLayout() {
               </div>
             )}
           </div>
-
-          {showNotifs && (
-            <div
-              className="fixed inset-0 z-[49]"
-              onClick={() => setShowNotifs(false)}
-            />
-          )}
 
           {/* Divider */}
           <div className="hidden sm:block w-px h-6 bg-[#CBD5E1]" />
