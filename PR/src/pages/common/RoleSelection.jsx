@@ -304,7 +304,7 @@ function RoleSelectionPage() {
         localStorage.setItem("student", JSON.stringify(data.student));
         localStorage.setItem("isFirstLogin", data.isFirstLogin);
         if (data.isFirstLogin) {
-          navigate("/student/change-password");
+          navigate("/student/verify-contact");
         } else if (redirect) {
           navigate(redirect);
         } else {

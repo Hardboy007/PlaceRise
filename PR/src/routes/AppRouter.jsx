@@ -32,6 +32,7 @@ import HRLoginPage from "../pages/common/HRLoginPage";
 import HRFeedbackFormPage from "../pages/common/HRFeedbackFormPage";
 import HRFeedbackManagementPage from "../pages/coordinator/HRFeedbackManagementPage";
 import CoordinatorStudentProfilePage from "../pages/coordinator/CoordinatorStudentProfilePage";
+import VerifyContactPage from "../pages/student/VerifyContactPage";
 
 function AppRouter() {
   return (
@@ -41,6 +42,7 @@ function AppRouter() {
           path="/student/change-password"
           element={<ChangePasswordPage />}
         />
+        <Route path="/student/verify-contact" element={<VerifyContactPage />} />
         <Route path="/" element={<RoleSelectionPage />} />
         <Route
           path="/student/onboarding"
@@ -99,9 +101,15 @@ function AppRouter() {
           <Route path="noc" element={<NOCManagementPage />} />
           <Route path="attendance" element={<AttendancePage />} />
           <Route path="analytics" element={<AnalyticsDashboardPage />} />
-          <Route path="/coordinator/hr-feedback" element={<HRFeedbackManagementPage />} />
+          <Route
+            path="/coordinator/hr-feedback"
+            element={<HRFeedbackManagementPage />}
+          />
           <Route path="profile" element={<CoordinatorProfile />} />
-          <Route path="students/:studentId" element={<CoordinatorStudentProfilePage />} />
+          <Route
+            path="students/:studentId"
+            element={<CoordinatorStudentProfilePage />}
+          />
         </Route>
         <Route path="*" element={<div>404 - Page Not Found</div>} />
       </Routes>

@@ -157,13 +157,6 @@ function StudentOnboardingPage() {
   const [certifications, setCertifications] = useState([]);
   const [certModalOpen, setCertModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [emailInput, setEmailInput] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpInput, setOtpInput] = useState("");
-  const [emailVerified, setEmailVerified] = useState(false);
-  const [otpLoading, setOtpLoading] = useState(false);
-  const [otpError, setOtpError] = useState("");
-  const [resendTimer, setResendTimer] = useState(0);
 
   const [formData, setFormData] = useState({
     // Personal
@@ -275,11 +268,7 @@ function StudentOnboardingPage() {
 
   const isStep1Valid = () => {
     return (
-      formData.fullName &&
-      formData.dob &&
-      formData.phone &&
-      formData.gender &&
-      emailVerified
+      formData.fullName && formData.dob && formData.phone && formData.gender
     );
   };
 
@@ -564,91 +553,6 @@ function StudentOnboardingPage() {
                     placeholder="Enter your full name"
                     className={inputCls}
                   />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="text-xs font-medium text-[#1E293B] block mb-1">
-                    Your Email Address
-                  </label>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <input
-                      type="email"
-                      value={emailInput}
-                      onChange={(e) => {
-                        setEmailInput(e.target.value);
-                        setEmailVerified(false);
-                        setOtpSent(false);
-                        setOtpInput("");
-                        setOtpError("");
-                      }}
-                      disabled={emailVerified}
-                      placeholder="your@email.com"
-                      className={`flex-1 px-4 py-2.5 rounded-xl border text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition
-        ${emailVerified ? "bg-[#F0FDF4] border-[#86EFAC]" : "border-[#CBD5E1] bg-white"}`}
-                    />
-                    {!emailVerified && (
-                      <button
-                        type="button"
-                        onClick={handleSendOtp}
-                        disabled={otpLoading || !emailInput || resendTimer > 0}
-                        className={`px-4 py-2.5 rounded-xl text-sm font-semibold w-full sm:w-auto transition whitespace-nowrap
-          ${
-            otpLoading || !emailInput || resendTimer > 0
-              ? "bg-[#E2E8F0] text-[#94A3B8] cursor-not-allowed"
-              : "bg-[#1a3a8f] text-white hover:bg-[#15307a]"
-          }`}
-                      >
-                        {otpLoading && !otpSent
-                          ? "Sending..."
-                          : resendTimer > 0
-                            ? `Resend in ${resendTimer}s`
-                            : otpSent
-                              ? "Resend OTP"
-                              : "Send OTP"}
-                      </button>
-                    )}
-                  </div>
-                  {emailVerified && (
-                    <p className="text-xs text-green-600 font-semibold mt-1.5 flex items-center gap-1">
-                      <Check size={12} /> Email verified
-                    </p>
-                  )}
-                  {otpSent && !emailVerified && (
-                    <div className="mt-3 flex flex-col sm:flex-row gap-2">
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={6}
-                        value={otpInput}
-                        onChange={(e) => {
-                          setOtpInput(e.target.value.replace(/\D/g, ""));
-                          setOtpError("");
-                        }}
-                        placeholder="Enter 6-digit OTP"
-                        className="flex-1 px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition tracking-widest font-mono"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleVerifyOtp}
-                        disabled={otpLoading || otpInput.length !== 6}
-                        className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition whitespace-nowrap
-          ${
-            otpLoading || otpInput.length !== 6
-              ? "bg-[#E2E8F0] text-[#94A3B8] cursor-not-allowed"
-              : "bg-[#22C55E] text-white hover:bg-[#16A34A]"
-          }`}
-                      >
-                        {otpLoading ? "Verifying..." : "Verify"}
-                      </button>
-                    </div>
-                  )}
-                  {otpError && (
-                    <p className="text-xs text-red-500 mt-1.5">{otpError}</p>
-                  )}
-                  {!otpSent && !emailVerified && (
-                    <p className="text-[10px] text-[#94A3B8] mt-1">
-                      Enter your email and click Send OTP to verify.
-                    </p>
-                  )}
                 </div>
                 <div>
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
