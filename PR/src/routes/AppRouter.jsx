@@ -33,6 +33,7 @@ import HRFeedbackFormPage from "../pages/common/HRFeedbackFormPage";
 import HRFeedbackManagementPage from "../pages/coordinator/HRFeedbackManagementPage";
 import CoordinatorStudentProfilePage from "../pages/coordinator/CoordinatorStudentProfilePage";
 import VerifyContactPage from "../pages/student/VerifyContactPage";
+import NotFoundPage from "../pages/common/NotFoundPage";
 
 function AppRouter() {
   return (
@@ -111,7 +112,7 @@ function AppRouter() {
             element={<CoordinatorStudentProfilePage />}
           />
         </Route>
-        <Route path="*" element={<div>404 - Page Not Found</div>} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );
