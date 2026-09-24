@@ -51,7 +51,7 @@ function AppRouter() {
             <ProtectedRoute>
               <StudentOnboardingPage />
             </ProtectedRoute>
-          }
+          } 
         />
         <Route path="/attendance" element={<ScanAttendancePage />} />
         <Route path="/about" element={<AboutPage />} />
