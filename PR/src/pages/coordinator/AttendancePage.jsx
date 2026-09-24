@@ -77,6 +77,9 @@ export default function AttendancePage() {
           .filter((j) => j.companyId && j.companyId.name)
           .filter(isJobStillOpen);
         setJobs(valid);
+        console.log("job0 full:", JSON.stringify(valid[0], null, 2));
+        console.log("jobs:", valid); // ADD
+        console.log("job[0]:", valid[0]); // ADD
       } catch (err) {
         console.error("Failed to load jobs:", err);
         setError("Could not load drives. Please refresh.");
@@ -92,7 +95,7 @@ export default function AttendancePage() {
     const fetchStudents = async () => {
       try {
         const data = await api.get("/students");
-        setAllStudents(Array.isArray(data) ? data : []);
+        setAllStudents(list);
       } catch (err) {
         console.error("Failed to load students:", err);
       }
@@ -140,7 +143,7 @@ export default function AttendancePage() {
   // mein join ho jao (kisi ne bhi start kiya ho, kisi bhi device se).
   // Agar nahi, toh "Start Session" button enable rahega us job ke liye.
   useEffect(() => {
-    if (selectedJobIds.length === 0) return;
+    if (selectedJobIds.length === 0 || !selectedJob) return;
 
     let cancelled = false;
     const checkExisting = async () => {
@@ -148,13 +151,13 @@ export default function AttendancePage() {
       setError("");
       try {
         const found = await api.get(
-          `/attendance/active?jobId=${selectedJobIds[0]}`,
+          `/attendance/active?jobId=${selectedJob._id}`, // selectedJob._id, roleGroup nahi
         );
         if (!cancelled && found && found.status !== "closed") {
           await hydrateSession(found);
         }
       } catch (err) {
-        // 404 = iss job ka abhi koi active session nahi hai, normal hai
+        // 404 = normal
       } finally {
         if (!cancelled) setCheckingSession(false);
       }
@@ -174,7 +177,8 @@ export default function AttendancePage() {
     try {
       // Pehla selected job ka session start karo (ya join karo)
       const res = await api.post("/attendance/start", {
-        jobId: selectedJobIds[0],
+        jobId: selectedJob?._id, // job ka _id
+        roleGroupIds: selectedJobIds,
       });
       const newSession = res.session || res;
       await hydrateSession(newSession);
@@ -206,6 +210,9 @@ export default function AttendancePage() {
   }, [sessionId, pollAttendance]);
 
   const isClosed = session?.status?.toLowerCase() === "closed";
+  const uniqueCourses = [
+    ...new Set(records.map((r) => r.studentId?.course).filter(Boolean)),
+  ];
 
   // ── FIX: QR token har 10s pe rotate karo, taaki screenshot/forwarded ──
   // QR expire ho jaaye aur proxy attendance na lag paaye. Server current
@@ -284,13 +291,15 @@ export default function AttendancePage() {
   };
 
   // ── Download PDF ──
-  const handleDownloadPDF = async () => {
+  // handleDownloadPDF ab course accept karega
+  const handleDownloadPDF = async (course = null) => {
     if (!sessionId || downloading) return;
     setDownloading(true);
     try {
       const token = localStorage.getItem("token");
+      const courseParam = course ? `?course=${encodeURIComponent(course)}` : "";
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/attendance/${sessionId}/export`,
+        `${import.meta.env.VITE_API_URL}/attendance/${sessionId}/export${courseParam}`,
         { headers: { Authorization: `Bearer ${token}` } },
       );
       if (!res.ok) throw new Error("Export failed");
@@ -298,7 +307,7 @@ export default function AttendancePage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `attendance_${sessionId}.pdf`;
+      a.download = `attendance_${course ? course + "_" : ""}${sessionId}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -311,14 +320,13 @@ export default function AttendancePage() {
     }
   };
 
-  const selectedJob = jobs.find((j) => j._id === selectedJobIds[0]);
-
   const uniqueCompanies = [
     ...new Map(jobs.map((j) => [j.companyId?._id, j.companyId])).values(),
   ].filter(Boolean);
-  const rolesForCompany = jobs.filter(
+  const selectedJob = jobs.find(
     (j) => j.companyId?.name === selectedCompanyName,
   );
+  const rolesForCompany = selectedJob?.roleGroups || [];
 
   return (
     <div
@@ -453,30 +461,30 @@ export default function AttendancePage() {
                     Step 2 — Select Role(s)
                   </p>
                   <div className="flex flex-col gap-2">
-                    {rolesForCompany.map((j) => (
+                    {rolesForCompany.map((rg) => (
                       <label
-                        key={j._id}
+                        key={rg._id}
                         className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all
-            ${
-              selectedJobIds.includes(j._id)
-                ? "border-[#1a3a8f] bg-[#EFF3FA]"
-                : "border-[#E2E8F0] bg-white hover:border-[#1a3a8f]/40"
-            }`}
+    ${
+      selectedJobIds.includes(rg._id)
+        ? "border-[#1a3a8f] bg-[#EFF3FA]"
+        : "border-[#E2E8F0] bg-white hover:border-[#1a3a8f]/40"
+    }`}
                       >
                         <input
                           type="checkbox"
-                          checked={selectedJobIds.includes(j._id)}
+                          checked={selectedJobIds.includes(rg._id)}
                           onChange={(e) => {
                             setSelectedJobIds((prev) =>
                               e.target.checked
-                                ? [...prev, j._id]
-                                : prev.filter((id) => id !== j._id),
+                                ? [...prev, rg._id]
+                                : prev.filter((id) => id !== rg._id),
                             );
                           }}
                           className="w-4 h-4 accent-[#1a3a8f]"
                         />
                         <span className="text-sm font-medium text-[#1E293B]">
-                          {j.role}
+                          {rg.role}
                         </span>
                       </label>
                     ))}
@@ -518,10 +526,12 @@ export default function AttendancePage() {
                 Active Drive
               </p>
               <p className="text-sm font-bold text-[#1E293B] mt-0.5 break-words">
-                {session?.jobId?.role ||
-                  (selectedJob
-                    ? `${selectedJob.companyId?.name} — ${selectedJob.role}`
-                    : "—")}
+                {selectedCompanyName
+                  ? `${selectedCompanyName} — ${rolesForCompany
+                      .filter((rg) => selectedJobIds.includes(rg._id))
+                      .map((rg) => rg.role)
+                      .join(", ")}`
+                  : "—"}
               </p>
             </div>
             <span
@@ -725,25 +735,50 @@ export default function AttendancePage() {
           </div>
 
           {/* ── 5. Close Session + Download PDF ── */}
-          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 mb-10">
-            {!isClosed && (
-              <button
-                onClick={handleCloseSession}
-                disabled={closing}
-                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-50 transition-colors disabled:opacity-50"
-              >
-                <StopCircle size={16} />
-                {closing ? "Closing..." : "Close Session"}
-              </button>
+          <div className="flex flex-col gap-3 mb-10">
+            {/* Course-wise buttons */}
+            {uniqueCourses.length > 1 && (
+              <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 shadow-sm">
+                <p className="text-xs font-semibold text-[#64748B] uppercase tracking-widest mb-3">
+                  Download by Course
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {uniqueCourses.map((course) => (
+                    <button
+                      key={course}
+                      onClick={() => handleDownloadPDF(course)}
+                      disabled={downloading}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#CBD5E1] text-xs font-medium text-[#1E293B] hover:bg-[#F8FAFC] transition-colors disabled:opacity-50"
+                    >
+                      <Download size={12} />
+                      {course}
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
-            <button
-              onClick={handleDownloadPDF}
-              disabled={downloading}
-              className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#1a3a8f] text-white text-sm font-semibold hover:bg-[#0d1b5e] transition-colors disabled:opacity-50"
-            >
-              <Download size={16} />
-              {downloading ? "Downloading..." : "Download PDF"}
-            </button>
+
+            {/* Main actions */}
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3">
+              {!isClosed && (
+                <button
+                  onClick={handleCloseSession}
+                  disabled={closing}
+                  className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-50 transition-colors disabled:opacity-50"
+                >
+                  <StopCircle size={16} />
+                  {closing ? "Closing..." : "Close Session"}
+                </button>
+              )}
+              <button
+                onClick={() => handleDownloadPDF()}
+                disabled={downloading}
+                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#1a3a8f] text-white text-sm font-semibold hover:bg-[#0d1b5e] transition-colors disabled:opacity-50"
+              >
+                <Download size={16} />
+                {downloading ? "Downloading..." : "Download All PDF"}
+              </button>
+            </div>
           </div>
         </>
       )}

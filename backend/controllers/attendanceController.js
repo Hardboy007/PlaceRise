@@ -195,12 +195,21 @@ const exportAttendancePDF = async (req, res) => {
     ).populate("jobId", "role");
     if (!session) return res.status(404).json({ message: "Session not found" });
 
-    const records = await AttendanceRecord.find({ sessionId: session._id })
+    const { course } = req.query; // NEW — optional course filter
+
+    let query = { sessionId: session._id };
+
+    let allRecords = await AttendanceRecord.find(query)
       .populate({
         path: "studentId",
         populate: { path: "userId", select: "erpId" },
       })
       .sort({ markedAt: 1 });
+
+    // Course filter apply karo agar query param aaya
+    const records = course
+      ? allRecords.filter((r) => r.studentId?.course === course)
+      : allRecords;
 
     const job = session.jobId;
     const startTime = session.createdAt.toLocaleTimeString("en-IN", {
@@ -256,6 +265,7 @@ const exportAttendancePDF = async (req, res) => {
       doc.text(`Drive: ${job?.role || "N/A"}`);
       doc.text(`Date: ${dateStr}`);
       doc.text(`Session: ${startTime} — ${endTime}`);
+      if (course) doc.text(`Course: ${course}`); // NEW
       doc.text(`Total Present: ${records.length}`);
       doc.moveDown();
 
@@ -267,11 +277,9 @@ const exportAttendancePDF = async (req, res) => {
         .stroke();
       doc.moveDown(0.5);
 
-      // ── Column layout ──
       const COL = { name: 50, erp: 230, time: 360, mode: 440 };
-      const ROW_H = 18; // fixed row height — no wrapping surprises
+      const ROW_H = 18;
 
-      // Header
       doc.fontSize(10).font("Helvetica-Bold");
       let hY = doc.y;
       doc.text("Name", COL.name, hY, { width: 175, lineBreak: false });
@@ -279,7 +287,6 @@ const exportAttendancePDF = async (req, res) => {
       doc.text("Time", COL.time, hY, { width: 75, lineBreak: false });
       doc.text("Mode", COL.mode, hY, { width: 110, lineBreak: false });
 
-      // Move past header + draw divider
       doc.y = hY + ROW_H;
       doc
         .moveTo(50, doc.y)
@@ -289,14 +296,11 @@ const exportAttendancePDF = async (req, res) => {
         .stroke();
       doc.y += 6;
 
-      // Rows
       doc.font("Helvetica").fontSize(9.5);
       records.forEach((r) => {
-        // New page check — agar row page ke bahar jaaye
         if (doc.y + ROW_H > doc.page.height - doc.page.margins.bottom) {
           doc.addPage();
         }
-
         const rowY = doc.y;
         const time = new Date(r.markedAt).toLocaleTimeString("en-IN", {
           timeZone: "Asia/Kolkata",
@@ -317,7 +321,6 @@ const exportAttendancePDF = async (req, res) => {
         doc.text(time, COL.time, rowY, { width: 75, lineBreak: false });
         doc.text(mode, COL.mode, rowY, { width: 110, lineBreak: false });
 
-        // Subtle row separator
         doc.y = rowY + ROW_H;
         doc
           .moveTo(50, doc.y - 2)
@@ -334,7 +337,7 @@ const exportAttendancePDF = async (req, res) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=attendance_${session._id}.pdf`,
+      `attachment; filename=attendance_${course ? course.replace(/\s+/g, "_") + "_" : ""}${session._id}.pdf`,
     );
     res.end(buffer);
   } catch (error) {
