@@ -164,7 +164,7 @@ export default function AttendancePage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedJobId]);
+  }, [selectedJobIds]);
 
   // ── Start session ──
   const handleStartSession = async () => {
@@ -311,7 +311,7 @@ export default function AttendancePage() {
     }
   };
 
-  const selectedJob = jobs.find((j) => j._id === selectedJobId);
+  const selectedJob = jobs.find((j) => j._id === selectedJobIds[0]);
 
   const uniqueCompanies = [
     ...new Map(jobs.map((j) => [j.companyId?._id, j.companyId])).values(),
