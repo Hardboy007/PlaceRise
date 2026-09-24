@@ -134,26 +134,8 @@ export default function VerifyContactPage() {
                 Verify Your Contact Details
               </h2>
               <p className="text-xs sm:text-sm text-[#64748B] mt-0.5 leading-relaxed">
-                Verify your email address and add your mobile number to secure
-                your account.
+                Verify your email address to continue setting up your PlaceRise account.
               </p>
-            </div>
-          </div>
-
-          {/* Step indicators */}
-          <div className="flex items-center gap-2">
-            <div
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${emailVerified ? "bg-green-50 text-green-700 border border-green-200" : "bg-[#1a3a8f]/10 text-[#1a3a8f] border border-[#1a3a8f]/20"}`}
-            >
-              <Mail size={11} />
-              Email {emailVerified ? "Verified" : "Verification"}
-            </div>
-            <ArrowRight size={12} className="text-[#CBD5E1]" />
-            <div
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${emailVerified ? "bg-[#1a3a8f]/10 text-[#1a3a8f] border border-[#1a3a8f]/20" : "bg-[#F1F5F9] text-[#94A3B8] border border-[#E2E8F0]"}`}
-            >
-              <Phone size={11} />
-              Mobile Number
             </div>
           </div>
 
