@@ -47,6 +47,10 @@ export default function AttendancePage() {
   const [closing, setClosing] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
+  const [selectedCompanyName, setSelectedCompanyName] = useState("");
+  const [companyDropdownOpen, setCompanyDropdownOpen] = useState(false);
+  const companyDropdownRef = useRef(null);
+
   const isJobStillOpen = (job) => {
     if (!job.lastDate) return true;
     const deadline = new Date(job.lastDate);
@@ -64,7 +68,7 @@ export default function AttendancePage() {
 
   // ── Fetch active jobs for the dropdown ──
   useEffect(() => {
-    document.title = "Attendance — PlaceRise"
+    document.title = "Attendance — PlaceRise";
     const fetchJobs = async () => {
       try {
         setJobsLoading(true);
@@ -104,6 +108,12 @@ export default function AttendancePage() {
         !driveDropdownRef.current.contains(e.target)
       ) {
         setDriveDropdownOpen(false);
+      }
+      if (
+        companyDropdownRef.current &&
+        !companyDropdownRef.current.contains(e.target)
+      ) {
+        setCompanyDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -302,6 +312,16 @@ export default function AttendancePage() {
 
   const selectedJob = jobs.find((j) => j._id === selectedJobId);
 
+  // Unique companies
+  const uniqueCompanies = [
+    ...new Map(jobs.map((j) => [j.companyId?._id, j.companyId])).values(),
+  ].filter(Boolean);
+
+  // Selected company ke roles
+  const rolesForCompany = jobs.filter(
+    (j) => j.companyId?.name === selectedCompanyName,
+  );
+
   return (
     <div
       className="max-w-5xl mx-auto"
@@ -376,54 +396,113 @@ export default function AttendancePage() {
           ) : jobs.length === 0 ? (
             <p className="text-sm text-[#64748B]">No active drives found.</p>
           ) : (
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1 min-w-0" ref={driveDropdownRef}>
-                <button
-                  type="button"
-                  onClick={() => setDriveDropdownOpen((o) => !o)}
-                  className="w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-left bg-white focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
-                >
-                  <span
-                    className={`truncate ${selectedJob ? "text-[#1E293B]" : "text-[#94A3B8]"}`}
+            <div className="flex flex-col gap-3">
+              {/* Step 1 — Company select */}
+              <div>
+                <p className="text-xs font-semibold text-[#64748B] uppercase tracking-widest mb-2">
+                  Step 1 — Select Company
+                </p>
+                <div className="relative" ref={companyDropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setCompanyDropdownOpen((o) => !o)}
+                    className="w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-left bg-white focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
                   >
-                    {selectedJob
-                      ? `${selectedJob.companyId?.name} — ${selectedJob.role}`
-                      : "Choose a drive..."}
-                  </span>
-                  <ChevronDown
-                    size={15}
-                    className={`text-[#94A3B8] shrink-0 transition-transform ${driveDropdownOpen ? "rotate-180" : ""}`}
-                  />
-                </button>
-
-                {driveDropdownOpen && (
-                  <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-[#E2E8F0] rounded-xl shadow-xl z-30 max-h-64 overflow-y-auto">
-                    {jobs.map((j) => (
-                      <button
-                        key={j._id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedJobId(j._id);
-                          setDriveDropdownOpen(false);
-                        }}
-                        className={`w-full text-left px-4 py-2.5 text-sm transition-colors border-b border-[#F1F5F9] last:border-b-0 ${
-                          j._id === selectedJobId
-                            ? "bg-[#EFF3FA] text-[#1a3a8f] font-semibold"
-                            : "text-[#1E293B] hover:bg-[#F8FAFC]"
-                        }`}
-                      >
-                        <span className="block truncate">
-                          {j.companyId?.name} — {j.role}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
+                    <span
+                      className={
+                        selectedCompanyName
+                          ? "text-[#1E293B]"
+                          : "text-[#94A3B8]"
+                      }
+                    >
+                      {selectedCompanyName || "Choose a company..."}
+                    </span>
+                    <ChevronDown
+                      size={15}
+                      className={`text-[#94A3B8] shrink-0 transition-transform ${companyDropdownOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                  {companyDropdownOpen && (
+                    <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-[#E2E8F0] rounded-xl shadow-xl z-30 max-h-56 overflow-y-auto">
+                      {uniqueCompanies.map((c) => (
+                        <button
+                          key={c._id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedCompanyName(c.name);
+                            setSelectedJobId(""); // role reset
+                            setCompanyDropdownOpen(false);
+                          }}
+                          className={`w-full text-left px-4 py-2.5 text-sm transition-colors border-b border-[#F1F5F9] last:border-b-0
+                  ${
+                    c.name === selectedCompanyName
+                      ? "bg-[#EFF3FA] text-[#1a3a8f] font-semibold"
+                      : "text-[#1E293B] hover:bg-[#F8FAFC]"
+                  }`}
+                        >
+                          {c.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* Step 2 — Role select (sirf tab dikhao jab company select ho) */}
+              {selectedCompanyName && (
+                <div>
+                  <p className="text-xs font-semibold text-[#64748B] uppercase tracking-widest mb-2">
+                    Step 2 — Select Role
+                  </p>
+                  <div className="relative" ref={driveDropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setDriveDropdownOpen((o) => !o)}
+                      className="w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-left bg-white focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+                    >
+                      <span
+                        className={
+                          selectedJob ? "text-[#1E293B]" : "text-[#94A3B8]"
+                        }
+                      >
+                        {selectedJob ? selectedJob.role : "Choose a role..."}
+                      </span>
+                      <ChevronDown
+                        size={15}
+                        className={`text-[#94A3B8] shrink-0 transition-transform ${driveDropdownOpen ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                    {driveDropdownOpen && (
+                      <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-[#E2E8F0] rounded-xl shadow-xl z-30 max-h-56 overflow-y-auto">
+                        {rolesForCompany.map((j) => (
+                          <button
+                            key={j._id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedJobId(j._id);
+                              setDriveDropdownOpen(false);
+                            }}
+                            className={`w-full text-left px-4 py-2.5 text-sm transition-colors border-b border-[#F1F5F9] last:border-b-0
+                    ${
+                      j._id === selectedJobId
+                        ? "bg-[#EFF3FA] text-[#1a3a8f] font-semibold"
+                        : "text-[#1E293B] hover:bg-[#F8FAFC]"
+                    }`}
+                          >
+                            {j.role}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Start button */}
               <button
                 onClick={handleStartSession}
                 disabled={!selectedJobId || starting || checkingSession}
-                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#1a3a8f] text-white text-sm font-semibold hover:bg-[#0d1b5e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#1a3a8f] text-white text-sm font-semibold hover:bg-[#0d1b5e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto self-end"
               >
                 <PlayCircle size={16} />
                 {checkingSession
