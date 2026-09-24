@@ -18,7 +18,7 @@ export default function AttendancePage() {
   // ── Drive selection ──
   const [jobs, setJobs] = useState([]);
   const [jobsLoading, setJobsLoading] = useState(true);
-  const [selectedJobId, setSelectedJobId] = useState("");
+  const [selectedJobIds, setSelectedJobIds] = useState([]);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState("");
   const [driveDropdownOpen, setDriveDropdownOpen] = useState(false);
@@ -140,7 +140,7 @@ export default function AttendancePage() {
   // mein join ho jao (kisi ne bhi start kiya ho, kisi bhi device se).
   // Agar nahi, toh "Start Session" button enable rahega us job ke liye.
   useEffect(() => {
-    if (!selectedJobId) return;
+    if (selectedJobIds.length === 0) return;
 
     let cancelled = false;
     const checkExisting = async () => {
@@ -148,7 +148,7 @@ export default function AttendancePage() {
       setError("");
       try {
         const found = await api.get(
-          `/attendance/active?jobId=${selectedJobId}`,
+          `/attendance/active?jobId=${selectedJobIds[0]}`,
         );
         if (!cancelled && found && found.status !== "closed") {
           await hydrateSession(found);
@@ -168,12 +168,13 @@ export default function AttendancePage() {
 
   // ── Start session ──
   const handleStartSession = async () => {
-    if (!selectedJobId || starting) return;
+    if (selectedJobIds.length === 0 || starting) return;
     setStarting(true);
     setError("");
     try {
+      // Pehla selected job ka session start karo (ya join karo)
       const res = await api.post("/attendance/start", {
-        jobId: selectedJobId,
+        jobId: selectedJobIds[0],
       });
       const newSession = res.session || res;
       await hydrateSession(newSession);
@@ -312,12 +313,9 @@ export default function AttendancePage() {
 
   const selectedJob = jobs.find((j) => j._id === selectedJobId);
 
-  // Unique companies
   const uniqueCompanies = [
     ...new Map(jobs.map((j) => [j.companyId?._id, j.companyId])).values(),
   ].filter(Boolean);
-
-  // Selected company ke roles
   const rolesForCompany = jobs.filter(
     (j) => j.companyId?.name === selectedCompanyName,
   );
@@ -430,7 +428,7 @@ export default function AttendancePage() {
                           type="button"
                           onClick={() => {
                             setSelectedCompanyName(c.name);
-                            setSelectedJobId(""); // role reset
+                            setSelectedJobIds([]); // roles reset
                             setCompanyDropdownOpen(false);
                           }}
                           className={`w-full text-left px-4 py-2.5 text-sm transition-colors border-b border-[#F1F5F9] last:border-b-0
@@ -452,48 +450,36 @@ export default function AttendancePage() {
               {selectedCompanyName && (
                 <div>
                   <p className="text-xs font-semibold text-[#64748B] uppercase tracking-widest mb-2">
-                    Step 2 — Select Role
+                    Step 2 — Select Role(s)
                   </p>
-                  <div className="relative" ref={driveDropdownRef}>
-                    <button
-                      type="button"
-                      onClick={() => setDriveDropdownOpen((o) => !o)}
-                      className="w-full flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl border border-[#CBD5E1] text-sm text-left bg-white focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
-                    >
-                      <span
-                        className={
-                          selectedJob ? "text-[#1E293B]" : "text-[#94A3B8]"
-                        }
+                  <div className="flex flex-col gap-2">
+                    {rolesForCompany.map((j) => (
+                      <label
+                        key={j._id}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-all
+            ${
+              selectedJobIds.includes(j._id)
+                ? "border-[#1a3a8f] bg-[#EFF3FA]"
+                : "border-[#E2E8F0] bg-white hover:border-[#1a3a8f]/40"
+            }`}
                       >
-                        {selectedJob ? selectedJob.role : "Choose a role..."}
-                      </span>
-                      <ChevronDown
-                        size={15}
-                        className={`text-[#94A3B8] shrink-0 transition-transform ${driveDropdownOpen ? "rotate-180" : ""}`}
-                      />
-                    </button>
-                    {driveDropdownOpen && (
-                      <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-[#E2E8F0] rounded-xl shadow-xl z-30 max-h-56 overflow-y-auto">
-                        {rolesForCompany.map((j) => (
-                          <button
-                            key={j._id}
-                            type="button"
-                            onClick={() => {
-                              setSelectedJobId(j._id);
-                              setDriveDropdownOpen(false);
-                            }}
-                            className={`w-full text-left px-4 py-2.5 text-sm transition-colors border-b border-[#F1F5F9] last:border-b-0
-                    ${
-                      j._id === selectedJobId
-                        ? "bg-[#EFF3FA] text-[#1a3a8f] font-semibold"
-                        : "text-[#1E293B] hover:bg-[#F8FAFC]"
-                    }`}
-                          >
-                            {j.role}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                        <input
+                          type="checkbox"
+                          checked={selectedJobIds.includes(j._id)}
+                          onChange={(e) => {
+                            setSelectedJobIds((prev) =>
+                              e.target.checked
+                                ? [...prev, j._id]
+                                : prev.filter((id) => id !== j._id),
+                            );
+                          }}
+                          className="w-4 h-4 accent-[#1a3a8f]"
+                        />
+                        <span className="text-sm font-medium text-[#1E293B]">
+                          {j.role}
+                        </span>
+                      </label>
+                    ))}
                   </div>
                 </div>
               )}
@@ -501,7 +487,9 @@ export default function AttendancePage() {
               {/* Start button */}
               <button
                 onClick={handleStartSession}
-                disabled={!selectedJobId || starting || checkingSession}
+                disabled={
+                  selectedJobIds.length === 0 || starting || checkingSession
+                }
                 className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#1a3a8f] text-white text-sm font-semibold hover:bg-[#0d1b5e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto self-end"
               >
                 <PlayCircle size={16} />
