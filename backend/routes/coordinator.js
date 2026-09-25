@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { protect, coordinatorOnly } = require("../middleware/auth");
+const { protect, coordinatorOnly, checkCRCHead } = require("../middleware/auth");
 const {
   createCoordinator,
   getMyProfile,
@@ -45,7 +45,7 @@ router.put(
   },
 );
 
-router.post("/", protect, coordinatorOnly, createCoordinator);
+router.post("/", protect, coordinatorOnly, checkCRCHead, createCoordinator);
 router.get("/me", protect, coordinatorOnly, getMyProfile);
 router.put("/me", protect, coordinatorOnly, updateMyProfile);
 router.put(

@@ -7,8 +7,8 @@ const Coordinator = require("../models/Coordinator");
 const { sendEmail } = require("../config/email");
 
 // Token generate karne ka function
-const generateToken = (id, role) => {
-  return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: "7d" });
+const generateToken = (id, role, subRole) => {
+  return jwt.sign({ id, role, subRole }, process.env.JWT_SECRET, { expiresIn: "7d" });
 };
 
 // Helper: kisi bhi special regex character ko escape karo,
@@ -19,7 +19,7 @@ const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 // Student Login
 const studentLogin = async (req, res) => {
   try {
-    const { erpId, password } = req.body;
+    const { erpId, password, subRole } = req.body;
 
     if (!erpId) {
       return res.status(400).json({ message: "ERP ID is required" });
@@ -92,11 +92,19 @@ const coordinatorLogin = async (req, res) => {
     }
 
     // Coordinator profile fetch karo
-    const coordinator = await Coordinator.findOne({ userId: user._id });
+    // Coordinator profile fetch karo — subRole match karke
+    const coordinator = await Coordinator.findOne({
+      userId: user._id,
+      ...(subRole && { subRole }),
+    });
+    if (!coordinator) {
+      return res.status(401).json({ message: "Invalid role selected for this account" });
+    }
 
     // Token banao aur bhejo
+    
     res.json({
-      token: generateToken(user._id, user.role),
+      token: generateToken(user._id, user.role, coordinator.subRole),
       coordinator: {
         id: coordinator._id,
         name: coordinator.name,
@@ -106,8 +114,9 @@ const coordinatorLogin = async (req, res) => {
         department: coordinator.department,
         college: coordinator.college,
         role: user.role,
+        subRole: coordinator.subRole,
       },
-    });
+    });;
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

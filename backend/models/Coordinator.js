@@ -50,6 +50,11 @@ const coordinatorSchema = new mongoose.Schema({
     enum: ["coordinator"],
     immutable: true,
   },
+  subRole: {
+    type: String,
+    enum: ["crc_head", "placement_coordinator"],
+    default: "placement_coordinator",
+  },
   createdAt: {
     type: Date,
     default: Date.now,
