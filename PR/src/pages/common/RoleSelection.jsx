@@ -378,13 +378,31 @@ function RoleSelectionPage() {
       <div className="relative">
         {/* Background - Diagonal Navy Panel */}
         <div
-          className="absolute inset-0 pointer-events-none"
+          className="absolute inset-0 pointer-events-none overflow-hidden"
           style={{
             background:
               "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
             clipPath: "polygon(0 0, 100% 0, 100% 60%, 0 100%)",
           }}
-        />
+        >
+          {/* Building — sits along the diagonal cut, anchored top-right where the panel is still visible */}
+          <div
+            className="absolute right-0 select-none"
+            style={{ width: "46%", maxWidth: "620px", top: "180px", height: "560px", overflow: "hidden" }}
+          >
+            <img
+              src="/images/building.png"
+              alt=""
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+                objectPosition: "bottom right",
+                opacity: 0.35,
+              }}
+            />
+          </div>
+        </div>
         {/* Mesh Glow */}
         <div
           className="absolute inset-0 pointer-events-none opacity-60"
