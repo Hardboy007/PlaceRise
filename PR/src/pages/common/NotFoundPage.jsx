@@ -175,30 +175,24 @@ export default function NotFoundPage() {
         >
           <div
             style={{
-              width: "34px",
-              height: "34px",
-              borderRadius: "10px",
-              backgroundColor: "#1a3a8f",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 4px 14px rgba(26,58,143,0.25)",
             }}
           >
-            <svg
-              width="17"
-              height="17"
-              fill="none"
-              stroke="white"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-            </svg>
+            <img
+              src="/icons/icon-192.png"
+              alt="Logo"
+              style={{ 
+                width: "34px", 
+                height: "34px", 
+                objectFit: "contain",
+                borderRadius: "8px",
+                boxShadow: "0 2px 10px rgba(0, 0, 0, 0.08)",
+                border: "1px solid #E2E8F0",
+                backgroundColor: "#fff",
+              }}
+            />
           </div>
           <span
             style={{
