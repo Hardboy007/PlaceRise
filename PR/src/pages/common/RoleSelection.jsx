@@ -94,9 +94,9 @@ function RoleCard({
       style={
         isDark
           ? {
-              background:
-                "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
-            }
+            background:
+              "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
+          }
           : {}
       }
     >
@@ -173,10 +173,9 @@ function RoleCard({
             <span
               key={tag}
               className={`px-3 py-1 rounded-full text-xs font-medium border
-                ${
-                  isDark
-                    ? "border-white/20 text-white/80 bg-white/5"
-                    : "border-[#CBD5E1] text-text-muted bg-background"
+                ${isDark
+                  ? "border-white/20 text-white/80 bg-white/5"
+                  : "border-[#CBD5E1] text-text-muted bg-background"
                 }
               `}
             >
@@ -360,7 +359,7 @@ function RoleSelectionPage() {
       const data = await response.json();
       setForgotMessage(
         data.message ||
-          "If that email is registered, a reset link has been sent.",
+        "If that email is registered, a reset link has been sent.",
       );
     } catch (err) {
       setForgotMessage("Unable to connect to the server");
@@ -737,52 +736,23 @@ function RoleSelectionPage() {
                     </p>
                   </div>
                 </div>
-                <div
-                  className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-white/70
-        group-hover:rotate-45 group-hover:bg-white/20 transition-all duration-300 shrink-0"
-                >
-                  <ArrowIcon />
-                </div>
-              </div>
 
-              {/* Divider */}
-              <div className="h-px bg-white/8 mx-4" />
-
-              {/* Stats — meaningful numbers */}
-              <div className="flex items-center justify-around px-4 py-3">
-                {[
-                  { label: "Drives", value: "12+" },
-                  { label: "Students", value: "500+" },
-                  { label: "Placed", value: "89%" },
-                ].map((stat, i) => (
-                  <div key={i} className="flex flex-col items-center gap-0.5">
-                    <span
-                      className="text-white font-bold text-sm"
-                      style={{ fontFamily: "Space Grotesk, sans-serif" }}
-                    >
-                      {stat.value}
-                    </span>
-                    <span className="text-white/30 text-[9px] uppercase tracking-wider">
-                      {stat.label}
-                    </span>
-                  </div>
-                ))}
               </div>
 
               {/* Divider */}
               <div className="h-px bg-white/8 mx-4" />
 
               {/* Bottom CTA */}
-              <div className="px-3 pb-3 pt-2">
+              <div className="px-3 pb-4 pt-3">
+                <p className="text-white/35 text-[11px] leading-relaxed mb-3 px-1">
+                  Manage drives, shortlist candidates, and track every student in one dashboard.
+                </p>
                 <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-white/10 border border-white/15 group-hover:bg-white/15 transition-colors duration-300">
                   <span className="text-white font-semibold text-[11px] uppercase tracking-widest">
                     Enter Portal
                   </span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                    <span className="text-green-400 text-[10px] font-bold uppercase tracking-wider">
-                      Live
-                    </span>
+                  <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-white/70 group-hover:rotate-45 group-hover:bg-white/20 transition-all duration-300">
+                    <ArrowIcon />
                   </div>
                 </div>
               </div>
