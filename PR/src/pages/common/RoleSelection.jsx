@@ -393,7 +393,13 @@ function RoleSelectionPage() {
           {/* Building — sits along the diagonal cut, anchored top-right where the panel is still visible */}
           <div
             className="absolute right-0 select-none"
-            style={{ width: "46%", maxWidth: "620px", top: "180px", height: "560px", overflow: "hidden" }}
+            style={{
+              width: "46%",
+              maxWidth: "620px",
+              top: "180px",
+              height: "560px",
+              overflow: "hidden",
+            }}
           >
             <img
               src="/images/building.png"
