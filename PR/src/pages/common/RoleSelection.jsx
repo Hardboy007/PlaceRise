@@ -94,9 +94,9 @@ function RoleCard({
       style={
         isDark
           ? {
-              background:
-                "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
-            }
+            background:
+              "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
+          }
           : {}
       }
     >
@@ -173,10 +173,9 @@ function RoleCard({
             <span
               key={tag}
               className={`px-3 py-1 rounded-full text-xs font-medium border
-                ${
-                  isDark
-                    ? "border-white/20 text-white/80 bg-white/5"
-                    : "border-[#CBD5E1] text-text-muted bg-background"
+                ${isDark
+                  ? "border-white/20 text-white/80 bg-white/5"
+                  : "border-[#CBD5E1] text-text-muted bg-background"
                 }
               `}
             >
@@ -331,11 +330,7 @@ function RoleSelectionPage() {
       } else {
         localStorage.setItem("coordinator", JSON.stringify(data.coordinator));
         localStorage.setItem("subRole", modalRole);
-        if (data.isFirstLogin) {
-          navigate("/coordinator/change-password");
-        } else {
-          navigate("/coordinator/dashboard");
-        }
+        navigate("/coordinator/dashboard");
       }
     } catch (err) {
       setError("Unable to connect to the server");
@@ -364,7 +359,7 @@ function RoleSelectionPage() {
       const data = await response.json();
       setForgotMessage(
         data.message ||
-          "If that email is registered, a reset link has been sent.",
+        "If that email is registered, a reset link has been sent.",
       );
     } catch (err) {
       setForgotMessage("Unable to connect to the server");
@@ -390,10 +385,14 @@ function RoleSelectionPage() {
             clipPath: "polygon(0 0, 100% 0, 100% 60%, 0 100%)",
           }}
         >
-          {/* Building — sits along the diagonal cut, anchored top-right where the panel is still visible */}
+          {/* Building — sits along the diagonal cut, anchored top-right where the panel is still visible.
+              Hidden on phones (not enough room without crowding the heading); scales up from tablet to desktop. */}
           <div
-            className="absolute right-0 select-none"
-            style={{ width: "46%", maxWidth: "620px", top: "180px", height: "560px", overflow: "hidden" }}
+            className="hidden sm:block absolute right-0 select-none
+              sm:top-[90px] sm:h-[300px] sm:w-[55%] sm:max-w-[320px]
+              md:top-[130px] md:h-[420px] md:w-[50%] md:max-w-[460px]
+              lg:top-[180px] lg:h-[560px] lg:w-[46%] lg:max-w-[620px]"
+            style={{ overflow: "hidden" }}
           >
             <img
               src="/images/building.png"
@@ -403,7 +402,7 @@ function RoleSelectionPage() {
                 height: "100%",
                 objectFit: "contain",
                 objectPosition: "bottom right",
-                opacity: 0.35,
+                opacity: 0.65,
               }}
             />
           </div>
@@ -491,7 +490,7 @@ function RoleSelectionPage() {
           {/* Institutional Badge — DBUU */}
           {/* Mobile — simple pill */}
           {/* Mobile — compact badge */}
-          <div className="flex sm:hidden justify-center mb-6">
+          <div className="flex lg:hidden flex-col items-center gap-3 mb-6">
             <div
               className="relative flex items-center gap-2.5 px-3 py-2 rounded-2xl"
               style={{
@@ -547,10 +546,58 @@ function RoleSelectionPage() {
                 </span>
               </div>
             </div>
+
+            {/* Team Access — mobile/tablet entry point, mirrors the desktop "Team Access" card below */}
+            <button
+              type="button"
+              onClick={() => handleRoleSelect("coordinator")}
+              className="w-full max-w-sm flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-white/10 backdrop-blur border border-white/20 hover:bg-white/15 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <span className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white shrink-0">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect width="20" height="14" x="2" y="7" rx="2" />
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                  </svg>
+                </span>
+                <div className="text-left">
+                  <p className="text-white font-semibold text-sm leading-tight">
+                    Placement Team Access
+                  </p>
+                  <p className="text-white/50 text-[11px] mt-0.5">
+                    CRC Head & Coordinator login
+                  </p>
+                </div>
+              </div>
+              <span className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-white/70 shrink-0">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M7 7h10v10" />
+                  <path d="M7 17 17 7" />
+                </svg>
+              </span>
+            </button>
           </div>
 
           {/* Desktop — DBUU badge + Team Access side by side */}
-          <div className="hidden sm:flex items-center justify-center gap-5 mb-8">
+          <div className="hidden lg:flex items-center justify-center gap-5 mb-8">
             {/* DBUU Badge */}
             <div className="relative" style={{ width: "465px" }}>
               <div
@@ -824,6 +871,7 @@ function RoleSelectionPage() {
           <div className="relative flex justify-center">
             <div className="w-full max-w-lg">
               <RoleCard
+
                 icon={<GraduationIcon />}
                 label="I'm a Student"
                 description="Browse drives, apply in clicks, and track every stage of your journey."
