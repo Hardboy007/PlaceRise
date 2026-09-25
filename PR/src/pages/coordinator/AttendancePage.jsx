@@ -51,6 +51,14 @@ export default function AttendancePage() {
   const [companyDropdownOpen, setCompanyDropdownOpen] = useState(false);
   const companyDropdownRef = useRef(null);
 
+  const selectedJob = jobs.find(
+    (j) => j.companyId?.name === selectedCompanyName,
+  );
+  const rolesForCompany = selectedJob?.roleGroups || [];
+  const uniqueCompanies = [
+    ...new Map(jobs.map((j) => [j.companyId?._id, j.companyId])).values(),
+  ].filter(Boolean);
+
   const isJobStillOpen = (job) => {
     if (!job.lastDate) return true;
     const deadline = new Date(job.lastDate);
@@ -91,17 +99,32 @@ export default function AttendancePage() {
   }, []);
 
   // ── Fetch students once, for manual-mark search ──
+  // ADD — studentSearch change hone pe API se search karo
   useEffect(() => {
-    const fetchStudents = async () => {
+    if (!studentSearch.trim() || !selectedJob?._id) {
+      setAllStudents([]);
+      return;
+    }
+    const timeout = setTimeout(async () => {
       try {
-        const data = await api.get("/students");
-        setAllStudents(list);
+        const apps = await api.get(`/applications/job/${selectedJob._id}`);
+        const list = Array.isArray(apps) ? apps : [];
+        const q = studentSearch.trim().toLowerCase();
+        const matched = list
+          .filter(
+            (a) =>
+              (a.studentId?.name || "").toLowerCase().includes(q) ||
+              (a.studentId?.userId?.erpId || "").toLowerCase().includes(q),
+          )
+          .map((a) => a.studentId)
+          .filter(Boolean);
+        setAllStudents(matched);
       } catch (err) {
-        console.error("Failed to load students:", err);
+        console.error("Student search failed:", err);
       }
-    };
-    fetchStudents();
-  }, []);
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [studentSearch, selectedJob?._id]);
 
   // ── Close the custom drive dropdown when clicking outside it ──
   useEffect(() => {
@@ -167,7 +190,7 @@ export default function AttendancePage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedJobIds]);
+  }, [selectedJobIds, selectedJob]);
 
   // ── Start session ──
   const handleStartSession = async () => {
@@ -237,11 +260,7 @@ export default function AttendancePage() {
   }, [sessionId, isClosed]);
 
   // ── Manual mark ──
-  const filteredStudents = studentSearch.trim()
-    ? allStudents.filter((s) =>
-        (s.name || "").toLowerCase().includes(studentSearch.toLowerCase()),
-      )
-    : [];
+  const filteredStudents = allStudents;
 
   const handleManualMark = async () => {
     if (!selectedStudentId || !sessionId || marking) return;
@@ -319,14 +338,6 @@ export default function AttendancePage() {
       setDownloading(false);
     }
   };
-
-  const uniqueCompanies = [
-    ...new Map(jobs.map((j) => [j.companyId?._id, j.companyId])).values(),
-  ].filter(Boolean);
-  const selectedJob = jobs.find(
-    (j) => j.companyId?.name === selectedCompanyName,
-  );
-  const rolesForCompany = selectedJob?.roleGroups || [];
 
   return (
     <div
@@ -737,7 +748,7 @@ export default function AttendancePage() {
           {/* ── 5. Close Session + Download PDF ── */}
           <div className="flex flex-col gap-3 mb-10">
             {/* Course-wise buttons */}
-            {uniqueCourses.length > 1 && (
+            {uniqueCourses.length > 0 && (
               <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 shadow-sm">
                 <p className="text-xs font-semibold text-[#64748B] uppercase tracking-widest mb-3">
                   Download by Course
