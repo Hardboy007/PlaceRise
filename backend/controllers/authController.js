@@ -93,6 +93,18 @@ const coordinatorLogin = async (req, res) => {
       return res.status(401).json({ message: "Invalid password" });
     }
 
+    // Coordinator profile fetch karo
+    // Coordinator profile fetch karo — subRole match karke
+    const coordinator = await Coordinator.findOne({
+      userId: user._id,
+      ...(subRole && { subRole }),
+    });
+    if (!coordinator) {
+      return res
+        .status(401)
+        .json({ message: "Invalid role selected for this account" });
+    }
+
     // First login check
     if (user.isFirstLogin) {
       return res.json({
@@ -106,18 +118,6 @@ const coordinatorLogin = async (req, res) => {
           subRole: coordinator.subRole,
         },
       });
-    }
-
-    // Coordinator profile fetch karo
-    // Coordinator profile fetch karo — subRole match karke
-    const coordinator = await Coordinator.findOne({
-      userId: user._id,
-      ...(subRole && { subRole }),
-    });
-    if (!coordinator) {
-      return res
-        .status(401)
-        .json({ message: "Invalid role selected for this account" });
     }
 
     // Token banao aur bhejo
