@@ -193,6 +193,7 @@ function RoleCard({
 function RoleSelectionPage() {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
+  const [showSubRoleModal, setShowSubRoleModal] = useState(false);
   const [modalRole, setModalRole] = useState(null);
   const [erpId, setErpId] = useState("");
   const [password, setPassword] = useState("");
@@ -228,7 +229,23 @@ function RoleSelectionPage() {
   };
 
   const handleRoleSelect = (role) => {
-    setModalRole(role);
+    if (role === "coordinator") {
+      setShowSubRoleModal(true);
+      return;
+    }
+    setModalRole("student");
+    setErpId("");
+    setPassword("");
+    setError("");
+    setModalView("login");
+    setForgotEmail("");
+    setForgotMessage("");
+    setShowModal(true);
+  };
+
+  const handleSubRoleSelect = (subRole) => {
+    setShowSubRoleModal(false);
+    setModalRole(subRole);
     setErpId("");
     setPassword("");
     setError("");
@@ -312,6 +329,7 @@ function RoleSelectionPage() {
         }
       } else {
         localStorage.setItem("coordinator", JSON.stringify(data.coordinator));
+        localStorage.setItem("subRole", modalRole);
         navigate("/coordinator/dashboard");
       }
     } catch (err) {
@@ -365,21 +383,6 @@ function RoleSelectionPage() {
             background:
               "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
             clipPath: "polygon(0 0, 100% 0, 100% 60%, 0 100%)",
-          }}
-        />
-        {/* Building ab yahi andar hai — isi clip-path se cut hogi */}
-        <img
-          src="/images/building 2.png"
-          alt=""
-          className="absolute hidden sm:block"
-          style={{
-            top: "308px",
-            right: "0px",
-            width: "500px",
-            height: "500px",
-            opacity: 0.4,
-            objectFit: "cover",
-            clipPath: "polygon(0% 0%, 100% 0%, 100% 67%, 0% 93%)",
           }}
         />
         {/* Mesh Glow */}
@@ -471,7 +474,7 @@ function RoleSelectionPage() {
               style={{
                 background:
                   "linear-gradient(135deg, rgba(15,23,42,0.95) 0%, rgba(30,41,59,0.95) 100%)",
-                border: "1px solid rgba(59,130,246,0.3)",
+                border: "1px solid rgba(255,255,255,0.12)",
                 boxShadow: "0 0 16px rgba(59,130,246,0.15)",
               }}
             >
@@ -523,10 +526,10 @@ function RoleSelectionPage() {
             </div>
           </div>
 
-          {/* Desktop — full institutional badge */}
-          <div className="hidden sm:flex flex-col items-center mb-8">
-            <div className="relative w-full max-w-lg">
-              {/* Animated RGB glow */}
+          {/* Desktop — DBUU badge + Team Access side by side */}
+          <div className="hidden sm:flex items-center justify-center gap-5 mb-8">
+            {/* DBUU Badge */}
+            <div className="relative" style={{ width: "465px" }}>
               <div
                 className="absolute -inset-0.5 rounded-3xl pointer-events-none"
                 style={{
@@ -538,7 +541,6 @@ function RoleSelectionPage() {
                   filter: "blur(1.5px)",
                 }}
               />
-              {/* Card */}
               <div
                 className="relative rounded-3xl overflow-hidden"
                 style={{
@@ -548,10 +550,9 @@ function RoleSelectionPage() {
                   backdropFilter: "blur(20px)",
                 }}
               >
-                {/* Top row */}
-                <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3">
+                <div className="flex items-center gap-3 px-4 py-3">
                   <div
-                    className="w-16 h-16 sm:w-14 sm:h-14 rounded-xl overflow-hidden shrink-0"
+                    className="w-12 h-12 rounded-xl overflow-hidden shrink-0"
                     style={{
                       boxShadow:
                         "0 0 0 1px rgba(255,255,255,0.15), 0 4px 16px rgba(0,0,0,0.4)",
@@ -564,12 +565,12 @@ function RoleSelectionPage() {
                     />
                   </div>
                   <div
-                    className="w-px h-14 shrink-0"
+                    className="w-px h-10 shrink-0"
                     style={{ background: "rgba(255,255,255,0.12)" }}
                   />
                   <div className="text-left">
                     <p
-                      className="text-white font-bold text-xs sm:text-sm leading-tight"
+                      className="text-white font-bold text-sm leading-tight"
                       style={{ fontFamily: "Space Grotesk, sans-serif" }}
                     >
                       Dev Bhoomi Uttarakhand University
@@ -589,10 +590,9 @@ function RoleSelectionPage() {
                           strokeLinejoin="round"
                         />
                       </svg>
-                      <span className="text-white/50 text-[11px] font-medium tracking-wide">
+                      <span className="text-white/50 text-[11px] font-medium">
                         Verified Institutional Partner
                       </span>
-                      <span className="text-white/20 text-[11px]">——</span>
                     </div>
                   </div>
                   <div
@@ -602,16 +602,14 @@ function RoleSelectionPage() {
                       border: "1px solid rgba(59,130,246,0.4)",
                     }}
                   >
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
                     <span className="text-blue-300 text-[10px] font-bold tracking-wider uppercase whitespace-nowrap">
                       Season 2026
                     </span>
                   </div>
                 </div>
-
-                {/* Bottom row */}
                 <div
-                  className="flex items-center justify-center gap-0 border-t"
+                  className="flex items-center border-t"
                   style={{ borderColor: "rgba(255,255,255,0.06)" }}
                 >
                   {[
@@ -677,7 +675,7 @@ function RoleSelectionPage() {
                   ].map((item, i, arr) => (
                     <div
                       key={item.label}
-                      className="flex items-center gap-2 px-6 py-3 text-white/40 hover:text-white/70 transition-colors"
+                      className="flex items-center gap-2 px-3 py-2.5 text-white/40 hover:text-white/70 transition-colors whitespace-nowrap"
                       style={{
                         borderRight:
                           i < arr.length - 1
@@ -691,6 +689,100 @@ function RoleSelectionPage() {
                       </span>
                     </div>
                   ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Connector */}
+            <div className="flex items-center gap-1 shrink-0">
+              <div className="w-4 h-px bg-white/20" />
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
+              <div className="w-4 h-px bg-white/20" />
+            </div>
+
+            {/* Team Access Card */}
+            <div
+              onClick={() => handleRoleSelect("coordinator")}
+              className="group relative overflow-hidden rounded-2xl cursor-pointer shrink-0"
+              style={{
+                background: "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                backdropFilter: "blur(20px)",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+                width: "220px",
+              }}
+            >
+              {/* Pulse ring on border */}
+              <div
+                className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                style={{ boxShadow: "0 0 0 1px rgba(59,130,246,0.6)" }}
+              />
+
+              {/* Header */}
+              <div className="relative flex items-center justify-between px-4 pt-4 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-white shrink-0 group-hover:bg-white/20 transition-colors duration-300">
+                    <BriefcaseIcon />
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-bold tracking-widest uppercase text-white/30">
+                      Placement Team
+                    </p>
+                    <p
+                      className="text-white font-bold text-sm leading-tight"
+                      style={{ fontFamily: "Space Grotesk, sans-serif" }}
+                    >
+                      Team Access
+                    </p>
+                  </div>
+                </div>
+                <div
+                  className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-white/70
+        group-hover:rotate-45 group-hover:bg-white/20 transition-all duration-300 shrink-0"
+                >
+                  <ArrowIcon />
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="h-px bg-white/8 mx-4" />
+
+              {/* Stats — meaningful numbers */}
+              <div className="flex items-center justify-around px-4 py-3">
+                {[
+                  { label: "Drives", value: "12+" },
+                  { label: "Students", value: "500+" },
+                  { label: "Placed", value: "89%" },
+                ].map((stat, i) => (
+                  <div key={i} className="flex flex-col items-center gap-0.5">
+                    <span
+                      className="text-white font-bold text-sm"
+                      style={{ fontFamily: "Space Grotesk, sans-serif" }}
+                    >
+                      {stat.value}
+                    </span>
+                    <span className="text-white/30 text-[9px] uppercase tracking-wider">
+                      {stat.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Divider */}
+              <div className="h-px bg-white/8 mx-4" />
+
+              {/* Bottom CTA */}
+              <div className="px-3 pb-3 pt-2">
+                <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-white/10 border border-white/15 group-hover:bg-white/15 transition-colors duration-300">
+                  <span className="text-white font-semibold text-[11px] uppercase tracking-widest">
+                    Enter Portal
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                    <span className="text-green-400 text-[10px] font-bold uppercase tracking-wider">
+                      Live
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -735,9 +827,8 @@ function RoleSelectionPage() {
 
         {/* Role Cards */}
         <section className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 mt-10 sm:mt-16">
-          <div className="grid md:grid-cols-2 gap-6 sm:gap-8 relative">
-            {/* Student Card */}
-            <div>
+          <div className="relative flex justify-center">
+            <div className="w-full max-w-lg">
               <RoleCard
                 number="01"
                 icon={<GraduationIcon />}
@@ -746,43 +837,6 @@ function RoleSelectionPage() {
                 tags={["Live Drives", "Application Tracker", "Announcements"]}
                 variant="dark"
                 onSelect={() => handleRoleSelect("student")}
-              />
-            </div>
-
-            {/* OR Badge — desktop, centered over both cards */}
-            <div
-              className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10
-            w-16 h-16 rounded-full bg-white items-center justify-center
-            shadow-[0_10px_40px_-10px_rgba(15,23,42,0.15)]"
-            >
-              <div className="absolute inset-0 rounded-full border-2 border-dashed border-primary animate-pulse-ring" />
-              <span
-                className="text-sm font-bold tracking-widest text-[#1E293B]"
-                style={{ fontFamily: "Space Grotesk, sans-serif" }}
-              >
-                OR
-              </span>
-            </div>
-
-            {/* OR divider — mobile only, sits between the stacked cards */}
-            <div className="flex md:hidden items-center gap-3 -my-1">
-              <span className="flex-1 h-px bg-[#CBD5E1]" />
-              <span className="text-xs font-bold tracking-widest text-text-muted px-2">
-                OR
-              </span>
-              <span className="flex-1 h-px bg-[#CBD5E1]" />
-            </div>
-
-            {/* Coordinator Card */}
-            <div className="md:mt-32">
-              <RoleCard
-                number="02"
-                icon={<BriefcaseIcon />}
-                label="Placement Team"
-                description="Manage drives, shortlist students, and coordinate with recruiters effortlessly."
-                tags={["Drive Manager", "Analytics", "Student Database"]}
-                variant="light"
-                onSelect={() => handleRoleSelect("coordinator")}
               />
             </div>
           </div>
@@ -1187,8 +1241,133 @@ function RoleSelectionPage() {
         </footer>
       </div>
       {/* Login Modal */}
+      {/* Sub Role Modal */}
+      {showSubRoleModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div
+            className="rounded-3xl p-6 sm:p-8 w-full max-w-md mx-4"
+            style={{
+              background: "linear-gradient(145deg, #ffffff 0%, #f8faff 100%)",
+              boxShadow:
+                "0 25px 60px -15px rgba(15,23,42,0.2), 0 0 0 1px rgba(15,23,42,0.06)",
+            }}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <p className="text-xs font-semibold tracking-widest uppercase text-primary">
+                  Placement Team
+                </p>
+                <h3
+                  className="text-3xl font-bold text-[#0F172A] mt-1"
+                  style={{
+                    fontFamily: "Space Grotesk, sans-serif",
+                    letterSpacing: "-0.02em",
+                  }}
+                >
+                  Who are you?
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowSubRoleModal(false)}
+                className="w-9 h-9 rounded-full bg-[#F1F5F9] flex items-center justify-center text-[#64748B] hover:bg-[#E2E8F0] transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-sm text-text-muted mb-6">
+              Select your role to continue with the right access level.
+            </p>
+
+            <div className="flex flex-col gap-4">
+              <div
+                onClick={() => handleSubRoleSelect("crc_head")}
+                className="group relative overflow-hidden rounded-2xl p-5 cursor-pointer transition-all duration-300 hover:-translate-y-0.5"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                  boxShadow: "0 8px 24px -6px rgba(15,23,42,0.35)",
+                }}
+              >
+                <div className="absolute -bottom-6 -right-6 w-32 h-32 rounded-full bg-blue-500/20 blur-xl group-hover:scale-125 transition-transform duration-500" />
+                <div className="relative flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shrink-0">
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <p
+                        className="text-white font-bold text-base"
+                        style={{ fontFamily: "Space Grotesk, sans-serif" }}
+                      >
+                        CRC Head
+                      </p>
+                      <p className="text-white/50 text-xs mt-0.5">
+                        Full access — post, edit, manage everything
+                      </p>
+                    </div>
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white group-hover:rotate-45 transition-transform duration-300">
+                    <ArrowIcon />
+                  </div>
+                </div>
+              </div>
+
+              <div
+                onClick={() => handleSubRoleSelect("placement_coordinator")}
+                className="group relative overflow-hidden rounded-2xl p-5 cursor-pointer transition-all duration-300 hover:-translate-y-0.5"
+                style={{
+                  background: "#ffffff",
+                  border: "1.5px solid #CBD5E1",
+                  boxShadow:
+                    "0 4px 20px -4px rgba(15,23,42,0.15), 0 0 0 1px rgba(15,23,42,0.04)",
+                }}
+              >
+                <div className="absolute -bottom-6 -right-6 w-32 h-32 rounded-full bg-blue-400/10 blur-xl group-hover:scale-125 transition-transform duration-500" />
+                <div className="relative flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0"
+                      style={{ background: "#1E293B" }}
+                    >
+                      <BriefcaseIcon />
+                    </div>
+                    <div>
+                      <p
+                        className="text-[#1E293B] font-bold text-base"
+                        style={{ fontFamily: "Space Grotesk, sans-serif" }}
+                      >
+                        Placement Coordinator
+                      </p>
+                      <p className="text-text-muted text-xs mt-0.5">
+                        View & download access only
+                      </p>
+                    </div>
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-[#F1F5F9] flex items-center justify-center text-[#1E293B] group-hover:rotate-45 group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                    <ArrowIcon />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-3xl p-5 sm:p-8 w-full max-w-md mx-4 shadow-2xl">
             {modalView === "login" ? (
               <>
@@ -1198,7 +1377,9 @@ function RoleSelectionPage() {
                     <p className="text-xs font-semibold tracking-widest uppercase text-primary">
                       {modalRole === "student"
                         ? "Student Login"
-                        : "Coordinator Login"}
+                        : modalRole === "crc_head"
+                          ? "CRC Head Login"
+                          : "Coordinator Login"}
                     </p>
                     <h3
                       className="text-2xl font-bold text-[#1E293B] mt-1"

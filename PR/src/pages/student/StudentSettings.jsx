@@ -356,7 +356,7 @@ export default function StudentSettingsPage() {
   }, [activeTab, loading]);
 
   useEffect(() => {
-    document.title = "Settings"
+    document.title = "Settings";
     const fetchSettings = async () => {
       try {
         const student = await api.get("/students/me");
@@ -622,10 +622,11 @@ export default function StudentSettingsPage() {
                   <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                     <div
                       className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300
-                      ${toggles[key]
+                      ${
+                        toggles[key]
                           ? `bg-gradient-to-br ${c.grad} ring-1 ${c.ring} ${c.text}`
                           : "bg-[#F1F5F9] border border-[#E2E8F0] text-[#94A3B8]"
-                        }`}
+                      }`}
                     >
                       {icon}
                     </div>
@@ -658,7 +659,6 @@ export default function StudentSettingsPage() {
           snaps back to the page edge on sm+ where there's usually no fixed
           bottom nav. */}
       <div className="fixed bottom-20 sm:bottom-0 left-0 right-0 z-20 bg-white/80 backdrop-blur-md border-t border-[#E2E8F0]">
-
         <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3 px-4 md:px-0 py-3 sm:py-4">
           <div className="flex items-center justify-center sm:justify-start gap-2 min-h-[18px] min-w-0 w-full sm:w-auto">
             {saved ? (
