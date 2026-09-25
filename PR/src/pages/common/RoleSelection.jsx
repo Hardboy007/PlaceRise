@@ -94,9 +94,9 @@ function RoleCard({
       style={
         isDark
           ? {
-              background:
-                "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
-            }
+            background:
+              "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
+          }
           : {}
       }
     >
@@ -173,10 +173,9 @@ function RoleCard({
             <span
               key={tag}
               className={`px-3 py-1 rounded-full text-xs font-medium border
-                ${
-                  isDark
-                    ? "border-white/20 text-white/80 bg-white/5"
-                    : "border-[#CBD5E1] text-text-muted bg-background"
+                ${isDark
+                  ? "border-white/20 text-white/80 bg-white/5"
+                  : "border-[#CBD5E1] text-text-muted bg-background"
                 }
               `}
             >
@@ -360,7 +359,7 @@ function RoleSelectionPage() {
       const data = await response.json();
       setForgotMessage(
         data.message ||
-          "If that email is registered, a reset link has been sent.",
+        "If that email is registered, a reset link has been sent.",
       );
     } catch (err) {
       setForgotMessage("Unable to connect to the server");
@@ -802,7 +801,7 @@ function RoleSelectionPage() {
           <div className="relative flex justify-center">
             <div className="w-full max-w-lg">
               <RoleCard
-                number="01"
+
                 icon={<GraduationIcon />}
                 label="I'm a Student"
                 description="Browse drives, apply in clicks, and track every stage of your journey."
