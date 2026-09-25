@@ -388,11 +388,8 @@ function RoleSelectionPage() {
           {/* Building — sits along the diagonal cut, anchored top-right where the panel is still visible.
               Hidden on phones (not enough room without crowding the heading); scales up from tablet to desktop. */}
           <div
-            className="hidden sm:block absolute right-0 select-none
-              sm:top-[90px] sm:h-[300px] sm:w-[55%] sm:max-w-[320px]
-              md:top-[130px] md:h-[420px] md:w-[50%] md:max-w-[460px]
-              lg:top-[180px] lg:h-[560px] lg:w-[46%] lg:max-w-[620px]"
-            style={{ overflow: "hidden" }}
+            className="absolute right-0 select-none"
+            style={{ width: "46%", maxWidth: "620px", top: "180px", height: "560px", overflow: "hidden" }}
           >
             <img
               src="/images/building.png"
