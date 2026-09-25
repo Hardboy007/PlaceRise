@@ -30,13 +30,13 @@ function Field({ label, name, value, editing, form, onChange, type = "text" }) {
         <input
           type={type}
           name={name}
-          value={form[name] || ""}
+          value={form[name] ?? ""}
           onChange={onChange}
           className="w-full px-3 py-2 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] bg-[#F8FAFC] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
         />
       ) : (
         <span className="text-sm font-medium text-[#1E293B]">
-          {value || "—"}
+          {value === 0 || value === "0" ? value : value || "—"}
         </span>
       )}
     </div>
@@ -140,10 +140,7 @@ export default function StudentProfilePage() {
   };
 
   const handleSave = async () => {
-    if (
-      form.backlogs !== "" &&
-      (isNaN(Number(form.backlogs)) || Number(form.backlogs) < 0)
-    ) {
+    if (form.backlogs !== "" && (isNaN(Number(form.backlogs)) || Number(form.backlogs) < 0)) {
       alert("Backlogs must be a valid number (0 or more)");
       return;
     }
@@ -546,7 +543,7 @@ export default function StudentProfilePage() {
             value={student.userId?.erpId || "—"}
             editing={false}
             form={student}
-            onChange={() => {}}
+            onChange={() => { }}
           />
           <Field
             label="Full Name"
@@ -625,6 +622,7 @@ export default function StudentProfilePage() {
                 : "—"
             }
             {...fieldProps}
+            editing={false}
           />
           <Field
             label="Current Semester"
@@ -659,11 +657,7 @@ export default function StudentProfilePage() {
             editing={false}
           />
           <Field
-            label={
-              <>
-                Active Backlogs <span className="text-red-500">*</span>
-              </>
-            }
+            label="Active Backlogs"
             name="backlogs"
             value={form?.backlogs ?? student.backlogs ?? 0}
             {...fieldProps}
@@ -980,7 +974,7 @@ export default function StudentProfilePage() {
                     Resume Uploaded
                   </p>
                   {displayData.resume &&
-                  displayData.resume !== "dbuu-generated" ? (
+                    displayData.resume !== "dbuu-generated" ? (
                     <a
                       href={displayData.resume}
                       target="_blank"
@@ -1003,7 +997,9 @@ export default function StudentProfilePage() {
                           await generateDbuuPdf(student.resumeData);
                         } catch (err) {
                           console.error("PDF download failed:", err);
-                          alert("Cannot download PDF, please try again.");
+                          alert(
+                            "Cannot download PDF, please try again.",
+                          );
                         }
                       }}
                       className="text-xs text-[#22C55E] hover:underline font-semibold mt-0.5 block"
@@ -1192,7 +1188,7 @@ export default function StudentProfilePage() {
                 Placement Status
               </p>
               {student.placementStatus === "Placed" &&
-              student.selectedCompanies?.length > 0 ? (
+                student.selectedCompanies?.length > 0 ? (
                 <p className="text-sm font-bold text-[#15803D]">
                   Selected in:{" "}
                   {student.selectedCompanies
@@ -1207,11 +1203,10 @@ export default function StudentProfilePage() {
             </div>
           </div>
           <span
-            className={`self-end sm:self-auto flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${
-              student.placementStatus === "Placed"
-                ? "bg-green-50 text-green-700 border-green-200"
-                : "bg-amber-50 text-[#F59E0B] border-amber-200"
-            }`}
+            className={`self-end sm:self-auto flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${student.placementStatus === "Placed"
+              ? "bg-green-50 text-green-700 border-green-200"
+              : "bg-amber-50 text-[#F59E0B] border-amber-200"
+              }`}
           >
             {student.placementStatus === "Placed" ? (
               <>

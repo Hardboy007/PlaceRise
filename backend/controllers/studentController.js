@@ -193,6 +193,7 @@ const updateStudent = async (req, res) => {
       "resumeData", // ADD
       "githubUrl", // ADD (profile me add kiya tha)
       "codingProfileUrl", // ADD
+      "backlogs", // ADD
     ];
 
     const set = {};
