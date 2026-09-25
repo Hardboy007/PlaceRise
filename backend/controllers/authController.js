@@ -8,7 +8,9 @@ const { sendEmail } = require("../config/email");
 
 // Token generate karne ka function
 const generateToken = (id, role, subRole) => {
-  return jwt.sign({ id, role, subRole }, process.env.JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign({ id, role, subRole }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
 };
 
 // Helper: kisi bhi special regex character ko escape karo,
@@ -68,7 +70,7 @@ const studentLogin = async (req, res) => {
 //Coordinator Login
 const coordinatorLogin = async (req, res) => {
   try {
-    const { erpId, password } = req.body;
+    const { erpId, password, subRole } = req.body;
 
     if (!erpId) {
       return res.status(400).json({ message: "ERP ID is required" });
@@ -98,11 +100,13 @@ const coordinatorLogin = async (req, res) => {
       ...(subRole && { subRole }),
     });
     if (!coordinator) {
-      return res.status(401).json({ message: "Invalid role selected for this account" });
+      return res
+        .status(401)
+        .json({ message: "Invalid role selected for this account" });
     }
 
     // Token banao aur bhejo
-    
+
     res.json({
       token: generateToken(user._id, user.role, coordinator.subRole),
       coordinator: {
@@ -116,7 +120,7 @@ const coordinatorLogin = async (req, res) => {
         role: user.role,
         subRole: coordinator.subRole,
       },
-    });;
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -292,11 +296,9 @@ const sendEmailOtp = async (req, res) => {
       _id: { $ne: req.user.id }, // apne aap ko exclude karo
     });
     if (existingUser) {
-      return res
-        .status(409)
-        .json({
-          message: "This email is already registered with another account",
-        });
+      return res.status(409).json({
+        message: "This email is already registered with another account",
+      });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP

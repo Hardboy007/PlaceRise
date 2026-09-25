@@ -6,7 +6,11 @@ const {
   updateJob,
   deleteJob,
 } = require("../controllers/jobController");
-const { protect, coordinatorOnly, checkCRCHead } = require("../middleware/auth");
+const {
+  protect,
+  coordinatorOnly,
+  checkCRCHead,
+} = require("../middleware/auth");
 
 router.get("/", protect, getJobs);
 router.post("/", protect, coordinatorOnly, checkCRCHead, createJob);

@@ -1,6 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { protect, coordinatorOnly, checkCRCHead } = require("../middleware/auth");
+const {
+  protect,
+  coordinatorOnly,
+  checkCRCHead,
+} = require("../middleware/auth");
 const {
   createCoordinator,
   getMyProfile,
@@ -56,6 +60,12 @@ router.put(
 );
 router.get("/me/activity", protect, coordinatorOnly, getRecentActivity);
 router.get("/contact", protect, getContactInfo);
-router.post("/me/profile-photo", protect, coordinatorOnly, upload.single("file"), uploadProfilePhoto);
+router.post(
+  "/me/profile-photo",
+  protect,
+  coordinatorOnly,
+  upload.single("file"),
+  uploadProfilePhoto,
+);
 
 module.exports = router;
