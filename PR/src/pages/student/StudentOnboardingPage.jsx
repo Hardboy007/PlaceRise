@@ -71,11 +71,10 @@ function MarksheetUpload({
         {label} Marksheet <span className="text-red-500">*</span>
       </label>
       <label
-        className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl border-2 border-dashed cursor-pointer transition-all ${
-          file
-            ? "border-[#1a3a8f] bg-[#eef1f9]"
-            : "border-[#CBD5E1] bg-white hover:border-[#1a3a8f]"
-        }`}
+        className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl border-2 border-dashed cursor-pointer transition-all ${file
+          ? "border-[#1a3a8f] bg-[#eef1f9]"
+          : "border-[#CBD5E1] bg-white hover:border-[#1a3a8f]"
+          }`}
       >
         <input
           type="file"
@@ -128,7 +127,7 @@ function MarksheetUpload({
 
       <div className="mt-3">
         <label className="text-xs font-medium text-[#1E293B] block mb-1">
-          {label} Percentage (%) <span className="text-red-500">*</span>
+          Full Name <span className="text-red-500">*</span>
         </label>
         <input
           name={percentName}
@@ -268,7 +267,11 @@ function StudentOnboardingPage() {
 
   const isStep1Valid = () => {
     return (
-      formData.fullName && formData.dob && formData.phone && formData.gender
+      formData.fullName &&
+      formData.dob &&
+      formData.phone &&
+      formData.gender &&
+      formData.parentEmail
     );
   };
 
@@ -421,7 +424,7 @@ function StudentOnboardingPage() {
         console.error("Marksheet upload failed:", err);
         alert(
           err.message ||
-            "Marksheet upload failed. Please check your files and try again.",
+          "Marksheet upload failed. Please check your files and try again.",
         );
         return;
       }
@@ -444,7 +447,7 @@ function StudentOnboardingPage() {
       console.error("Onboarding submit failed:", err);
       alert(
         err.message ||
-          "Something went wrong while saving your profile. Please try again.",
+        "Something went wrong while saving your profile. Please try again.",
       );
     } finally {
       setSubmitting(false);
@@ -556,7 +559,7 @@ function StudentOnboardingPage() {
                 </div>
                 <div>
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
-                    Date of Birth
+                    Date of Birth <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="date"
@@ -568,7 +571,7 @@ function StudentOnboardingPage() {
                 </div>
                 <div>
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
-                    Phone Number
+                    Phone Number <span className="text-red-500">*</span>
                   </label>
                   <input
                     name="phone"
@@ -580,7 +583,7 @@ function StudentOnboardingPage() {
                 </div>
                 <div>
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
-                    Gender
+                    Gender <span className="text-red-500">*</span>
                   </label>
                   <select
                     name="gender"
@@ -633,7 +636,7 @@ function StudentOnboardingPage() {
                 <div className="sm:col-span-2">
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
                     Parent / Guardian Email{" "}
-                    <span className="text-[#94A3B8] font-normal"></span>
+                    <span className="text-red-500">*</span>
                   </label>
                   <input
                     name="parentEmail"
@@ -700,7 +703,7 @@ function StudentOnboardingPage() {
                 {/* School */}
                 <div className="sm:col-span-2">
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
-                    School
+                    School <span className="text-red-500">*</span>
                   </label>
                   <select
                     name="school"
@@ -727,7 +730,7 @@ function StudentOnboardingPage() {
                 {/* Department */}
                 <div className="sm:col-span-2">
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
-                    Department
+                    Department <span className="text-red-500">*</span>
                   </label>
                   <select
                     name="department"
@@ -757,7 +760,7 @@ function StudentOnboardingPage() {
                 {/* Course */}
                 <div className="sm:col-span-2">
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
-                    Course
+                    Course <span className="text-red-500">*</span>
                   </label>
                   <select
                     name="course"
@@ -784,7 +787,7 @@ function StudentOnboardingPage() {
                 {/* Batch */}
                 <div>
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
-                    Batch Year
+                    Batch Year <span className="text-red-500">*</span>
                   </label>
                   <select
                     name="batch"
@@ -804,7 +807,7 @@ function StudentOnboardingPage() {
                 {/* CGPA */}
                 <div>
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
-                    Current CGPA
+                    Current CGPA <span className="text-red-500">*</span>
                   </label>
                   <input
                     name="cgpa"
@@ -870,7 +873,7 @@ function StudentOnboardingPage() {
               <div className="flex flex-col gap-4">
                 <div>
                   <label className="text-xs font-medium text-[#1E293B] block mb-1">
-                    Skills{" "}
+                    Skills <span className="text-red-500">*</span>{" "}
                     <span className="text-[#94A3B8]">(comma separated)</span>
                   </label>
                   <input
@@ -1025,10 +1028,9 @@ function StudentOnboardingPage() {
             onClick={handleBack}
             disabled={currentStep === 1}
             className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2.5 rounded-xl text-sm font-medium transition-all
-              ${
-                currentStep === 1
-                  ? "text-[#CBD5E1] cursor-not-allowed"
-                  : "text-text-muted hover:bg-background"
+              ${currentStep === 1
+                ? "text-[#CBD5E1] cursor-not-allowed"
+                : "text-text-muted hover:bg-background"
               }`}
           >
             <ChevronLeft size={16} />

@@ -140,6 +140,10 @@ export default function StudentProfilePage() {
   };
 
   const handleSave = async () => {
+    if (form.backlogs !== "" && (isNaN(Number(form.backlogs)) || Number(form.backlogs) < 0)) {
+      alert("Backlogs must be a valid number (0 or more)");
+      return;
+    }
     const updated = await api.put("/students/me", form);
     setStudent(updated);
     setForm(null);
@@ -539,7 +543,7 @@ export default function StudentProfilePage() {
             value={student.userId?.erpId || "—"}
             editing={false}
             form={student}
-            onChange={() => {}}
+            onChange={() => { }}
           />
           <Field
             label="Full Name"
@@ -652,11 +656,11 @@ export default function StudentProfilePage() {
             editing={false}
           />
           <Field
-            label="Active Backlogs"
+            label={<>Active Backlogs <span className="text-red-500">*</span></>}
             name="backlogs"
-            value={student.backlogs ?? 0}
+            value={form?.backlogs ?? student.backlogs ?? 0}
             {...fieldProps}
-            editing={false}
+            type="number"
           />
 
           {!editing && (
@@ -969,7 +973,7 @@ export default function StudentProfilePage() {
                     Resume Uploaded
                   </p>
                   {displayData.resume &&
-                  displayData.resume !== "dbuu-generated" ? (
+                    displayData.resume !== "dbuu-generated" ? (
                     <a
                       href={displayData.resume}
                       target="_blank"
@@ -1183,7 +1187,7 @@ export default function StudentProfilePage() {
                 Placement Status
               </p>
               {student.placementStatus === "Placed" &&
-              student.selectedCompanies?.length > 0 ? (
+                student.selectedCompanies?.length > 0 ? (
                 <p className="text-sm font-bold text-[#15803D]">
                   Selected in:{" "}
                   {student.selectedCompanies
@@ -1198,11 +1202,10 @@ export default function StudentProfilePage() {
             </div>
           </div>
           <span
-            className={`self-end sm:self-auto flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${
-              student.placementStatus === "Placed"
-                ? "bg-green-50 text-green-700 border-green-200"
-                : "bg-amber-50 text-[#F59E0B] border-amber-200"
-            }`}
+            className={`self-end sm:self-auto flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold border ${student.placementStatus === "Placed"
+              ? "bg-green-50 text-green-700 border-green-200"
+              : "bg-amber-50 text-[#F59E0B] border-amber-200"
+              }`}
           >
             {student.placementStatus === "Placed" ? (
               <>
