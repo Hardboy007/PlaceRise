@@ -12,14 +12,14 @@ const {
 } = require("../controllers/companyController");
 
 const router = express.Router();
-const { protect, coordinatorOnly } = require('../middleware/auth')
+const { protect, coordinatorOnly, checkCRCHead } = require('../middleware/auth')
 
 router.get('/', getAllCompanies)  // public — students bhi dekhenge
-router.post('/', protect, coordinatorOnly, createCompany)
+router.post('/', protect, coordinatorOnly, checkCRCHead, createCompany)
 router.get('/jobs', getAllJobs)   // public
 router.get('/jobs/:id', getJobById)
-router.delete('/:id', protect, coordinatorOnly, deleteCompany)
-router.put('/:id', protect, coordinatorOnly, updateCompany)
-router.post('/jobs/:id/upload-pdf', protect, coordinatorOnly, uploadPDF.single('pdf'), uploadJobPDF)
+router.delete('/:id', protect, coordinatorOnly, checkCRCHead, deleteCompany)
+router.put('/:id', protect, coordinatorOnly, checkCRCHead, updateCompany)
+router.post('/jobs/:id/upload-pdf', protect, coordinatorOnly, checkCRCHead, uploadPDF.single('pdf'), uploadJobPDF)
 
 module.exports = router;
