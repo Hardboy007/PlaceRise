@@ -183,9 +183,9 @@ export default function NotFoundPage() {
             <img
               src="/icons/icon-192.png"
               alt="Logo"
-              style={{ 
-                width: "34px", 
-                height: "34px", 
+              style={{
+                width: "34px",
+                height: "34px",
                 objectFit: "contain",
                 borderRadius: "8px",
                 boxShadow: "0 2px 10px rgba(0, 0, 0, 0.08)",
