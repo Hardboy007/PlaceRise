@@ -299,6 +299,7 @@ function RoleSelectionPage() {
         body: JSON.stringify({
           erpId: normalizedErpId,
           password,
+          ...(modalRole !== "student" && { subRole: modalRole }),
         }),
       });
 
