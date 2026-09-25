@@ -30,13 +30,13 @@ function Field({ label, name, value, editing, form, onChange, type = "text" }) {
         <input
           type={type}
           name={name}
-          value={form[name] || ""}
+          value={form[name] ?? ""}
           onChange={onChange}
           className="w-full px-3 py-2 rounded-xl border border-[#CBD5E1] text-sm text-[#1E293B] bg-[#F8FAFC] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
         />
       ) : (
         <span className="text-sm font-medium text-[#1E293B]">
-          {value || "—"}
+          {value === 0 || value === "0" ? value : value || "—"}
         </span>
       )}
     </div>
@@ -625,6 +625,7 @@ export default function StudentProfilePage() {
                 : "—"
             }
             {...fieldProps}
+            editing={false}
           />
           <Field
             label="Current Semester"
@@ -659,11 +660,7 @@ export default function StudentProfilePage() {
             editing={false}
           />
           <Field
-            label={
-              <>
-                Active Backlogs <span className="text-red-500">*</span>
-              </>
-            }
+            label="Active Backlogs"
             name="backlogs"
             value={form?.backlogs ?? student.backlogs ?? 0}
             {...fieldProps}

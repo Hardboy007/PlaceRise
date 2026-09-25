@@ -34,6 +34,7 @@ import HRFeedbackManagementPage from "../pages/coordinator/HRFeedbackManagementP
 import CoordinatorStudentProfilePage from "../pages/coordinator/CoordinatorStudentProfilePage";
 import VerifyContactPage from "../pages/student/VerifyContactPage";
 import NotFoundPage from "../pages/common/NotFoundPage";
+import CoordinatorChangePasswordPage from "../pages/coordinator/CoordinatorChangePasswordPage";
 
 function AppRouter() {
   return (
@@ -87,6 +88,7 @@ function AppRouter() {
             </ProtectedRoute>
           }
         >
+          <Route path="/coordinator/change-password" element={<CoordinatorChangePasswordPage />} />
           <Route path="dashboard" element={<CoordinatorDashboard />} />
           <Route path="students" element={<StudentDatabasePage />} />
           <Route path="jobs">

@@ -93,6 +93,21 @@ const coordinatorLogin = async (req, res) => {
       return res.status(401).json({ message: "Invalid password" });
     }
 
+    // First login check
+    if (user.isFirstLogin) {
+      return res.json({
+        token: generateToken(user._id, user.role, coordinator.subRole),
+        isFirstLogin: true,
+        coordinator: {
+          id: coordinator._id,
+          name: coordinator.name,
+          email: coordinator.email,
+          role: user.role,
+          subRole: coordinator.subRole,
+        },
+      });
+    }
+
     // Coordinator profile fetch karo
     // Coordinator profile fetch karo — subRole match karke
     const coordinator = await Coordinator.findOne({

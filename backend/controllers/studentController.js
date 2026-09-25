@@ -193,6 +193,7 @@ const updateStudent = async (req, res) => {
       "resumeData", // ADD
       "githubUrl", // ADD (profile me add kiya tha)
       "codingProfileUrl", // ADD
+      "backlogs", // ADD
     ];
 
     const set = {};
@@ -1450,20 +1451,18 @@ const cleanupOrphanedApplications = async (req, res) => {
   try {
     // studentId: null wali
     const nullResult = await Application.deleteMany({ studentId: null });
-    
+
     // Orphaned — studentId hai but student exist nahi karta
     const allApps = await Application.find({}).populate("studentId");
-    const orphanedIds = allApps
-      .filter(a => !a.studentId)
-      .map(a => a._id);
-    
-    const orphanResult = await Application.deleteMany({ 
-      _id: { $in: orphanedIds } 
+    const orphanedIds = allApps.filter((a) => !a.studentId).map((a) => a._id);
+
+    const orphanResult = await Application.deleteMany({
+      _id: { $in: orphanedIds },
     });
 
-    res.json({ 
+    res.json({
       nullDeleted: nullResult.deletedCount,
-      orphanDeleted: orphanResult.deletedCount 
+      orphanDeleted: orphanResult.deletedCount,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
