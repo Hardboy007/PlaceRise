@@ -80,7 +80,7 @@ const coordinatorLogin = async (req, res) => {
 
     //Erp se user dhundho — case-insensitive match
     const user = await User.findOne({
-      erpId: { $regex: `^${escapeRegex(trimmedErpId)}$`, $options: "i" },
+      email: erpId.trim().toLowerCase(),
       role: "coordinator",
     });
     if (!user) {

@@ -71,10 +71,11 @@ function MarksheetUpload({
         {label} Marksheet <span className="text-red-500">*</span>
       </label>
       <label
-        className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl border-2 border-dashed cursor-pointer transition-all ${file
-          ? "border-[#1a3a8f] bg-[#eef1f9]"
-          : "border-[#CBD5E1] bg-white hover:border-[#1a3a8f]"
-          }`}
+        className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl border-2 border-dashed cursor-pointer transition-all ${
+          file
+            ? "border-[#1a3a8f] bg-[#eef1f9]"
+            : "border-[#CBD5E1] bg-white hover:border-[#1a3a8f]"
+        }`}
       >
         <input
           type="file"
@@ -424,7 +425,7 @@ function StudentOnboardingPage() {
         console.error("Marksheet upload failed:", err);
         alert(
           err.message ||
-          "Marksheet upload failed. Please check your files and try again.",
+            "Marksheet upload failed. Please check your files and try again.",
         );
         return;
       }
@@ -447,7 +448,7 @@ function StudentOnboardingPage() {
       console.error("Onboarding submit failed:", err);
       alert(
         err.message ||
-        "Something went wrong while saving your profile. Please try again.",
+          "Something went wrong while saving your profile. Please try again.",
       );
     } finally {
       setSubmitting(false);
@@ -1028,9 +1029,10 @@ function StudentOnboardingPage() {
             onClick={handleBack}
             disabled={currentStep === 1}
             className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2.5 rounded-xl text-sm font-medium transition-all
-              ${currentStep === 1
-                ? "text-[#CBD5E1] cursor-not-allowed"
-                : "text-text-muted hover:bg-background"
+              ${
+                currentStep === 1
+                  ? "text-[#CBD5E1] cursor-not-allowed"
+                  : "text-text-muted hover:bg-background"
               }`}
           >
             <ChevronLeft size={16} />

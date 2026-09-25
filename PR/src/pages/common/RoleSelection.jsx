@@ -94,9 +94,9 @@ function RoleCard({
       style={
         isDark
           ? {
-            background:
-              "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
-          }
+              background:
+                "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
+            }
           : {}
       }
     >
@@ -173,9 +173,10 @@ function RoleCard({
             <span
               key={tag}
               className={`px-3 py-1 rounded-full text-xs font-medium border
-                ${isDark
-                  ? "border-white/20 text-white/80 bg-white/5"
-                  : "border-[#CBD5E1] text-text-muted bg-background"
+                ${
+                  isDark
+                    ? "border-white/20 text-white/80 bg-white/5"
+                    : "border-[#CBD5E1] text-text-muted bg-background"
                 }
               `}
             >
@@ -359,7 +360,7 @@ function RoleSelectionPage() {
       const data = await response.json();
       setForgotMessage(
         data.message ||
-        "If that email is registered, a reset link has been sent.",
+          "If that email is registered, a reset link has been sent.",
       );
     } catch (err) {
       setForgotMessage("Unable to connect to the server");
@@ -736,7 +737,6 @@ function RoleSelectionPage() {
                     </p>
                   </div>
                 </div>
-
               </div>
 
               {/* Divider */}
@@ -745,7 +745,8 @@ function RoleSelectionPage() {
               {/* Bottom CTA */}
               <div className="px-3 pb-4 pt-3">
                 <p className="text-white/35 text-[11px] leading-relaxed mb-3 px-1">
-                  Manage drives, shortlist candidates, and track every student in one dashboard.
+                  Manage drives, shortlist candidates, and track every student
+                  in one dashboard.
                 </p>
                 <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-white/10 border border-white/15 group-hover:bg-white/15 transition-colors duration-300">
                   <span className="text-white font-semibold text-[11px] uppercase tracking-widest">
@@ -1371,13 +1372,17 @@ function RoleSelectionPage() {
                 <div className="flex flex-col gap-4">
                   <div>
                     <label className="text-sm font-medium text-[#1E293B] block mb-1">
-                      ERP ID
+                      {modalRole === "student" ? "ERP ID" : "Email"}
                     </label>
                     <input
-                      type="text"
+                      type={modalRole === "student" ? "text" : "email"}
                       value={erpId}
                       onChange={(e) => setErpId(e.target.value)}
-                      placeholder="Enter your ERP ID"
+                      placeholder={
+                        modalRole === "student"
+                          ? "Enter your ERP ID"
+                          : "Enter your email"
+                      }
                       className="w-full px-4 py-3 rounded-xl border border-[#CBD5E1] text-[#1E293B] placeholder-text-muted focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
                     />
                   </div>
