@@ -10,6 +10,7 @@ import {
   X,
   Check,
   MapPin,
+  Download,
   Calendar,
   Briefcase,
   AlertCircle,
@@ -27,6 +28,8 @@ import {
   ChevronDown,
 } from "lucide-react";
 import CompanyLogo from "../../components/common/CompanyLogo";
+import { useIsReadOnly } from "../../utils/useIsReadOnly";
+
 const ExtLink = ({ href, className, children }) =>
   createElement(
     "a",
@@ -679,6 +682,7 @@ function CompanyCard({
   onEditCompany,
   onEditJD,
   onPostJD,
+  isReadOnly,
 }) {
   const [expanded, setExpanded] = useState(false);
   const days = job ? daysLeft(job.lastDate) : null;
@@ -786,27 +790,30 @@ function CompanyCard({
           >
             <Eye size={12} /> View
           </button>
-          <button
-            onClick={onEditCompany}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0] text-xs font-semibold hover:bg-[#E2E8F0] transition-colors"
-          >
-            <Pencil size={12} /> Edit Company Info
-          </button>
-          {job ? (
+          {!isReadOnly && (
             <button
-              onClick={onEditJD}
+              onClick={onEditCompany}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0] text-xs font-semibold hover:bg-[#E2E8F0] transition-colors"
             >
-              <Pencil size={12} /> Edit JD
-            </button>
-          ) : (
-            <button
-              onClick={onPostJD}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1a3a8f] text-white text-xs font-semibold hover:bg-[#0d1b5e] transition-colors"
-            >
-              <FileText size={12} /> Post JD
+              <Pencil size={12} /> Edit Company Info
             </button>
           )}
+          {!isReadOnly &&
+            (job ? (
+              <button
+                onClick={onEditJD}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0] text-xs font-semibold hover:bg-[#E2E8F0] transition-colors"
+              >
+                <Pencil size={12} /> Edit JD
+              </button>
+            ) : (
+              <button
+                onClick={onPostJD}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1a3a8f] text-white text-xs font-semibold hover:bg-[#0d1b5e] transition-colors"
+              >
+                <FileText size={12} /> Post JD
+              </button>
+            ))}
         </div>
       </div>
 
@@ -1091,6 +1098,7 @@ function JDFields({ form, setForm, errors }) {
 //  MAIN PAGE COMPONENT
 // ─────────────────────────────────────────────────────────────
 export default function CompanyManagementPage() {
+  const isReadOnly = useIsReadOnly();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -1497,12 +1505,14 @@ export default function CompanyManagementPage() {
               Manage recruiters, post JDs, and track placement drives
             </p>
           </div>
-          <button
-            onClick={openAddCompany}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[#1a3a8f] text-sm font-bold hover:bg-[#F1F5F9] transition-colors shadow-lg shrink-0 mt-1 w-full sm:w-auto justify-center"
-          >
-            <Plus size={15} /> Add Company
-          </button>
+          {!isReadOnly && (
+            <button
+              onClick={openAddCompany}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[#1a3a8f] text-sm font-bold hover:bg-[#F1F5F9] transition-colors shadow-lg shrink-0 mt-1 w-full sm:w-auto justify-center"
+            >
+              <Plus size={15} /> Add Company
+            </button>
+          )}
         </div>
 
         <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
@@ -1594,6 +1604,7 @@ export default function CompanyManagementPage() {
               onEditCompany={() => openEditCompany(company)}
               onEditJD={() => openEditJD(company, job)}
               onPostJD={() => openPostJD(company)}
+              isReadOnly={isReadOnly}
             />
           ))}
         </div>
@@ -1674,6 +1685,16 @@ export default function CompanyManagementPage() {
 
               {viewingCompany.job ? (
                 <>
+                  {viewingCompany.job.jdPdfUrl && (
+                    <a
+                      href={viewingCompany.job.jdPdfUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#B8C6E3] bg-[#EFF3FA] text-xs font-semibold text-[#1a3a8f] hover:bg-[#E2E8F0] transition-colors w-fit"
+                    >
+                      <Download size={13} /> Download JD PDF
+                    </a>
+                  )}
                   <div>
                     <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest mb-3">
                       Job Details
@@ -1845,37 +1866,40 @@ export default function CompanyManagementPage() {
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 sm:p-5 border-t border-[#F1F5F9]">
-              <button
-                onClick={() => {
-                  setShowViewModal(false);
-                  openDeleteDialog(viewingCompany.company);
-                }}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-red-200 text-xs font-medium text-red-500 hover:bg-red-50 hover:border-red-400 transition-all"
-              >
-                <Trash2 size={13} /> Delete
-              </button>
+              {!isReadOnly && (
+                <button
+                  onClick={() => {
+                    setShowViewModal(false);
+                    openDeleteDialog(viewingCompany.company);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-red-200 text-xs font-medium text-red-500 hover:bg-red-50 hover:border-red-400 transition-all"
+                >
+                  <Trash2 size={13} /> Delete
+                </button>
+              )}
               <div className="flex items-center gap-2">
-                {viewingCompany.job ? (
-                  <button
-                    onClick={() => {
-                      setShowViewModal(false);
-                      openEditJD(viewingCompany.company, viewingCompany.job);
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-medium text-[#64748B] hover:border-[#8B5CF6] hover:text-[#8B5CF6] transition-all"
-                  >
-                    <FileText size={13} /> Edit JD Details
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setShowViewModal(false);
-                      openPostJD(viewingCompany.company);
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-medium text-[#64748B] hover:border-[#1a3a8f] hover:text-[#1a3a8f] transition-all"
-                  >
-                    <FileText size={13} /> Post JD
-                  </button>
-                )}
+                {!isReadOnly &&
+                  (viewingCompany.job ? (
+                    <button
+                      onClick={() => {
+                        setShowViewModal(false);
+                        openEditJD(viewingCompany.company, viewingCompany.job);
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-medium text-[#64748B] hover:border-[#8B5CF6] hover:text-[#8B5CF6] transition-all"
+                    >
+                      <FileText size={13} /> Edit JD Details
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setShowViewModal(false);
+                        openPostJD(viewingCompany.company);
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#E2E8F0] text-xs font-medium text-[#64748B] hover:border-[#1a3a8f] hover:text-[#1a3a8f] transition-all"
+                    >
+                      <FileText size={13} /> Post JD
+                    </button>
+                  ))}
                 <button
                   onClick={() => setShowViewModal(false)}
                   className="px-3 py-2 rounded-xl bg-[#F1F5F9] text-xs font-medium text-[#64748B] hover:bg-[#E2E8F0] transition-colors"

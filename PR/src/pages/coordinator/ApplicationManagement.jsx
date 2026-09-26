@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { api } from "../../utils/api";
 import { getSemester } from "../../utils/semester";
+import { useIsReadOnly } from "../../utils/useIsReadOnly";
 
 const STATUS_OPTIONS = ["Applied", "Shortlisted", "Selected", "Rejected"];
 
@@ -267,6 +268,7 @@ function JDBanner({
   onCompanyChange,
   selectedRoleGroupId,
   setSelectedRoleGroupId,
+  isReadOnly,
 }) {
   const selectedRoleGroup = selectedJob?.roleGroups?.find(
     (rg) => rg._id?.toString() === selectedRoleGroupId,
@@ -467,27 +469,29 @@ function JDBanner({
           {/* Finalize / Reopen results toggle — coordinator's manual gate
               on whether status buttons are editable. Independent of the
               apply deadline (lastDate) so rounds can continue after it. */}
-          <button
-            onClick={onToggleFinalize}
-            disabled={finalizing}
-            className={`rounded-xl px-3 py-1.5 border flex items-center gap-1.5 shrink-0 text-xs font-bold transition-all ${
-              finalizing ? "opacity-60 cursor-not-allowed" : ""
-            } ${
-              resultsFinalized
-                ? "bg-white/10 border-white/25 text-white/75 hover:text-white"
-                : "bg-emerald-500 border-emerald-300 text-white hover:bg-emerald-600"
-            }`}
-          >
-            {resultsFinalized ? (
-              <>
-                <RotateCcw size={12} /> Reopen
-              </>
-            ) : (
-              <>
-                <ShieldCheck size={12} /> Mark Results as Final
-              </>
-            )}
-          </button>
+          {!isReadOnly && (
+            <button
+              onClick={onToggleFinalize}
+              disabled={finalizing}
+              className={`rounded-xl px-3 py-1.5 border flex items-center gap-1.5 shrink-0 text-xs font-bold transition-all ${
+                finalizing ? "opacity-60 cursor-not-allowed" : ""
+              } ${
+                resultsFinalized
+                  ? "bg-white/10 border-white/25 text-white/75 hover:text-white"
+                  : "bg-emerald-500 border-emerald-300 text-white hover:bg-emerald-600"
+              }`}
+            >
+              {resultsFinalized ? (
+                <>
+                  <RotateCcw size={12} /> Reopen
+                </>
+              ) : (
+                <>
+                  <ShieldCheck size={12} /> Mark Results as Final
+                </>
+              )}
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -656,6 +660,7 @@ function EligibleTab({
   allStudents,
   refreshKey,
   selectedRoleGroupId,
+  isReadOnly,
 }) {
   const navigate = useNavigate();
   // Matching against s.course (not s.branch) — eligibleBranches actually
@@ -960,89 +965,93 @@ function EligibleTab({
 
       {/* Bulk Apply action bar — count reflects the checkbox selection,
           and the button itself is gated to the drive's last date. */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 sm:p-4 flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-start gap-3 min-w-0">
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: "linear-gradient(135deg, #1a3a8f, #3d1a6e)" }}
-          >
-            <Users size={16} color="white" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-bold" style={{ color: "#0F172A" }}>
-              {notAppliedCount > 0
-                ? `${notAppliedCount} eligible student${notAppliedCount !== 1 ? "s" : ""} haven't applied yet`
-                : "All eligible students have applied ✓"}
-            </p>
-            <p className="text-xs" style={{ color: "#64748B" }}>
-              {appliedCount} of {eligible.length} already applied ·{" "}
-              {selectedCount} selected for bulk apply
-            </p>
+      {!isReadOnly && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 sm:p-4 flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-start gap-3 min-w-0">
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+              style={{
+                background: "linear-gradient(135deg, #1a3a8f, #3d1a6e)",
+              }}
+            >
+              <Users size={16} color="white" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold" style={{ color: "#0F172A" }}>
+                {notAppliedCount > 0
+                  ? `${notAppliedCount} eligible student${notAppliedCount !== 1 ? "s" : ""} haven't applied yet`
+                  : "All eligible students have applied ✓"}
+              </p>
+              <p className="text-xs" style={{ color: "#64748B" }}>
+                {appliedCount} of {eligible.length} already applied ·{" "}
+                {selectedCount} selected for bulk apply
+              </p>
 
-            {/* Deadline-window messaging — tells the coordinator exactly
+              {/* Deadline-window messaging — tells the coordinator exactly
                 why the button is locked, and when it will open/closed. */}
-            {bulkApplyStatus === "before" && lastDateLabel && (
-              <p
-                className="text-xs mt-1 flex items-center gap-1"
-                style={{ color: "#92400E" }}
-              >
-                <Info size={11} className="shrink-0" />
-                Bulk apply opens on <strong>{lastDateLabel}</strong> — the
-                drive's last date to apply.
-              </p>
-            )}
-            {bulkApplyStatus === "after" && lastDateLabel && (
-              <p
-                className="text-xs mt-1 flex items-center gap-1"
-                style={{ color: "#991B1B" }}
-              >
-                <Lock size={11} className="shrink-0" />
-                Bulk apply window closed — deadline ({lastDateLabel}) has
-                passed.
-              </p>
-            )}
-            {bulkApplyStatus === "unknown" && (
-              <p
-                className="text-xs mt-1 flex items-center gap-1"
-                style={{ color: "#991B1B" }}
-              >
-                <Info size={11} className="shrink-0" />
-                This drive has no deadline set, so bulk apply is unavailable.
-              </p>
-            )}
+              {bulkApplyStatus === "before" && lastDateLabel && (
+                <p
+                  className="text-xs mt-1 flex items-center gap-1"
+                  style={{ color: "#92400E" }}
+                >
+                  <Info size={11} className="shrink-0" />
+                  Bulk apply opens on <strong>{lastDateLabel}</strong> — the
+                  drive's last date to apply.
+                </p>
+              )}
+              {bulkApplyStatus === "after" && lastDateLabel && (
+                <p
+                  className="text-xs mt-1 flex items-center gap-1"
+                  style={{ color: "#991B1B" }}
+                >
+                  <Lock size={11} className="shrink-0" />
+                  Bulk apply window closed — deadline ({lastDateLabel}) has
+                  passed.
+                </p>
+              )}
+              {bulkApplyStatus === "unknown" && (
+                <p
+                  className="text-xs mt-1 flex items-center gap-1"
+                  style={{ color: "#991B1B" }}
+                >
+                  <Info size={11} className="shrink-0" />
+                  This drive has no deadline set, so bulk apply is unavailable.
+                </p>
+              )}
+            </div>
           </div>
+          <button
+            onClick={() => {
+              setBulkApplyResult(null);
+              setBulkApplyModal(true);
+            }}
+            disabled={selectedCount === 0 || !bulkApplyOpen}
+            title={
+              !bulkApplyOpen
+                ? bulkApplyStatus === "before"
+                  ? `Opens on ${lastDateLabel}`
+                  : bulkApplyStatus === "after"
+                    ? "Deadline has passed"
+                    : "No deadline set"
+                : undefined
+            }
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+            style={{
+              background:
+                selectedCount === 0 || !bulkApplyOpen
+                  ? "#94A3B8"
+                  : "linear-gradient(135deg, #1a3a8f, #3d1a6e)",
+              boxShadow:
+                selectedCount === 0 || !bulkApplyOpen
+                  ? "none"
+                  : "0 2px 10px rgba(59,130,246,0.35)",
+            }}
+          >
+            <Users size={14} />
+            Bulk Apply {selectedCount > 0 ? `(${selectedCount})` : ""}
+          </button>
         </div>
-        <button
-          onClick={() => {
-            setBulkApplyResult(null);
-            setBulkApplyModal(true);
-          }}
-          disabled={selectedCount === 0 || !bulkApplyOpen}
-          title={
-            !bulkApplyOpen
-              ? bulkApplyStatus === "before"
-                ? `Opens on ${lastDateLabel}`
-                : bulkApplyStatus === "after"
-                  ? "Deadline has passed"
-                  : "No deadline set"
-              : undefined
-          }
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-          style={{
-            background:
-              selectedCount === 0 || !bulkApplyOpen
-                ? "#94A3B8"
-                : "linear-gradient(135deg, #1a3a8f, #3d1a6e)",
-            boxShadow:
-              selectedCount === 0 || !bulkApplyOpen
-                ? "none"
-                : "0 2px 10px rgba(59,130,246,0.35)",
-          }}
-        >
-          <Users size={14} />
-          Bulk Apply {selectedCount > 0 ? `(${selectedCount})` : ""}
-        </button>
-      </div>
+      )}
 
       {/* Success / Error toast — also surfaces resume-missing skips */}
       {bulkApplyResult && (
@@ -1140,7 +1149,9 @@ function EligibleTab({
             type="checkbox"
             checked={allDisplayedChecked}
             onChange={toggleSelectAll}
-            disabled={displayedSelectable.length === 0 || !bulkApplyOpen}
+            disabled={
+              isReadOnly || displayedSelectable.length === 0 || !bulkApplyOpen
+            }
             className="w-3.5 h-3.5 accent-[#1a3a8f]"
             title={
               !bulkApplyOpen
@@ -1228,7 +1239,9 @@ function EligibleTab({
                   type="checkbox"
                   checked={checked}
                   onChange={() => toggleStudent(student)}
-                  disabled={hasApplied || noResume || !bulkApplyOpen}
+                  disabled={
+                    isReadOnly || hasApplied || noResume || !bulkApplyOpen
+                  }
                   className="w-3.5 h-3.5 accent-[#1a3a8f]"
                   title={
                     !hasApplied && !noResume && !bulkApplyOpen
@@ -1594,6 +1607,7 @@ function AppliedTab({
   readOnly,
   jobName,
   selectedRoleGroupId,
+  isReadOnly,
 }) {
   const navigate = useNavigate();
   const selectedRoleGroup = selectedJob?.roleGroups?.find(
@@ -2242,7 +2256,7 @@ function AppliedTab({
       )}
 
       {/* Bulk actions bar — drag select ke baad dikhega */}
-      {!readOnly && selectedAppIds.size > 0 && (
+      {!readOnly && !isReadOnly && selectedAppIds.size > 0 && (
         <div
           className="flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border flex-wrap"
           style={{ backgroundColor: "#EFF3FA", borderColor: "#B8C6E3" }}
@@ -2533,7 +2547,7 @@ function AppliedTab({
         </span>
 
         {/* Excel Import button */}
-        {!readOnly && (
+        {!readOnly && !isReadOnly && (
           <>
             <input
               ref={fileInputRef}
@@ -2797,7 +2811,7 @@ function AppliedTab({
 
                 {/* Status column */}
                 {rounds.length > 0 ? (
-                  readOnly ? (
+                  readOnly || isReadOnly ? (
                     <span
                       className="text-xs font-semibold px-2.5 py-1 rounded-full w-fit border"
                       style={{
@@ -2882,7 +2896,7 @@ function AppliedTab({
                       </button>
                     </div>
                   )
-                ) : readOnly ? (
+                ) : readOnly || isReadOnly ? (
                   <span
                     className="text-xs font-semibold px-2.5 py-1 rounded-full w-fit border"
                     style={{
@@ -3148,6 +3162,7 @@ function AppliedTab({
 }
 
 export default function ApplicationsManagementPage() {
+  const isReadOnly = useIsReadOnly();
   const [activeTab, setActiveTab] = useState("eligible");
   const [jobs, setJobs] = useState([]);
   const [allStudents, setAllStudents] = useState([]);
@@ -3340,6 +3355,7 @@ export default function ApplicationsManagementPage() {
         selectedCompanyId={selectedCompanyId}
         selectedRoleGroupId={selectedRoleGroupId}
         setSelectedRoleGroupId={setSelectedRoleGroupId}
+        isReadOnly={isReadOnly}
         onCompanyChange={(companyId) => {
           setSelectedCompanyId(companyId);
           const firstRole = visibleJobs.find(
@@ -3385,6 +3401,7 @@ export default function ApplicationsManagementPage() {
               allStudents={allStudents}
               refreshKey={refreshKey}
               selectedRoleGroupId={selectedRoleGroupId}
+              isReadOnly={isReadOnly}
             />
           ) : (
             <AppliedTab
@@ -3393,6 +3410,7 @@ export default function ApplicationsManagementPage() {
               selectedRoleGroupId={selectedRoleGroupId}
               readOnly={resultsFinalized}
               jobName={`${selectedJob?.companyId?.name || "Company"} — ${selectedJob?.role || "Role"}`}
+              isReadOnly={isReadOnly}
             />
           )}
         </>

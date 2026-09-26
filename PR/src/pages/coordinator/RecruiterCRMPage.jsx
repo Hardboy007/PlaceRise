@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import CompanyLogo from "../../components/common/CompanyLogo";
 import { api } from "../../utils/api";
+import { useIsReadOnly } from "../../utils/useIsReadOnly";
 
 const STATUS_CONFIG = {
   Visited: {
@@ -267,6 +268,7 @@ function POCModal({ poc, onClose, onSave }) {
 }
 
 export default function RecruiterCRMPage() {
+  const isReadOnly = useIsReadOnly();
   const [pocs, setPocs] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -553,21 +555,25 @@ export default function RecruiterCRMPage() {
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0 mt-1 flex-wrap w-full sm:w-auto">
-            <button
-              onClick={exportAll}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/15 text-white border border-white/25 text-sm font-semibold hover:bg-white/25 transition-colors flex-1 sm:flex-none"
-            >
-              <Download size={15} /> Export all POCs Excel
-            </button>
-            <button
-              onClick={() => {
-                setEditingPoc(null);
-                setShowModal(true);
-              }}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[#1a3a8f] text-sm font-bold hover:bg-[#F1F5F9] transition-colors shadow-lg flex-1 sm:flex-none"
-            >
-              <Plus size={15} /> Add POC
-            </button>
+            {!isReadOnly && (
+              <button
+                onClick={exportAll}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/15 text-white border border-white/25 text-sm font-semibold hover:bg-white/25 transition-colors flex-1 sm:flex-none"
+              >
+                <Download size={15} /> Export all POCs Excel
+              </button>
+            )}
+            {!isReadOnly && (
+              <button
+                onClick={() => {
+                  setEditingPoc(null);
+                  setShowModal(true);
+                }}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white text-[#1a3a8f] text-sm font-bold hover:bg-[#F1F5F9] transition-colors shadow-lg flex-1 sm:flex-none"
+              >
+                <Plus size={15} /> Add POC
+              </button>
+            )}
           </div>
         </div>
 
@@ -720,39 +726,48 @@ export default function RecruiterCRMPage() {
               {/* Managed By */}
               <p className="text-sm text-text-muted">{poc.managedBy || "—"}</p>
 
-              {/* Status — click to change */}
+              {/* Status — click to change (crc_head only) */}
               <div className="relative">
-                <button
-                  onClick={() =>
-                    setOpenMenu(openMenu === poc.id ? null : poc.id)
-                  }
-                  className="hover:opacity-80 transition-opacity"
-                >
+                {isReadOnly ? (
                   <StatusBadge status={poc.status} />
-                </button>
-                {openMenu === poc.id && (
-                  <div
-                    className={`absolute left-0 z-20 bg-white rounded-xl border border-[#E2E8F0] shadow-lg py-1 min-w-45 ${
-                      idx >= filtered.length - 2 ? "bottom-8" : "top-8"
-                    }`}
-                  >
-                    {STATUS_OPTIONS.map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => handleStatusChange(poc.id, s)}
-                        className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-[#F8FAFC] transition-colors flex items-center gap-2"
+                ) : (
+                  <>
+                    <button
+                      onClick={() =>
+                        setOpenMenu(openMenu === poc.id ? null : poc.id)
+                      }
+                      className="hover:opacity-80 transition-opacity"
+                    >
+                      <StatusBadge status={poc.status} />
+                    </button>
+                    {openMenu === poc.id && (
+                      <div
+                        className={`absolute left-0 z-20 bg-white rounded-xl border border-[#E2E8F0] shadow-lg py-1 min-w-45 ${
+                          idx >= filtered.length - 2 ? "bottom-8" : "top-8"
+                        }`}
                       >
-                        <span
-                          className="w-2 h-2 rounded-full shrink-0"
-                          style={{ backgroundColor: STATUS_CONFIG[s].dot }}
-                        />
-                        {s}
-                        {poc.status === s && (
-                          <Check size={11} className="ml-auto text-primary" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
+                        {STATUS_OPTIONS.map((s) => (
+                          <button
+                            key={s}
+                            onClick={() => handleStatusChange(poc.id, s)}
+                            className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-[#F8FAFC] transition-colors flex items-center gap-2"
+                          >
+                            <span
+                              className="w-2 h-2 rounded-full shrink-0"
+                              style={{ backgroundColor: STATUS_CONFIG[s].dot }}
+                            />
+                            {s}
+                            {poc.status === s && (
+                              <Check
+                                size={11}
+                                className="ml-auto text-primary"
+                              />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
 
@@ -804,21 +819,25 @@ export default function RecruiterCRMPage() {
                 >
                   <Download size={13} />
                 </button>
-                <button
-                  onClick={() => {
-                    setEditingPoc(poc);
-                    setShowModal(true);
-                  }}
-                  className="w-7 h-7 rounded-lg bg-background hover:bg-blue-50 hover:text-primary text-text-muted flex items-center justify-center transition-colors"
-                >
-                  <Edit3 size={13} />
-                </button>
-                <button
-                  onClick={() => setDeleteConfirm(poc.id)}
-                  className="w-7 h-7 rounded-lg bg-background hover:bg-red-50 hover:text-danger text-text-muted flex items-center justify-center transition-colors"
-                >
-                  <Trash2 size={13} />
-                </button>
+                {!isReadOnly && (
+                  <button
+                    onClick={() => {
+                      setEditingPoc(poc);
+                      setShowModal(true);
+                    }}
+                    className="w-7 h-7 rounded-lg bg-background hover:bg-blue-50 hover:text-primary text-text-muted flex items-center justify-center transition-colors"
+                  >
+                    <Edit3 size={13} />
+                  </button>
+                )}
+                {!isReadOnly && (
+                  <button
+                    onClick={() => setDeleteConfirm(poc.id)}
+                    className="w-7 h-7 rounded-lg bg-background hover:bg-red-50 hover:text-danger text-text-muted flex items-center justify-center transition-colors"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                )}
               </div>
             </div>
           ))
@@ -857,36 +876,44 @@ export default function RecruiterCRMPage() {
                     </div>
                   </div>
                   <div className="relative shrink-0">
-                    <button
-                      onClick={() =>
-                        setOpenMenu(openMenu === poc.id ? null : poc.id)
-                      }
-                      className="hover:opacity-80 transition-opacity"
-                    >
+                    {isReadOnly ? (
                       <StatusBadge status={poc.status} />
-                    </button>
-                    {openMenu === poc.id && (
-                      <div className="absolute right-0 top-8 z-20 bg-white rounded-xl border border-[#E2E8F0] shadow-lg py-1 min-w-45">
-                        {STATUS_OPTIONS.map((s) => (
-                          <button
-                            key={s}
-                            onClick={() => handleStatusChange(poc.id, s)}
-                            className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-[#F8FAFC] transition-colors flex items-center gap-2"
-                          >
-                            <span
-                              className="w-2 h-2 rounded-full shrink-0"
-                              style={{ backgroundColor: STATUS_CONFIG[s].dot }}
-                            />
-                            {s}
-                            {poc.status === s && (
-                              <Check
-                                size={11}
-                                className="ml-auto text-primary"
-                              />
-                            )}
-                          </button>
-                        ))}
-                      </div>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() =>
+                            setOpenMenu(openMenu === poc.id ? null : poc.id)
+                          }
+                          className="hover:opacity-80 transition-opacity"
+                        >
+                          <StatusBadge status={poc.status} />
+                        </button>
+                        {openMenu === poc.id && (
+                          <div className="absolute right-0 top-8 z-20 bg-white rounded-xl border border-[#E2E8F0] shadow-lg py-1 min-w-45">
+                            {STATUS_OPTIONS.map((s) => (
+                              <button
+                                key={s}
+                                onClick={() => handleStatusChange(poc.id, s)}
+                                className="w-full text-left px-4 py-2 text-xs font-semibold hover:bg-[#F8FAFC] transition-colors flex items-center gap-2"
+                              >
+                                <span
+                                  className="w-2 h-2 rounded-full shrink-0"
+                                  style={{
+                                    backgroundColor: STATUS_CONFIG[s].dot,
+                                  }}
+                                />
+                                {s}
+                                {poc.status === s && (
+                                  <Check
+                                    size={11}
+                                    className="ml-auto text-primary"
+                                  />
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -948,21 +975,25 @@ export default function RecruiterCRMPage() {
                   >
                     <Download size={14} />
                   </button>
-                  <button
-                    onClick={() => {
-                      setEditingPoc(poc);
-                      setShowModal(true);
-                    }}
-                    className="w-8 h-8 rounded-lg bg-background hover:bg-blue-50 hover:text-primary text-text-muted flex items-center justify-center transition-colors"
-                  >
-                    <Edit3 size={14} />
-                  </button>
-                  <button
-                    onClick={() => setDeleteConfirm(poc.id)}
-                    className="w-8 h-8 rounded-lg bg-background hover:bg-red-50 hover:text-danger text-text-muted flex items-center justify-center transition-colors"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  {!isReadOnly && (
+                    <button
+                      onClick={() => {
+                        setEditingPoc(poc);
+                        setShowModal(true);
+                      }}
+                      className="w-8 h-8 rounded-lg bg-background hover:bg-blue-50 hover:text-primary text-text-muted flex items-center justify-center transition-colors"
+                    >
+                      <Edit3 size={14} />
+                    </button>
+                  )}
+                  {!isReadOnly && (
+                    <button
+                      onClick={() => setDeleteConfirm(poc.id)}
+                      className="w-8 h-8 rounded-lg bg-background hover:bg-red-50 hover:text-danger text-text-muted flex items-center justify-center transition-colors"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
                 </div>
               </div>
             ))

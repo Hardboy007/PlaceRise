@@ -12,6 +12,7 @@ import {
 import { useEffect, useState } from "react";
 import { api } from "../../utils/api";
 import CompanyLogo from "../../components/common/CompanyLogo";
+import { useIsReadOnly } from "../../utils/useIsReadOnly";
 
 // Greeting
 const getGreeting = (date) => {
@@ -47,6 +48,7 @@ const toDisplayName = (name = "") =>
 
 export default function CoordinatorDashboard() {
   const navigate = useNavigate();
+  const isReadOnly = useIsReadOnly();
 
   const [coordinator, setCoordinator] = useState(null);
   const [students, setStudents] = useState([]);
@@ -238,24 +240,26 @@ export default function CoordinatorDashboard() {
               <p className="text-sm text-white/60">{formatDate(today)}</p>
             </div>
 
-            <button
-              onClick={() =>
-                navigate("/coordinator/jobs/all", {
-                  state: { openAddCompany: true },
-                })
-              }
-              className="flex flex-col items-start px-4 py-3 rounded-xl bg-white text-left shadow-lg hover:bg-[#F1F5F9] transition-colors w-full sm:w-auto min-w-[160px]"
-            >
-              <div className="flex items-center gap-2 text-[#1a3a8f]">
-                <Plus size={15} />
-                <span className="text-sm font-bold text-[#1a3a8f]">
-                  Add Company
+            {!isReadOnly && (
+              <button
+                onClick={() =>
+                  navigate("/coordinator/jobs/all", {
+                    state: { openAddCompany: true },
+                  })
+                }
+                className="flex flex-col items-start px-4 py-3 rounded-xl bg-white text-left shadow-lg hover:bg-[#F1F5F9] transition-colors w-full sm:w-auto min-w-[160px]"
+              >
+                <div className="flex items-center gap-2 text-[#1a3a8f]">
+                  <Plus size={15} />
+                  <span className="text-sm font-bold text-[#1a3a8f]">
+                    Add Company
+                  </span>
+                </div>
+                <span className="text-[11px] text-[#64748B] mt-0.5 leading-tight">
+                  Register a new recruiter &amp; post openings
                 </span>
-              </div>
-              <span className="text-[11px] text-[#64748B] mt-0.5 leading-tight">
-                Register a new recruiter &amp; post openings
-              </span>
-            </button>
+              </button>
+            )}
           </div>
         </div>
         {/* FIXED: was a fixed 260x130 px box that overlapped the greeting
@@ -514,6 +518,7 @@ export default function CoordinatorDashboard() {
               color:
                 "bg-background text-[#1E293B] hover:bg-[#E2E8F0] border border-[#CBD5E1]",
               route: "/coordinator/announcements",
+              hideIfReadOnly: true,
             },
             {
               label: "View All Students",
@@ -529,21 +534,23 @@ export default function CoordinatorDashboard() {
                 "bg-background text-[#1E293B] hover:bg-[#E2E8F0] border border-[#CBD5E1]",
               route: "/coordinator/applications",
             },
-          ].map((action) => (
-            <button
-              key={action.label}
-              onClick={() =>
-                navigate(
-                  action.route,
-                  action.state ? { state: action.state } : undefined,
-                )
-              }
-              className={`flex items-center justify-center sm:justify-start gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all hover:-translate-y-0.5 hover:shadow-md ${action.color}`}
-            >
-              <action.icon size={15} />
-              {action.label}
-            </button>
-          ))}
+          ]
+            .filter((action) => !(isReadOnly && action.hideIfReadOnly))
+            .map((action) => (
+              <button
+                key={action.label}
+                onClick={() =>
+                  navigate(
+                    action.route,
+                    action.state ? { state: action.state } : undefined,
+                  )
+                }
+                className={`flex items-center justify-center sm:justify-start gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all hover:-translate-y-0.5 hover:shadow-md ${action.color}`}
+              >
+                <action.icon size={15} />
+                {action.label}
+              </button>
+            ))}
         </div>
       </div>
     </div>

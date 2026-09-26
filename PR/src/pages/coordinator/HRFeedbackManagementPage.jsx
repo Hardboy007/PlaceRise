@@ -13,6 +13,7 @@ import {
   ThumbsUp,
   Search,
 } from "lucide-react";
+import { useIsReadOnly } from "../../utils/useIsReadOnly";
 
 const POLL_INTERVAL_MS = 8000;
 const ITEMS_PREVIEW_COUNT = 3;
@@ -179,6 +180,7 @@ function CompanyRow({
   isExpanded,
   onToggleExpand,
   onGenerateCode,
+  isReadOnly,
 }) {
   const [showAll, setShowAll] = useState(false);
   const unseenCount = items.filter((f) => !f.seen).length;
@@ -213,13 +215,15 @@ function CompanyRow({
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
-          <button
-            onClick={() => onGenerateCode(company)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-600 border border-amber-200 text-xs font-semibold hover:bg-amber-100 transition-colors"
-          >
-            <KeyRound size={12} />
-            {company.hrAccessCode ? "Share code" : "Generate code"}
-          </button>
+          {!isReadOnly && (
+            <button
+              onClick={() => onGenerateCode(company)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-600 border border-amber-200 text-xs font-semibold hover:bg-amber-100 transition-colors"
+            >
+              <KeyRound size={12} />
+              {company.hrAccessCode ? "Share code" : "Generate code"}
+            </button>
+          )}
           <button
             onClick={onToggleExpand}
             disabled={items.length === 0}
@@ -253,6 +257,8 @@ function CompanyRow({
 }
 
 export default function HRFeedbackManagementPage() {
+  const isReadOnly = useIsReadOnly();
+
   const [companies, setCompanies] = useState([]);
   const [feedback, setFeedback] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -287,7 +293,7 @@ export default function HRFeedbackManagementPage() {
   // the moment it comes in — without this, a feedback submitted after the
   // page was loaded would never appear until a manual reload.
   useEffect(() => {
-    document.title = "Manage HR Feedbacks"
+    document.title = "Manage HR Feedbacks";
     fetchData();
     const interval = setInterval(() => {
       if (!document.hidden) fetchData();
@@ -503,6 +509,7 @@ export default function HRFeedbackManagementPage() {
               isExpanded={expandedCompany === company._id}
               onToggleExpand={() => toggleExpand(company._id)}
               onGenerateCode={openGenerateCode}
+              isReadOnly={isReadOnly}
             />
           ))}
         </div>

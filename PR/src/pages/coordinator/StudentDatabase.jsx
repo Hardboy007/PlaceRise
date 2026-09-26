@@ -5,6 +5,7 @@ import { api } from "../../utils/api";
 import universityStructure from "../../data/universityStructure";
 import { Download, Upload } from "lucide-react";
 import { getSemester } from "../../utils/semester";
+import { useIsReadOnly } from "../../utils/useIsReadOnly";
 // ── Design Tokens ─────────────────────────────────────────────
 const C = {
   primary: "#1a3a8f",
@@ -1394,6 +1395,7 @@ function CgpaImportModal({
 
 // ── Main Page ─────────────────────────────────────────────────
 export default function StudentDatabasePage() {
+  const isReadOnly = useIsReadOnly();
   const [search, setSearch] = useState("");
   // Combined school+course multi-select: coordinator can tick courses
   // from any number of different schools at the same time.
@@ -1808,11 +1810,13 @@ export default function StudentDatabasePage() {
           {/* Right — Import / Export */}
           <div className="flex flex-col items-start lg:items-end gap-2 w-full lg:w-auto">
             <p className="text-xs text-white/70 text-left lg:text-right">
-              Bulk student database Upload or Export current database to Excel
+              {isReadOnly
+                ? "Export current database to Excel"
+                : "Bulk student database Upload or Export current database to Excel"}
             </p>
 
             <div className="flex items-center gap-2 sm:gap-3 flex-wrap w-full lg:w-auto">
-              {importResult && (
+              {!isReadOnly && importResult && (
                 <span
                   className={`text-xs font-semibold px-2.5 py-1 rounded-lg backdrop-blur ${
                     importResult.error
@@ -1826,32 +1830,33 @@ export default function StudentDatabasePage() {
                 </span>
               )}
 
-              <label
-                className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer transition flex-1 lg:flex-none
-        ${
-          importing
-            ? "bg-white/20 text-white/50 cursor-not-allowed"
-            : "bg-white text-[#1a3a8f] hover:bg-[#F1F5F9]"
-        }`}
-              >
-                <Upload size={14} />
-                {importing ? (
-                  <ImportingLabel
-                    estimatedTime={estimatedTime}
-                    importStart={importStart}
+              {!isReadOnly && (
+                <label
+                  className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer transition flex-1 lg:flex-none
+          ${
+            importing
+              ? "bg-white/20 text-white/50 cursor-not-allowed"
+              : "bg-white text-[#1a3a8f] hover:bg-[#F1F5F9]"
+          }`}
+                >
+                  <Upload size={14} />
+                  {importing ? (
+                    <ImportingLabel
+                      estimatedTime={estimatedTime}
+                      importStart={importStart}
+                    />
+                  ) : (
+                    "Import CSV"
+                  )}
+                  <input
+                    type="file"
+                    accept=".csv,.xlsx"
+                    className="hidden"
+                    onChange={handleImport}
+                    disabled={importing}
                   />
-                ) : (
-                  "Import CSV"
-                )}
-
-                <input
-                  type="file"
-                  accept=".csv,.xlsx"
-                  className="hidden"
-                  onChange={handleImport}
-                  disabled={importing}
-                />
-              </label>
+                </label>
+              )}
 
               <button
                 onClick={handleExport}
@@ -1897,86 +1902,88 @@ export default function StudentDatabasePage() {
         />
       </div>
       {/* ── CGPA Bulk Import Card ── */}
-      <div
-        style={{ backgroundColor: C.white, borderColor: C.border }}
-        className="rounded-2xl border shadow-sm p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-5"
-      >
-        <div className="flex items-start gap-4">
-          <div
-            style={{ backgroundColor: "#F5F3FF" }}
-            className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-          >
-            {Icon.cgpa}
-          </div>
-          <div>
-            <h3
-              style={{ color: C.textMain }}
-              className="text-base font-bold mb-1"
-            >
-              Semester CGPA Update
-            </h3>
-            <p
-              style={{ color: C.textMuted }}
-              className="text-sm leading-relaxed max-w-lg"
-            >
-              To update students' CGPA for the current semester, import an Excel
-              file below.{" "}
-              <span className="text-xs">
-                (Required columns:{" "}
-                <strong style={{ color: C.textMain }}>Name</strong>,{" "}
-                <strong style={{ color: C.textMain }}>ERP ID</strong>,{" "}
-                <strong style={{ color: C.textMain }}>CGPA</strong>)
-              </span>
-            </p>
-          </div>
-        </div>
-        <label
-          style={{
-            backgroundColor: cgpaFileLoading ? C.border : C.primary,
-            color: C.white,
-            cursor: cgpaFileLoading ? "not-allowed" : "pointer",
-            whiteSpace: "nowrap",
-          }}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition shrink-0 self-start sm:self-auto"
+      {!isReadOnly && (
+        <div
+          style={{ backgroundColor: C.white, borderColor: C.border }}
+          className="rounded-2xl border shadow-sm p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-5"
         >
-          {cgpaFileLoading ? (
-            <>
-              <svg
-                className="animate-spin w-3.5 h-3.5"
-                fill="none"
-                viewBox="0 0 24 24"
+          <div className="flex items-start gap-4">
+            <div
+              style={{ backgroundColor: "#F5F3FF" }}
+              className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+            >
+              {Icon.cgpa}
+            </div>
+            <div>
+              <h3
+                style={{ color: C.textMain }}
+                className="text-base font-bold mb-1"
               >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8z"
-                />
-              </svg>
-              Processing…
-            </>
-          ) : (
-            <>
-              <Upload size={15} />
-              Import CSV for CGPA
-            </>
-          )}
-          <input
-            type="file"
-            accept=".xlsx,.xls,.csv"
-            className="hidden"
-            onChange={handleCgpaFileSelect}
-            disabled={cgpaFileLoading}
-          />
-        </label>
-      </div>
+                Semester CGPA Update
+              </h3>
+              <p
+                style={{ color: C.textMuted }}
+                className="text-sm leading-relaxed max-w-lg"
+              >
+                To update students' CGPA for the current semester, import an
+                Excel file below.{" "}
+                <span className="text-xs">
+                  (Required columns:{" "}
+                  <strong style={{ color: C.textMain }}>Name</strong>,{" "}
+                  <strong style={{ color: C.textMain }}>ERP ID</strong>,{" "}
+                  <strong style={{ color: C.textMain }}>CGPA</strong>)
+                </span>
+              </p>
+            </div>
+          </div>
+          <label
+            style={{
+              backgroundColor: cgpaFileLoading ? C.border : C.primary,
+              color: C.white,
+              cursor: cgpaFileLoading ? "not-allowed" : "pointer",
+              whiteSpace: "nowrap",
+            }}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition shrink-0 self-start sm:self-auto"
+          >
+            {cgpaFileLoading ? (
+              <>
+                <svg
+                  className="animate-spin w-3.5 h-3.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8z"
+                  />
+                </svg>
+                Processing…
+              </>
+            ) : (
+              <>
+                <Upload size={15} />
+                Import CSV for CGPA
+              </>
+            )}
+            <input
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              className="hidden"
+              onChange={handleCgpaFileSelect}
+              disabled={cgpaFileLoading}
+            />
+          </label>
+        </div>
+      )}
       {/* ── Search + Filters ── */}
       <div
         style={{ backgroundColor: C.white, borderColor: C.border }}
