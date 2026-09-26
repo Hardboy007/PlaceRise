@@ -125,6 +125,13 @@ const COURSE_DURATIONS = {
   "BA LLB": 5,
   "BBA LLB": 5,
   "BCom LLB": 5,
+
+  // ── Dev Bhoomi Institute of Polytechnic ──
+  "Diploma in Computer Science & Engineering": 3,
+  "Diploma in Civil Engineering": 3,
+  "Diploma in Electrical Engineering": 3,
+  "Diploma in Mechanical – Production Engineering": 3,
+  "Diploma in Mechanical – Automobile Engineering": 3,
 };
 
 // Falls back to 4 years only if a course somehow isn't in the table

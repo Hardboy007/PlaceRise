@@ -24,13 +24,13 @@ const coordinatorSchema = new mongoose.Schema({
   },
   designation: {
     type: String,
-    required: true,
+    default: "",
   },
   department: {
     type: String,
-    required: true,
+    default: "",
   },
-  college: {
+  school: {
     type: String,
     required: true,
   },

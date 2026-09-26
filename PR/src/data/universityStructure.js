@@ -174,11 +174,11 @@ const universityStructure = [
     ],
   },
   {
-    school: "School of Nursing",
+    school: "School of Nursing (SoN)",
     departments: [
       {
         name: "Nursing",
-        courses: ["BSc Nursing"],
+        courses: ["BSc Nursing, General Nursing and Midwifery (GNM)"],
       },
     ],
   },
@@ -230,6 +230,21 @@ const universityStructure = [
       {
         name: "Law",
         courses: ["LLB", "BA LLB", "BBA LLB", "BCom LLB"],
+      },
+    ],
+  },
+  {
+    school: "Dev Bhoomi Institute of Polytechnic (DBIP)",
+    departments: [
+      {
+        name: "Polytechnic",
+        courses: [
+          "Diploma in Computer Science & Engineering",
+          "Diploma in Civil Engineering",
+          "Diploma in Electrical Engineering",
+          "Diploma in Mechanical – Production Engineering",
+          "Diploma in Mechanical – Automobile Engineering",
+        ],
       },
     ],
   },

@@ -94,9 +94,9 @@ function RoleCard({
       style={
         isDark
           ? {
-            background:
-              "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
-          }
+              background:
+                "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
+            }
           : {}
       }
     >
@@ -173,9 +173,10 @@ function RoleCard({
             <span
               key={tag}
               className={`px-3 py-1 rounded-full text-xs font-medium border
-                ${isDark
-                  ? "border-white/20 text-white/80 bg-white/5"
-                  : "border-[#CBD5E1] text-text-muted bg-background"
+                ${
+                  isDark
+                    ? "border-white/20 text-white/80 bg-white/5"
+                    : "border-[#CBD5E1] text-text-muted bg-background"
                 }
               `}
             >
@@ -359,7 +360,7 @@ function RoleSelectionPage() {
       const data = await response.json();
       setForgotMessage(
         data.message ||
-        "If that email is registered, a reset link has been sent.",
+          "If that email is registered, a reset link has been sent.",
       );
     } catch (err) {
       setForgotMessage("Unable to connect to the server");
@@ -389,7 +390,13 @@ function RoleSelectionPage() {
               Hidden on phones (not enough room without crowding the heading); scales up from tablet to desktop. */}
           <div
             className="absolute right-0 select-none"
-            style={{ width: "46%", maxWidth: "620px", top: "180px", height: "560px", overflow: "hidden" }}
+            style={{
+              width: "46%",
+              maxWidth: "620px",
+              top: "180px",
+              height: "560px",
+              overflow: "hidden",
+            }}
           >
             <img
               src="/images/building.png"
@@ -868,7 +875,6 @@ function RoleSelectionPage() {
           <div className="relative flex justify-center">
             <div className="w-full max-w-lg">
               <RoleCard
-
                 icon={<GraduationIcon />}
                 label="I'm a Student"
                 description="Browse drives, apply in clicks, and track every stage of your journey."
