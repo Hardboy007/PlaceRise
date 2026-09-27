@@ -383,7 +383,7 @@ export default function CoordinatorProfile() {
         phone: form.phone,
         designation: form.designation,
         department: form.department,
-        college: form.college,
+        school: form.school,
       });
       setCoordinator(updated);
 
@@ -624,11 +624,11 @@ export default function CoordinatorProfile() {
               {displayData.name}
             </h1>
             <p className="text-sm text-white/70 mb-3 wrap-break-word px-2 sm:px-0">
-              {displayData.designation} · {displayData.department}
+              {[displayData.designation, displayData.department].filter(Boolean).join(" · ")}
             </p>
             <div className="flex flex-wrap justify-center sm:justify-start gap-2 max-w-full">
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30 max-w-full wrap-break-word">
-                {displayData.college}
+                {displayData.school}
               </span>
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white border border-white/30 whitespace-nowrap">
                 Since {displayData.activeSince}
@@ -791,11 +791,11 @@ export default function CoordinatorProfile() {
           />
           <div className="col-span-1 sm:col-span-2">
             <Field
-              label="College"
-              name="college"
+              label="School"
+              name="school"
               icon={MapPin}
               editing={editing}
-              value={displayData.college}
+              value={displayData.school} // college → school
               onChange={handleChange}
             />
           </div>
