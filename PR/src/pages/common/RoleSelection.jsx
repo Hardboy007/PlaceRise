@@ -304,6 +304,7 @@ function RoleSelectionPage() {
       });
 
       const data = await response.json();
+      console.log(data);
 
       if (!response.ok) {
         setError(data.message || "Login failed");
@@ -331,7 +332,11 @@ function RoleSelectionPage() {
       } else {
         localStorage.setItem("coordinator", JSON.stringify(data.coordinator));
         localStorage.setItem("subRole", modalRole);
-        navigate("/coordinator/dashboard");
+        if (data.isFirstLogin) {
+          navigate("/coordinator/change-password");
+        } else {
+          navigate("/coordinator/dashboard");
+        }
       }
     } catch (err) {
       setError("Unable to connect to the server");

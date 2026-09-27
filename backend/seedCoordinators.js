@@ -6,11 +6,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const coordinators = [
-  {
-    name: "Ms.Kamini",
-    email: "soa.kamini@dbuu.ac.in",
-    school: "SoA",
-  },
+  { name: "Ms.Kamini", email: "soa.kamini@dbuu.ac.in", school: "SoA" },
   {
     name: "Dr Aditi Kuliyal (PT)",
     email: "sops.aditi@dbuu.ac.in",
@@ -21,31 +17,15 @@ const coordinators = [
     email: "son.sahida@dbuu.ac.in",
     school: "SoN",
   },
-  {
-    name: "Ashley Panwar",
-    email: "Son.ashly@dbuu.ac.in",
-    school: "SoN",
-  },
-  {
-    name: "Shilpa Mamgain",
-    email: "sopr.shilpa@dbuu.ac.in",
-    school: "SoPR",
-  },
-  {
-    name: "Himani Ghildiyal",
-    email: "sopr.himani@dbuu.ac.in",
-    school: "SoPR",
-  },
+  { name: "Ashley Panwar", email: "Son.ashly@dbuu.ac.in", school: "SoN" },
+  { name: "Shilpa Mamgain", email: "sopr.shilpa@dbuu.ac.in", school: "SoPR" },
+  { name: "Himani Ghildiyal", email: "sopr.himani@dbuu.ac.in", school: "SoPR" },
   {
     name: "Bhaskar Chaudhary",
     email: "somc.bhaskar@dbuu.ac.in",
     school: "SoMC",
   },
-  {
-    name: "Shubhi Singh",
-    email: "somc.shubhi@dbuu.ac.in",
-    school: "SoMC",
-  },
+  { name: "Shubhi Singh", email: "somc.shubhi@dbuu.ac.in", school: "SoMC" },
   {
     name: "Mukesh kumar",
     email: "Socse.mukeshkumar@dbuu.ac.in",
@@ -56,11 +36,7 @@ const coordinators = [
     email: "socse.anubhav@dbuu.ac.in",
     school: "SoEC",
   },
-  {
-    name: "Rajat Hindwal",
-    email: "ce.rajat@dbuu.ac.in",
-    school: "SoEC",
-  },
+  { name: "Rajat Hindwal", email: "ce.rajat@dbuu.ac.in", school: "SoEC" },
   {
     name: "Sayantan Bhattacharya",
     email: "me.sayantan@dbuu.ac.in",
@@ -71,11 +47,7 @@ const coordinators = [
     email: "ee.swati@dbuu.ac.in",
     school: "SoEC",
   },
-  {
-    name: "Shefali Bansal",
-    email: "fd.shefali@dbuu.ac.in",
-    school: "SoJLA",
-  },
+  { name: "Shefali Bansal", email: "fd.shefali@dbuu.ac.in", school: "SoJLA" },
   {
     name: "Amit KUMAR Rathod",
     email: "sojla.amit@dbuu.ac.in",
@@ -96,37 +68,35 @@ const coordinators = [
     email: "soad.omprakash@dbuu.ac.in",
     school: "SoADP",
   },
-  {
-    name: "Ankit Singh",
-    email: "soad.ankitsingh@dbuu.ac.in",
-    school: "SoADP",
-  },
-  {
-    name: "Sunny Verma",
-    email: "exam.sunny@dbuu.ac.in",
-    school: "DBIP",
-  },
+  { name: "Ankit Singh", email: "soad.ankitsingh@dbuu.ac.in", school: "SoADP" },
+  { name: "Sunny Verma", email: "exam.sunny@dbuu.ac.in", school: "DBIP" },
   {
     name: "Himanshu Jhakmola",
     email: "sol.himanshu@dbuu.ac.in",
     school: "SoL",
   },
-  {
-    name: "Suruchi Negi",
-    email: "soad.suruchi@dbuu.ac.in",
-    school: "SoADP",
-  },
+  { name: "Suruchi Negi", email: "soad.suruchi@dbuu.ac.in", school: "SoADP" },
 ];
 
 const seed = async () => {
   await mongoose.connect(process.env.MONGO_URI);
-
   const hashedPassword = await bcrypt.hash("PlaceRise@2026", 10);
 
   for (const coord of coordinators) {
+    const existingUser = await User.findOne({
+      email: coord.email.toLowerCase(),
+    });
+    const existingCoord = await Coordinator.findOne({
+      email: coord.email.toLowerCase(),
+    });
+    if (existingUser || existingCoord) {
+      console.log(`Skipping (already exists): ${coord.email}`);
+      continue;
+    }
+
     const user = await User.create({
       erpId: `COORD_${Date.now()}`,
-      email: coord.email,
+      email: coord.email.toLowerCase(),
       password: hashedPassword,
       role: "coordinator",
       isFirstLogin: true,
@@ -138,7 +108,7 @@ const seed = async () => {
     await Coordinator.create({
       userId: user._id,
       name: coord.name,
-      email: coord.email,
+      email: coord.email.toLowerCase(),
       school: coord.school,
       subRole: "placement_coordinator",
       role: "coordinator",
@@ -151,24 +121,5 @@ const seed = async () => {
   console.log("Done!");
   mongoose.disconnect();
 };
-
-for (const coord of coordinators) {
-  // Already exist karta hai to skip karo
-  const existing = await User.findOne({ email: coord.email });
-  if (existing) {
-    console.log(`Skipping (already exists): ${coord.email}`);
-    continue;
-  }
-
-  const user = await User.create({
-    // ...
-  });
-
-  await Coordinator.create({
-    // ...
-  });
-
-  console.log(`Created: ${coord.email}`);
-}
 
 seed();

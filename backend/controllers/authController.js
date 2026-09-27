@@ -80,11 +80,12 @@ const coordinatorLogin = async (req, res) => {
 
     //Erp se user dhundho — case-insensitive match
     const user = await User.findOne({
-      email: erpId.trim().toLowerCase(),
+      email: { $regex: `^${erpId.trim()}$`, $options: "i" }, // case-insensitive
       role: "coordinator",
     });
+    console.log("User found:", user);
     if (!user) {
-      return res.status(401).json({ message: "Invalid ERP ID" });
+      return res.status(401).json({ message: "Invalid email" });
     }
 
     //password check kro
