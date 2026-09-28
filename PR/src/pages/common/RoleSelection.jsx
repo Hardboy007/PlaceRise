@@ -340,7 +340,7 @@ function RoleSelectionPage() {
           navigate("/coordinator/dashboard");
         }
       }
-    } catch (err) {
+    } catch (err) { 
       setError("Unable to connect to the server");
     }
 

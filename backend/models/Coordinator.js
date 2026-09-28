@@ -57,7 +57,7 @@ const coordinatorSchema = new mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    default: Date.now,
+    default: Date.now, 
   },
   signatureUrl: { type: String, default: "" },
   profilePhoto: { type: String, default: "" },

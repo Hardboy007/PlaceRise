@@ -25,7 +25,17 @@ router.post("/send-email-otp", protect, sendEmailOtp);
 router.post("/verify-email-otp", protect, verifyEmailOtp);
 
 // Coordinator / CRC Head email OTP
-router.post("/coordinator/send-otp", protect, coordinatorOnly, sendCoordinatorOtp);
-router.post("/coordinator/verify-otp", protect, coordinatorOnly, verifyCoordinatorOtp);
+router.post(
+  "/coordinator/send-otp",
+  protect,
+  coordinatorOnly,
+  sendCoordinatorOtp,
+);
+router.post(
+  "/coordinator/verify-otp",
+  protect,
+  coordinatorOnly,
+  verifyCoordinatorOtp,
+);
 
 module.exports = router;

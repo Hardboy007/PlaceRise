@@ -556,7 +556,7 @@ function CoordinatorLayout() {
   const isChangePasswordPage = path.startsWith("/coordinator/change-password");
 
   // 1. Login nahi hai ya coordinator nahi hai
-  if (!token || !role || role === "student") {
+  if (!token || !role || role === "student") { 
     return <Navigate to="/" replace />;
   }
 

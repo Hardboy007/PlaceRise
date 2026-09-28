@@ -536,7 +536,9 @@ const verifyCoordinatorOtp = async (req, res) => {
     if ((user.emailOtpAttempts || 0) >= 5) {
       return res
         .status(429)
-        .json({ message: "Too many wrong attempts. Please request a new OTP." });
+        .json({
+          message: "Too many wrong attempts. Please request a new OTP.",
+        });
     }
 
     const hashedOtp = crypto

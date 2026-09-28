@@ -114,10 +114,7 @@ function AppRouter() {
           <Route path="noc" element={<NOCManagementPage />} />
           <Route path="attendance" element={<AttendancePage />} />
           <Route path="analytics" element={<AnalyticsDashboardPage />} />
-          <Route
-            path="hr-feedback"
-            element={<HRFeedbackManagementPage />}
-          />
+          <Route path="hr-feedback" element={<HRFeedbackManagementPage />} />
           <Route path="profile" element={<CoordinatorProfile />} />
           <Route
             path="students/:studentId"
