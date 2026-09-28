@@ -17,6 +17,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { api } from "../../utils/api";
+import { sendWhatsAppMessage } from "../../utils/whatsapp";
 import universityStructure from "../../data/universityStructure";
 // Flatten universityStructure once into a course -> school lookup,
 // so we can group/roll up NOC/LOR requests by school without
@@ -351,7 +352,7 @@ function ViewModal({ open, request, onClose }) {
             href={request.pdfUrl}
             target="_blank"
             rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 mt-2 text-sm font-medium text-[#1a3a8f] hover:underline"
+            className="inline-flex items-center gap-1.5 mt-2 text-sm font-medium text-[#1a3a8f] hover:underline"
           >
             <Download size={14} /> Download PDF
           </a>
@@ -579,6 +580,7 @@ export default function NOCManagementPage() {
   const [viewTarget, setViewTarget] = useState(null); // request object being viewed in full
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState(""); // surfaced inside the modal, not a generic alert
+  const [whatsappSentId, setWhatsappSentId] = useState(null);
 
   const fetchRequests = async (isInitialLoad = false) => {
     try {
@@ -607,7 +609,7 @@ export default function NOCManagementPage() {
   rejectTargetRef.current = rejectTarget;
 
   useEffect(() => {
-    document.title = "Manage NOCs & LORs"
+    document.title = "Manage NOCs & LORs";
     fetchRequests(true);
 
     // Live polling every 6 seconds so new student requests show up
@@ -729,17 +731,39 @@ export default function NOCManagementPage() {
     try {
       setActionLoading(true);
       setActionError("");
+      console.log("approveTarget:", approveTarget);
       await api.put(`/noc/${approveTarget._id}/status`, { status: "Approved" });
       setRequests((prev) =>
         prev.map((r) =>
           r._id === approveTarget._id ? { ...r, status: "Approved" } : r,
         ),
       );
+      let phone = null;
+      try {
+        const student = await api.get(`/students/${approveTarget.studentId}`);
+        phone = student?.phone;
+      } catch {}
+      const studentName = approveTarget.studentName || "Student";
+      const message = `✅ Hi ${studentName},\n\nYour NOC/LOR request has been approved on PlaceRise.\n\nLogin to download your document: https://placerise.vercel.app`;
+      if (phone) {
+        sendWhatsAppMessage(phone, message);
+        setWhatsappSentId(approveTarget._id);
+        setTimeout(
+          () =>
+            setWhatsappSentId((prev) =>
+              prev === approveTarget._id ? null : prev,
+            ),
+          4000,
+        );
+      }
+      setTimeout(
+        () =>
+          setWhatsappSentId((prev) =>
+            prev === approveTarget._id ? null : prev,
+          ),
+        4000,
+      );
       setApproveTarget(null);
-      // Re-fetch so the coordinator's own list picks up the freshly
-      // generated pdfUrl right away (backend generates it synchronously
-      // during the approve call, but the local optimistic update above
-      // doesn't include it).
       fetchRequests(false);
     } catch (err) {
       console.error("Approve failed:", err);
@@ -771,6 +795,31 @@ export default function NOCManagementPage() {
             ? { ...r, status: "Rejected", rejectionReason: reason }
             : r,
         ),
+      );
+      let phone = null;
+      try {
+        const student = await api.get(`/students/${rejectTarget.studentId}`);
+        phone = student?.phone;
+      } catch {}
+      const studentName = rejectTarget.studentName || "Student";
+      const message = `ℹ️ Hi ${studentName},\n\nYour NOC/LOR request has been rejected on PlaceRise.\n\nPlease contact your coordinator for more details: https://placerise.vercel.app`;
+      if (phone) {
+        sendWhatsAppMessage(phone, message);
+        setWhatsappSentId(rejectTarget._id);
+        setTimeout(
+          () =>
+            setWhatsappSentId((prev) =>
+              prev === rejectTarget._id ? null : prev,
+            ),
+          4000,
+        );
+      }
+      setTimeout(
+        () =>
+          setWhatsappSentId((prev) =>
+            prev === rejectTarget._id ? null : prev,
+          ),
+        4000,
       );
       setRejectTarget(null);
     } catch (err) {
@@ -1107,10 +1156,17 @@ export default function NOCManagementPage() {
                         <ProofCell request={req} />
                       </td>
                       <td className="px-2 sm:px-3 py-2.5">
-                        <StatusBadge
-                          status={req.status}
-                          createdAt={req.createdAt}
-                        />
+                        <div className="flex flex-col gap-1">
+                          <StatusBadge
+                            status={req.status}
+                            createdAt={req.createdAt}
+                          />
+                          {whatsappSentId === req._id && (
+                            <span className="text-[10px] font-semibold text-green-600">
+                              ✓ WhatsApp sent
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-2 sm:px-3 py-2.5 text-center">
                         <DocumentCell

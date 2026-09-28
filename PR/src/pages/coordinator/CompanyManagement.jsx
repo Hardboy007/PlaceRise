@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import CompanyLogo from "../../components/common/CompanyLogo";
 import { useIsReadOnly } from "../../utils/useIsReadOnly";
+import { sendBulkWhatsApp } from "../../utils/whatsapp";
 
 const ExtLink = ({ href, className, children }) =>
   createElement(
@@ -1123,6 +1124,15 @@ export default function CompanyManagementPage() {
   const [jdErrors, setJdErrors] = useState({});
   const [pdfFile, setPdfFile] = useState(null);
   const [savingJD, setSavingJD] = useState(false);
+  const [lastCreatedJob, setLastCreatedJob] = useState(() => {
+    try {
+      const saved = localStorage.getItem("lastCreatedJob");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [allStudents, setAllStudents] = useState([]);
 
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewingCompany, setViewingCompany] = useState(null);
@@ -1131,12 +1141,16 @@ export default function CompanyManagementPage() {
 
   const fetchData = async () => {
     setLoading(true);
-    const [companiesData, jobsData] = await Promise.all([
+    const [companiesData, jobsData, studentsData] = await Promise.all([
       api.get("/companies"),
       api.get("/companies/jobs"),
+      api.get("/students?page=1&limit=100000"),
     ]);
     setCompanies(Array.isArray(companiesData) ? companiesData : []);
     setJobs(Array.isArray(jobsData) ? jobsData : []);
+    setAllStudents(
+      Array.isArray(studentsData?.students) ? studentsData.students : [],
+    );
     setLoading(false);
   };
 
@@ -1294,6 +1308,9 @@ export default function CompanyManagementPage() {
     }
 
     await fetchData();
+    const createdJobData = { ...addJDForm, companyName: companyForm.name };
+    setLastCreatedJob(createdJobData);
+    localStorage.setItem("lastCreatedJob", JSON.stringify(createdJobData));
     setShowCompanyModal(false);
   };
 
@@ -1408,6 +1425,9 @@ export default function CompanyManagementPage() {
 
       setPdfFile(null);
       await fetchData();
+      if (!jdTargetJob) {
+        setLastCreatedJob({ ...jdForm, companyName: jdTargetCompany?.name });
+      }
       setShowJDModal(false);
     } catch (err) {
       alert("Something went wrong while saving JD");
@@ -1429,6 +1449,52 @@ export default function CompanyManagementPage() {
       setShowViewModal(false);
       setViewingCompany(null);
     }
+  };
+
+  const handleBulkWhatsApp = () => {
+    if (!lastCreatedJob) return;
+    setLastCreatedJob(null);
+    localStorage.removeItem("lastCreatedJob");
+    const { roleGroups, companyName, lastDate } = lastCreatedJob;
+
+    const formattedDate = lastDate
+      ? new Date(lastDate).toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        })
+      : "—";
+
+    // Har role ke students count karo pehle — delay calculate karne ke liye
+    let totalDelay = 0;
+
+    (roleGroups || []).forEach((rg) => {
+      const eligibleBranches = rg.eligibleBranches || [];
+      const eligibleStudents = allStudents.filter((s) => {
+        const course = s.course || s.branch || "";
+        return (
+          eligibleBranches.length === 0 ||
+          eligibleBranches.includes("All") ||
+          eligibleBranches.includes(course)
+        );
+      });
+
+      const message =
+        `🎯 New Placement Drive on PlaceRise!\n\n` +
+        `Company: ${companyName}\n` +
+        `Role: ${rg.role || "—"}\n` +
+        `Package: ₹${rg.ctc || "—"} LPA\n` +
+        `Last Date: ${formattedDate}\n\n` +
+        `Login to PlaceRise to apply: https://placerise.vercel.app`;
+
+      // Is role ka send totalDelay ke baad start hoga
+      setTimeout(() => {
+        sendBulkWhatsApp(eligibleStudents, message);
+      }, totalDelay);
+
+      // Agla role tab shuru hoga jab is role ke saare students ho jaayein
+      totalDelay += eligibleStudents.length * 500 + 1000; // 1s extra gap roles ke beech
+    });
   };
 
   if (loading)
@@ -1583,6 +1649,42 @@ export default function CompanyManagementPage() {
           ))}
         </div>
       </div>
+
+      {/* ── Bulk WhatsApp button — JD create hone ke baad dikhega ── */}
+      {lastCreatedJob && (
+        <div className="flex items-center justify-between gap-3 bg-green-50 border border-green-200 rounded-2xl px-4 py-3 mb-2 flex-wrap">
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-green-800">
+              ✓ JD saved for {lastCreatedJob.companyName}
+            </p>
+            <p className="text-xs text-green-600 mt-0.5">
+              Send WhatsApp notification to all eligible students now
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={handleBulkWhatsApp}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
+              style={{ backgroundColor: "#22C55E" }}
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+                <path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.558 4.115 1.535 5.84L.057 23.428a.5.5 0 00.609.61l5.652-1.463A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.9a9.878 9.878 0 01-5.031-1.378l-.36-.214-3.733.966.994-3.637-.235-.374A9.861 9.861 0 012.1 12C2.1 6.533 6.533 2.1 12 2.1c5.467 0 9.9 4.433 9.9 9.9 0 5.467-4.433 9.9-9.9 9.9z" />
+              </svg>
+              Send WhatsApp to Eligible Students
+            </button>
+            <button
+              onClick={() => {
+                setLastCreatedJob(null);
+                localStorage.removeItem("lastCreatedJob");
+              }}
+              className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center text-green-600 hover:bg-green-200 transition-colors"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Company Cards ── */}
       {filtered.length === 0 ? (

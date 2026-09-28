@@ -31,6 +31,7 @@ import {
 import { api } from "../../utils/api";
 import { getSemester } from "../../utils/semester";
 import { useIsReadOnly } from "../../utils/useIsReadOnly";
+import { sendWhatsAppMessage } from "../../utils/whatsapp";
 
 const STATUS_OPTIONS = ["Applied", "Shortlisted", "Selected", "Rejected"];
 
@@ -1641,6 +1642,7 @@ function AppliedTab({
   // Excel import state
   const [importLoading, setImportLoading] = useState(false);
   const [importResult, setImportResult] = useState(null);
+  const [whatsappSentId, setWhatsappSentId] = useState(null);
   const [showImportPreview, setShowImportPreview] = useState(false);
   const [importPreviewData, setImportPreviewData] = useState(null);
   const fileInputRef = useRef(null);
@@ -1771,6 +1773,25 @@ function AppliedTab({
               }
             : a,
         ),
+      );
+
+      const app = applications.find((a) => a._id === appId);
+      const phone = app?.studentId?.phone;
+      const studentName = app?.studentId?.name || "Student";
+      const companyName = selectedJob?.companyId?.name || "Company";
+
+      const message =
+        status === "Cleared"
+          ? `✅ Congratulations ${studentName}!\n\nYou have cleared ${roundName} for ${companyName} on PlaceRise.\n\nLogin to check your application status: https://placerise.vercel.app`
+          : `ℹ️ Hi ${studentName},\n\nYou were not selected in ${roundName} for ${companyName}.\n\nKeep applying to other drives on PlaceRise: https://placerise.vercel.app`;
+
+      sendWhatsAppMessage(phone, message);
+
+      const toastKey = `${appId}_${roundIndex}`;
+      setWhatsappSentId(toastKey);
+      setTimeout(
+        () => setWhatsappSentId((prev) => (prev === toastKey ? null : prev)),
+        4000,
       );
     } catch (err) {
       alert("Failed to update round status");
@@ -2875,6 +2896,11 @@ function AppliedTab({
                           {st === "Cleared" ? "✓ Clear" : "✕ Eliminate"}
                         </button>
                       ))}
+                      {whatsappSentId === `${app._id}_${activeRound}` && (
+                        <span className="text-[10px] font-semibold text-green-600">
+                          ✓ WhatsApp sent
+                        </span>
+                      )}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();

@@ -6,6 +6,7 @@ import universityStructure from "../../data/universityStructure";
 import { Download, Upload } from "lucide-react";
 import { getSemester } from "../../utils/semester";
 import { useIsReadOnly } from "../../utils/useIsReadOnly";
+import { sendWhatsAppMessage } from "../../utils/whatsapp";
 // ── Design Tokens ─────────────────────────────────────────────
 const C = {
   primary: "#1a3a8f",
@@ -763,39 +764,74 @@ function StudentModal({ student, onClose }) {
         {/* Modal Header */}
         <div
           style={{ borderColor: C.border }}
-          className="flex items-center flex-wrap justify-between gap-3 px-4 sm:px-7 py-4 sm:py-5 border-b sticky top-0 bg-white rounded-t-3xl z-10"
+          className="flex items-start justify-between gap-2 px-4 sm:px-7 py-4 sm:py-5 border-b sticky top-0 bg-white rounded-t-3xl z-10"
         >
-          <div className="flex items-center gap-4">
+          {/* Left: avatar + name */}
+          <div className="flex items-center gap-3 min-w-0">
             <div
               style={{
                 background: `linear-gradient(135deg, ${C.primary}, ${C.accent})`,
               }}
-              className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-lg shrink-0"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center text-white font-bold text-base sm:text-lg shrink-0"
             >
               {student.name.charAt(0)}
             </div>
-            <div>
-              <h2 style={{ color: C.textMain }} className="text-xl font-bold">
+            <div className="min-w-0">
+              <h2
+                style={{ color: C.textMain }}
+                className="text-base sm:text-xl font-bold leading-tight truncate"
+              >
                 {student.name}
               </h2>
-              <p style={{ color: C.textMuted }} className="text-sm">
+              <p
+                style={{ color: C.textMuted }}
+                className="text-xs sm:text-sm truncate"
+              >
                 {getStudentErpId(student)} · {getStudentCourse(student)} · Batch{" "}
                 {student.batch}
               </p>
+              {/* Status badge — mobile mein naam ke neeche */}
+              <div className="mt-1 sm:hidden">
+                <StatusBadge status={student.placementStatus} />
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap w-full sm:w-auto">
-            <StatusBadge status={student.placementStatus} size="lg" />
+
+          {/* Right: status + action buttons + close */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 flex-wrap justify-end">
+            {/* Status badge — sirf desktop pe yahan dikhao */}
+            <div className="hidden sm:block">
+              <StatusBadge status={student.placementStatus} size="lg" />
+            </div>
+
+            {student.phone && (
+              <button
+                onClick={() => sendWhatsAppMessage(student.phone, "")}
+                style={{ backgroundColor: "#22C55E", color: C.white }}
+                className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs font-semibold hover:opacity-90 transition"
+              >
+                <svg
+                  className="w-3.5 h-3.5 shrink-0"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+                  <path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.558 4.115 1.535 5.84L.057 23.428a.5.5 0 00.609.61l5.652-1.463A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.9a9.878 9.878 0 01-5.031-1.378l-.36-.214-3.733.966.994-3.637-.235-.374A9.861 9.861 0 012.1 12C2.1 6.533 6.533 2.1 12 2.1c5.467 0 9.9 4.433 9.9 9.9 0 5.467-4.433 9.9-9.9 9.9z" />
+                </svg>
+                <span className="hidden sm:inline">WhatsApp</span>
+              </button>
+            )}
+
             <button
               onClick={() => {
                 onClose();
                 navigate(`/coordinator/students/${student._id}`);
               }}
               style={{ backgroundColor: C.primary, color: C.white }}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold hover:opacity-90 transition"
+              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs font-semibold hover:opacity-90 transition"
             >
               <svg
-                className="w-3.5 h-3.5"
+                className="w-3.5 h-3.5 shrink-0"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth={2}
@@ -807,12 +843,13 @@ function StudentModal({ student, onClose }) {
                   d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
                 />
               </svg>
-              View Full Profile
+              <span className="hidden sm:inline">View Full Profile</span>
             </button>
+
             <button
               onClick={onClose}
               style={{ color: C.textMuted, backgroundColor: C.background }}
-              className="w-9 h-9 rounded-xl flex items-center justify-center hover:opacity-80 transition"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center hover:opacity-80 transition shrink-0"
             >
               {Icon.close}
             </button>
@@ -1109,7 +1146,7 @@ function CgpaImportModal({
           <button
             onClick={onClose}
             style={{ color: C.textMuted, backgroundColor: C.background }}
-            className="w-9 h-9 rounded-xl flex items-center justify-center hover:opacity-80 transition"
+            className="w-9 h-9 rounded-xl flex items-center justify-center hover:opacity-80 transition shrink-0"
           >
             {Icon.close}
           </button>

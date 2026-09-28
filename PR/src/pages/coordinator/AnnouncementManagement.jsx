@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { sendWhatsAppMessage } from "../../utils/whatsapp";
 import { api } from "../../utils/api";
 import universityStructure from "../../data/universityStructure";
 
@@ -265,6 +266,7 @@ export default function AnnouncementManagementPage() {
   const [deletingId, setDeletingId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [lastCreated, setLastCreated] = useState(null); // { title, description }
 
   // Pulled out so it can be re-run after create/update/delete. Re-fetching
   // from the server (instead of patching local state with whatever the
@@ -287,7 +289,7 @@ export default function AnnouncementManagementPage() {
   }, []);
 
   useEffect(() => {
-    document.title = "Announcements — PlaceRise"
+    document.title = "Announcements — PlaceRise";
     fetchAnnouncements();
   }, [fetchAnnouncements]);
 
@@ -306,7 +308,7 @@ export default function AnnouncementManagementPage() {
       minute: dt.minute,
       period: dt.period,
     };
- 
+
     // Rebuild the { school: [courses] } selection map from whatever the
     // server stored. Legacy / whole-school entries (no explicit course
     // list) are expanded to every course under that school so the UI
@@ -406,6 +408,12 @@ export default function AnnouncementManagementPage() {
 
       // Re-fetch so the list is always the source of truth from the server.
       await fetchAnnouncements();
+      if (!editingId) {
+        setLastCreated({
+          title: payload.title,
+          description: payload.description,
+        });
+      }
       closeModal();
     } catch (err) {
       console.error("Failed to save announcement:", err);
@@ -535,6 +543,67 @@ export default function AnnouncementManagementPage() {
         </div>
       </div>
 
+      {/* ── WhatsApp forward button — sirf naye announcement ke baad dikhta hai ── */}
+      {lastCreated && (
+        <div className="max-w-4xl mx-auto px-4 sm:px-8 pt-4">
+          <div className="flex items-center justify-between gap-3 bg-green-50 border border-green-200 rounded-2xl px-4 py-3 flex-wrap">
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-green-800">
+                Announcement created!
+              </p>
+              <p className="text-xs text-green-600 mt-0.5">
+                WhatsApp Web will open with a pre-written message — you can send
+                it only to your groups manually.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => {
+                  const short =
+                    lastCreated.description.length > 120
+                      ? lastCreated.description.slice(0, 120).trimEnd() + "..."
+                      : lastCreated.description;
+                  const message = `📢 New Announcement on PlaceRise!\n\n${lastCreated.title}\n\n${short}\n\nView full announcement: https://placerise.vercel.app`;
+                  const encoded = encodeURIComponent(message);
+                  window.open(
+                    `https://web.whatsapp.com/send?text=${encoded}`,
+                    "_blank",
+                  );
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white transition-all"
+                style={{ backgroundColor: "#25D366" }}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  className="w-4 h-4 fill-white shrink-0"
+                >
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+                  <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L.057 23.882l6.19-1.452A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.006-1.371l-.36-.214-3.724.873.936-3.613-.235-.372A9.818 9.818 0 1112 21.818z" />
+                </svg>
+                Send to Groups
+              </button>
+              <button
+                onClick={() => setLastCreated(null)}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-green-500 hover:bg-green-100 transition-colors"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* ── Error banner ── */}
       {error && (
         <div className="max-w-4xl mx-auto px-4 sm:px-8 pt-4">
