@@ -5,6 +5,7 @@ import {
   useNavigate,
   Link,
   useLocation,
+  Navigate,
 } from "react-router-dom";
 import { api } from "../utils/api";
 import SwipeToDeleteNotification from "../components/common/SwipeToDeleteNotification";
@@ -115,7 +116,7 @@ const moreColorMap = {
   indigo: { bg: "bg-indigo-50", text: "text-indigo-600" },
 };
 
-function CoordinatorLayout() {
+function CoordinatorShell() {
   const navigate = useNavigate();
   const location = useLocation();
   const [expanded, setExpanded] = useState(false);
@@ -539,6 +540,40 @@ function CoordinatorLayout() {
       )}
     </div>
   );
+} // ✅ FIX: CoordinatorShell ka closing brace yahan missing tha
+
+function CoordinatorLayout() {
+  const location = useLocation();
+
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
+  const isFirstLogin = localStorage.getItem("isFirstLogin") === "true";
+  const isChangePasswordPage = location.pathname.startsWith(
+    "/coordinator/change-password",
+  );
+
+  // 1. Login nahi hai ya coordinator nahi hai
+  if (!token || !role || role === "student") {
+    return <Navigate to="/" replace />;
+  }
+
+  // 2. First login hai -> sirf change-password page allowed
+  if (isFirstLogin && !isChangePasswordPage) {
+    return <Navigate to="/coordinator/change-password" replace />;
+  }
+
+  // 3. Password already set hai -> change-password page band
+  if (!isFirstLogin && isChangePasswordPage) {
+    return <Navigate to="/coordinator/dashboard" replace />;
+  }
+
+  // 4. Change-password page: bina sidebar/navbar ke, sirf page
+  if (isChangePasswordPage) {
+    return <Outlet />;
+  }
+
+  // 5. Normal coordinator pages: full layout
+  return <CoordinatorShell />;
 }
 
 export default CoordinatorLayout;
