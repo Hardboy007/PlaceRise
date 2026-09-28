@@ -35,6 +35,7 @@ import CoordinatorStudentProfilePage from "../pages/coordinator/CoordinatorStude
 import VerifyContactPage from "../pages/student/VerifyContactPage";
 import NotFoundPage from "../pages/common/NotFoundPage";
 import CoordinatorChangePasswordPage from "../pages/coordinator/CoordinatorChangePasswordPage";
+import CoordinatorVerifyContactPage from "../pages/coordinator/CoordinatorVerifyContactPage"; // ✅ fixed path (./ -> ../)
 
 function AppRouter() {
   return (
@@ -52,7 +53,7 @@ function AppRouter() {
             <ProtectedRoute>
               <StudentOnboardingPage />
             </ProtectedRoute>
-          } 
+          }
         />
         <Route path="/attendance" element={<ScanAttendancePage />} />
         <Route path="/about" element={<AboutPage />} />
@@ -88,7 +89,16 @@ function AppRouter() {
             </ProtectedRoute>
           }
         >
-          <Route path="/coordinator/change-password" element={<CoordinatorChangePasswordPage />} />
+          {/* First-login flow: verify email -> set password */}
+          <Route
+            path="verify-contact"
+            element={<CoordinatorVerifyContactPage />}
+          />
+          <Route
+            path="change-password"
+            element={<CoordinatorChangePasswordPage />}
+          />
+
           <Route path="dashboard" element={<CoordinatorDashboard />} />
           <Route path="students" element={<StudentDatabasePage />} />
           <Route path="jobs">
@@ -105,7 +115,7 @@ function AppRouter() {
           <Route path="attendance" element={<AttendancePage />} />
           <Route path="analytics" element={<AnalyticsDashboardPage />} />
           <Route
-            path="/coordinator/hr-feedback"
+            path="hr-feedback"
             element={<HRFeedbackManagementPage />}
           />
           <Route path="profile" element={<CoordinatorProfile />} />

@@ -332,9 +332,10 @@ function RoleSelectionPage() {
       } else {
         localStorage.setItem("coordinator", JSON.stringify(data.coordinator));
         localStorage.setItem("subRole", modalRole);
-        localStorage.setItem("isFirstLogin", String(data.isFirstLogin)); // ✅ add
+        localStorage.setItem("isFirstLogin", String(data.isFirstLogin));
+        localStorage.removeItem("coordEmailVerified");
         if (data.isFirstLogin) {
-          navigate("/coordinator/change-password");
+          navigate("/coordinator/verify-contact");
         } else {
           navigate("/coordinator/dashboard");
         }

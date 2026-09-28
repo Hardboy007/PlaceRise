@@ -61,6 +61,11 @@ const coordinatorSchema = new mongoose.Schema({
   },
   signatureUrl: { type: String, default: "" },
   profilePhoto: { type: String, default: "" },
+
+  emailVerified: { type: Boolean, default: false },
+  emailOtpHash: { type: String },
+  emailOtpExpires: { type: Date },
+  emailOtpAttempts: { type: Number, default: 0 },
 });
 
 module.exports = mongoose.model("Coordinator", coordinatorSchema);

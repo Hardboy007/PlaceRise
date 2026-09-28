@@ -201,6 +201,7 @@ function CoordinatorShell() {
     localStorage.removeItem("coordinator");
     localStorage.removeItem("student");
     localStorage.removeItem("isFirstLogin");
+    localStorage.removeItem("coordEmailVerified");
     navigate("/");
   };
 
@@ -548,31 +549,34 @@ function CoordinatorLayout() {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
   const isFirstLogin = localStorage.getItem("isFirstLogin") === "true";
-  const isChangePasswordPage = location.pathname.startsWith(
-    "/coordinator/change-password",
-  );
+  const emailVerified = localStorage.getItem("coordEmailVerified") === "true";
+
+  const path = location.pathname;
+  const isVerifyPage = path.startsWith("/coordinator/verify-contact");
+  const isChangePasswordPage = path.startsWith("/coordinator/change-password");
 
   // 1. Login nahi hai ya coordinator nahi hai
   if (!token || !role || role === "student") {
     return <Navigate to="/" replace />;
   }
 
-  // 2. First login hai -> sirf change-password page allowed
-  if (isFirstLogin && !isChangePasswordPage) {
-    return <Navigate to="/coordinator/change-password" replace />;
-  }
-
-  // 3. Password already set hai -> change-password page band
-  if (!isFirstLogin && isChangePasswordPage) {
-    return <Navigate to="/coordinator/dashboard" replace />;
-  }
-
-  // 4. Change-password page: bina sidebar/navbar ke, sirf page
-  if (isChangePasswordPage) {
+  // 2. First login: email verify -> password set
+  if (isFirstLogin) {
+    if (!emailVerified && !isVerifyPage) {
+      return <Navigate to="/coordinator/verify-contact" replace />;
+    }
+    if (emailVerified && !isChangePasswordPage) {
+      return <Navigate to="/coordinator/change-password" replace />;
+    }
     return <Outlet />;
   }
 
-  // 5. Normal coordinator pages: full layout
+  // 3. Setup ho chuka hai -> in pages pe wapas nahi
+  if (isVerifyPage || isChangePasswordPage) {
+    return <Navigate to="/coordinator/dashboard" replace />;
+  }
+
+  // 4. Normal pages
   return <CoordinatorShell />;
 }
 
