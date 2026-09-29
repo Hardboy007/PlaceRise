@@ -8,10 +8,10 @@ A full-stack college placement management platform built for **Dev Bhoomi Uttara
 
 | Name | Role |
 |---|---|
-| Hardik | Full Stack Lead — Frontend, Backend, UI/UX |
-| Ayyan | Frontend, Backend |
-| Himanshu | Frontend |
-| Harsh | Frontend, Documentation |
+| Hardik |	Product Lead · Founding Engineer — Design, Frontend, Backend |
+| Ayyan | Frontend, Backend · Infrastructure |
+| Himanshu | Frontend · User Experience |
+| Harsh | QA Engineer · Documentation |
 
 ---
 
