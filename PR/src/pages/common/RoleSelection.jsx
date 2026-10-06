@@ -304,6 +304,7 @@ function RoleSelectionPage() {
       });
 
       const data = await response.json();
+      console.log("Login response:", data);
 
       if (!response.ok) {
         setError(data.message || "Login failed");
@@ -331,7 +332,11 @@ function RoleSelectionPage() {
       } else {
         localStorage.setItem("coordinator", JSON.stringify(data.coordinator));
         localStorage.setItem("subRole", modalRole);
-        navigate("/coordinator/dashboard");
+        if (data.isFirstLogin) {
+          navigate("/coordinator/verify-contact");
+        } else {
+          navigate("/coordinator/dashboard");
+        }
       }
     } catch (err) {
       setError("Unable to connect to the server");
@@ -358,6 +363,7 @@ function RoleSelectionPage() {
         body: JSON.stringify({ email: trimmedEmail }),
       });
       const data = await response.json();
+      console.log("Login response:", data);
       setForgotMessage(
         data.message ||
           "If that email is registered, a reset link has been sent.",
