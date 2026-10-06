@@ -94,9 +94,9 @@ function RoleCard({
       style={
         isDark
           ? {
-            background:
-              "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
-          }
+              background:
+                "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
+            }
           : {}
       }
     >
@@ -173,9 +173,10 @@ function RoleCard({
             <span
               key={tag}
               className={`px-3 py-1 rounded-full text-xs font-medium border
-                ${isDark
-                  ? "border-white/20 text-white/80 bg-white/5"
-                  : "border-[#CBD5E1] text-text-muted bg-background"
+                ${
+                  isDark
+                    ? "border-white/20 text-white/80 bg-white/5"
+                    : "border-[#CBD5E1] text-text-muted bg-background"
                 }
               `}
             >
@@ -359,7 +360,7 @@ function RoleSelectionPage() {
       const data = await response.json();
       setForgotMessage(
         data.message ||
-        "If that email is registered, a reset link has been sent.",
+          "If that email is registered, a reset link has been sent.",
       );
     } catch (err) {
       setForgotMessage("Unable to connect to the server");
@@ -389,7 +390,13 @@ function RoleSelectionPage() {
               Hidden on phones (not enough room without crowding the heading); scales up from tablet to desktop. */}
           <div
             className="absolute right-0 select-none"
-            style={{ width: "46%", maxWidth: "620px", top: "180px", height: "560px", overflow: "hidden" }}
+            style={{
+              width: "46%",
+              maxWidth: "620px",
+              top: "180px",
+              height: "560px",
+              overflow: "hidden",
+            }}
           >
             <img
               src="/images/building.png"
@@ -543,8 +550,6 @@ function RoleSelectionPage() {
                 </span>
               </div>
             </div>
-
-
           </div>
 
           {/* Desktop — DBUU badge + Team Access side by side */}
@@ -713,8 +718,6 @@ function RoleSelectionPage() {
                 </div>
               </div>
             </div>
-
-
           </div>
 
           {/* H1 */}
@@ -781,7 +784,7 @@ function RoleSelectionPage() {
                 </span>
               </div>
             </div>
-            
+
             {/* Mobile OR Divider */}
             <div className="z-20 flex lg:hidden items-center justify-center my-[-1.5rem] shadow-2xl rounded-full">
               <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-[0_10px_30px_-10px_rgba(15,23,42,0.3)] border border-[#E2E8F0]">
@@ -817,7 +820,11 @@ function RoleSelectionPage() {
                   {/* Watermark */}
                   <span
                     className="absolute top-4 right-6 font-bold select-none pointer-events-none text-[#1E293B] text-[4rem] sm:text-[8rem]"
-                    style={{ lineHeight: 1, opacity: 0.05, fontFamily: "Space Grotesk, sans-serif" }}
+                    style={{
+                      lineHeight: 1,
+                      opacity: 0.05,
+                      fontFamily: "Space Grotesk, sans-serif",
+                    }}
                   >
                     02
                   </span>
@@ -860,7 +867,8 @@ function RoleSelectionPage() {
                         onClick={() => handleSubRoleSelect("crc_head")}
                         className="group relative overflow-hidden rounded-2xl p-4 cursor-pointer transition-all duration-300 hover:-translate-y-0.5"
                         style={{
-                          background: "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
+                          background:
+                            "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
                           border: "1px solid rgba(255,255,255,0.06)",
                           boxShadow: "0 8px 24px -6px rgba(15,23,42,0.35)",
                         }}
@@ -869,15 +877,32 @@ function RoleSelectionPage() {
                         <div className="relative flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white shrink-0">
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.8"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                                />
                               </svg>
                             </div>
                             <div>
-                              <p className="text-white font-bold text-sm" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                              <p
+                                className="text-white font-bold text-sm"
+                                style={{
+                                  fontFamily: "Space Grotesk, sans-serif",
+                                }}
+                              >
                                 CRC Head
                               </p>
-                              <p className="text-white/50 text-[11px] mt-0.5">Full access — post, edit, manage</p>
+                              <p className="text-white/50 text-[11px] mt-0.5">
+                                Full access — post, edit, manage
+                              </p>
                             </div>
                           </div>
                           <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-white group-hover:rotate-45 transition-transform duration-300">
@@ -888,7 +913,9 @@ function RoleSelectionPage() {
 
                       {/* Placement Coordinator */}
                       <div
-                        onClick={() => handleSubRoleSelect("placement_coordinator")}
+                        onClick={() =>
+                          handleSubRoleSelect("placement_coordinator")
+                        }
                         className="group relative overflow-hidden rounded-2xl p-4 cursor-pointer transition-all duration-300 hover:-translate-y-0.5"
                         style={{
                           background: "#F8FAFC",
@@ -899,14 +926,24 @@ function RoleSelectionPage() {
                         <div className="absolute -bottom-4 -right-4 w-24 h-24 rounded-full bg-blue-400/10 blur-xl group-hover:scale-125 transition-transform duration-500" />
                         <div className="relative flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white shrink-0" style={{ background: "#1E293B" }}>
+                            <div
+                              className="w-9 h-9 rounded-xl flex items-center justify-center text-white shrink-0"
+                              style={{ background: "#1E293B" }}
+                            >
                               <BriefcaseIcon />
                             </div>
                             <div>
-                              <p className="text-[#1E293B] font-bold text-sm" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                              <p
+                                className="text-[#1E293B] font-bold text-sm"
+                                style={{
+                                  fontFamily: "Space Grotesk, sans-serif",
+                                }}
+                              >
                                 Placement Coordinator
                               </p>
-                              <p className="text-text-muted text-[11px] mt-0.5">View & download access only</p>
+                              <p className="text-text-muted text-[11px] mt-0.5">
+                                View & download access only
+                              </p>
                             </div>
                           </div>
                           <div className="w-7 h-7 rounded-full bg-[#F1F5F9] flex items-center justify-center text-[#1E293B] group-hover:rotate-45 group-hover:bg-primary group-hover:text-white transition-all duration-300">
