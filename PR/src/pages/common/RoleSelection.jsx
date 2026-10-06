@@ -94,9 +94,9 @@ function RoleCard({
       style={
         isDark
           ? {
-              background:
-                "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
-            }
+            background:
+              "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
+          }
           : {}
       }
     >
@@ -173,10 +173,9 @@ function RoleCard({
             <span
               key={tag}
               className={`px-3 py-1 rounded-full text-xs font-medium border
-                ${
-                  isDark
-                    ? "border-white/20 text-white/80 bg-white/5"
-                    : "border-[#CBD5E1] text-text-muted bg-background"
+                ${isDark
+                  ? "border-white/20 text-white/80 bg-white/5"
+                  : "border-[#CBD5E1] text-text-muted bg-background"
                 }
               `}
             >
@@ -304,7 +303,6 @@ function RoleSelectionPage() {
       });
 
       const data = await response.json();
-      console.log(data);
 
       if (!response.ok) {
         setError(data.message || "Login failed");
@@ -332,15 +330,9 @@ function RoleSelectionPage() {
       } else {
         localStorage.setItem("coordinator", JSON.stringify(data.coordinator));
         localStorage.setItem("subRole", modalRole);
-        localStorage.setItem("isFirstLogin", String(data.isFirstLogin));
-        localStorage.removeItem("coordEmailVerified");
-        if (data.isFirstLogin) {
-          navigate("/coordinator/verify-contact");
-        } else {
-          navigate("/coordinator/dashboard");
-        }
+        navigate("/coordinator/dashboard");
       }
-    } catch (err) { 
+    } catch (err) {
       setError("Unable to connect to the server");
     }
 
@@ -367,7 +359,7 @@ function RoleSelectionPage() {
       const data = await response.json();
       setForgotMessage(
         data.message ||
-          "If that email is registered, a reset link has been sent.",
+        "If that email is registered, a reset link has been sent.",
       );
     } catch (err) {
       setForgotMessage("Unable to connect to the server");
@@ -397,13 +389,7 @@ function RoleSelectionPage() {
               Hidden on phones (not enough room without crowding the heading); scales up from tablet to desktop. */}
           <div
             className="absolute right-0 select-none"
-            style={{
-              width: "46%",
-              maxWidth: "620px",
-              top: "180px",
-              height: "560px",
-              overflow: "hidden",
-            }}
+            style={{ width: "46%", maxWidth: "620px", top: "180px", height: "560px", overflow: "hidden" }}
           >
             <img
               src="/images/building.png"
@@ -558,53 +544,7 @@ function RoleSelectionPage() {
               </div>
             </div>
 
-            {/* Team Access — mobile/tablet entry point, mirrors the desktop "Team Access" card below */}
-            <button
-              type="button"
-              onClick={() => handleRoleSelect("coordinator")}
-              className="w-full max-w-sm flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-white/10 backdrop-blur border border-white/20 hover:bg-white/15 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <span className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white shrink-0">
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect width="20" height="14" x="2" y="7" rx="2" />
-                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-                  </svg>
-                </span>
-                <div className="text-left">
-                  <p className="text-white font-semibold text-sm leading-tight">
-                    Placement Team Access
-                  </p>
-                  <p className="text-white/50 text-[11px] mt-0.5">
-                    CRC Head & Coordinator login
-                  </p>
-                </div>
-              </div>
-              <span className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-white/70 shrink-0">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M7 7h10v10" />
-                  <path d="M7 17 17 7" />
-                </svg>
-              </span>
-            </button>
+
           </div>
 
           {/* Desktop — DBUU badge + Team Access side by side */}
@@ -774,70 +714,7 @@ function RoleSelectionPage() {
               </div>
             </div>
 
-            {/* Connector */}
-            <div className="flex items-center gap-1 shrink-0">
-              <div className="w-4 h-px bg-white/20" />
-              <div className="w-1.5 h-1.5 rounded-full bg-blue-400/60" />
-              <div className="w-4 h-px bg-white/20" />
-            </div>
 
-            {/* Team Access Card */}
-            <div
-              onClick={() => handleRoleSelect("coordinator")}
-              className="group relative overflow-hidden rounded-2xl cursor-pointer shrink-0"
-              style={{
-                background: "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                backdropFilter: "blur(20px)",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
-                width: "220px",
-              }}
-            >
-              {/* Pulse ring on border */}
-              <div
-                className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-                style={{ boxShadow: "0 0 0 1px rgba(59,130,246,0.6)" }}
-              />
-
-              {/* Header */}
-              <div className="relative flex items-center justify-between px-4 pt-4 pb-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-white shrink-0 group-hover:bg-white/20 transition-colors duration-300">
-                    <BriefcaseIcon />
-                  </div>
-                  <div>
-                    <p className="text-[9px] font-bold tracking-widest uppercase text-white/30">
-                      Placement Team
-                    </p>
-                    <p
-                      className="text-white font-bold text-sm leading-tight"
-                      style={{ fontFamily: "Space Grotesk, sans-serif" }}
-                    >
-                      Team Access
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Divider */}
-              <div className="h-px bg-white/8 mx-4" />
-
-              {/* Bottom CTA */}
-              <div className="px-3 pb-4 pt-3">
-                <p className="text-white/35 text-[11px] leading-relaxed mb-3 px-1">
-                  Manage drives, shortlist candidates, and track every student
-                  in one dashboard.
-                </p>
-                <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-white/10 border border-white/15 group-hover:bg-white/15 transition-colors duration-300">
-                  <span className="text-white font-semibold text-[11px] uppercase tracking-widest">
-                    Enter Portal
-                  </span>
-                  <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-white/70 group-hover:rotate-45 group-hover:bg-white/20 transition-all duration-300">
-                    <ArrowIcon />
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* H1 */}
@@ -878,17 +755,169 @@ function RoleSelectionPage() {
         </section>
 
         {/* Role Cards */}
-        <section className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 mt-10 sm:mt-16">
-          <div className="relative flex justify-center">
-            <div className="w-full max-w-lg">
+        <section className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 mt-10 sm:mt-16">
+          <div className="relative flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-2">
+            {/* Student Card */}
+            <div className="w-full max-w-lg lg:max-w-md lg:flex-1 z-10 lg:-translate-y-12">
               <RoleCard
                 icon={<GraduationIcon />}
+                number="01"
                 label="I'm a Student"
                 description="Browse drives, apply in clicks, and track every stage of your journey."
                 tags={["Live Drives", "Application Tracker", "Announcements"]}
                 variant="dark"
                 onSelect={() => handleRoleSelect("student")}
               />
+            </div>
+
+            {/* OR Divider */}
+            <div className="z-20 hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center justify-center shadow-2xl rounded-full">
+              <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-[0_10px_30px_-10px_rgba(15,23,42,0.3)] border border-[#E2E8F0]">
+                <span
+                  className="text-xs font-bold tracking-widest text-[#1E293B] uppercase select-none"
+                  style={{ fontFamily: "Space Grotesk, sans-serif" }}
+                >
+                  OR
+                </span>
+              </div>
+            </div>
+            
+            {/* Mobile OR Divider */}
+            <div className="z-20 flex lg:hidden items-center justify-center my-[-1.5rem] shadow-2xl rounded-full">
+              <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-[0_10px_30px_-10px_rgba(15,23,42,0.3)] border border-[#E2E8F0]">
+                <span
+                  className="text-xs font-bold tracking-widest text-[#1E293B] uppercase select-none"
+                  style={{ fontFamily: "Space Grotesk, sans-serif" }}
+                >
+                  OR
+                </span>
+              </div>
+            </div>
+
+            {/* Placement Team Card */}
+            <div className="w-full max-w-lg lg:max-w-md lg:flex-1 z-10 lg:translate-y-12">
+              {!showSubRoleModal ? (
+                <RoleCard
+                  icon={<BriefcaseIcon />}
+                  number="02"
+                  label="Placement Team"
+                  description="Manage drives, shortlist students, and coordinate with recruiters effortlessly."
+                  tags={["Drive Manager", "Analytics", "Student Database"]}
+                  variant="light"
+                  onSelect={() => setShowSubRoleModal(true)}
+                />
+              ) : (
+                /* Expanded sub-role selection — inline within the card area */
+                <div
+                  className="relative overflow-hidden rounded-3xl p-5 sm:p-8 text-[#1E293B] border border-[#CBD5E1] bg-white
+
+                    shadow-[0_20px_60px_-15px_rgba(59,130,246,0.25)] transition-all duration-500"
+                  style={{ animation: "fadeSlideUp 0.4s ease" }}
+                >
+                  {/* Watermark */}
+                  <span
+                    className="absolute top-4 right-6 font-bold select-none pointer-events-none text-[#1E293B] text-[4rem] sm:text-[8rem]"
+                    style={{ lineHeight: 1, opacity: 0.05, fontFamily: "Space Grotesk, sans-serif" }}
+                  >
+                    02
+                  </span>
+
+                  {/* Decorative Orb */}
+                  <div className="absolute -bottom-8 -right-8 w-48 h-48 rounded-full blur-2xl bg-blue-400/20" />
+
+                  {/* Top Row */}
+                  <div className="relative flex items-center justify-between mb-5">
+                    <div className="w-12 h-12 rounded-2xl bg-[#1E293B] text-white flex items-center justify-center">
+                      <BriefcaseIcon />
+                    </div>
+                    <button
+                      onClick={() => setShowSubRoleModal(false)}
+                      className="w-9 h-9 rounded-full bg-[#F1F5F9] flex items-center justify-center text-[#64748B] hover:bg-[#E2E8F0] transition-colors cursor-pointer"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  {/* Body */}
+                  <div className="relative">
+                    <p className="text-xs font-semibold tracking-widest uppercase text-primary mb-2">
+                      Placement Team
+                    </p>
+                    <h2
+                      className="text-2xl sm:text-3xl font-bold mb-2"
+                      style={{ fontFamily: "Space Grotesk, sans-serif" }}
+                    >
+                      Select your role
+                    </h2>
+                    <p className="text-sm text-text-muted mb-5">
+                      Choose the right access level to continue.
+                    </p>
+
+                    {/* Sub-role Options */}
+                    <div className="flex flex-col gap-3">
+                      {/* CRC Head */}
+                      <div
+                        onClick={() => handleSubRoleSelect("crc_head")}
+                        className="group relative overflow-hidden rounded-2xl p-4 cursor-pointer transition-all duration-300 hover:-translate-y-0.5"
+                        style={{
+                          background: "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
+                          border: "1px solid rgba(255,255,255,0.06)",
+                          boxShadow: "0 8px 24px -6px rgba(15,23,42,0.35)",
+                        }}
+                      >
+                        <div className="absolute -bottom-4 -right-4 w-24 h-24 rounded-full bg-blue-500/20 blur-xl group-hover:scale-125 transition-transform duration-500" />
+                        <div className="relative flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white shrink-0">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <p className="text-white font-bold text-sm" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                                CRC Head
+                              </p>
+                              <p className="text-white/50 text-[11px] mt-0.5">Full access — post, edit, manage</p>
+                            </div>
+                          </div>
+                          <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-white group-hover:rotate-45 transition-transform duration-300">
+                            <ArrowIcon />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Placement Coordinator */}
+                      <div
+                        onClick={() => handleSubRoleSelect("placement_coordinator")}
+                        className="group relative overflow-hidden rounded-2xl p-4 cursor-pointer transition-all duration-300 hover:-translate-y-0.5"
+                        style={{
+                          background: "#F8FAFC",
+                          border: "1.5px solid #CBD5E1",
+                          boxShadow: "0 4px 20px -4px rgba(15,23,42,0.1)",
+                        }}
+                      >
+                        <div className="absolute -bottom-4 -right-4 w-24 h-24 rounded-full bg-blue-400/10 blur-xl group-hover:scale-125 transition-transform duration-500" />
+                        <div className="relative flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white shrink-0" style={{ background: "#1E293B" }}>
+                              <BriefcaseIcon />
+                            </div>
+                            <div>
+                              <p className="text-[#1E293B] font-bold text-sm" style={{ fontFamily: "Space Grotesk, sans-serif" }}>
+                                Placement Coordinator
+                              </p>
+                              <p className="text-text-muted text-[11px] mt-0.5">View & download access only</p>
+                            </div>
+                          </div>
+                          <div className="w-7 h-7 rounded-full bg-[#F1F5F9] flex items-center justify-center text-[#1E293B] group-hover:rotate-45 group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                            <ArrowIcon />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -930,7 +959,7 @@ function RoleSelectionPage() {
         </div>
 
         {/* Recruiter access strip — modest size, not competing with the main role cards */}
-        <section className="relative z-10 max-w-4xl mx-auto px-6 mt-10">
+        <section className="relative z-10 max-w-4xl mx-auto px-6 mt-16 lg:mt-24">
           <Link
             to="/hr-login"
             className="flex items-center justify-between gap-4 bg-white rounded-2xl border border-[#CBD5E1] px-6 py-4 shadow-[0_10px_40px_-10px_rgba(15,23,42,0.1)] hover:-translate-y-0.5 hover:shadow-[0_15px_45px_-10px_rgba(59,130,246,0.2)] transition-all duration-300"
@@ -1292,131 +1321,6 @@ function RoleSelectionPage() {
         </footer>
       </div>
       {/* Login Modal */}
-      {/* Sub Role Modal */}
-      {showSubRoleModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div
-            className="rounded-3xl p-6 sm:p-8 w-full max-w-md mx-4"
-            style={{
-              background: "linear-gradient(145deg, #ffffff 0%, #f8faff 100%)",
-              boxShadow:
-                "0 25px 60px -15px rgba(15,23,42,0.2), 0 0 0 1px rgba(15,23,42,0.06)",
-            }}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <p className="text-xs font-semibold tracking-widest uppercase text-primary">
-                  Placement Team
-                </p>
-                <h3
-                  className="text-3xl font-bold text-[#0F172A] mt-1"
-                  style={{
-                    fontFamily: "Space Grotesk, sans-serif",
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  Who are you?
-                </h3>
-              </div>
-              <button
-                onClick={() => setShowSubRoleModal(false)}
-                className="w-9 h-9 rounded-full bg-[#F1F5F9] flex items-center justify-center text-[#64748B] hover:bg-[#E2E8F0] transition-colors cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <p className="text-sm text-text-muted mb-6">
-              Select your role to continue with the right access level.
-            </p>
-
-            <div className="flex flex-col gap-4">
-              <div
-                onClick={() => handleSubRoleSelect("crc_head")}
-                className="group relative overflow-hidden rounded-2xl p-5 cursor-pointer transition-all duration-300 hover:-translate-y-0.5"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #1e3a5f 100%)",
-                  border: "1px solid rgba(255,255,255,0.06)",
-                  boxShadow: "0 8px 24px -6px rgba(15,23,42,0.35)",
-                }}
-              >
-                <div className="absolute -bottom-6 -right-6 w-32 h-32 rounded-full bg-blue-500/20 blur-xl group-hover:scale-125 transition-transform duration-500" />
-                <div className="relative flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shrink-0">
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                        />
-                      </svg>
-                    </div>
-                    <div>
-                      <p
-                        className="text-white font-bold text-base"
-                        style={{ fontFamily: "Space Grotesk, sans-serif" }}
-                      >
-                        CRC Head
-                      </p>
-                      <p className="text-white/50 text-xs mt-0.5">
-                        Full access — post, edit, manage everything
-                      </p>
-                    </div>
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white group-hover:rotate-45 transition-transform duration-300">
-                    <ArrowIcon />
-                  </div>
-                </div>
-              </div>
-
-              <div
-                onClick={() => handleSubRoleSelect("placement_coordinator")}
-                className="group relative overflow-hidden rounded-2xl p-5 cursor-pointer transition-all duration-300 hover:-translate-y-0.5"
-                style={{
-                  background: "#ffffff",
-                  border: "1.5px solid #CBD5E1",
-                  boxShadow:
-                    "0 4px 20px -4px rgba(15,23,42,0.15), 0 0 0 1px rgba(15,23,42,0.04)",
-                }}
-              >
-                <div className="absolute -bottom-6 -right-6 w-32 h-32 rounded-full bg-blue-400/10 blur-xl group-hover:scale-125 transition-transform duration-500" />
-                <div className="relative flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0"
-                      style={{ background: "#1E293B" }}
-                    >
-                      <BriefcaseIcon />
-                    </div>
-                    <div>
-                      <p
-                        className="text-[#1E293B] font-bold text-base"
-                        style={{ fontFamily: "Space Grotesk, sans-serif" }}
-                      >
-                        Placement Coordinator
-                      </p>
-                      <p className="text-text-muted text-xs mt-0.5">
-                        View & download access only
-                      </p>
-                    </div>
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-[#F1F5F9] flex items-center justify-center text-[#1E293B] group-hover:rotate-45 group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                    <ArrowIcon />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
       {showModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-3xl p-5 sm:p-8 w-full max-w-md mx-4 shadow-2xl">

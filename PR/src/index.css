@@ -34,3 +34,13 @@
 .animate-float-slow-delayed { animation: float-slow 8s infinite 3s; }
 .animate-pulse-ring { animation: pulse-ring 2.5s infinite; }
 .animate-slide-up { animation: slide-up 0.8s ease-out; }
+
+@keyframes fadeSlideUp {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes dbuuGlow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
