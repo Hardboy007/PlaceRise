@@ -46,6 +46,14 @@ function AppRouter() {
           element={<ChangePasswordPage />}
         />
         <Route path="/student/verify-contact" element={<VerifyContactPage />} />
+        <Route
+          path="/coordinator/verify-contact"
+          element={<CoordinatorVerifyContactPage />}
+        />
+        <Route
+          path="/coordinator/change-password"
+          element={<CoordinatorChangePasswordPage />}
+        />
         <Route path="/" element={<RoleSelectionPage />} />
         <Route
           path="/student/onboarding"
@@ -89,16 +97,6 @@ function AppRouter() {
             </ProtectedRoute>
           }
         >
-          {/* First-login flow: verify email -> set password */}
-          <Route
-            path="verify-contact"
-            element={<CoordinatorVerifyContactPage />}
-          />
-          <Route
-            path="change-password"
-            element={<CoordinatorChangePasswordPage />}
-          />
-
           <Route path="dashboard" element={<CoordinatorDashboard />} />
           <Route path="students" element={<StudentDatabasePage />} />
           <Route path="jobs">
