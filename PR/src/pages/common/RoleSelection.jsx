@@ -772,21 +772,23 @@ function RoleSelectionPage() {
 
             {/* OR Divider */}
             <div className="z-20 hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center justify-center shadow-2xl rounded-full">
-              <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-[0_10px_30px_-10px_rgba(15,23,42,0.3)] border border-[#E2E8F0]">
+              <div className="relative w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-[0_10px_30px_-10px_rgba(15,23,42,0.3)] border border-[#E2E8F0]">
+                <div className="absolute inset-0 rounded-full border-2 border-blue-400 animate-pulse-ring-small" />
                 <span
-                  className="text-xs font-bold tracking-widest text-[#1E293B] uppercase select-none"
+                  className="relative text-xs font-bold tracking-widest text-[#1E293B] uppercase select-none z-10"
                   style={{ fontFamily: "Space Grotesk, sans-serif" }}
                 >
                   OR
                 </span>
               </div>
             </div>
-            
+
             {/* Mobile OR Divider */}
             <div className="z-20 flex lg:hidden items-center justify-center my-[-1.5rem] shadow-2xl rounded-full">
-              <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-[0_10px_30px_-10px_rgba(15,23,42,0.3)] border border-[#E2E8F0]">
+              <div className="relative w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-[0_10px_30px_-10px_rgba(15,23,42,0.3)] border border-[#E2E8F0]">
+                <div className="absolute inset-0 rounded-full border-2 border-blue-400 animate-pulse-ring-small" />
                 <span
-                  className="text-xs font-bold tracking-widest text-[#1E293B] uppercase select-none"
+                  className="relative text-xs font-bold tracking-widest text-[#1E293B] uppercase select-none z-10"
                   style={{ fontFamily: "Space Grotesk, sans-serif" }}
                 >
                   OR
